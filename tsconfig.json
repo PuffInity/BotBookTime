@@ -4,7 +4,7 @@
     "module": "NodeNext", // Модуль typescript
     "moduleResolution": "NodeNext", // Як шукати файли
     "outDir": "dist", // куди компілювати
-    "rootDir": "/src", // Робота дерикторія
+    "rootDir": "src", // Робоча дерикторія
     "esModuleInterop": true, // Робить сумісність модулів
     "forceConsistentCasingInFileNames": true, // Перевірка регістра
     "strict": true, // Строгість TypeScript
