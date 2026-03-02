@@ -11,6 +11,7 @@
     "node-cron": "^4.2.1",
     "pg": "^8.18.0",
     "postgres": "^3.4.8",
+    "redis": "^4.7.1",
     "telegraf": "^4.16.0",
     "winston": "^3.19.0",
     "winston-daily-rotate-file": "^5.0.0",
