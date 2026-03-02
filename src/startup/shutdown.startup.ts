@@ -67,6 +67,7 @@ export class Shutdown {
             return
         }
         this.isStopping = true
+        this.logger.info('[shutdown] Розпочато коректне завершення роботи', { signal })
 
         const app = this.app()
 
@@ -98,5 +99,10 @@ export class Shutdown {
 
 
         process.exitCode ??= 0
+        if (process.exitCode === 0) {
+            this.logger.info('[shutdown] Завершення роботи виконано успішно', { signal })
+        } else {
+            this.logger.warn('[shutdown] Завершення роботи виконано з помилками', { signal, exitCode: process.exitCode })
+        }
     }
 }

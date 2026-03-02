@@ -21,6 +21,7 @@ export class ProcessHandlers {
      * @summary Функція яка реєструє 4 події
      */
     public handlersProcess(){
+        this.logger.info('[process] Реєструємо обробники сигналів процесу')
         /**
          * SIGTERM - Подія яка викливається сторонім додатком по типу Docker або чимось іншим
          * викликає звичайне ретельне вимкнення сервера

@@ -8,23 +8,28 @@ import {handleError} from "./utils/error.utils.js";
 
 dotenv.config()
 try {
+    loggerInitApp.info('[bootstrap] Ініціалізація застосунку розпочата')
     const app = new StartApp(
         loggerInitApp,
         botInit,
     )
+    loggerInitApp.info('[bootstrap] StartApp створено')
 
     const shutdown = new Shutdown(
         loggerInitApp,
         () => app.getApp()
     )
+    loggerInitApp.info('[bootstrap] Shutdown створено')
 
 
     new ProcessHandlers(
         loggerInitApp,
         shutdown
     )
+    loggerInitApp.info('[bootstrap] Process handlers зареєстровано')
 
     await app.start()
+    loggerInitApp.info('[bootstrap] Bootstrap завершено успішно')
 
 } catch (error) {
     handleError({

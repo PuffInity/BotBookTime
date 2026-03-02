@@ -51,7 +51,9 @@ export class StartApp {
      */
     private async runStep(stepName: string, action: () => Promise<void>) {
         try {
+            this.logger.info(`[startup] Починаємо крок "${stepName}"`)
             await action()
+            this.logger.info(`[startup] Крок "${stepName}" завершено успішно`)
         } catch (error) {
             handleError({
                 logger: this.logger,
@@ -82,6 +84,7 @@ export class StartApp {
             return
         }
         this.starting = true
+        this.logger.info('[startup] Запуск застосунку розпочато')
 
 
         try {
@@ -109,5 +112,6 @@ export class StartApp {
 
 
         this.started = true
+        this.logger.info('[startup] Застосунок успішно запущено')
     }
 }

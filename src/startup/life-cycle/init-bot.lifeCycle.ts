@@ -26,12 +26,16 @@ export function botInit(redis: RedisClient, config: SessionConfig): AppInstance 
         throw new Error(initErrorMessage);
     }
 
+    loggerBotInit.info('[bot] Ініціалізація Telegram-бота розпочата')
+
     const sessionStore = createRedisSessionStore(redis, config);
+    loggerBotInit.info('[bot] Redis session store створено')
 
     const bot = createBot({
         token: botConfig.BOT_TOKEN,
         sessionStore,
     });
+    loggerBotInit.info('[bot] Інстанс Telegraf створено')
 
     const instance: AppInstance = {
         /**
@@ -42,8 +46,15 @@ export function botInit(redis: RedisClient, config: SessionConfig): AppInstance 
          */
         async start() {
             try {
-                await bot.telegram.getMe(); // Додаткова перевірка токена перед launch
+                loggerBotInit.info('[bot] Перевіряємо токен через getMe()')
+                const me = await bot.telegram.getMe(); // Додаткова перевірка токена перед launch
+                loggerBotInit.info('[bot] Токен валідний', {
+                    botId: me.id,
+                    username: me.username,
+                })
+                loggerBotInit.info('[bot] Викликаємо launch()')
                 await bot.launch();
+                loggerBotInit.info('[bot] launch() завершено успішно')
                 loggerBotInit.info('[bot] Telegram-бот запущено');
             } catch (error) {
                 handleError({
