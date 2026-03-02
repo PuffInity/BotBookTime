@@ -1,43 +1,47 @@
 import {pool, SHUTDOWN_TIMEOUT_MS,safeRelease,dbLogger} from "../../config/database.config.js";
+import type { PoolClient } from "pg";
 /**
  * @file database.lifeCycle.ts
  * @summary Файл яки відповідає за життя Postgresql
  */
 
-let poolClosed = false
+let poolStarted = false
 
 /**
  * @summary Функція яка вмикає Postgresql
  */
 export async function initDb(): Promise<void> {
-    if (poolClosed) {
-        dbLogger.warn('Postgresql уже запущений.')
+    if (poolStarted) {
+        dbLogger.warn('[postgres] Пул уже запущений, повторний старт проігноровано')
         return;
     }
-    /**
-     * client - Одне зʼєднання до бази
-     */
-    const client = await pool.connect();
-    poolClosed = true
+    let client: PoolClient | null = null;
     /**
      * broken Індикатор теперішнього стану
      */
     let broken = false;
     try {
+        /**
+         * client - Одне зʼєднання до бази
+         */
+        client = await pool.connect();
         /** Відправляємо тестовий запит та чекаємо відповіді якщо все пройшло успішно база підʼєднана */
         await client.query('SELECT 1');
-        dbLogger.info('Postgresql Підʼєднаний');
+        dbLogger.info('[postgres] Підключення успішне');
+        poolStarted = true
     } catch (err) {
         /**
          * broken: true - Встановлюємо true тобто зєʼднання бите
          */
         broken = true;
         const message = err instanceof Error ? err.message : String(err)
-        dbLogger.error('Помилка при спробі підключення до Postgresql', {message: message})
+        dbLogger.error('[postgres] Помилка підключення', {message: message})
         throw err
     } finally {
         /** В будь якому випадку(Чи помилка чи успіх) обовʼязково виконати цю дію */
-        safeRelease(client, broken)
+        if (client) {
+            safeRelease(client, broken)
+        }
     }
 }
 /**
@@ -45,8 +49,8 @@ export async function initDb(): Promise<void> {
  */
 export async function shutDownDb(): Promise<void> {
     /** Провірка чи postgresql працює чи вимкнута */
-    if (!poolClosed) {
-        dbLogger.info('Postgresql pool закритий');
+    if (!poolStarted) {
+        dbLogger.info('[postgres] Пул уже закритий');
         return
     }
     try {
@@ -56,10 +60,10 @@ export async function shutDownDb(): Promise<void> {
         );
         /** Створюємо гонку між функцією яка вимкне Postgresql та таймером який викличе помилку за 10 секнуд  */
         await Promise.race([pool.end(), timeout]);
-        poolClosed = true;
-        dbLogger.info('Postgresql pool Закритий')
+        poolStarted = false;
+        dbLogger.info('[postgres] Пул закрито')
     } catch (err) {
         const message = err instanceof Error ? err.message : String(err)
-        dbLogger.error('Виникла помилка при спробі вимкнення Postgresql', {message: message});
+        dbLogger.error('[postgres] Помилка вимкнення', {message: message});
     }
 }

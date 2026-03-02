@@ -1,8 +1,7 @@
 import {z} from 'zod'
 import dotenv from "dotenv";
-if (!process.env.DOCKER) {
-    dotenv.config({ path: ".env.local" });
-}
+dotenv.config();
+
 /**
  * @file database.schema.ts
  * @summary Файл валідації конфіга від ENV

@@ -63,7 +63,7 @@ export function safeRelease(client: PoolClient, broken: boolean) {
     try {
         (client as unknown as PoolClient & { release(broken?: boolean): void }).release(broken)
     } catch (error) {
-        dbLogger.warn('Не вдалося звільнити клієнта Postgresql', {error: (error as Error).message, broken})
+        dbLogger.warn('[postgres] Не вдалося звільнити клієнта', {error: (error as Error).message, broken})
     }
 }
 
@@ -112,11 +112,11 @@ pool.on('connect',async (client) => {
     try {
         await applyWithRetry(client,1, 150)
     }catch(error) {
-        dbLogger.error('Помилка при застосування обмежень бази', {error: (error as Error).message})
+        dbLogger.error('[postgres] Помилка застосування session defaults', {error: (error as Error).message})
         safeRelease(client,true)
     }
 })
 
 pool.on('error',(err) => {
-    dbLogger.error('Несподівана помилка клієнта Postgresql', {error: err.message});
+    dbLogger.error('[postgres] Несподівана помилка клієнта', {error: err.message});
 })
