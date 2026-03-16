@@ -4,6 +4,7 @@ import {fileURLToPath} from "node:url";
 import {pool} from "../config/database.config.js";
 import {MigrationTracker} from "./table.migration.js";
 import {Migration, migrationLogger} from "./base.migration.js";
+import {handleError} from "../utils/error.utils.js";
 
 
 /**
@@ -47,8 +48,13 @@ export class MigrationRunner {
             migrationLogger.info(`Було знайдено ${files.length} файл/файлів`)
             return files;
         } catch (error) {
-            const message = error instanceof Error ? error.message : String(error)
-            migrationLogger.error('Помилка при пошуку в дерикторії міграцій', {message: message})
+            handleError({
+                logger: migrationLogger,
+                scope: "migration-runner",
+                action: "Помилка пошуку файлів міграцій",
+                error,
+                meta: { migrationDir: this.MIGRATION_DIR },
+            })
             throw error
         }
     }
@@ -103,8 +109,13 @@ export class MigrationRunner {
             /** Повертаємо провірений та корректний варіант */
             return new migrationClass()
         } catch (error) {
-            const message = error instanceof Error ? error.message : String(error)
-            migrationLogger.error('Помилка з загрузкою міграцій', {message: message,})
+            handleError({
+                logger: migrationLogger,
+                scope: "migration-runner",
+                action: `Помилка завантаження міграції "${file}"`,
+                error,
+                meta: { migrationDir: this.MIGRATION_DIR },
+            })
             throw error
         }
     }
@@ -149,8 +160,12 @@ export class MigrationRunner {
                 }
             }
         }catch(error) {
-            const message = error instanceof Error ? error.message : String(error)
-            migrationLogger.error('Помилка при виконанні міграції', {message: message})
+            handleError({
+                logger: migrationLogger,
+                scope: "migration-runner",
+                action: "Помилка запуску міграцій",
+                error,
+            })
             throw error
         }
     }
@@ -187,8 +202,12 @@ export class MigrationRunner {
                 client.release()
             }
         }catch(error) {
-            const message = error instanceof Error ? error.message : String(error);
-            migrationLogger.error('Помилка при Rollback', {message: message})
+            handleError({
+                logger: migrationLogger,
+                scope: "migration-runner",
+                action: "Помилка rollback міграцій",
+                error,
+            })
             throw error;
         }
     }
@@ -219,8 +238,12 @@ export class MigrationRunner {
             const pendingCount = migrationFiles.length - executedMigrations.length
             migrationLogger.info(`Загалом:${migrationFiles.length}, Виконано:${executedMigrations.length} Очікується:${pendingCount}`)
         }catch(error) {
-            const message = error instanceof Error ? error.message : String(error)
-            migrationLogger.error('Помилка при будувані статуса для міграцій', {message:message})
+            handleError({
+                logger: migrationLogger,
+                scope: "migration-runner",
+                action: "Помилка отримання статусу міграцій",
+                error,
+            })
             throw error
         }
     }

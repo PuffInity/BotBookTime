@@ -1,5 +1,6 @@
 import {migrationLogger} from "./base.migration.js";
 import {pool} from "../config/database.config.js";
+import {handleError} from "../utils/error.utils.js";
 
 /**
  * @file table.migration.ts
@@ -38,8 +39,12 @@ export class MigrationTracker {
             /** Завершуємо транзакцію */
             await client.query(`COMMIT`)
         } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            migrationLogger.error(`Помилка при створенні таблиці маграцій - ${this.TABLE_NAME}`, {message: message})
+            handleError({
+                logger: migrationLogger,
+                scope: "migration-tracker",
+                action: `Помилка створення таблиці міграцій ${this.TABLE_NAME}`,
+                error,
+            })
             /** Якщо виникла помилка робимо Rollback та повертаємо до початкового стану транзакції */
             await client.query(`ROLLBACK`)
             throw error
@@ -67,8 +72,12 @@ export class MigrationTracker {
             /** Повертаємо масив в якому зберігаються тільки готові міграції */
             return result.rows.map((row: {filename: string}) => row.filename)
         } catch (error) {
-            const message = error instanceof Error ? error.message : String(error)
-            migrationLogger.error(`Виникла помилка при виконанні SQL запиту дляя отримання всіх Міграцій з таблиці -  ${this.TABLE_NAME}`, {message: message})
+            handleError({
+                logger: migrationLogger,
+                scope: "migration-tracker",
+                action: `Помилка отримання виконаних міграцій з ${this.TABLE_NAME}`,
+                error,
+            })
             throw error
         } finally {
             /** В любому випадку (Помилка чи успіх) ми виконуємо client.release - Повертаємо зʼєднання базі  */
@@ -96,8 +105,13 @@ export class MigrationTracker {
             /** Закінчуємо міграцію */
             await client.query(`COMMIT`)
         } catch (error) {
-            const message = error instanceof Error ? error.message : String(error)
-            migrationLogger.error('Помилка при записі готової міграції в таблицю міграцій', {message: message})
+            handleError({
+                logger: migrationLogger,
+                scope: "migration-tracker",
+                action: "Помилка запису виконаної міграції",
+                error,
+                meta: { filename },
+            })
             /** Якщо виникла помилка повертаємо міграцію в початковий стан  */
             await client.query(`ROLLBACK`)
             throw error
@@ -128,8 +142,13 @@ export class MigrationTracker {
             /** Закінчуємо транзакцію */
             await client.query(`COMMIT`)
         } catch (error) {
-            const message = error instanceof Error ? error.message : String(error)
-            migrationLogger.error(`Помилка при видаленні [${filename}] from [${this.TABLE_NAME}]`, {message: message})
+            handleError({
+                logger: migrationLogger,
+                scope: "migration-tracker",
+                action: `Помилка видалення міграції ${filename} з ${this.TABLE_NAME}`,
+                error,
+                meta: { filename },
+            })
             /** Якщо виникла помилка повертаємо міграцію в початковий стан  */
             await client.query(`ROLLBACK`)
             throw error

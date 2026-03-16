@@ -1,5 +1,6 @@
 import {MigrationRunner} from "./runner.migration.js";
 import {migrationLogger} from "./base.migration.js";
+import {handleError} from "../utils/error.utils.js";
 
 const COMMANDS = {
     MIGRATE: 'migrate',
@@ -59,8 +60,12 @@ async function main() {
         migrationLogger.info('Міграція закінчила роботу успішно');
 
     }catch (error) {
-        const message = error instanceof Error ? error.message : String(error)
-        migrationLogger.error('Виникла помилка при запуску міграцій', { message })
+        handleError({
+            logger: migrationLogger,
+            scope: "migration-cli",
+            action: "Виникла помилка при запуску міграцій",
+            error,
+        })
         throw error
     }
 }

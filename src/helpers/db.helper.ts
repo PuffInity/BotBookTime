@@ -1,5 +1,6 @@
-import {pool} from "../config/database.config.js";
+import {dbLogger, pool} from "../config/database.config.js";
 import {PoolClient, QueryResultRow} from "pg";
+import {handleError} from "../utils/error.utils.js";
 
 /**
  * @file db.helper.ts
@@ -160,7 +161,24 @@ export async function withTransaction<T> (
         await client.query('COMMIT')
         return result;
     }catch(error) {
-        await client.query('ROLLBACK')
+        try {
+            await client.query('ROLLBACK')
+        } catch (rollbackError) {
+            handleError({
+                logger: dbLogger,
+                scope: "db-helper",
+                action: "Помилка rollback транзакції",
+                error: rollbackError,
+                meta: { id },
+            })
+        }
+        handleError({
+            logger: dbLogger,
+            scope: "db-helper",
+            action: "Помилка транзакції",
+            error,
+            meta: { id },
+        })
         throw error;
     }finally {
         client.release()

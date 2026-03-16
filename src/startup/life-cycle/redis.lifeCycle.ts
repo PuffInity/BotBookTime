@@ -2,6 +2,7 @@ import {redisConfig} from "../../config/redis.config.js";
 import {RedisClient} from "../../types/redis.types.js"
 import {loggerR} from "../../utils/logger/loggers-list.js";
 import {createClient} from "redis";
+import {handleError} from "../../utils/error.utils.js";
 
 /**
  * @file redis.lifeCycle.ts
@@ -24,7 +25,12 @@ function attachLogs(client: RedisClient) {
     });
     /** Якщо виникла помилка в Redis */
     client.on('error', (error: unknown) => {
-        loggerR.error('[redis] Помилка клієнта', {message: error instanceof Error ? error.message : String(error)})
+        handleError({
+            logger: loggerR,
+            scope: "redis-lifecycle",
+            action: "Подія error у Redis-клієнта",
+            error,
+        })
     });
     /** Якщо Redis переподключається */
     client.on('reconnecting', () => {
@@ -92,8 +98,12 @@ export async function initRedis() {
         redisStarted = true
         loggerR.info('[redis] Клієнт успішно запущений')
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error)
-        loggerR.error('[redis] Помилка запуску клієнта', {message})
+        handleError({
+            logger: loggerR,
+            scope: "redis-lifecycle",
+            action: "Помилка запуску Redis-клієнта",
+            error,
+        })
         throw error
     }
 }
@@ -124,15 +134,25 @@ export async function redisShutdown(): Promise<void> {
             loggerR.info(`[${label}] quit() успішно`);
 
         } catch (error: unknown) {
-            const message = error instanceof Error ? error.message : String(error);
-            loggerR.error(`[${label}] Помилка quit(), виконуємо disconnect()`, {message: message});
+            handleError({
+                logger: loggerR,
+                scope: "redis-lifecycle",
+                action: `Помилка quit() для ${label}, виконуємо disconnect()`,
+                error,
+                meta: { label },
+            })
             try {
                 /** Викликаємо метод disconnect() */
                 await cl.disconnect();
                 loggerR.warn(`[${label}] disconnect() успішно`);
             } catch (err: unknown) {
-                const mess = err instanceof Error ? err.message : String(err);
-                loggerR.error(`[${label}] Помилка disconnect()`, {message: mess});
+                handleError({
+                    logger: loggerR,
+                    scope: "redis-lifecycle",
+                    action: `Помилка disconnect() для ${label}`,
+                    error: err,
+                    meta: { label },
+                })
             }
         }
     };

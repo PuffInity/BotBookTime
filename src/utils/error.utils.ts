@@ -1,5 +1,6 @@
 import { ZodError } from "zod";
 import type { ILogger } from "./logger/types.logger.js";
+import {createAppLogger} from "./logger/logger.js";
 
 /**
  * @file error.utils.ts
@@ -11,6 +12,7 @@ import type { ILogger } from "./logger/types.logger.js";
  */
 
 type ErrorLogLevel = "warn" | "error";
+const errorUtilsLogger = createAppLogger({service: "error-utils"});
 
 /**
  * Нормалізована форма помилки для логування/телеметрії.
@@ -303,7 +305,16 @@ export function asyncHandler<C extends BotContextLike>(handler: BotHandler<C>) {
         try {
             await handler(ctx);
         } catch (error) {
-            throw normalizeError(error);
+            const normalizedError = normalizeError(error);
+            handleError({
+                logger: errorUtilsLogger,
+                level: normalizedError.statusCode >= 500 ? "error" : "warn",
+                scope: "error-utils",
+                action: "Помилка в asyncHandler Telegraf",
+                error: normalizedError,
+                meta: { updateType: ctx.updateType },
+            });
+            throw normalizedError;
         }
     };
 }

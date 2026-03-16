@@ -2,6 +2,7 @@ import {Pool} from 'pg'
 import {dbConfig} from "../validator/database.schema.js";
 import {createAppLogger} from "../utils/logger/logger.js";
 import {PoolClient} from "pg";
+import {handleError} from "../utils/error.utils.js";
 
 /**
  * @file database.config.ts
@@ -63,7 +64,14 @@ export function safeRelease(client: PoolClient, broken: boolean) {
     try {
         (client as unknown as PoolClient & { release(broken?: boolean): void }).release(broken)
     } catch (error) {
-        dbLogger.warn('[postgres] Не вдалося звільнити клієнта', {error: (error as Error).message, broken})
+        handleError({
+            logger: dbLogger,
+            level: "warn",
+            scope: "postgres-config",
+            action: "Не вдалося звільнити клієнта",
+            error,
+            meta: { broken },
+        })
     }
 }
 
@@ -97,6 +105,14 @@ async function applyWithRetry(client: PoolClient, retries = 1,delayMs = 150) {
             return;
         }catch(error) {
             lastErr = error
+            handleError({
+                logger: dbLogger,
+                level: "warn",
+                scope: "postgres-config",
+                action: "Не вдалося застосувати session defaults",
+                error,
+                meta: { attempt: attempt + 1, retries: retries + 1, delayMs },
+            })
             if(attempt === retries) break;
             await new Promise(r =>setTimeout(r, delayMs * (attempt + 1)))
         }
@@ -112,11 +128,21 @@ pool.on('connect',async (client) => {
     try {
         await applyWithRetry(client,1, 150)
     }catch(error) {
-        dbLogger.error('[postgres] Помилка застосування session defaults', {error: (error as Error).message})
+        handleError({
+            logger: dbLogger,
+            scope: "postgres-config",
+            action: "Помилка застосування session defaults під час pool.connect",
+            error,
+        })
         safeRelease(client,true)
     }
 })
 
 pool.on('error',(err) => {
-    dbLogger.error('[postgres] Несподівана помилка клієнта', {error: err.message});
+    handleError({
+        logger: dbLogger,
+        scope: "postgres-config",
+        action: "Несподівана помилка клієнта пулу",
+        error: err,
+    })
 })

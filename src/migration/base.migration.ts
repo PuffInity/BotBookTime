@@ -1,5 +1,6 @@
 import { PoolClient, QueryResult, QueryResultRow} from "pg";
 import {createAppLogger} from "../utils/logger/logger.js";
+import {handleError} from "../utils/error.utils.js";
 
 /**
  * @file base.migration.ts
@@ -25,8 +26,16 @@ export abstract class BaseMigration implements Migration {
             migrationLogger.info('SQL запит був виконаний', {rowCount: result.rowCount})
             return result;
         }catch(error) {
-            const message = error instanceof Error ? error.message : String(error);
-            migrationLogger.error('error executing query', {message: message, query: query, params: params})
+            handleError({
+                logger: migrationLogger,
+                scope: "migration-base",
+                action: "Помилка виконання SQL запиту",
+                error,
+                meta: {
+                    query,
+                    params,
+                },
+            })
             throw error
         }
     }

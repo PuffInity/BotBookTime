@@ -1,5 +1,6 @@
 import {pool, SHUTDOWN_TIMEOUT_MS,safeRelease,dbLogger} from "../../config/database.config.js";
 import type { PoolClient } from "pg";
+import {handleError} from "../../utils/error.utils.js";
 /**
  * @file database.lifeCycle.ts
  * @summary Файл яки відповідає за життя Postgresql
@@ -34,8 +35,12 @@ export async function initDb(): Promise<void> {
          * broken: true - Встановлюємо true тобто зєʼднання бите
          */
         broken = true;
-        const message = err instanceof Error ? err.message : String(err)
-        dbLogger.error('[postgres] Помилка підключення', {message: message})
+        handleError({
+            logger: dbLogger,
+            scope: "postgres-lifecycle",
+            action: "Помилка підключення Postgresql",
+            error: err,
+        })
         throw err
     } finally {
         /** В будь якому випадку(Чи помилка чи успіх) обовʼязково виконати цю дію */
@@ -63,7 +68,11 @@ export async function shutDownDb(): Promise<void> {
         poolStarted = false;
         dbLogger.info('[postgres] Пул закрито')
     } catch (err) {
-        const message = err instanceof Error ? err.message : String(err)
-        dbLogger.error('[postgres] Помилка вимкнення', {message: message});
+        handleError({
+            logger: dbLogger,
+            scope: "postgres-lifecycle",
+            action: "Помилка вимкнення Postgresql",
+            error: err,
+        })
     }
 }
