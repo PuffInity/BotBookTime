@@ -1,6 +1,6 @@
-import { createAppLogger } from "../utils/logger/logger.js";
 import {redisSchemaConfig} from "../validator/redis.schema.js";
 import {BaseConfig,SessionConfig,ParamsForBaseConfig} from "../types/redis.types.js";
+import {loggerRedisConfig} from "../utils/logger/loggers-list.js";
 
 /**
  * @file redis.config.ts
@@ -8,7 +8,7 @@ import {BaseConfig,SessionConfig,ParamsForBaseConfig} from "../types/redis.types
  */
 
 /** Логер для подій конфігурації/перепідключення Redis. */
-export const redisLogger = createAppLogger({service: 'Redis'});
+export const redisLogger = loggerRedisConfig;
 
 /**
  * @summary Створюємо функцію яка буде повертати обʼєкт готового конфігу

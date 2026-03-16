@@ -1,6 +1,6 @@
 import { ZodError } from "zod";
 import type { ILogger } from "./logger/types.logger.js";
-import {createAppLogger} from "./logger/logger.js";
+import {loggerErrorUtils} from "./logger/loggers-list.js";
 
 /**
  * @file error.utils.ts
@@ -12,7 +12,7 @@ import {createAppLogger} from "./logger/logger.js";
  */
 
 type ErrorLogLevel = "warn" | "error";
-const errorUtilsLogger = createAppLogger({service: "error-utils"});
+const errorUtilsLogger = loggerErrorUtils;
 
 /**
  * Нормалізована форма помилки для логування/телеметрії.

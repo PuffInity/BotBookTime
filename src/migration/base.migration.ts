@@ -1,13 +1,13 @@
 import { PoolClient, QueryResult, QueryResultRow} from "pg";
-import {createAppLogger} from "../utils/logger/logger.js";
 import {handleError} from "../utils/error.utils.js";
+import {loggerMigration} from "../utils/logger/loggers-list.js";
 
 /**
  * @file base.migration.ts
  * @summary Файл який виконує одну з гол
  */
 
-export const migrationLogger = createAppLogger({service: 'Migration'})
+export const migrationLogger = loggerMigration
 
 export interface Migration {
     up(pool: PoolClient): Promise<void>;

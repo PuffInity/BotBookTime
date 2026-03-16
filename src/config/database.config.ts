@@ -1,8 +1,8 @@
 import {Pool} from 'pg'
 import {dbConfig} from "../validator/database.schema.js";
-import {createAppLogger} from "../utils/logger/logger.js";
 import {PoolClient} from "pg";
 import {handleError} from "../utils/error.utils.js";
+import {loggerDb} from "../utils/logger/loggers-list.js";
 
 /**
  * @file database.config.ts
@@ -53,7 +53,7 @@ export const SHUTDOWN_TIMEOUT_MS = 10000
 
 
 
-export const dbLogger = createAppLogger({service: 'DataBase',appName: dbConfig.APP_NAME});
+export const dbLogger = loggerDb;
 
 /**
  * @summary safeRelease - Функція яка встановлює статус 1 зʼднання
