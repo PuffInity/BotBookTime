@@ -13,3 +13,6 @@ export const loggerBotInit = createAppLogger({service: 'init-bot'})
 
 /** Логер bootstrap/startup рівня застосунку. */
 export const loggerInitApp = createAppLogger({service: 'init-app'})
+
+/** Логер для helper-рівня роботи з базою даних. */
+export const helperLogger = createAppLogger({service: 'Helper-DB'})
