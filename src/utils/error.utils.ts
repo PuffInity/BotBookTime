@@ -1,13 +1,15 @@
+import { ZodError } from "zod";
 import type { ILogger } from "./logger/types.logger.js";
 
 /**
  * @file error.utils.ts
- * @summary Утиліти для нормалізації та єдиного логування помилок.
+ * @summary Єдиний модуль системи помилок:
+ * - доменні AppError-класи,
+ * - нормалізація Zod/PG/unknown,
+ * - Telegraf-сумісні helper-и (`asyncHandler`, `createTelegrafErrorHandler`),
+ * - централізоване логування помилок.
  */
 
-/**
- * Рівень логу для централізованого обробника помилок.
- */
 type ErrorLogLevel = "warn" | "error";
 
 /**
@@ -24,28 +26,142 @@ export type AdaptedError = {
 };
 
 /**
+ * Коди доменних API-помилок.
+ */
+export const ERROR_CODE = {
+    VALIDATION_ERROR: "VALIDATION_ERROR",
+    DATABASE_ERROR: "DATABASE_ERROR",
+    DATABASE_UNIQUE_VIOLATION: "DATABASE_UNIQUE_VIOLATION",
+    DATABASE_FOREIGN_KEY_VIOLATION: "DATABASE_FOREIGN_KEY_VIOLATION",
+    DATABASE_NOT_NULL_VIOLATION: "DATABASE_NOT_NULL_VIOLATION",
+    AUTHENTICATION_ERROR: "AUTHENTICATION_ERROR",
+    AUTHORIZATION_ERROR: "AUTHORIZATION_ERROR",
+    NOT_FOUND: "NOT_FOUND",
+    EXTERNAL_SERVICE_ERROR: "EXTERNAL_SERVICE_ERROR",
+    INTERNAL_SERVER_ERROR: "INTERNAL_SERVER_ERROR",
+} as const;
+
+export type ErrorCode = (typeof ERROR_CODE)[keyof typeof ERROR_CODE];
+
+/**
+ * Базова прикладна помилка.
+ */
+export class AppError extends Error {
+    readonly statusCode: number;
+    readonly code: ErrorCode | string;
+    readonly metadata?: Record<string, unknown>;
+    readonly isOperational: boolean;
+
+    constructor({
+        message,
+        statusCode,
+        code,
+        metadata,
+        cause,
+        isOperational = true,
+    }: {
+        message: string;
+        statusCode: number;
+        code: ErrorCode | string;
+        metadata?: Record<string, unknown>;
+        cause?: unknown;
+        isOperational?: boolean;
+    }) {
+        super(message, { cause });
+        this.name = this.constructor.name;
+        this.statusCode = statusCode;
+        this.code = code;
+        this.metadata = metadata;
+        this.isOperational = isOperational;
+    }
+}
+
+export class ValidationError extends AppError {
+    constructor(message = "Invalid request data", metadata?: Record<string, unknown>, cause?: unknown) {
+        super({ message, statusCode: 400, code: ERROR_CODE.VALIDATION_ERROR, metadata, cause });
+    }
+}
+
+export class DatabaseError extends AppError {
+    constructor(
+        message = "Database operation failed",
+        metadata?: Record<string, unknown>,
+        cause?: unknown,
+        code: ErrorCode | string = ERROR_CODE.DATABASE_ERROR,
+        statusCode = 500,
+    ) {
+        super({ message, statusCode, code, metadata, cause });
+    }
+}
+
+export class AuthenticationError extends AppError {
+    constructor(message = "Authentication required", metadata?: Record<string, unknown>, cause?: unknown) {
+        super({ message, statusCode: 401, code: ERROR_CODE.AUTHENTICATION_ERROR, metadata, cause });
+    }
+}
+
+export class AuthorizationError extends AppError {
+    constructor(message = "Access denied", metadata?: Record<string, unknown>, cause?: unknown) {
+        super({ message, statusCode: 403, code: ERROR_CODE.AUTHORIZATION_ERROR, metadata, cause });
+    }
+}
+
+export class NotFoundError extends AppError {
+    constructor(message = "Resource not found", metadata?: Record<string, unknown>, cause?: unknown) {
+        super({ message, statusCode: 404, code: ERROR_CODE.NOT_FOUND, metadata, cause });
+    }
+}
+
+export class ExternalServiceError extends AppError {
+    constructor(message = "External service request failed", metadata?: Record<string, unknown>, cause?: unknown) {
+        super({ message, statusCode: 502, code: ERROR_CODE.EXTERNAL_SERVICE_ERROR, metadata, cause });
+    }
+}
+
+export class InternalServerError extends AppError {
+    constructor(message = "Internal Server Error", metadata?: Record<string, unknown>, cause?: unknown) {
+        super({
+            message,
+            statusCode: 500,
+            code: ERROR_CODE.INTERNAL_SERVER_ERROR,
+            metadata,
+            cause,
+            isOperational: false,
+        });
+    }
+}
+
+/**
+ * Мінімальний Telegraf-like контекст, достатній для логування та відповіді користувачу.
+ */
+export type BotContextLike = {
+    updateType?: string;
+    from?: { id?: number; username?: string };
+    chat?: { id?: number; type?: string };
+    update?: unknown;
+    reply?: (text: string) => Promise<unknown>;
+};
+
+/**
+ * Async обробник Telegraf-команди/сцени.
+ */
+export type BotHandler<C extends BotContextLike = BotContextLike> = (ctx: C) => Promise<unknown>;
+export type BotCatchHandler<C extends BotContextLike = BotContextLike> = (error: unknown, ctx: C) => Promise<void>;
+
+/**
  * Вхідні параметри для `handleError`.
  */
 export type HandleErrorInput = {
-    /** Логер із необхідними рівнями */
     logger: Pick<ILogger, "warn" | "error">;
-    /** Рівень логування (`error` за замовчуванням) */
     level?: ErrorLogLevel;
-    /** Логічна область, наприклад `startup`, `shutdown`, `bot` */
     scope: string;
-    /** Опис дії/контексту, де сталася помилка */
     action: string;
-    /** Первинна помилка будь-якого типу */
     error: unknown;
-    /** Додатковий контекст для структурованого логу */
     meta?: Record<string, unknown>;
 };
 
 /**
- * Перетворює `unknown` помилку у стабільний структурований об'єкт.
- *
- * @param error Первинна помилка з `catch`.
- * @returns Нормалізований об'єкт помилки.
+ * Нормалізатор помилки з `catch` у стабільний об'єкт для логування.
  */
 export function adapterError(error: unknown): AdaptedError {
     if (error instanceof Error) {
@@ -70,20 +186,11 @@ export function adapterError(error: unknown): AdaptedError {
         };
     }
 
-    return {
-        message: String(error),
-        raw: error,
-    };
+    return { message: String(error), raw: error };
 }
 
 /**
  * Єдина точка логування помилок у проєкті.
- *
- * Формує стандартизоване повідомлення виду `[scope] action`,
- * логує нормалізовану помилку та повертає її для подальшої обробки.
- *
- * @param input Параметри логування.
- * @returns Нормалізована помилка (`AdaptedError`).
  */
 export function handleError({
     logger,
@@ -95,7 +202,204 @@ export function handleError({
 }: HandleErrorInput): AdaptedError {
     const err = adapterError(error);
     const message = `[${scope}] ${action}`;
-
     logger[level](message, { err, ...meta });
     return err;
+}
+
+type PgLikeError = {
+    code?: string;
+    message?: string;
+    detail?: string;
+    table?: string;
+    column?: string;
+    constraint?: string;
+    schema?: string;
+};
+
+function isPgLikeError(error: unknown): error is PgLikeError {
+    if (!error || typeof error !== "object") return false;
+    const candidate = error as { code?: unknown };
+    return typeof candidate.code === "string";
+}
+
+/**
+ * Перетворює Zod-помилку у `ValidationError`.
+ */
+export function normalizeZodError(error: ZodError): ValidationError {
+    const issues = error.issues.map((issue) => ({
+        path: issue.path.join("."),
+        message: issue.message,
+        code: issue.code,
+    }));
+    const first = issues[0]?.message ?? "Invalid request data";
+    return new ValidationError(first, { issues }, error);
+}
+
+/**
+ * Перетворює типові помилки PostgreSQL (`pg`) у безпечні AppError.
+ */
+export function normalizePgError(error: unknown): AppError | null {
+    if (!isPgLikeError(error)) return null;
+
+    const metadata: Record<string, unknown> = {
+        table: error.table,
+        column: error.column,
+        constraint: error.constraint,
+        schema: error.schema,
+    };
+
+    switch (error.code) {
+        case "23505":
+            return new DatabaseError(
+                "Duplicate value violates unique constraint",
+                metadata,
+                error,
+                ERROR_CODE.DATABASE_UNIQUE_VIOLATION,
+                409,
+            );
+        case "23503":
+            return new DatabaseError(
+                "Related entity does not exist",
+                metadata,
+                error,
+                ERROR_CODE.DATABASE_FOREIGN_KEY_VIOLATION,
+                409,
+            );
+        case "23502":
+            return new DatabaseError(
+                "Required field is missing",
+                metadata,
+                error,
+                ERROR_CODE.DATABASE_NOT_NULL_VIOLATION,
+                400,
+            );
+        default:
+            return new DatabaseError("Database operation failed", metadata, error);
+    }
+}
+
+/**
+ * Нормалізує `unknown` у цільовий `AppError`.
+ */
+export function normalizeError(error: unknown): AppError {
+    if (error instanceof AppError) return error;
+    if (error instanceof ZodError) return normalizeZodError(error);
+
+    const pgMapped = normalizePgError(error);
+    if (pgMapped) return pgMapped;
+
+    if (error instanceof Error) {
+        return new InternalServerError("Internal Server Error", { originalName: error.name }, error);
+    }
+    return new InternalServerError("Internal Server Error", { raw: error });
+}
+
+/**
+ * Обгортка для async-обробників Telegraf без ручного `try/catch`.
+ * Помилка нормалізується і пробрасывается в `bot.catch(...)`.
+ */
+export function asyncHandler<C extends BotContextLike>(handler: BotHandler<C>) {
+    return async (ctx: C): Promise<void> => {
+        try {
+            await handler(ctx);
+        } catch (error) {
+            throw normalizeError(error);
+        }
+    };
+}
+
+/**
+ * Явний alias під Telegraf, щоб код був читабельнішим.
+ */
+export const asyncBotHandler = asyncHandler;
+
+const SENSITIVE_KEYS = [
+    "password",
+    "pass",
+    "token",
+    "authorization",
+    "cookie",
+    "cookies",
+    "phone",
+    "email",
+    "secret",
+];
+
+function sanitizeValue(input: unknown): unknown {
+    if (input === null || input === undefined) return input;
+    if (typeof input !== "object") return input;
+    if (Array.isArray(input)) return input.map(sanitizeValue);
+
+    const obj = input as Record<string, unknown>;
+    const result: Record<string, unknown> = {};
+
+    for (const [key, value] of Object.entries(obj)) {
+        const isSensitive = SENSITIVE_KEYS.some((s) => key.toLowerCase().includes(s));
+        result[key] = isSensitive ? "[REDACTED]" : sanitizeValue(value);
+    }
+    return result;
+}
+
+function getBotUserMessage(error: AppError, isProduction: boolean): string {
+    if (!isProduction) return error.message;
+    if (error.statusCode >= 500) return "Сталася внутрішня помилка. Спробуйте ще раз пізніше.";
+    return error.message;
+}
+
+/**
+ * Фабрика глобального обробника помилок Telegraf (`bot.catch`).
+ */
+export function createTelegrafErrorHandler<C extends BotContextLike>({
+    logger,
+    env = process.env.NODE_ENV ?? "development",
+    replyToUser = true,
+}: {
+    logger: Pick<ILogger, "warn" | "error">;
+    env?: string;
+    replyToUser?: boolean;
+}): BotCatchHandler<C> {
+    const isProduction = env === "production";
+
+    return async (error: unknown, ctx: C): Promise<void> => {
+        const appError = normalizeError(error);
+
+        const ctxMeta = sanitizeValue({
+            updateType: ctx.updateType,
+            from: {
+                id: ctx.from?.id,
+                username: ctx.from?.username,
+            },
+            chat: {
+                id: ctx.chat?.id,
+                type: ctx.chat?.type,
+            },
+        });
+
+        handleError({
+            logger,
+            level: appError.statusCode >= 500 ? "error" : "warn",
+            scope: "bot",
+            action: `Помилка обробки update (${ctx.updateType ?? "unknown"})`,
+            error: appError,
+            meta: {
+                code: appError.code,
+                statusCode: appError.statusCode,
+                context: ctxMeta as Record<string, unknown>,
+            },
+        });
+
+        if (!replyToUser || typeof ctx.reply !== "function") return;
+
+        try {
+            await ctx.reply(getBotUserMessage(appError, isProduction));
+        } catch (replyError) {
+            handleError({
+                logger,
+                level: "warn",
+                scope: "bot",
+                action: "Не вдалося відправити повідомлення користувачу після помилки",
+                error: replyError,
+            });
+        }
+    };
 }
