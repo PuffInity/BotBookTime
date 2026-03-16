@@ -6,9 +6,11 @@
     "build": "tsc"
   },
   "dependencies": {
+    "@types/nodemailer": "^7.0.11",
     "dayjs": "^1.11.19",
     "dotenv": "^16.0.0",
     "node-cron": "^4.2.1",
+    "nodemailer": "^8.0.2",
     "pg": "^8.18.0",
     "postgres": "^3.4.8",
     "redis": "^4.7.1",
