@@ -4,6 +4,11 @@ import type { Telegraf } from 'telegraf';
 import { asyncBotHandler } from '../../utils/error.utils.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
 import { CLIENT_MAIN_MENU_BUTTON } from '../../types/bot-menu.types.js';
+import { telegramUserIdSchema } from '../../validator/bot-input.schema.js';
+import {
+  formatClientProfileText,
+  getClientProfileByTelegramUserId,
+} from '../../helpers/bot/profile.bot.js';
 
 /**
  * @file common.commands.ts
@@ -69,11 +74,22 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
   bot.hears(
     CLIENT_MAIN_MENU_BUTTON.PROFILE,
     asyncBotHandler(async (ctx) => {
-      await ctx.reply(
-        '👤 Профіль\n' +
-          'Блок профілю в MVP зараз у режимі read-only.\n' +
-          'На наступному етапі підключимо дані з БД.',
-      );
+      const parsedTelegramId = telegramUserIdSchema.safeParse(ctx.from?.id);
+      if (!parsedTelegramId.success) {
+        await ctx.reply('Не вдалося ідентифікувати користувача. Спробуйте ще раз.');
+        return;
+      }
+
+      const profile = await getClientProfileByTelegramUserId(parsedTelegramId.data);
+      if (!profile) {
+        await ctx.reply(
+          'Профіль ще не знайдено в системі.\n' +
+            'На наступному етапі додамо автоматичну реєстрацію користувача.',
+        );
+        return;
+      }
+
+      await ctx.reply(formatClientProfileText(profile));
     }),
   );
 
