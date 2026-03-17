@@ -41,3 +41,10 @@ export const SQL_CREATE_USER = `
     ${APP_USERS_SELECT_COLUMNS}
 `;
 
+export const SQL_UPDATE_USER_NAME_BY_TELEGRAM_ID = `
+  UPDATE app_users
+  SET first_name = $2
+  WHERE telegram_user_id = $1
+  RETURNING
+    ${APP_USERS_SELECT_COLUMNS}
+`;

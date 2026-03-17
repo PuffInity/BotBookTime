@@ -17,3 +17,7 @@ export type NormalizedTelegramProfile = {
   lastName: string | null;
 };
 
+export type UpdateUserNameInput = {
+  telegramId: number | string;
+  firstName: string;
+};

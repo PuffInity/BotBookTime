@@ -1,4 +1,5 @@
 import { BOOKING_SCENE_ID } from '../scenes/booking.scene.js';
+import { PROFILE_NAME_SCENE_ID } from '../scenes/profile-name.scene.js';
 import type { MyContext } from '../../types/bot.types.js';
 import type { Telegraf } from 'telegraf';
 import { asyncBotHandler } from '../../utils/error.utils.js';
@@ -95,7 +96,10 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     PROFILE_ACTION.EDIT_NAME,
     asyncBotHandler(async (ctx) => {
       await ctx.answerCbQuery();
-      await sendProfileFeatureStub(ctx, '✏️ Зміна імені');
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+      await ctx.scene.enter(PROFILE_NAME_SCENE_ID);
     }),
   );
 

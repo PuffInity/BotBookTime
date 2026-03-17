@@ -1,7 +1,10 @@
 import type { PoolClient } from 'pg';
 import type { MyContext } from '../../types/bot.types.js';
 import type { AppUsersEntity, AppUsersInsert, AppUsersRow } from '../../types/db/index.js';
-import type { CreateUserInput } from '../../types/db-helpers/db-profile.types.js';
+import type {
+  CreateUserInput,
+  UpdateUserNameInput,
+} from '../../types/db-helpers/db-profile.types.js';
 import { appUsersRowToEntity, toInsertAppUsers } from '../../utils/mappers/appUsers.mapp.js';
 import { queryOne, executeOne, withTransaction } from '../db.helper.js';
 import { handleError } from '../../utils/error.utils.js';
@@ -9,9 +12,14 @@ import { loggerDb } from '../../utils/logger/loggers-list.js';
 import {
   normalizeCreateUserInput,
   normalizeCtxFrom,
+  normalizeFirstName,
   normalizeTelegramId,
 } from '../../utils/db/db-profile.js';
-import { SQL_CREATE_USER, SQL_GET_USER_BY_TELEGRAM_ID } from '../db-sql/db-profile.sql.js';
+import {
+  SQL_CREATE_USER,
+  SQL_GET_USER_BY_TELEGRAM_ID,
+  SQL_UPDATE_USER_NAME_BY_TELEGRAM_ID,
+} from '../db-sql/db-profile.sql.js';
 
 /**
  * @file db-profile.helper.ts
@@ -89,6 +97,34 @@ export async function createUser(data: CreateUserInput): Promise<AppUsersEntity>
       action: 'Failed to create user',
       error,
       meta: { telegramUserId: normalized.telegramUserId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Updates user first name by telegram id and returns fresh user entity.
+ */
+export async function updateUserNameByTelegramId(data: UpdateUserNameInput): Promise<AppUsersEntity> {
+  const telegramUserId = normalizeTelegramId(data.telegramId);
+  const firstName = normalizeFirstName(data.firstName);
+
+  try {
+    return await withTransaction(async (client) =>
+      executeOne<AppUsersRow, AppUsersEntity>(
+        SQL_UPDATE_USER_NAME_BY_TELEGRAM_ID,
+        [telegramUserId, firstName],
+        appUsersRowToEntity,
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-profile.helper',
+      action: 'Failed to update user first name',
+      error,
+      meta: { telegramUserId },
     });
     throw error;
   }

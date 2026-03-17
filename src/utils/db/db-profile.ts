@@ -4,6 +4,7 @@ import type {
   NormalizedTelegramProfile,
 } from '../../types/db-helpers/db-profile.types.js';
 import { telegramUserIdSchema } from '../../validator/bot-input.schema.js';
+import { bookingClientNameSchema } from '../../validator/booking-input.schema.js';
 import { ValidationError } from '../error.utils.js';
 
 /**
@@ -60,3 +61,13 @@ export function normalizeCtxFrom(ctx: MyContext): NormalizedTelegramProfile {
   };
 }
 
+export function normalizeProfileFirstName(firstName: string): string {
+  const parsed = bookingClientNameSchema.safeParse(firstName);
+  if (!parsed.success) {
+    throw new ValidationError("Ім'я має бути від 2 символів і містити тільки літери", {
+      firstName,
+      issues: parsed.error.issues,
+    });
+  }
+  return parsed.data;
+}
