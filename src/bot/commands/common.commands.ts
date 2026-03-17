@@ -5,6 +5,12 @@ import { asyncBotHandler } from '../../utils/error.utils.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
 import { CLIENT_MAIN_MENU_BUTTON, COMMON_NAV_ACTION } from '../../types/bot-menu.types.js';
 import { createBackHomeInlineKeyboard } from '../../helpers/bot/navigation.bot.js';
+import { getOrCreateUser } from '../../helpers/db/db-profile.helper.js';
+import { PROFILE_ACTION } from '../../types/bot-profile.types.js';
+import {
+  sendProfileCard,
+  sendProfileFeatureStub,
+} from '../../helpers/bot/profile-view.bot.js';
 
 /**
  * @file common.commands.ts
@@ -21,6 +27,7 @@ import { createBackHomeInlineKeyboard } from '../../helpers/bot/navigation.bot.j
 export function registerCommonCommands(bot: Telegraf<MyContext>): void {
   bot.start(
     asyncBotHandler(async (ctx) => {
+      await getOrCreateUser(ctx);
       await sendClientMainMenu(ctx);
     }),
   );
@@ -70,12 +77,65 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
   bot.hears(
     CLIENT_MAIN_MENU_BUTTON.PROFILE,
     asyncBotHandler(async (ctx) => {
-      await ctx.reply(
-        '👤 Профіль\n' +
-          'Розділ тимчасово працює як заглушка.\n' +
-          'Після наповнення бази даних тут з’явиться ваш профіль.',
-        createBackHomeInlineKeyboard(),
-      );
+      const user = await getOrCreateUser(ctx);
+      await sendProfileCard(ctx, user);
+    }),
+  );
+
+  bot.action(
+    PROFILE_ACTION.OPEN,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      const user = await getOrCreateUser(ctx);
+      await sendProfileCard(ctx, user);
+    }),
+  );
+
+  bot.action(
+    PROFILE_ACTION.EDIT_NAME,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      await sendProfileFeatureStub(ctx, '✏️ Зміна імені');
+    }),
+  );
+
+  bot.action(
+    PROFILE_ACTION.EDIT_EMAIL,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      await sendProfileFeatureStub(ctx, '✉️ Зміна email');
+    }),
+  );
+
+  bot.action(
+    PROFILE_ACTION.EDIT_PHONE,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      await sendProfileFeatureStub(ctx, '📱 Зміна телефону');
+    }),
+  );
+
+  bot.action(
+    PROFILE_ACTION.EDIT_LANGUAGE,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      await sendProfileFeatureStub(ctx, '🌐 Зміна мови');
+    }),
+  );
+
+  bot.action(
+    PROFILE_ACTION.BOOKING_STATUS,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      await sendProfileFeatureStub(ctx, '📅 Статус бронювання');
+    }),
+  );
+
+  bot.action(
+    PROFILE_ACTION.NOTIFICATION_SETTINGS,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      await sendProfileFeatureStub(ctx, '🔔 Налаштування сповіщень');
     }),
   );
 
