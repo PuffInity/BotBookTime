@@ -81,6 +81,18 @@ export function createProfileStubKeyboard(): ReturnType<typeof Markup.inlineKeyb
 }
 
 /**
+ * @summary Inline-клавіатура для кроку зміни імені.
+ */
+export function createProfileNamePromptKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(PROFILE_BUTTON_TEXT.EDIT_NAME_CANCEL, PROFILE_ACTION.EDIT_NAME_CANCEL),
+      Markup.button.callback(PROFILE_BUTTON_TEXT.BACK_TO_PROFILE, PROFILE_ACTION.OPEN),
+    ],
+  ]);
+}
+
+/**
  * @summary Відправляє користувачу головний екран профілю.
  */
 export async function sendProfileCard(ctx: MyContext, user: AppUsersEntity): Promise<void> {
@@ -99,3 +111,47 @@ export async function sendProfileFeatureStub(ctx: MyContext, featureTitle: strin
   );
 }
 
+export async function sendProfileNameBlockedMessage(ctx: MyContext): Promise<void> {
+  await ctx.reply(
+    '⛔ Зміна імені тимчасово недоступна.\n' +
+      'Спробуйте знову через кілька хвилин.',
+    createProfileStubKeyboard(),
+  );
+}
+
+export async function sendProfileNameCooldownMessage(ctx: MyContext): Promise<void> {
+  await ctx.reply(
+    '⏳ Ви вже змінювали імʼя протягом останніх 24 годин.\n' +
+      'Повторна зміна стане доступною пізніше.',
+    createProfileStubKeyboard(),
+  );
+}
+
+export async function sendProfileNamePrompt(ctx: MyContext): Promise<void> {
+  await ctx.reply(
+    "✏️ Змінити імʼя\n\n" +
+      'Введіть нове імʼя, яке буде використовуватися для записів.\n\n' +
+      'Імʼя повинно бути реальним та відповідати людині, яка відвідує процедуру.\n\n' +
+      '⚠️ Зверніть увагу: змінити імʼя можна лише один раз протягом 24 годин.',
+    createProfileNamePromptKeyboard(),
+  );
+}
+
+export async function sendProfileNameValidationError(ctx: MyContext): Promise<void> {
+  await ctx.reply(
+    "⚠️ Некоректне імʼя.\n" +
+      'Використовуйте тільки літери та мінімум 2 символи.',
+    createProfileNamePromptKeyboard(),
+  );
+}
+
+export async function sendProfileNameUpdatedMessage(ctx: MyContext, firstName: string): Promise<void> {
+  await ctx.reply(
+    `✅ Імʼя успішно оновлено.\nНове імʼя: ${firstName}`,
+    createProfileStubKeyboard(),
+  );
+}
+
+export async function sendProfileNameCancelledMessage(ctx: MyContext): Promise<void> {
+  await ctx.reply('❌ Зміну імені скасовано.', createProfileStubKeyboard());
+}
