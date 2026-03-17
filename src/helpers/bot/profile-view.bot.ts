@@ -21,6 +21,30 @@ function getVerificationLabel(verifiedAt: Date | null): string {
   return verifiedAt ? '✅ підтверджено' : '⚪ не підтверджено';
 }
 
+function hasEmail(user: AppUsersEntity): boolean {
+  return Boolean(user.email && user.email.trim().length > 0);
+}
+
+function hasPhone(user: AppUsersEntity): boolean {
+  return Boolean(user.phoneE164 && user.phoneE164.trim().length > 0);
+}
+
+function getEmailButtonLabel(user: AppUsersEntity): string {
+  return hasEmail(user) ? PROFILE_BUTTON_TEXT.EDIT_EMAIL : PROFILE_BUTTON_TEXT.ADD_EMAIL;
+}
+
+function getPhoneButtonLabel(user: AppUsersEntity): string {
+  return hasPhone(user) ? PROFILE_BUTTON_TEXT.EDIT_PHONE : PROFILE_BUTTON_TEXT.ADD_PHONE;
+}
+
+export function getEmailProfileActionTitle(user: AppUsersEntity): string {
+  return hasEmail(user) ? '✉️ Зміна email' : '➕ Додавання email';
+}
+
+export function getPhoneProfileActionTitle(user: AppUsersEntity): string {
+  return hasPhone(user) ? '📱 Зміна телефону' : '➕ Додавання телефону';
+}
+
 /**
  * @summary Форматує картку профілю клієнта.
  */
@@ -28,6 +52,14 @@ export function formatProfileCardText(user: AppUsersEntity): string {
   const bookingAvailability = user.phoneVerifiedAt
     ? '✅ Бронювання доступне.'
     : '⚠️ Бронювання може бути обмежене, поки телефон не підтверджено.';
+  const hasPhoneValue = hasPhone(user);
+  const hasEmailValue = hasEmail(user);
+  const phoneVerificationLine = hasPhoneValue
+    ? `${getVerificationLabel(user.phoneVerifiedAt)}\n\n`
+    : '\n\n';
+  const emailVerificationLine = hasEmailValue
+    ? `${getVerificationLabel(user.emailVerifiedAt)}\n\n`
+    : '\n\n';
 
   return (
     '👤 Профіль клієнта\n\n' +
@@ -35,9 +67,9 @@ export function formatProfileCardText(user: AppUsersEntity): string {
     `👤 Імʼя: ${getFullName(user)}\n` +
     `💬 Telegram: ${getTelegramLabel(user)}\n\n` +
     `📱 Телефон: ${user.phoneE164 ?? 'Не вказано'}\n` +
-    `${getVerificationLabel(user.phoneVerifiedAt)}\n\n` +
+    `${phoneVerificationLine}` +
     `✉️ Email: ${user.email ?? 'Не вказано'}\n` +
-    `${getVerificationLabel(user.emailVerifiedAt)}\n\n` +
+    `${emailVerificationLine}` +
     `🌐 Мова: ${user.preferredLanguage}\n` +
     `🔔 Сповіщення: увімкнено\n\n` +
     `${bookingAvailability}`
@@ -47,16 +79,28 @@ export function formatProfileCardText(user: AppUsersEntity): string {
 /**
  * @summary Inline-клавіатура головного екрана профілю.
  */
-export function createProfileInlineKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
-  return Markup.inlineKeyboard([
+export function createProfileInlineKeyboard(
+  user: AppUsersEntity,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const profileRows = [
     [
       Markup.button.callback(PROFILE_BUTTON_TEXT.EDIT_NAME, PROFILE_ACTION.EDIT_NAME),
-      Markup.button.callback(PROFILE_BUTTON_TEXT.EDIT_EMAIL, PROFILE_ACTION.EDIT_EMAIL),
+      Markup.button.callback(getEmailButtonLabel(user), PROFILE_ACTION.EDIT_EMAIL),
     ],
     [
-      Markup.button.callback(PROFILE_BUTTON_TEXT.EDIT_PHONE, PROFILE_ACTION.EDIT_PHONE),
+      Markup.button.callback(getPhoneButtonLabel(user), PROFILE_ACTION.EDIT_PHONE),
       Markup.button.callback(PROFILE_BUTTON_TEXT.EDIT_LANGUAGE, PROFILE_ACTION.EDIT_LANGUAGE),
     ],
+  ];
+
+  if (hasEmail(user) && !user.emailVerifiedAt) {
+    profileRows.push([
+      Markup.button.callback(PROFILE_BUTTON_TEXT.VERIFY_EMAIL, PROFILE_ACTION.VERIFY_EMAIL),
+    ]);
+  }
+
+  return Markup.inlineKeyboard([
+    ...profileRows,
     [
       Markup.button.callback(PROFILE_BUTTON_TEXT.BOOKING_STATUS, PROFILE_ACTION.BOOKING_STATUS),
       Markup.button.callback(
@@ -93,10 +137,26 @@ export function createProfileNamePromptKeyboard(): ReturnType<typeof Markup.inli
 }
 
 /**
+ * @summary Inline-клавіатура для OTP-підтвердження email.
+ */
+export function createProfileEmailOtpKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(PROFILE_BUTTON_TEXT.EMAIL_OTP_RESEND, PROFILE_ACTION.EMAIL_OTP_RESEND),
+      Markup.button.callback(PROFILE_BUTTON_TEXT.EMAIL_OTP_CANCEL, PROFILE_ACTION.EMAIL_OTP_CANCEL),
+    ],
+    [
+      Markup.button.callback(PROFILE_BUTTON_TEXT.BACK_TO_PROFILE, PROFILE_ACTION.OPEN),
+      Markup.button.callback('🏠 Головне меню', COMMON_NAV_ACTION.HOME),
+    ],
+  ]);
+}
+
+/**
  * @summary Відправляє користувачу головний екран профілю.
  */
 export async function sendProfileCard(ctx: MyContext, user: AppUsersEntity): Promise<void> {
-  await ctx.reply(formatProfileCardText(user), createProfileInlineKeyboard());
+  await ctx.reply(formatProfileCardText(user), createProfileInlineKeyboard(user));
 }
 
 /**
