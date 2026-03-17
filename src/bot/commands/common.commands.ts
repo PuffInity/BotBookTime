@@ -3,12 +3,8 @@ import type { MyContext } from '../../types/bot.types.js';
 import type { Telegraf } from 'telegraf';
 import { asyncBotHandler } from '../../utils/error.utils.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
-import { CLIENT_MAIN_MENU_BUTTON } from '../../types/bot-menu.types.js';
-import { telegramUserIdSchema } from '../../validator/bot-input.schema.js';
-import {
-  formatClientProfileText,
-  getClientProfileByTelegramUserId,
-} from '../../helpers/bot/profile.bot.js';
+import { CLIENT_MAIN_MENU_BUTTON, COMMON_NAV_ACTION } from '../../types/bot-menu.types.js';
+import { createBackHomeInlineKeyboard } from '../../helpers/bot/navigation.bot.js';
 
 /**
  * @file common.commands.ts
@@ -74,22 +70,12 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
   bot.hears(
     CLIENT_MAIN_MENU_BUTTON.PROFILE,
     asyncBotHandler(async (ctx) => {
-      const parsedTelegramId = telegramUserIdSchema.safeParse(ctx.from?.id);
-      if (!parsedTelegramId.success) {
-        await ctx.reply('Не вдалося ідентифікувати користувача. Спробуйте ще раз.');
-        return;
-      }
-
-      const profile = await getClientProfileByTelegramUserId(parsedTelegramId.data);
-      if (!profile) {
-        await ctx.reply(
-          'Профіль ще не знайдено в системі.\n' +
-            'На наступному етапі додамо автоматичну реєстрацію користувача.',
-        );
-        return;
-      }
-
-      await ctx.reply(formatClientProfileText(profile));
+      await ctx.reply(
+        '👤 Профіль\n' +
+          'Розділ тимчасово працює як заглушка.\n' +
+          'Після наповнення бази даних тут з’явиться ваш профіль.',
+        createBackHomeInlineKeyboard(),
+      );
     }),
   );
 
@@ -98,7 +84,9 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     asyncBotHandler(async (ctx) => {
       await ctx.reply(
         '💼 Послуги\n' +
-          'На наступному кроці підключимо каталог послуг із PostgreSQL.',
+          'Каталог послуг тимчасово у режимі заглушки.\n' +
+          'Як тільки база буде наповнена, тут відобразиться актуальний список.',
+        createBackHomeInlineKeyboard(),
       );
     }),
   );
@@ -119,7 +107,24 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
       await ctx.reply(
         '❓ FAQ\n' +
           'Блок FAQ буде підключено на окремому етапі через контент із БД.',
+        createBackHomeInlineKeyboard(),
       );
+    }),
+  );
+
+  bot.action(
+    COMMON_NAV_ACTION.BACK,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      await sendClientMainMenu(ctx);
+    }),
+  );
+
+  bot.action(
+    COMMON_NAV_ACTION.HOME,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      await sendClientMainMenu(ctx);
     }),
   );
 
