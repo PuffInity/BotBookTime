@@ -48,3 +48,83 @@ export const SQL_UPDATE_USER_NAME_BY_TELEGRAM_ID = `
   RETURNING
     ${APP_USERS_SELECT_COLUMNS}
 `;
+
+export const VERIFICATION_CODES_SELECT_COLUMNS = `
+  id,
+  user_id,
+  channel,
+  purpose,
+  destination,
+  code_hash,
+  attempts_used,
+  max_attempts,
+  expires_at,
+  consumed_at,
+  last_sent_at,
+  created_at
+`;
+
+export const SQL_CONSUME_ACTIVE_EMAIL_VERIFY_OTPS = `
+  UPDATE verification_codes
+  SET consumed_at = now()
+  WHERE user_id = $1
+    AND channel = 'email'
+    AND purpose = 'email_verify'
+    AND destination = $2
+    AND consumed_at IS NULL
+`;
+
+export const SQL_INSERT_EMAIL_VERIFY_OTP = `
+  INSERT INTO verification_codes (
+    user_id,
+    channel,
+    purpose,
+    destination,
+    code_hash,
+    attempts_used,
+    max_attempts,
+    expires_at
+  )
+  VALUES ($1, 'email', 'email_verify', $2, $3, 0, $4, $5)
+  RETURNING
+    ${VERIFICATION_CODES_SELECT_COLUMNS}
+`;
+
+export const SQL_GET_ACTIVE_EMAIL_VERIFY_OTP = `
+  SELECT
+    ${VERIFICATION_CODES_SELECT_COLUMNS}
+  FROM verification_codes
+  WHERE user_id = $1
+    AND channel = 'email'
+    AND purpose = 'email_verify'
+    AND destination = $2
+    AND consumed_at IS NULL
+  ORDER BY created_at DESC
+  LIMIT 1
+`;
+
+export const SQL_INCREMENT_OTP_ATTEMPTS_BY_ID = `
+  UPDATE verification_codes
+  SET attempts_used = attempts_used + 1
+  WHERE id = $1
+  RETURNING
+    ${VERIFICATION_CODES_SELECT_COLUMNS}
+`;
+
+export const SQL_CONSUME_OTP_BY_ID = `
+  UPDATE verification_codes
+  SET consumed_at = now()
+  WHERE id = $1
+  RETURNING
+    ${VERIFICATION_CODES_SELECT_COLUMNS}
+`;
+
+export const SQL_MARK_EMAIL_VERIFIED_BY_USER_ID = `
+  UPDATE app_users
+  SET email_verified_at = now()
+  WHERE id = $1
+    AND email = $2
+    AND email_verified_at IS NULL
+  RETURNING
+    ${APP_USERS_SELECT_COLUMNS}
+`;

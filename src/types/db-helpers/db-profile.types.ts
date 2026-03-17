@@ -21,3 +21,25 @@ export type UpdateUserNameInput = {
   telegramId: number | string;
   firstName: string;
 };
+
+export type SaveEmailOtpInput = {
+  userId: string;
+  destination: string;
+  codeHash: string;
+  expiresAt: Date;
+  maxAttempts?: number;
+};
+
+export type VerifyEmailOtpInput = {
+  telegramId: number | string;
+  code: string;
+};
+
+export type VerifyEmailOtpStatus =
+  | 'VERIFIED'
+  | 'INVALID'
+  | 'EXPIRED'
+  | 'BLOCKED'
+  | 'NO_ACTIVE_OTP'
+  | 'ALREADY_VERIFIED'
+  | 'EMAIL_MISSING';

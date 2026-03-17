@@ -1,12 +1,20 @@
 import type { PoolClient } from 'pg';
 import type { MyContext } from '../../types/bot.types.js';
-import type { AppUsersEntity, AppUsersInsert, AppUsersRow } from '../../types/db/index.js';
+import type {
+  AppUsersEntity,
+  AppUsersInsert,
+  AppUsersRow,
+  VerificationCodesEntity,
+  VerificationCodesRow,
+} from '../../types/db/index.js';
 import type {
   CreateUserInput,
+  SaveEmailOtpInput,
   UpdateUserNameInput,
 } from '../../types/db-helpers/db-profile.types.js';
 import { appUsersRowToEntity, toInsertAppUsers } from '../../utils/mappers/appUsers.mapp.js';
-import { queryOne, executeOne, withTransaction } from '../db.helper.js';
+import { verificationCodesRowToEntity } from '../../utils/mappers/verificationCodes.mapp.js';
+import { queryOne, executeOne, executeVoid, withTransaction } from '../db.helper.js';
 import { handleError } from '../../utils/error.utils.js';
 import { loggerDb } from '../../utils/logger/loggers-list.js';
 import {
@@ -17,7 +25,13 @@ import {
 } from '../../utils/db/db-profile.js';
 import {
   SQL_CREATE_USER,
+  SQL_CONSUME_ACTIVE_EMAIL_VERIFY_OTPS,
+  SQL_CONSUME_OTP_BY_ID,
   SQL_GET_USER_BY_TELEGRAM_ID,
+  SQL_GET_ACTIVE_EMAIL_VERIFY_OTP,
+  SQL_INCREMENT_OTP_ATTEMPTS_BY_ID,
+  SQL_INSERT_EMAIL_VERIFY_OTP,
+  SQL_MARK_EMAIL_VERIFIED_BY_USER_ID,
   SQL_UPDATE_USER_NAME_BY_TELEGRAM_ID,
 } from '../db-sql/db-profile.sql.js';
 
@@ -125,6 +139,138 @@ export async function updateUserNameByTelegramId(data: UpdateUserNameInput): Pro
       action: 'Failed to update user first name',
       error,
       meta: { telegramUserId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Saves a fresh email OTP and deactivates previous active OTPs for this user+email.
+ */
+export async function saveEmailOtp(data: SaveEmailOtpInput): Promise<VerificationCodesEntity> {
+  const maxAttempts = data.maxAttempts ?? 3;
+
+  try {
+    return await withTransaction(async (client) => {
+      await executeVoid(SQL_CONSUME_ACTIVE_EMAIL_VERIFY_OTPS, [data.userId, data.destination], client);
+
+      return executeOne<VerificationCodesRow, VerificationCodesEntity>(
+        SQL_INSERT_EMAIL_VERIFY_OTP,
+        [data.userId, data.destination, data.codeHash, maxAttempts, data.expiresAt],
+        verificationCodesRowToEntity,
+        client,
+      );
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-profile.helper',
+      action: 'Failed to save email OTP',
+      error,
+      meta: { userId: data.userId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Reads active email OTP for user+email.
+ */
+export async function getActiveEmailOtp(
+  userId: string,
+  destination: string,
+): Promise<VerificationCodesEntity | null> {
+  try {
+    return await withTransaction(async (client) =>
+      queryOne<VerificationCodesRow, VerificationCodesEntity>(
+        SQL_GET_ACTIVE_EMAIL_VERIFY_OTP,
+        [userId, destination],
+        verificationCodesRowToEntity,
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-profile.helper',
+      action: 'Failed to load active email OTP',
+      error,
+      meta: { userId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Increments OTP attempts counter and returns updated entity.
+ */
+export async function incrementOtpAttempts(otpId: string): Promise<VerificationCodesEntity> {
+  try {
+    return await withTransaction(async (client) =>
+      executeOne<VerificationCodesRow, VerificationCodesEntity>(
+        SQL_INCREMENT_OTP_ATTEMPTS_BY_ID,
+        [otpId],
+        verificationCodesRowToEntity,
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-profile.helper',
+      action: 'Failed to increment OTP attempts',
+      error,
+      meta: { otpId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Marks OTP consumed by id and returns updated entity.
+ */
+export async function consumeOtpById(otpId: string): Promise<VerificationCodesEntity> {
+  try {
+    return await withTransaction(async (client) =>
+      executeOne<VerificationCodesRow, VerificationCodesEntity>(
+        SQL_CONSUME_OTP_BY_ID,
+        [otpId],
+        verificationCodesRowToEntity,
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-profile.helper',
+      action: 'Failed to consume OTP',
+      error,
+      meta: { otpId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Marks app user email as verified. Returns updated user or null when already verified.
+ */
+export async function markEmailVerified(userId: string, destination: string): Promise<AppUsersEntity | null> {
+  try {
+    return await withTransaction(async (client) =>
+      queryOne<AppUsersRow, AppUsersEntity>(
+        SQL_MARK_EMAIL_VERIFIED_BY_USER_ID,
+        [userId, destination],
+        appUsersRowToEntity,
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-profile.helper',
+      action: 'Failed to mark email verified',
+      error,
+      meta: { userId },
     });
     throw error;
   }
