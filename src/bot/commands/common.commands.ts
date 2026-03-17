@@ -1,5 +1,6 @@
 import { BOOKING_SCENE_ID } from '../scenes/booking.scene.js';
 import { PROFILE_NAME_SCENE_ID } from '../scenes/profile-name.scene.js';
+import { PROFILE_EMAIL_VERIFY_SCENE_ID } from '../scenes/profile-email-verify.scene.js';
 import type { MyContext } from '../../types/bot.types.js';
 import type { Telegraf } from 'telegraf';
 import { asyncBotHandler } from '../../utils/error.utils.js';
@@ -9,6 +10,8 @@ import { createBackHomeInlineKeyboard } from '../../helpers/bot/navigation.bot.j
 import { getOrCreateUser } from '../../helpers/db/db-profile.helper.js';
 import { PROFILE_ACTION } from '../../types/bot-profile.types.js';
 import {
+  getEmailProfileActionTitle,
+  getPhoneProfileActionTitle,
   sendProfileCard,
   sendProfileFeatureStub,
 } from '../../helpers/bot/profile-view.bot.js';
@@ -107,7 +110,19 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     PROFILE_ACTION.EDIT_EMAIL,
     asyncBotHandler(async (ctx) => {
       await ctx.answerCbQuery();
-      await sendProfileFeatureStub(ctx, '✉️ Зміна email');
+      const user = await getOrCreateUser(ctx);
+      await sendProfileFeatureStub(ctx, getEmailProfileActionTitle(user));
+    }),
+  );
+
+  bot.action(
+    PROFILE_ACTION.VERIFY_EMAIL,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+      await ctx.scene.enter(PROFILE_EMAIL_VERIFY_SCENE_ID);
     }),
   );
 
@@ -115,7 +130,8 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     PROFILE_ACTION.EDIT_PHONE,
     asyncBotHandler(async (ctx) => {
       await ctx.answerCbQuery();
-      await sendProfileFeatureStub(ctx, '📱 Зміна телефону');
+      const user = await getOrCreateUser(ctx);
+      await sendProfileFeatureStub(ctx, getPhoneProfileActionTitle(user));
     }),
   );
 
