@@ -3,12 +3,12 @@ import { PROFILE_NAME_SCENE_ID } from '../scenes/profile-name.scene.js';
 import { PROFILE_EMAIL_VERIFY_SCENE_ID } from '../scenes/profile-email-verify.scene.js';
 import { PROFILE_EMAIL_ADD_SCENE_ID } from '../scenes/profile-email-add.scene.js';
 import { SERVICES_SCENE_ID } from '../scenes/services.scene.js';
+import { FAQ_SCENE_ID } from '../scenes/faq.scene.js';
 import type { MyContext } from '../../types/bot.types.js';
 import type { Telegraf } from 'telegraf';
 import { asyncBotHandler } from '../../utils/error.utils.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
 import { CLIENT_MAIN_MENU_BUTTON, COMMON_NAV_ACTION } from '../../types/bot-menu.types.js';
-import { createBackHomeInlineKeyboard } from '../../helpers/bot/navigation.bot.js';
 import { getOrCreateUser } from '../../helpers/db/db-profile.helper.js';
 import { PROFILE_ACTION } from '../../types/bot-profile.types.js';
 import {
@@ -191,11 +191,10 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
   bot.hears(
     CLIENT_MAIN_MENU_BUTTON.FAQ,
     asyncBotHandler(async (ctx) => {
-      await ctx.reply(
-        '❓ FAQ\n' +
-          'Блок FAQ буде підключено на окремому етапі через контент із БД.',
-        createBackHomeInlineKeyboard(),
-      );
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+      await ctx.scene.enter(FAQ_SCENE_ID);
     }),
   );
 
