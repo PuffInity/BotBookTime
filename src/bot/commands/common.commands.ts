@@ -1,6 +1,7 @@
 import { BOOKING_SCENE_ID } from '../scenes/booking.scene.js';
 import { PROFILE_NAME_SCENE_ID } from '../scenes/profile-name.scene.js';
 import { PROFILE_EMAIL_VERIFY_SCENE_ID } from '../scenes/profile-email-verify.scene.js';
+import { PROFILE_EMAIL_ADD_SCENE_ID } from '../scenes/profile-email-add.scene.js';
 import type { MyContext } from '../../types/bot.types.js';
 import type { Telegraf } from 'telegraf';
 import { asyncBotHandler } from '../../utils/error.utils.js';
@@ -111,6 +112,13 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     asyncBotHandler(async (ctx) => {
       await ctx.answerCbQuery();
       const user = await getOrCreateUser(ctx);
+      if (!user.email) {
+        if (ctx.scene.current) {
+          await ctx.scene.leave();
+        }
+        await ctx.scene.enter(PROFILE_EMAIL_ADD_SCENE_ID);
+        return;
+      }
       await sendProfileFeatureStub(ctx, getEmailProfileActionTitle(user));
     }),
   );

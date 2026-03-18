@@ -153,6 +153,19 @@ export function createProfileEmailOtpKeyboard(): ReturnType<typeof Markup.inline
 }
 
 /**
+ * @summary Inline-клавіатура для кроку додавання email.
+ */
+export function createProfileEmailAddKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(PROFILE_BUTTON_TEXT.ADD_EMAIL_CANCEL, PROFILE_ACTION.ADD_EMAIL_CANCEL),
+      Markup.button.callback(PROFILE_BUTTON_TEXT.BACK_TO_PROFILE, PROFILE_ACTION.OPEN),
+    ],
+    [Markup.button.callback('🏠 Головне меню', COMMON_NAV_ACTION.HOME)],
+  ]);
+}
+
+/**
  * @summary Відправляє користувачу головний екран профілю.
  */
 export async function sendProfileCard(ctx: MyContext, user: AppUsersEntity): Promise<void> {
@@ -214,4 +227,37 @@ export async function sendProfileNameUpdatedMessage(ctx: MyContext, firstName: s
 
 export async function sendProfileNameCancelledMessage(ctx: MyContext): Promise<void> {
   await ctx.reply('❌ Зміну імені скасовано.', createProfileStubKeyboard());
+}
+
+export async function sendProfileEmailAddPrompt(ctx: MyContext): Promise<void> {
+  await ctx.reply(
+    '➕ Додати email\n\n' +
+      'Введіть email для вашого профілю.\n\n' +
+      'Вимоги:\n' +
+      '• валідний формат email\n' +
+      '• від 5 до 100 символів',
+    createProfileEmailAddKeyboard(),
+  );
+}
+
+export async function sendProfileEmailValidationError(ctx: MyContext): Promise<void> {
+  await ctx.reply('⚠️ Некоректний формат email. Спробуйте ще раз.', createProfileEmailAddKeyboard());
+}
+
+export async function sendProfileEmailAlreadyUsedError(ctx: MyContext): Promise<void> {
+  await ctx.reply(
+    '⚠️ Цей email вже використовується іншим користувачем.',
+    createProfileEmailAddKeyboard(),
+  );
+}
+
+export async function sendProfileEmailAddedMessage(ctx: MyContext, email: string): Promise<void> {
+  await ctx.reply(
+    `✅ Email успішно додано.\nEmail: ${email}\n\nТепер ви можете підтвердити його через кнопку "✅ Підтвердити email".`,
+    createProfileStubKeyboard(),
+  );
+}
+
+export async function sendProfileEmailAddCancelledMessage(ctx: MyContext): Promise<void> {
+  await ctx.reply('❌ Додавання email скасовано.', createProfileStubKeyboard());
 }

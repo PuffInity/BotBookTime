@@ -10,6 +10,7 @@ import type {
 import type {
   CreateUserInput,
   SaveEmailOtpInput,
+  UpdateUserEmailInput,
   UpdateUserNameInput,
 } from '../../types/db-helpers/db-profile.types.js';
 import { appUsersRowToEntity, toInsertAppUsers } from '../../utils/mappers/appUsers.mapp.js';
@@ -21,6 +22,7 @@ import {
   normalizeCreateUserInput,
   normalizeCtxFrom,
   normalizeFirstName,
+  normalizeProfileEmail,
   normalizeTelegramId,
 } from '../../utils/db/db-profile.js';
 import {
@@ -32,6 +34,7 @@ import {
   SQL_INCREMENT_OTP_ATTEMPTS_BY_ID,
   SQL_INSERT_EMAIL_VERIFY_OTP,
   SQL_MARK_EMAIL_VERIFIED_BY_USER_ID,
+  SQL_UPDATE_USER_EMAIL_BY_TELEGRAM_ID,
   SQL_UPDATE_USER_NAME_BY_TELEGRAM_ID,
 } from '../db-sql/db-profile.sql.js';
 
@@ -137,6 +140,34 @@ export async function updateUserNameByTelegramId(data: UpdateUserNameInput): Pro
       logger: loggerDb,
       scope: 'db-profile.helper',
       action: 'Failed to update user first name',
+      error,
+      meta: { telegramUserId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Updates user email by telegram id and resets email verification mark.
+ */
+export async function updateUserEmailByTelegramId(data: UpdateUserEmailInput): Promise<AppUsersEntity> {
+  const telegramUserId = normalizeTelegramId(data.telegramId);
+  const email = normalizeProfileEmail(data.email);
+
+  try {
+    return await withTransaction(async (client) =>
+      executeOne<AppUsersRow, AppUsersEntity>(
+        SQL_UPDATE_USER_EMAIL_BY_TELEGRAM_ID,
+        [telegramUserId, email],
+        appUsersRowToEntity,
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-profile.helper',
+      action: 'Failed to update user email',
       error,
       meta: { telegramUserId },
     });

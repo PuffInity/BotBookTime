@@ -17,8 +17,10 @@ import {
   otpEmailCodeSentText,
   otpEmailExpiredText,
   otpEmailInvalidCodeText,
+  otpEmailMailerNotConfiguredText,
   otpEmailMissingText,
   otpEmailResendCooldownText,
+  otpEmailSendFailedText,
   otpEmailVerifiedText,
 } from '../../utils/text.utils.js';
 
@@ -58,6 +60,16 @@ async function handleResendByTelegramId(ctx: MyContext, telegramId: number): Pro
       otpEmailResendCooldownText(resend.retryAfterSec ?? 60),
       createProfileEmailOtpKeyboard(),
     );
+    return;
+  }
+
+  if (resend.status === 'MAILER_NOT_CONFIGURED') {
+    await ctx.reply(otpEmailMailerNotConfiguredText(), createProfileStubKeyboard());
+    return;
+  }
+
+  if (resend.status === 'SEND_FAILED') {
+    await ctx.reply(otpEmailSendFailedText(), createProfileStubKeyboard());
     return;
   }
 
@@ -162,4 +174,3 @@ export function createProfileEmailVerifyScene(): Scenes.WizardScene<MyContext> {
 
   return scene;
 }
-

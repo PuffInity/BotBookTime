@@ -4,7 +4,7 @@ import type {
   VerifyEmailOtpInput,
   VerifyEmailOtpStatus,
 } from '../../types/db-helpers/db-profile.types.js';
-import { sendOtpEmail } from '../email/mailer.helper.js';
+import { sendEmail } from '../email/mailer.helper.js';
 import {
   clearEmailOtpGuards,
   getEmailOtpResendRetrySec,
@@ -89,7 +89,17 @@ export async function markEmailVerified(userId: string, destination: string) {
  */
 export async function resendOTP(
   telegramId: number | string,
-): Promise<{ status: 'SENT' | 'RESEND_LIMIT' | 'EMAIL_MISSING' | 'ALREADY_VERIFIED'; retryAfterSec?: number; email?: string }> {
+): Promise<{
+  status:
+    | 'SENT'
+    | 'RESEND_LIMIT'
+    | 'EMAIL_MISSING'
+    | 'ALREADY_VERIFIED'
+    | 'MAILER_NOT_CONFIGURED'
+    | 'SEND_FAILED';
+  retryAfterSec?: number;
+  email?: string;
+}> {
   const user = await getUserByTelegramId(telegramId);
   if (!user || !user.email) return { status: 'EMAIL_MISSING' };
   if (user.emailVerifiedAt) return { status: 'ALREADY_VERIFIED' };
@@ -101,14 +111,40 @@ export async function resendOTP(
 
   const code = generateOTP();
   await saveOTP(user, code);
-  await sendOtpEmail({
-    to: user.email,
-    code,
-    purpose: 'email_verify',
-    recipientName: user.firstName,
-    expiresInMinutes: OTP_EXPIRES_MINUTES,
-  });
-  await markEmailOtpResendCooldown(telegramId);
+  try {
+    await sendEmail({
+      to: user.email,
+      template: 'otpEmail',
+      data: {
+        code,
+        purpose: 'email_verify',
+        recipientName: user.firstName,
+        expiresInMinutes: OTP_EXPIRES_MINUTES,
+      },
+    });
+    await markEmailOtpResendCooldown(telegramId);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes('OTP resend is limited. Retry after')) {
+      const match = message.match(/Retry after (\d+) seconds/i);
+      return {
+        status: 'RESEND_LIMIT',
+        retryAfterSec: match ? Number(match[1]) : 60,
+      };
+    }
+    if (message.includes('Missing required environment variable: SMTP_')) {
+      return { status: 'MAILER_NOT_CONFIGURED' };
+    }
+
+    handleError({
+      logger: loggerDb,
+      scope: 'otp-helper',
+      action: 'Failed to send OTP email',
+      error,
+      meta: { telegramId: String(telegramId) },
+    });
+    return { status: 'SEND_FAILED' };
+  }
 
   return { status: 'SENT', email: user.email };
 }
@@ -167,4 +203,3 @@ export async function verifyOTP(
     throw error;
   }
 }
-

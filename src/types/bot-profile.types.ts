@@ -8,6 +8,7 @@ export const PROFILE_ACTION = {
   EDIT_NAME: 'profile:edit-name',
   EDIT_NAME_CANCEL: 'profile:edit-name-cancel',
   EDIT_EMAIL: 'profile:edit-email',
+  ADD_EMAIL_CANCEL: 'profile:add-email-cancel',
   VERIFY_EMAIL: 'profile:verify-email',
   EMAIL_OTP_RESEND: 'profile:email-otp-resend',
   EMAIL_OTP_CANCEL: 'profile:email-otp-cancel',
@@ -22,6 +23,7 @@ export type ProfileAction = (typeof PROFILE_ACTION)[keyof typeof PROFILE_ACTION]
 export const PROFILE_BUTTON_TEXT = {
   EDIT_NAME: '✏️ Змінити імʼя',
   EDIT_NAME_CANCEL: '❌ Скасувати',
+  ADD_EMAIL_CANCEL: '❌ Скасувати',
   ADD_EMAIL: '➕ Додати email',
   EDIT_EMAIL: '✉️ Змінити email',
   VERIFY_EMAIL: '✅ Підтвердити email',

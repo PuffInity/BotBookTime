@@ -22,6 +22,11 @@ export type UpdateUserNameInput = {
   firstName: string;
 };
 
+export type UpdateUserEmailInput = {
+  telegramId: number | string;
+  email: string;
+};
+
 export type SaveEmailOtpInput = {
   userId: string;
   destination: string;

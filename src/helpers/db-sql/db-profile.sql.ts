@@ -49,6 +49,15 @@ export const SQL_UPDATE_USER_NAME_BY_TELEGRAM_ID = `
     ${APP_USERS_SELECT_COLUMNS}
 `;
 
+export const SQL_UPDATE_USER_EMAIL_BY_TELEGRAM_ID = `
+  UPDATE app_users
+  SET email = $2,
+      email_verified_at = NULL
+  WHERE telegram_user_id = $1
+  RETURNING
+    ${APP_USERS_SELECT_COLUMNS}
+`;
+
 export const VERIFICATION_CODES_SELECT_COLUMNS = `
   id,
   user_id,
@@ -66,7 +75,7 @@ export const VERIFICATION_CODES_SELECT_COLUMNS = `
 
 export const SQL_CONSUME_ACTIVE_EMAIL_VERIFY_OTPS = `
   UPDATE verification_codes
-  SET consumed_at = now()
+  SET consumed_at = LEAST(now(), expires_at)
   WHERE user_id = $1
     AND channel = 'email'
     AND purpose = 'email_verify'

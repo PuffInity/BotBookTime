@@ -44,3 +44,13 @@ export function otpEmailCancelledText(): string {
   return '❌ Підтвердження email скасовано.';
 }
 
+export function otpEmailMailerNotConfiguredText(): string {
+  return (
+    '⚙️ Сервіс email тимчасово не налаштований.\n' +
+    'Зверніться до адміністратора або спробуйте пізніше.'
+  );
+}
+
+export function otpEmailSendFailedText(): string {
+  return '⚠️ Не вдалося відправити код підтвердження. Спробуйте ще раз пізніше.';
+}

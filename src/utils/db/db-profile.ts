@@ -3,7 +3,7 @@ import type {
   CreateUserInput,
   NormalizedTelegramProfile,
 } from '../../types/db-helpers/db-profile.types.js';
-import { telegramUserIdSchema } from '../../validator/bot-input.schema.js';
+import { profileEmailSchema, telegramUserIdSchema } from '../../validator/bot-input.schema.js';
 import { bookingClientNameSchema } from '../../validator/booking-input.schema.js';
 import { ValidationError } from '../error.utils.js';
 
@@ -66,6 +66,17 @@ export function normalizeProfileFirstName(firstName: string): string {
   if (!parsed.success) {
     throw new ValidationError("Ім'я має бути від 2 символів і містити тільки літери", {
       firstName,
+      issues: parsed.error.issues,
+    });
+  }
+  return parsed.data;
+}
+
+export function normalizeProfileEmail(email: string): string {
+  const parsed = profileEmailSchema.safeParse(email);
+  if (!parsed.success) {
+    throw new ValidationError('Некоректний формат email', {
+      email,
       issues: parsed.error.issues,
     });
   }
