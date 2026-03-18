@@ -4,6 +4,7 @@ import { registerCommands } from './commands/registerCommands.js';
 import type { BotDeps, MyContext } from '../types/bot.types.js';
 import { createTelegrafErrorHandler } from '../utils/error.utils.js';
 import { loggerTelegramBot } from '../utils/logger/loggers-list.js';
+import { setTelegramNotificationSender } from '../helpers/notification/notification-telegram.helper.js';
 
 /**
  * @file createBot.ts
@@ -24,6 +25,10 @@ const botLogger = loggerTelegramBot;
 export function createBot(deps: BotDeps): Telegraf<MyContext> {
   const bot = new Telegraf<MyContext>(deps.token);
   const stage = createBotStage();
+
+  setTelegramNotificationSender(async ({ telegramUserId, text }) => {
+    await bot.telegram.sendMessage(telegramUserId, text);
+  });
 
   /**
    * Middleware #1: логування всіх update.

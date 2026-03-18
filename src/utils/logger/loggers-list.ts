@@ -26,6 +26,9 @@ export const loggerMailer = createAppLogger({service: 'mailer'})
 /** Логер PostgreSQL config/lifecycle/helper модулів. */
 export const loggerDb = createAppLogger({service: 'database'})
 
+/** Логер модуля сповіщень (policy/dispatch/channels). */
+export const loggerNotification = createAppLogger({service: 'notification'})
+
 /** Логер migration engine (runner/tracker/base). */
 export const loggerMigration = createAppLogger({service: 'migration'})
 
