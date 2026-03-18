@@ -2,6 +2,7 @@ import { BOOKING_SCENE_ID } from '../scenes/booking.scene.js';
 import { PROFILE_NAME_SCENE_ID } from '../scenes/profile-name.scene.js';
 import { PROFILE_EMAIL_VERIFY_SCENE_ID } from '../scenes/profile-email-verify.scene.js';
 import { PROFILE_EMAIL_ADD_SCENE_ID } from '../scenes/profile-email-add.scene.js';
+import { SERVICES_SCENE_ID } from '../scenes/services.scene.js';
 import type { MyContext } from '../../types/bot.types.js';
 import type { Telegraf } from 'telegraf';
 import { asyncBotHandler } from '../../utils/error.utils.js';
@@ -170,12 +171,10 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
   bot.hears(
     CLIENT_MAIN_MENU_BUTTON.SERVICES,
     asyncBotHandler(async (ctx) => {
-      await ctx.reply(
-        '💼 Послуги\n' +
-          'Каталог послуг тимчасово у режимі заглушки.\n' +
-          'Як тільки база буде наповнена, тут відобразиться актуальний список.',
-        createBackHomeInlineKeyboard(),
-      );
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+      await ctx.scene.enter(SERVICES_SCENE_ID);
     }),
   );
 

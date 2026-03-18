@@ -3,6 +3,7 @@ import { createBookingScene } from './booking.scene.js';
 import { createProfileNameScene } from './profile-name.scene.js';
 import { createProfileEmailVerifyScene } from './profile-email-verify.scene.js';
 import { createProfileEmailAddScene } from './profile-email-add.scene.js';
+import { createServicesScene } from './services.scene.js';
 import type { MyContext } from '../../types/bot.types.js';
 
 /**
@@ -15,6 +16,7 @@ export function createBotStage(): Scenes.Stage<MyContext> {
   const profileNameScene = createProfileNameScene();
   const profileEmailVerifyScene = createProfileEmailVerifyScene();
   const profileEmailAddScene = createProfileEmailAddScene();
+  const servicesScene = createServicesScene();
 
   // Тут пізніше додаються інші сцени:
   // const adminApproveScene = createAdminApproveScene()
@@ -24,5 +26,6 @@ export function createBotStage(): Scenes.Stage<MyContext> {
     profileNameScene,
     profileEmailVerifyScene,
     profileEmailAddScene,
+    servicesScene,
   ]);
 }
