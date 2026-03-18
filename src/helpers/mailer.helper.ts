@@ -1,6 +1,7 @@
 import nodemailer, { type SendMailOptions, type Transporter } from "nodemailer";
 import { handleError } from "../utils/error.utils.js";
 import { loggerMailer } from "../utils/logger/loggers-list.js";
+import { defaultMailFrom, nodemailerConfig } from "../config/nodemailer.config.js";
 import {
     bookingCreatedTemplate,
 } from "../emails/templates/bookingCreated.template.js";
@@ -77,40 +78,6 @@ const templateRegistry: TemplateRegistry = {
     otpEmail: otpEmailTemplate,
 };
 
-type SmtpConfig = {
-    host: string;
-    port: number;
-    secure: boolean;
-    user: string;
-    pass: string;
-    from: string;
-};
-
-const getRequiredEnv = (name: string): string => {
-    const value = process.env[name];
-    if (!value) {
-        throw new Error(`Missing required environment variable: ${name}`);
-    }
-    return value;
-};
-
-const getSmtpConfig = (): SmtpConfig => {
-    const portRaw = process.env.SMTP_PORT ?? "587";
-    const port = Number(portRaw);
-    if (Number.isNaN(port)) {
-        throw new Error(`Invalid SMTP_PORT value: ${portRaw}`);
-    }
-
-    return {
-        host: getRequiredEnv("SMTP_HOST"),
-        port,
-        secure: process.env.SMTP_SECURE === "true",
-        user: getRequiredEnv("SMTP_USER"),
-        pass: getRequiredEnv("SMTP_PASS"),
-        from: getRequiredEnv("SMTP_FROM"),
-    };
-};
-
 let transporter: Transporter | null = null;
 let transporterVerified = false;
 
@@ -120,20 +87,7 @@ let transporterVerified = false;
  */
 export const getMailerTransporter = (): Transporter => {
     if (transporter) return transporter;
-
-    const smtp = getSmtpConfig();
-    transporter = nodemailer.createTransport({
-        host: smtp.host,
-        port: smtp.port,
-        secure: smtp.secure,
-        auth: {
-            user: smtp.user,
-            pass: smtp.pass,
-        },
-        pool: true,
-        maxConnections: 5,
-        maxMessages: 100,
-    });
+    transporter = nodemailer.createTransport(nodemailerConfig);
 
     return transporter;
 };
@@ -173,10 +127,9 @@ export async function sendEmail<K extends MailTemplateKey>(
     try {
         const renderer = templateRegistry[template];
         const rendered = renderer(data as MailTemplatePayloadMap[K]);
-        const smtp = getSmtpConfig();
 
         const mail: SendMailOptions = {
-            from: input.from ?? smtp.from,
+            from: input.from ?? defaultMailFrom,
             to,
             cc,
             bcc,
