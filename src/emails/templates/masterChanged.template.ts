@@ -3,6 +3,7 @@
  * @summary Шаблон листа для зміни майстра у записі.
  */
 import type { MasterChangedTemplateData } from "../../types/nodemailer/nodemailer.types.js";
+import { renderEmailLayout } from "./email-layout.template.js";
 
 const formatDateTime = (value: Date | string): string => {
     const date = value instanceof Date ? value : new Date(value);
@@ -25,17 +26,25 @@ export const masterChangedTemplate = (data: MasterChangedTemplateData) => {
     const greeting = data.recipientName ? `Вітаємо, ${data.recipientName}!` : "Вітаємо!";
     const startAt = formatDateTime(data.startAt);
 
-    const html = `
-<h2>${subject}</h2>
-<p>${greeting}</p>
-<p>Для запису <strong>${data.bookingId}</strong> змінено майстра.</p>
-<p><strong>Студія:</strong> ${data.studioName}</p>
-<p><strong>Послуга:</strong> ${data.serviceName}</p>
-<p><strong>Було:</strong> ${data.oldMasterName}</p>
-<p><strong>Стало:</strong> ${data.newMasterName}</p>
-<p><strong>Час візиту:</strong> ${startAt}</p>
-${data.actionUrl ? `<p><a href="${data.actionUrl}">Переглянути запис</a></p>` : ""}
-`;
+    const html = renderEmailLayout({
+        title: "У вашому записі змінено майстра",
+        subtitle: "Будь ласка, перевірте оновлені деталі візиту",
+        greeting,
+        intro: `Для запису ${data.bookingId} змінено майстра.`,
+        statusLabel: "Статус: Оновлено",
+        statusTone: "info",
+        detailsTitle: "Деталі запису",
+        detailsRows: [
+            { label: "ID запису", value: data.bookingId },
+            { label: "Студія", value: data.studioName },
+            { label: "Послуга", value: data.serviceName },
+            { label: "Було", value: data.oldMasterName },
+            { label: "Стало", value: data.newMasterName },
+            { label: "Час візиту", value: startAt },
+        ],
+        ctaText: data.actionUrl ? "Переглянути запис" : undefined,
+        ctaUrl: data.actionUrl,
+    });
 
     const text = [
         subject,

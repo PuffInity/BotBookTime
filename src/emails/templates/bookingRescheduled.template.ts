@@ -3,6 +3,7 @@
  * @summary Шаблон листа для перенесення запису.
  */
 import type { BookingRescheduledTemplateData } from "../../types/nodemailer/nodemailer.types.js";
+import { renderEmailLayout } from "./email-layout.template.js";
 
 const formatDateTime = (value: Date | string): string => {
     const date = value instanceof Date ? value : new Date(value);
@@ -26,17 +27,26 @@ export const bookingRescheduledTemplate = (data: BookingRescheduledTemplateData)
     const oldAt = formatDateTime(data.oldStartAt);
     const newAt = formatDateTime(data.newStartAt);
 
-    const html = `
-<h2>${subject}</h2>
-<p>${greeting}</p>
-<p>Запис <strong>${data.bookingId}</strong> було перенесено.</p>
-<p><strong>Попередній час:</strong> ${oldAt}</p>
-<p><strong>Новий час:</strong> ${newAt}</p>
-<p><strong>Студія:</strong> ${data.studioName}</p>
-<p><strong>Послуга:</strong> ${data.serviceName}</p>
-<p><strong>Майстер:</strong> ${data.masterName ?? "Без змін"}</p>
-${data.actionUrl ? `<p><a href="${data.actionUrl}">Переглянути деталі</a></p>` : ""}
-`;
+    const html = renderEmailLayout({
+        title: "Ваш запис перенесено",
+        subtitle: "Дата або час візиту були оновлені",
+        greeting,
+        intro: `Запис ${data.bookingId} було успішно перенесено.`,
+        statusLabel: "Статус: Перенесено",
+        statusTone: "info",
+        detailsTitle: "Оновлені деталі запису",
+        detailsRows: [
+            { label: "ID запису", value: data.bookingId },
+            { label: "Попередній час", value: oldAt },
+            { label: "Новий час", value: newAt },
+            { label: "Студія", value: data.studioName },
+            { label: "Послуга", value: data.serviceName },
+            { label: "Майстер", value: data.masterName ?? "Без змін" },
+        ],
+        notice: "Будь ласка, перевірте нову дату та час візиту.",
+        ctaText: data.actionUrl ? "Переглянути деталі" : undefined,
+        ctaUrl: data.actionUrl,
+    });
 
     const text = [
         subject,

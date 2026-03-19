@@ -3,6 +3,7 @@
  * @summary Шаблон листа для підтвердження запису майстром.
  */
 import type { BookingConfirmedTemplateData } from "../../types/nodemailer/nodemailer.types.js";
+import { renderEmailLayout } from "./email-layout.template.js";
 
 const formatDateTime = (value: Date | string): string => {
     const date = value instanceof Date ? value : new Date(value);
@@ -25,16 +26,27 @@ export const bookingConfirmedTemplate = (data: BookingConfirmedTemplateData) => 
     const greeting = data.recipientName ? `Вітаємо, ${data.recipientName}!` : "Вітаємо!";
     const startAt = formatDateTime(data.startAt);
 
-    const html = `
-<h2>${subject}</h2>
-<p>${greeting}</p>
-<p>Ваш запис <strong>${data.bookingId}</strong> підтверджено.</p>
-<p><strong>Студія:</strong> ${data.studioName}</p>
-<p><strong>Послуга:</strong> ${data.serviceName}</p>
-<p><strong>Майстер:</strong> ${data.masterName}</p>
-<p><strong>Час візиту:</strong> ${startAt}</p>
-${data.actionUrl ? `<p><a href="${data.actionUrl}">Переглянути запис</a></p>` : ""}
-`;
+    const html = renderEmailLayout({
+        title: "Ваш запис підтверджено",
+        subtitle: "Майстер підтвердив ваш візит",
+        greeting,
+        intro:
+            `Ваш запис ${data.bookingId} підтверджено.\nВізит зафіксовано у розкладі студії.`,
+        statusLabel: "Статус: Підтверджено",
+        statusTone: "success",
+        detailsTitle: "Деталі запису",
+        detailsRows: [
+            { label: "ID запису", value: data.bookingId },
+            { label: "Студія", value: data.studioName },
+            { label: "Послуга", value: data.serviceName },
+            { label: "Майстер", value: data.masterName },
+            { label: "Час візиту", value: startAt },
+        ],
+        notice: "Якщо вам потрібно перенести або скасувати запис, зробіть це завчасно.",
+        ctaText: data.actionUrl ? "Переглянути запис" : undefined,
+        ctaUrl: data.actionUrl,
+        closing: `Чекаємо на вас у ${data.studioName} 💅`,
+    });
 
     const text = [
         subject,

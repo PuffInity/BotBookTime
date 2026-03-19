@@ -3,6 +3,7 @@
  * @summary Шаблон листа-нагадування перед візитом.
  */
 import type { ReminderTemplateData } from "../../types/nodemailer/nodemailer.types.js";
+import { renderEmailLayout } from "./email-layout.template.js";
 
 const formatDateTime = (value: Date | string): string => {
     const date = value instanceof Date ? value : new Date(value);
@@ -25,17 +26,24 @@ export const reminderTemplate = (data: ReminderTemplateData) => {
     const greeting = data.recipientName ? `Вітаємо, ${data.recipientName}!` : "Вітаємо!";
     const startAt = formatDateTime(data.startAt);
 
-    const html = `
-<h2>${subject}</h2>
-<p>${greeting}</p>
-<p>Нагадуємо: через <strong>${data.hoursBefore}</strong> год. у вас запланований візит.</p>
-<p><strong>ID запису:</strong> ${data.bookingId}</p>
-<p><strong>Студія:</strong> ${data.studioName}</p>
-<p><strong>Послуга:</strong> ${data.serviceName}</p>
-<p><strong>Майстер:</strong> ${data.masterName ?? "—"}</p>
-<p><strong>Час:</strong> ${startAt}</p>
-${data.actionUrl ? `<p><a href="${data.actionUrl}">Переглянути деталі</a></p>` : ""}
-`;
+    const html = renderEmailLayout({
+        title: "Нагадування про ваш візит",
+        subtitle: `До запису залишилось приблизно ${data.hoursBefore} год.`,
+        greeting,
+        intro: "Нагадуємо про запланований візит. Перевірте час та деталі запису.",
+        statusLabel: "Статус: Нагадування",
+        statusTone: "info",
+        detailsTitle: "Деталі візиту",
+        detailsRows: [
+            { label: "ID запису", value: data.bookingId },
+            { label: "Студія", value: data.studioName },
+            { label: "Послуга", value: data.serviceName },
+            { label: "Майстер", value: data.masterName ?? "—" },
+            { label: "Час", value: startAt },
+        ],
+        ctaText: data.actionUrl ? "Переглянути деталі" : undefined,
+        ctaUrl: data.actionUrl,
+    });
 
     const text = [
         subject,
