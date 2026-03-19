@@ -28,3 +28,20 @@ export const bookingClientPhoneSchema = z
   .trim()
   .regex(/^\+420\d{9}$/, 'Телефон повинен бути у форматі +420123456789');
 
+/**
+ * Код дати з callback payload:
+ * YYYYMMDD, приклад: 20260320
+ */
+export const bookingDateCodeSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{8}$/, 'Некоректний код дати');
+
+/**
+ * Код часу з callback payload:
+ * HHMM, приклад: 1430
+ */
+export const bookingTimeCodeSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{4}$/, 'Некоректний код часу');

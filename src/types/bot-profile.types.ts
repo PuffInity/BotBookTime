@@ -15,6 +15,12 @@ export const PROFILE_ACTION = {
   EDIT_PHONE: 'profile:edit-phone',
   EDIT_LANGUAGE: 'profile:edit-language',
   BOOKING_STATUS: 'profile:booking-status',
+  BOOKING_STATUS_VIEW_ALL: 'profile:booking-status:view-all',
+  BOOKING_STATUS_OPEN_ITEM_PREFIX: 'profile:booking-status:item:',
+  BOOKING_STATUS_RESCHEDULE_ITEM_PREFIX: 'profile:booking-status:reschedule:',
+  BOOKING_STATUS_CANCEL_ITEM_PREFIX: 'profile:booking-status:cancel:',
+  BOOKING_STATUS_CANCEL_CONFIRM_PREFIX: 'profile:booking-status:cancel:confirm:',
+  BOOKING_STATUS_CREATE: 'profile:booking-status:create',
   NOTIFICATION_SETTINGS: 'profile:notification-settings',
 } as const;
 
@@ -33,6 +39,36 @@ export const PROFILE_BUTTON_TEXT = {
   EDIT_PHONE: '📱 Змінити телефон',
   EDIT_LANGUAGE: '🌐 Змінити мову',
   BOOKING_STATUS: '📅 Статус бронювання',
+  BOOKING_STATUS_VIEW_ALL: '📖 Переглянути всі записи',
+  BOOKING_STATUS_RESCHEDULE: '🔄 Перенести',
+  BOOKING_STATUS_CANCEL: '❌ Скасувати бронювання',
+  BOOKING_STATUS_CANCEL_CONFIRM: '✅ Так, скасувати',
+  BOOKING_STATUS_CANCEL_ABORT: '❌ Ні, залишити запис',
+  BOOKING_STATUS_CREATE: '📅 Створити запис',
+  BOOKING_STATUS_CREATE_FIRST: '📅 Створити перший запис',
+  BACK_TO_BOOKING_HISTORY: '⬅️ Назад до списку',
   NOTIFICATION_SETTINGS: '🔔 Налаштування сповіщень',
   BACK_TO_PROFILE: '⬅️ Повернутися до профілю',
 } as const;
+
+export const PROFILE_BOOKING_OPEN_ITEM_ACTION_REGEX = /^profile:booking-status:item:(\d+)$/;
+export const PROFILE_BOOKING_RESCHEDULE_ACTION_REGEX = /^profile:booking-status:reschedule:(\d+)$/;
+export const PROFILE_BOOKING_CANCEL_ACTION_REGEX = /^profile:booking-status:cancel:(\d+)$/;
+export const PROFILE_BOOKING_CANCEL_CONFIRM_ACTION_REGEX =
+  /^profile:booking-status:cancel:confirm:(\d+)$/;
+
+export function makeProfileBookingOpenItemAction(appointmentId: string): string {
+  return `${PROFILE_ACTION.BOOKING_STATUS_OPEN_ITEM_PREFIX}${appointmentId}`;
+}
+
+export function makeProfileBookingRescheduleAction(appointmentId: string): string {
+  return `${PROFILE_ACTION.BOOKING_STATUS_RESCHEDULE_ITEM_PREFIX}${appointmentId}`;
+}
+
+export function makeProfileBookingCancelAction(appointmentId: string): string {
+  return `${PROFILE_ACTION.BOOKING_STATUS_CANCEL_ITEM_PREFIX}${appointmentId}`;
+}
+
+export function makeProfileBookingCancelConfirmAction(appointmentId: string): string {
+  return `${PROFILE_ACTION.BOOKING_STATUS_CANCEL_CONFIRM_PREFIX}${appointmentId}`;
+}

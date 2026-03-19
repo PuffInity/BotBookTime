@@ -3,6 +3,7 @@
  * @summary Шаблон листа для скасування запису.
  */
 import type { BookingCancelledTemplateData } from "../../types/nodemailer/nodemailer.types.js";
+import { renderEmailLayout } from "./email-layout.template.js";
 
 const formatDateTime = (value: Date | string): string => {
     const date = value instanceof Date ? value : new Date(value);
@@ -26,17 +27,26 @@ export const bookingCancelledTemplate = (data: BookingCancelledTemplateData) => 
     const startAt = formatDateTime(data.startAt);
     const reason = data.cancelReason ?? "Причина не вказана";
 
-    const html = `
-<h2>${subject}</h2>
-<p>${greeting}</p>
-<p>Запис <strong>${data.bookingId}</strong> скасовано.</p>
-<p><strong>Студія:</strong> ${data.studioName}</p>
-<p><strong>Послуга:</strong> ${data.serviceName}</p>
-<p><strong>Майстер:</strong> ${data.masterName ?? "—"}</p>
-<p><strong>Планований час:</strong> ${startAt}</p>
-<p><strong>Причина:</strong> ${reason}</p>
-${data.actionUrl ? `<p><a href="${data.actionUrl}">Перевірити розклад</a></p>` : ""}
-`;
+    const html = renderEmailLayout({
+        title: "Ваш запис скасовано",
+        subtitle: "Візит більше не активний у розкладі",
+        greeting,
+        intro: `Запис ${data.bookingId} було скасовано.`,
+        statusLabel: "Статус: Скасовано",
+        statusTone: "danger",
+        detailsTitle: "Деталі скасованого запису",
+        detailsRows: [
+            { label: "ID запису", value: data.bookingId },
+            { label: "Студія", value: data.studioName },
+            { label: "Послуга", value: data.serviceName },
+            { label: "Майстер", value: data.masterName ?? "—" },
+            { label: "Планований час", value: startAt },
+            { label: "Причина", value: reason },
+        ],
+        notice: "Якщо це помилка, зверніться до студії для уточнення.",
+        ctaText: data.actionUrl ? "Перевірити розклад" : undefined,
+        ctaUrl: data.actionUrl,
+    });
 
     const text = [
         subject,

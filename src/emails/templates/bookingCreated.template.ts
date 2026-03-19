@@ -3,6 +3,28 @@
  * @summary Шаблон листа для повідомлення про створений запис.
  */
 import type { BookingCreatedTemplateData } from "../../types/nodemailer/nodemailer.types.js";
+import { renderEmailLayout } from "./email-layout.template.js";
+
+const parseDate = (value: Date | string): Date => {
+    return value instanceof Date ? value : new Date(value);
+};
+
+const formatDate = (value: Date | string): string => {
+    const date = parseDate(value);
+    return date.toLocaleDateString("uk-UA", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    });
+};
+
+const formatTime = (value: Date | string): string => {
+    const date = parseDate(value);
+    return date.toLocaleTimeString("uk-UA", {
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+};
 
 const formatDateTime = (value: Date | string): string => {
     const date = value instanceof Date ? value : new Date(value);
@@ -30,17 +52,32 @@ export const bookingCreatedTemplate = (data: BookingCreatedTemplateData) => {
     const greeting = data.recipientName ? `Вітаємо, ${data.recipientName}!` : "Вітаємо!";
     const startAt = formatDateTime(data.startAt);
     const subject = resolveSubject(data.recipientRole);
+    const bookingDate = formatDate(data.startAt);
+    const bookingTime = formatTime(data.startAt);
+    const masterName = data.masterName ?? "Буде призначено";
 
-    const html = `
-<h2>${subject}</h2>
-<p>${greeting}</p>
-<p><strong>ID запису:</strong> ${data.bookingId}</p>
-<p><strong>Студія:</strong> ${data.studioName}</p>
-<p><strong>Послуга:</strong> ${data.serviceName}</p>
-<p><strong>Майстер:</strong> ${data.masterName ?? "Буде призначено"}</p>
-<p><strong>Час:</strong> ${startAt}</p>
-${data.actionUrl ? `<p><a href="${data.actionUrl}">Відкрити деталі запису</a></p>` : ""}
-`;
+    const html = renderEmailLayout({
+        title: "Ваш запис створено",
+        subtitle: "Запис успішно сформовано та передано на підтвердження",
+        greeting,
+        intro:
+            "Ваш запис було успішно створено. Зараз він очікує підтвердження від майстра.\nНижче ви можете переглянути деталі вашого бронювання.",
+        statusLabel: "Статус: Очікує підтвердження",
+        statusTone: "warning",
+        detailsTitle: "Деталі запису",
+        detailsRows: [
+            { label: "ID запису", value: data.bookingId },
+            { label: "Студія", value: data.studioName },
+            { label: "Послуга", value: data.serviceName },
+            { label: "Майстер", value: masterName },
+            { label: "Час", value: `${bookingDate}, ${bookingTime}` },
+        ],
+        notice:
+            "Ми повідомимо вас, щойно майстер підтвердить запис або якщо в ньому відбудуться зміни.",
+        ctaText: data.actionUrl ? "Відкрити деталі запису" : undefined,
+        ctaUrl: data.actionUrl,
+        closing: `Дякуємо, що обрали ${data.studioName} 💅`,
+    });
 
     const text = [
         subject,
@@ -48,8 +85,9 @@ ${data.actionUrl ? `<p><a href="${data.actionUrl}">Відкрити деталі
         `ID запису: ${data.bookingId}`,
         `Студія: ${data.studioName}`,
         `Послуга: ${data.serviceName}`,
-        `Майстер: ${data.masterName ?? "Буде призначено"}`,
+        `Майстер: ${masterName}`,
         `Час: ${startAt}`,
+        "Статус: Очікує підтвердження",
         data.actionUrl ? `Деталі: ${data.actionUrl}` : "",
     ]
         .filter(Boolean)
