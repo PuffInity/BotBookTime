@@ -71,7 +71,7 @@ export function formatProfileCardText(user: AppUsersEntity): string {
     `✉️ Email: ${user.email ?? 'Не вказано'}\n` +
     `${emailVerificationLine}` +
     `🌐 Мова: ${user.preferredLanguage}\n` +
-    `🔔 Сповіщення: увімкнено\n\n` +
+    `🔔 Сповіщення: керуються в розділі "Налаштування сповіщень"\n\n` +
     `${bookingAvailability}`
   );
 }

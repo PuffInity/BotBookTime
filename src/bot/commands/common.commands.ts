@@ -2,6 +2,7 @@ import { BOOKING_SCENE_ID } from '../scenes/booking.scene.js';
 import { PROFILE_NAME_SCENE_ID } from '../scenes/profile-name.scene.js';
 import { PROFILE_EMAIL_VERIFY_SCENE_ID } from '../scenes/profile-email-verify.scene.js';
 import { PROFILE_EMAIL_ADD_SCENE_ID } from '../scenes/profile-email-add.scene.js';
+import { PROFILE_NOTIFICATION_SETTINGS_SCENE_ID } from '../scenes/profile-notification-settings.scene.js';
 import { SERVICES_SCENE_ID } from '../scenes/services.scene.js';
 import { FAQ_SCENE_ID } from '../scenes/faq.scene.js';
 import type { MyContext } from '../../types/bot.types.js';
@@ -164,7 +165,10 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     PROFILE_ACTION.NOTIFICATION_SETTINGS,
     asyncBotHandler(async (ctx) => {
       await ctx.answerCbQuery();
-      await sendProfileFeatureStub(ctx, '🔔 Налаштування сповіщень');
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+      await ctx.scene.enter(PROFILE_NOTIFICATION_SETTINGS_SCENE_ID);
     }),
   );
 
