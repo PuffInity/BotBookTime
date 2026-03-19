@@ -10,6 +10,7 @@ export type ProfileBookingStatusRow = {
   status: AppointmentStatus;
   start_at: Date;
   end_at: Date;
+  studio_name: string;
   service_name: string;
   master_name: string;
   price_amount: string;
@@ -21,6 +22,7 @@ export type ProfileBookingStatusItem = {
   status: AppointmentStatus;
   startAt: Date;
   endAt: Date;
+  studioName: string;
   serviceName: string;
   masterName: string;
   priceAmount: string;

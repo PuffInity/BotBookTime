@@ -7,6 +7,7 @@ import { queryMany, queryOne, withTransaction } from '../db.helper.js';
 import { ValidationError, handleError } from '../../utils/error.utils.js';
 import { loggerDb } from '../../utils/logger/loggers-list.js';
 import {
+  SQL_CANCEL_ACTIVE_BOOKING_BY_CLIENT_ID,
   SQL_GET_UPCOMING_BOOKING_BY_CLIENT_ID,
   SQL_LIST_RECENT_BOOKINGS_BY_CLIENT_ID,
 } from '../db-sql/db-profile-booking.sql.js';
@@ -18,6 +19,7 @@ import {
 
 const DEFAULT_RECENT_LIMIT = 5;
 const MAX_RECENT_LIMIT = 20;
+type CanceledBookingRow = { appointment_id: string };
 
 function normalizePositiveBigintId(value: string | number, fieldName: string): string {
   const normalized = String(value).trim();
@@ -46,6 +48,7 @@ function mapBookingStatusRow(row: ProfileBookingStatusRow): ProfileBookingStatus
     status: row.status,
     startAt: new Date(row.start_at),
     endAt: new Date(row.end_at),
+    studioName: row.studio_name,
     serviceName: row.service_name,
     masterName: row.master_name,
     priceAmount: row.price_amount,
@@ -91,6 +94,46 @@ export async function getProfileBookingStatus(
       action: 'Failed to load profile booking status',
       error,
       meta: { clientId: normalizedClientId, limit },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Скасовує активний майбутній запис клієнта (pending/confirmed).
+ */
+export async function cancelProfileBookingById(
+  clientId: string | number,
+  appointmentId: string | number,
+): Promise<string> {
+  const normalizedClientId = normalizePositiveBigintId(clientId, 'clientId');
+  const normalizedAppointmentId = normalizePositiveBigintId(appointmentId, 'appointmentId');
+
+  try {
+    return await withTransaction(async (client) => {
+      const canceled = await queryOne<CanceledBookingRow, string>(
+        SQL_CANCEL_ACTIVE_BOOKING_BY_CLIENT_ID,
+        [normalizedAppointmentId, normalizedClientId],
+        (row) => row.appointment_id,
+        client,
+      );
+
+      if (!canceled) {
+        throw new ValidationError(
+          'Запис неможливо скасувати. Можливо, він уже змінений або недоступний.',
+          { clientId: normalizedClientId, appointmentId: normalizedAppointmentId },
+        );
+      }
+
+      return canceled;
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-profile-booking.helper',
+      action: 'Failed to cancel booking by profile action',
+      error,
+      meta: { clientId: normalizedClientId, appointmentId: normalizedAppointmentId },
     });
     throw error;
   }

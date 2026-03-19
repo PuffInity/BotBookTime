@@ -27,6 +27,17 @@ export type SendClientBookingConfirmedEmailInput = {
   startAt: Date;
 };
 
+export type SendClientBookingCancelledEmailInput = {
+  to: string;
+  recipientName?: string;
+  bookingId: string;
+  studioName: string;
+  serviceName: string;
+  masterName?: string;
+  startAt: Date;
+  cancelReason?: string;
+};
+
 /**
  * @summary Надсилає клієнту email про створення запису зі статусом "очікує підтвердження".
  * @returns {Promise<boolean>} true, якщо лист надіслано; false, якщо відправка завершилась помилкою.
@@ -89,6 +100,41 @@ export async function sendClientBookingConfirmedEmail(
       level: 'warn',
       scope: 'booking-email.helper',
       action: 'Failed to send booking confirmed email',
+      error,
+      meta: { bookingId: input.bookingId, to: input.to },
+    });
+    return false;
+  }
+}
+
+/**
+ * @summary Надсилає клієнту email про успішне скасування запису.
+ * @returns {Promise<boolean>} true, якщо лист надіслано; false, якщо відправка завершилась помилкою.
+ */
+export async function sendClientBookingCancelledEmail(
+  input: SendClientBookingCancelledEmailInput,
+): Promise<boolean> {
+  try {
+    await sendEmail({
+      to: input.to,
+      template: 'bookingCancelled',
+      data: {
+        recipientName: input.recipientName,
+        bookingId: input.bookingId,
+        studioName: input.studioName,
+        serviceName: input.serviceName,
+        masterName: input.masterName,
+        startAt: input.startAt,
+        cancelReason: input.cancelReason,
+      },
+    });
+    return true;
+  } catch (error) {
+    handleError({
+      logger: loggerMailer,
+      level: 'warn',
+      scope: 'booking-email.helper',
+      action: 'Failed to send booking cancelled email',
       error,
       meta: { bookingId: input.bookingId, to: input.to },
     });

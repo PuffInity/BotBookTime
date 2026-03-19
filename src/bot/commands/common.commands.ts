@@ -6,23 +6,38 @@ import { SERVICES_SCENE_ID } from '../scenes/services.scene.js';
 import { FAQ_SCENE_ID } from '../scenes/faq.scene.js';
 import type { MyContext } from '../../types/bot.types.js';
 import type { Telegraf } from 'telegraf';
-import { asyncBotHandler } from '../../utils/error.utils.js';
+import { ValidationError, asyncBotHandler } from '../../utils/error.utils.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
 import { CLIENT_MAIN_MENU_BUTTON, COMMON_NAV_ACTION } from '../../types/bot-menu.types.js';
 import { getOrCreateUser } from '../../helpers/db/db-profile.helper.js';
-import { PROFILE_ACTION } from '../../types/bot-profile.types.js';
+import {
+  PROFILE_ACTION,
+  PROFILE_BOOKING_CANCEL_ACTION_REGEX,
+  PROFILE_BOOKING_CANCEL_CONFIRM_ACTION_REGEX,
+  PROFILE_BOOKING_OPEN_ITEM_ACTION_REGEX,
+  PROFILE_BOOKING_RESCHEDULE_ACTION_REGEX,
+} from '../../types/bot-profile.types.js';
 import {
   getEmailProfileActionTitle,
   getPhoneProfileActionTitle,
   sendProfileCard,
   sendProfileFeatureStub,
 } from '../../helpers/bot/profile-view.bot.js';
-import { getProfileBookingStatus } from '../../helpers/db/db-profile-booking.helper.js';
 import {
+  cancelProfileBookingById,
+  getProfileBookingStatus,
+} from '../../helpers/db/db-profile-booking.helper.js';
+import { sendClientBookingCancelledEmail } from '../../helpers/email/booking-email.helper.js';
+import {
+  getHistoryItems,
+  sendCancelBookingConfirm,
+  sendCancelBookingSuccess,
+  sendSelectedBookingDetails,
   sendProfileBookingActionStub,
   sendProfileBookingHistory,
   sendProfileBookingStatus,
 } from '../../helpers/bot/profile-booking-status.bot.js';
+import type { ProfileBookingStatusItem } from '../../types/db-helpers/db-profile-booking.types.js';
 
 /**
  * @file common.commands.ts
@@ -37,6 +52,43 @@ import {
  * - /cancel (вихід зі сцени)
  */
 export function registerCommonCommands(bot: Telegraf<MyContext>): void {
+  function getActionIdFromCallbackData(ctx: MyContext, regex: RegExp): string {
+    const callbackData =
+      ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
+    const matches = callbackData.match(regex);
+
+    if (!matches?.[1]) {
+      throw new ValidationError('Некоректна callback-дія для статусу бронювання');
+    }
+
+    return matches[1];
+  }
+
+  async function findBookingForProfileAction(
+    ctx: MyContext,
+    regex: RegExp,
+  ): Promise<{
+    userId: string;
+    userEmail: string | null;
+    userFirstName: string;
+    item: ProfileBookingStatusItem | null;
+  }> {
+    const appointmentId = getActionIdFromCallbackData(ctx, regex);
+    const user = await getOrCreateUser(ctx);
+    const bookingStatus = await getProfileBookingStatus(user.id, 20);
+    const available = [bookingStatus.upcoming, ...getHistoryItems(bookingStatus)].filter(
+      (item): item is ProfileBookingStatusItem => Boolean(item),
+    );
+    const selected = available.find((item) => item.appointmentId === appointmentId) ?? null;
+
+    if (!selected) {
+      await sendProfileBookingActionStub(ctx, '⚠️ Запис не знайдено');
+      return { userId: user.id, userEmail: user.email, userFirstName: user.firstName, item: null };
+    }
+
+    return { userId: user.id, userEmail: user.email, userFirstName: user.firstName, item: selected };
+  }
+
   bot.start(
     asyncBotHandler(async (ctx) => {
       await getOrCreateUser(ctx);
@@ -190,18 +242,71 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
   );
 
   bot.action(
-    PROFILE_ACTION.BOOKING_STATUS_RESCHEDULE,
+    PROFILE_BOOKING_OPEN_ITEM_ACTION_REGEX,
     asyncBotHandler(async (ctx) => {
       await ctx.answerCbQuery();
-      await sendProfileBookingActionStub(ctx, '🔄 Перенесення бронювання');
+      const { item } = await findBookingForProfileAction(ctx, PROFILE_BOOKING_OPEN_ITEM_ACTION_REGEX);
+      if (!item) return;
+
+      await sendSelectedBookingDetails(ctx, item);
     }),
   );
 
   bot.action(
-    PROFILE_ACTION.BOOKING_STATUS_CANCEL,
+    PROFILE_BOOKING_RESCHEDULE_ACTION_REGEX,
     asyncBotHandler(async (ctx) => {
       await ctx.answerCbQuery();
-      await sendProfileBookingActionStub(ctx, '❌ Скасування бронювання');
+      const { item } = await findBookingForProfileAction(ctx, PROFILE_BOOKING_RESCHEDULE_ACTION_REGEX);
+      if (!item) return;
+
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+
+      await ctx.reply(
+        '🔄 Перенесення запису\n\n' +
+          `Обраний запис: ${item.serviceName} (${item.startAt.toLocaleString('uk-UA')}).\n` +
+          'Оберіть нову дату та час у сценарії бронювання.',
+      );
+      await ctx.scene.enter(BOOKING_SCENE_ID);
+    }),
+  );
+
+  bot.action(
+    PROFILE_BOOKING_CANCEL_ACTION_REGEX,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      const { item } = await findBookingForProfileAction(ctx, PROFILE_BOOKING_CANCEL_ACTION_REGEX);
+      if (!item) return;
+
+      await sendCancelBookingConfirm(ctx, item);
+    }),
+  );
+
+  bot.action(
+    PROFILE_BOOKING_CANCEL_CONFIRM_ACTION_REGEX,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      const { userId, userEmail, userFirstName, item } = await findBookingForProfileAction(
+        ctx,
+        PROFILE_BOOKING_CANCEL_CONFIRM_ACTION_REGEX,
+      );
+      if (!item) return;
+
+      await cancelProfileBookingById(userId, item.appointmentId);
+      if (userEmail) {
+        await sendClientBookingCancelledEmail({
+          to: userEmail,
+          recipientName: userFirstName,
+          bookingId: item.appointmentId,
+          studioName: item.studioName,
+          serviceName: item.serviceName,
+          masterName: item.masterName,
+          startAt: item.startAt,
+          cancelReason: 'Скасовано через Telegram-бота',
+        });
+      }
+      await sendCancelBookingSuccess(ctx, item);
     }),
   );
 
