@@ -32,10 +32,42 @@ export type MasterCatalogCertificate = {
   documentUrl: string | null;
 };
 
+export type MasterWeeklyScheduleItem = {
+  weekday: number;
+  isWorking: boolean;
+  openTime: string | null;
+  closeTime: string | null;
+};
+
+export type MasterUpcomingScheduleException =
+  | {
+      type: 'day_off';
+      offDate: Date;
+      reason: string | null;
+    }
+  | {
+      type: 'vacation';
+      dateFrom: Date;
+      dateTo: Date;
+      reason: string | null;
+    }
+  | {
+      type: 'temporary';
+      dateFrom: Date;
+      dateTo: Date;
+      weekday: number;
+      isWorking: boolean;
+      openTime: string | null;
+      closeTime: string | null;
+      note: string | null;
+    };
+
 export type MasterCatalogDetails = {
   master: MasterCatalogItem;
   specializations: MasterSpecializationItem[];
   certificates: MasterCatalogCertificate[];
+  weeklySchedule: MasterWeeklyScheduleItem[];
+  upcomingScheduleExceptions: MasterUpcomingScheduleException[];
   contactPhoneE164: string | null;
   contactEmail: string | null;
   materialsInfo: string | null;

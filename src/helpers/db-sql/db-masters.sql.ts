@@ -47,6 +47,51 @@ export const MASTER_BOOKING_OPTION_SELECT_COLUMNS = `
   m.experience_years
 `;
 
+export const MASTER_WEEKLY_HOURS_SELECT_COLUMNS = `
+  master_id,
+  weekday,
+  is_working,
+  open_time,
+  close_time,
+  created_at,
+  updated_at
+`;
+
+export const MASTER_DAYS_OFF_SELECT_COLUMNS = `
+  id,
+  master_id,
+  off_date,
+  reason,
+  created_by,
+  created_at
+`;
+
+export const MASTER_VACATIONS_SELECT_COLUMNS = `
+  id,
+  master_id,
+  date_from,
+  date_to,
+  reason,
+  created_by,
+  created_at,
+  updated_at
+`;
+
+export const MASTER_TEMPORARY_HOURS_SELECT_COLUMNS = `
+  id,
+  master_id,
+  date_from,
+  date_to,
+  weekday,
+  is_working,
+  open_time,
+  close_time,
+  note,
+  created_by,
+  created_at,
+  updated_at
+`;
+
 export const SQL_LIST_ACTIVE_MASTERS_CATALOG = `
   SELECT
     ${MASTERS_CATALOG_SELECT_COLUMNS}
@@ -86,6 +131,44 @@ export const SQL_LIST_MASTER_CERTIFICATES_BY_ID = `
   FROM master_certificates
   WHERE master_id = $1::bigint
   ORDER BY issued_on DESC NULLS LAST, id DESC
+`;
+
+export const SQL_LIST_MASTER_WEEKLY_HOURS_BY_ID = `
+  SELECT
+    ${MASTER_WEEKLY_HOURS_SELECT_COLUMNS}
+  FROM master_weekly_hours
+  WHERE master_id = $1::bigint
+  ORDER BY weekday ASC
+`;
+
+export const SQL_LIST_MASTER_UPCOMING_DAYS_OFF_BY_ID = `
+  SELECT
+    ${MASTER_DAYS_OFF_SELECT_COLUMNS}
+  FROM master_days_off
+  WHERE master_id = $1::bigint
+    AND off_date >= CURRENT_DATE
+  ORDER BY off_date ASC
+  LIMIT $2
+`;
+
+export const SQL_LIST_MASTER_UPCOMING_VACATIONS_BY_ID = `
+  SELECT
+    ${MASTER_VACATIONS_SELECT_COLUMNS}
+  FROM master_vacations
+  WHERE master_id = $1::bigint
+    AND date_to >= CURRENT_DATE
+  ORDER BY date_from ASC
+  LIMIT $2
+`;
+
+export const SQL_LIST_MASTER_UPCOMING_TEMPORARY_HOURS_BY_ID = `
+  SELECT
+    ${MASTER_TEMPORARY_HOURS_SELECT_COLUMNS}
+  FROM master_temporary_hours
+  WHERE master_id = $1::bigint
+    AND date_to >= CURRENT_DATE
+  ORDER BY date_from ASC, weekday ASC
+  LIMIT $2
 `;
 
 export const SQL_LIST_ACTIVE_MASTERS_BY_SERVICE_ID = `
