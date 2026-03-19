@@ -1,6 +1,11 @@
 import { Markup, Scenes } from 'telegraf';
 import type { MyContext } from '../../types/bot.types.js';
+import type { ServicesCatalogItem } from '../../types/db-helpers/db-services.types.js';
+import type { MasterBookingOption } from '../../types/db-helpers/db-masters.types.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
+import { listActiveServicesCatalog } from '../../helpers/db/db-services.helper.js';
+import { listActiveMastersByService } from '../../helpers/db/db-masters.helper.js';
+import { getOrCreateUser } from '../../helpers/db/db-profile.helper.js';
 import {
   bookingClientNameSchema,
   bookingClientPhoneSchema,
@@ -8,7 +13,7 @@ import {
 
 /**
  * @file booking.scene.ts
- * @summary Базовий покроковий сценарій запису (WizardScene).
+ * @summary Сценарій бронювання: послуга -> майстер -> ім'я -> телефон.
  */
 
 /** ID сцени. Саме цей рядок використовуємо в `ctx.scene.enter(...)`. */
@@ -22,64 +27,200 @@ const BOOKING_NAV_BUTTON = {
 const BOOKING_NAV_ACTION = {
   BACK: 'booking:back',
   HOME: 'booking:home',
+  SERVICE_PREFIX: 'booking:service:',
+  MASTER_PREFIX: 'booking:master:',
 } as const;
 
-function createBookingNavigationKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
-  return Markup.inlineKeyboard([
-    [
-      Markup.button.callback(BOOKING_NAV_BUTTON.BACK, BOOKING_NAV_ACTION.BACK),
-      Markup.button.callback(BOOKING_NAV_BUTTON.HOME, BOOKING_NAV_ACTION.HOME),
-    ],
-  ]);
-}
+const BOOKING_SERVICE_ACTION_REGEX = /^booking:service:(\d+)$/;
+const BOOKING_MASTER_ACTION_REGEX = /^booking:master:(\d+)$/;
+const NUMBER_BADGES = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
 
-/**
- * Тимчасовий стан сценарію (зберігається в сесії на час проходження сцени).
- * Це не основна БД. Після завершення сцени ці дані можна записати в PostgreSQL.
- */
 type BookingDraftState = {
+  studioId: string | null;
+  serviceId?: string;
+  serviceName?: string;
+  masterId?: string;
+  masterName?: string;
   name?: string;
   phone?: string;
 };
 
-/**
- * Допоміжна функція:
- * Повертає об'єкт тимчасового стану з `ctx.wizard.state` у зрозумілому типі.
- */
 function getDraftState(ctx: MyContext): BookingDraftState {
   return ctx.wizard.state as BookingDraftState;
 }
 
-/**
- * Допоміжна функція:
- * Безпечно дістає текст з повідомлення.
- * Якщо користувач надіслав не текст (фото/стікер), повертає null.
- */
 function getMessageText(ctx: MyContext): string | null {
   if (!ctx.message) return null;
   if (!('text' in ctx.message)) return null;
   return ctx.message.text.trim();
 }
 
-async function sendNameStepPrompt(ctx: MyContext, intro?: string): Promise<void> {
-  await ctx.reply(
-    `${intro ? `${intro}\n\n` : ''}` +
-      "📝 Крок 1/2: Ім'я клієнта\n" +
-      "Введіть, будь ласка, ім'я.\n" +
-      "Умови: мінімум 2 символи, тільки текст.\n" +
-      'Приклад: Анна',
-    createBookingNavigationKeyboard(),
-  );
+function getNumberBadge(index: number): string {
+  return NUMBER_BADGES[index] ?? `${index + 1}.`;
 }
 
-async function sendPhoneStepPrompt(ctx: MyContext, intro?: string): Promise<void> {
-  await ctx.reply(
+function formatPrice(price: string, currencyCode: string): string {
+  const normalizedPrice = price
+    .replace(/[.,]00$/, '')
+    .replace(/([.,]\d)0$/, '$1');
+
+  return `${normalizedPrice} ${currencyCode}`;
+}
+
+function createBookingNavigationRow() {
+  return [
+    Markup.button.callback(BOOKING_NAV_BUTTON.BACK, BOOKING_NAV_ACTION.BACK),
+    Markup.button.callback(BOOKING_NAV_BUTTON.HOME, BOOKING_NAV_ACTION.HOME),
+  ] as const;
+}
+
+function createServiceStepKeyboard(
+  services: ServicesCatalogItem[],
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const rows = services.map((service, index) => [
+    Markup.button.callback(
+      `${getNumberBadge(index)} ${service.name}`,
+      `${BOOKING_NAV_ACTION.SERVICE_PREFIX}${service.id}`,
+    ),
+  ]);
+
+  return Markup.inlineKeyboard([...rows, [...createBookingNavigationRow()]]);
+}
+
+function createMasterStepKeyboard(
+  masters: MasterBookingOption[],
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const rows = masters.map((master, index) => [
+    Markup.button.callback(
+      `${getNumberBadge(index)} 👩‍🎨 ${master.displayName}`,
+      `${BOOKING_NAV_ACTION.MASTER_PREFIX}${master.userId}`,
+    ),
+  ]);
+
+  return Markup.inlineKeyboard([...rows, [...createBookingNavigationRow()]]);
+}
+
+function createTextStepKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([[...createBookingNavigationRow()]]);
+}
+
+async function renderBookingView(
+  ctx: MyContext,
+  text: string,
+  keyboard: ReturnType<typeof Markup.inlineKeyboard>,
+  preferEdit: boolean,
+): Promise<void> {
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // Якщо редагувати повідомлення не вдалося (видалене/застаріле) — надсилаємо нове.
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function loadServiceOptions(draft: BookingDraftState): Promise<ServicesCatalogItem[]> {
+  return listActiveServicesCatalog({
+    studioId: draft.studioId,
+  });
+}
+
+async function loadMasterOptions(draft: BookingDraftState): Promise<MasterBookingOption[]> {
+  if (!draft.serviceId) {
+    return [];
+  }
+
+  return listActiveMastersByService({
+    serviceId: draft.serviceId,
+    studioId: draft.studioId,
+  });
+}
+
+async function sendServiceStepPrompt(
+  ctx: MyContext,
+  draft: BookingDraftState,
+  intro?: string,
+  preferEdit = false,
+): Promise<void> {
+  const services = await loadServiceOptions(draft);
+
+  const text =
     `${intro ? `${intro}\n\n` : ''}` +
-      '📱 Крок 2/2: Телефон клієнта\n' +
-      'Введіть номер у форматі +420123456789\n' +
-      'Код країни обов’язковий: +420',
-    createBookingNavigationKeyboard(),
-  );
+    '💼 Крок 1/4: Вибір послуги\n' +
+    'Оберіть послугу зі списку нижче.' +
+    (services.length === 0
+      ? '\n\n⚠️ Наразі немає доступних послуг для бронювання.'
+      : `\n\nДоступно послуг: ${services.length}`);
+
+  await renderBookingView(ctx, text, createServiceStepKeyboard(services), preferEdit);
+}
+
+async function sendMasterStepPrompt(
+  ctx: MyContext,
+  draft: BookingDraftState,
+  intro?: string,
+  preferEdit = false,
+): Promise<void> {
+  if (!draft.serviceId || !draft.serviceName) {
+    await sendServiceStepPrompt(
+      ctx,
+      draft,
+      '⚠️ Спочатку оберіть послугу, щоб перейти до вибору майстра.',
+      preferEdit,
+    );
+    return;
+  }
+
+  const masters = await loadMasterOptions(draft);
+  const text =
+    `${intro ? `${intro}\n\n` : ''}` +
+    '👩‍🎨 Крок 2/4: Вибір майстра\n' +
+    `Обрана послуга: ${draft.serviceName}\n` +
+    'Оберіть майстра зі списку нижче.' +
+    (masters.length === 0
+      ? '\n\n⚠️ Для цієї послуги зараз немає доступних майстрів. Оберіть іншу послугу.'
+      : `\n\nДоступно майстрів: ${masters.length}`);
+
+  await renderBookingView(ctx, text, createMasterStepKeyboard(masters), preferEdit);
+}
+
+async function sendNameStepPrompt(
+  ctx: MyContext,
+  draft: BookingDraftState,
+  intro?: string,
+  preferEdit = false,
+): Promise<void> {
+  const text =
+    `${intro ? `${intro}\n\n` : ''}` +
+    "📝 Крок 3/4: Ім'я клієнта\n" +
+    `Послуга: ${draft.serviceName ?? '—'}\n` +
+    `Майстер: ${draft.masterName ?? '—'}\n\n` +
+    "Введіть, будь ласка, ім'я.\n" +
+    'Умови: мінімум 2 символи, тільки текст.\n' +
+    'Приклад: Анна';
+
+  await renderBookingView(ctx, text, createTextStepKeyboard(), preferEdit);
+}
+
+async function sendPhoneStepPrompt(
+  ctx: MyContext,
+  draft: BookingDraftState,
+  intro?: string,
+  preferEdit = false,
+): Promise<void> {
+  const text =
+    `${intro ? `${intro}\n\n` : ''}` +
+    '📱 Крок 4/4: Телефон клієнта\n' +
+    `Послуга: ${draft.serviceName ?? '—'}\n` +
+    `Майстер: ${draft.masterName ?? '—'}\n` +
+    `Ім'я: ${draft.name ?? '—'}\n\n` +
+    'Введіть номер у форматі +420123456789\n' +
+    'Код країни обов’язковий: +420';
+
+  await renderBookingView(ctx, text, createTextStepKeyboard(), preferEdit);
 }
 
 async function handleGoHome(ctx: MyContext): Promise<void> {
@@ -87,28 +228,82 @@ async function handleGoHome(ctx: MyContext): Promise<void> {
   await sendClientMainMenu(ctx);
 }
 
-/**
- * Створює базовий сценарій запису:
- * 1) Запитуємо ім'я
- * 2) Запитуємо телефон
- * 3) Показуємо підтвердження та завершуємо сцену
- */
 export function createBookingScene(): Scenes.WizardScene<MyContext> {
   const scene = new Scenes.WizardScene<MyContext>(
     BOOKING_SCENE_ID,
     async (ctx) => {
-      await sendNameStepPrompt(
+      const user = await getOrCreateUser(ctx);
+      const draft = getDraftState(ctx);
+
+      draft.studioId = user.studioId;
+      draft.serviceId = undefined;
+      draft.serviceName = undefined;
+      draft.masterId = undefined;
+      draft.masterName = undefined;
+      draft.name = undefined;
+      draft.phone = undefined;
+
+      await sendServiceStepPrompt(
         ctx,
-        '✨ Починаємо новий запис. Заповнимо коротку анкету у 2 кроки.',
+        draft,
+        '✨ Починаємо новий запис. Пройдемо 4 кроки: послуга, майстер, імʼя, телефон.',
       );
       return ctx.wizard.next();
     },
     async (ctx) => {
-      // Крок 2: чекаємо ім'я
+      const text = getMessageText(ctx);
+      if (!text) return;
+
+      if (text === BOOKING_NAV_BUTTON.HOME) {
+        await handleGoHome(ctx);
+        return;
+      }
+
+      if (text === BOOKING_NAV_BUTTON.BACK) {
+        await sendServiceStepPrompt(
+          ctx,
+          getDraftState(ctx),
+          'Ви вже на першому кроці. Оберіть послугу або перейдіть у головне меню.',
+        );
+        return;
+      }
+
+      await sendServiceStepPrompt(
+        ctx,
+        getDraftState(ctx),
+        'Оберіть послугу кнопкою нижче, щоб продовжити бронювання.',
+      );
+    },
+    async (ctx) => {
+      const text = getMessageText(ctx);
+      if (!text) return;
+
+      if (text === BOOKING_NAV_BUTTON.HOME) {
+        await handleGoHome(ctx);
+        return;
+      }
+
+      if (text === BOOKING_NAV_BUTTON.BACK) {
+        ctx.wizard.selectStep(1);
+        await sendServiceStepPrompt(
+          ctx,
+          getDraftState(ctx),
+          '⬅️ Повертаємося до вибору послуги.',
+        );
+        return;
+      }
+
+      await sendMasterStepPrompt(
+        ctx,
+        getDraftState(ctx),
+        'Оберіть майстра кнопкою нижче, щоб продовжити бронювання.',
+      );
+    },
+    async (ctx) => {
       const text = getMessageText(ctx);
 
       if (!text) {
-        await sendNameStepPrompt(ctx, 'Я очікую текстове повідомлення з ім’ям.');
+        await sendNameStepPrompt(ctx, getDraftState(ctx), 'Я очікую текстове повідомлення з імʼям.');
         return;
       }
 
@@ -118,9 +313,11 @@ export function createBookingScene(): Scenes.WizardScene<MyContext> {
       }
 
       if (text === BOOKING_NAV_BUTTON.BACK) {
-        await sendNameStepPrompt(
+        ctx.wizard.selectStep(2);
+        await sendMasterStepPrompt(
           ctx,
-          'Ви вже на першому кроці. Можете ввести ім’я або повернутися в головне меню.',
+          getDraftState(ctx),
+          '⬅️ Повертаємося до вибору майстра.',
         );
         return;
       }
@@ -130,21 +327,25 @@ export function createBookingScene(): Scenes.WizardScene<MyContext> {
       if (!parsedName.success) {
         await sendNameStepPrompt(
           ctx,
+          draft,
           "⚠️ Некоректне ім'я. Використовуйте тільки літери та мінімум 2 символи.",
         );
         return;
       }
-      draft.name = parsedName.data;
 
-      await sendPhoneStepPrompt(ctx);
+      draft.name = parsedName.data;
+      await sendPhoneStepPrompt(ctx, draft);
       return ctx.wizard.next();
     },
     async (ctx) => {
-      // Крок 3: чекаємо телефон та показуємо результат
       const text = getMessageText(ctx);
 
       if (!text) {
-        await sendPhoneStepPrompt(ctx, 'Я очікую текстове повідомлення з номером телефону.');
+        await sendPhoneStepPrompt(
+          ctx,
+          getDraftState(ctx),
+          'Я очікую текстове повідомлення з номером телефону.',
+        );
         return;
       }
 
@@ -154,8 +355,12 @@ export function createBookingScene(): Scenes.WizardScene<MyContext> {
       }
 
       if (text === BOOKING_NAV_BUTTON.BACK) {
-        ctx.wizard.selectStep(1);
-        await sendNameStepPrompt(ctx, '⬅️ Повертаємося до попереднього кроку.');
+        ctx.wizard.selectStep(3);
+        await sendNameStepPrompt(
+          ctx,
+          getDraftState(ctx),
+          '⬅️ Повертаємося до введення імені.',
+        );
         return;
       }
 
@@ -164,15 +369,18 @@ export function createBookingScene(): Scenes.WizardScene<MyContext> {
       if (!parsedPhone.success) {
         await sendPhoneStepPrompt(
           ctx,
+          draft,
           '⚠️ Некоректний номер. Приклад правильного формату: +420123456789',
         );
         return;
       }
+
       draft.phone = parsedPhone.data;
 
-      // Тут пізніше ти викличеш bookingService.save(...) і запишеш дані в БД.
       await ctx.reply(
         '✅ Чернетка запису створена!\n' +
+          `💼 Послуга: ${draft.serviceName}\n` +
+          `👩‍🎨 Майстер: ${draft.masterName}\n` +
           `👤 Ім'я: ${draft.name}\n` +
           `📱 Телефон: ${draft.phone}\n\n` +
           'На наступному етапі підключимо збереження у PostgreSQL.',
@@ -180,9 +388,86 @@ export function createBookingScene(): Scenes.WizardScene<MyContext> {
 
       await ctx.scene.leave();
       await sendClientMainMenu(ctx);
-      return;
     },
   );
+
+  scene.action(BOOKING_SERVICE_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+
+    const draft = getDraftState(ctx);
+    const matches = ctx.match as RegExpExecArray | string[];
+    const serviceId = String(matches[1]);
+
+    const services = await loadServiceOptions(draft);
+    const selectedService = services.find((service) => service.id === serviceId) ?? null;
+
+    if (!selectedService) {
+      await sendServiceStepPrompt(
+        ctx,
+        draft,
+        '⚠️ Не вдалося знайти цю послугу. Спробуйте обрати ще раз.',
+        true,
+      );
+      return;
+    }
+
+    draft.serviceId = selectedService.id;
+    draft.serviceName = selectedService.name;
+    draft.masterId = undefined;
+    draft.masterName = undefined;
+
+    const masters = await loadMasterOptions(draft);
+    if (masters.length === 0) {
+      ctx.wizard.selectStep(1);
+      await sendServiceStepPrompt(
+        ctx,
+        draft,
+        '⚠️ Для цієї послуги зараз немає доступних майстрів. Оберіть іншу послугу.',
+        true,
+      );
+      return;
+    }
+
+    ctx.wizard.selectStep(2);
+    await sendMasterStepPrompt(ctx, draft, undefined, true);
+  });
+
+  scene.action(BOOKING_MASTER_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+
+    const draft = getDraftState(ctx);
+    if (!draft.serviceId || !draft.serviceName) {
+      ctx.wizard.selectStep(1);
+      await sendServiceStepPrompt(
+        ctx,
+        draft,
+        '⚠️ Спочатку оберіть послугу, потім майстра.',
+        true,
+      );
+      return;
+    }
+
+    const matches = ctx.match as RegExpExecArray | string[];
+    const masterId = String(matches[1]);
+    const masters = await loadMasterOptions(draft);
+    const selectedMaster = masters.find((master) => master.userId === masterId) ?? null;
+
+    if (!selectedMaster) {
+      await sendMasterStepPrompt(
+        ctx,
+        draft,
+        '⚠️ Не вдалося знайти цього майстра. Спробуйте обрати ще раз.',
+        true,
+      );
+      return;
+    }
+
+    draft.masterId = selectedMaster.userId;
+    draft.masterName = selectedMaster.displayName;
+
+    ctx.wizard.selectStep(3);
+    await sendNameStepPrompt(ctx, draft, undefined, true);
+  });
 
   scene.action(BOOKING_NAV_ACTION.HOME, async (ctx) => {
     await ctx.answerCbQuery();
@@ -192,15 +477,31 @@ export function createBookingScene(): Scenes.WizardScene<MyContext> {
   scene.action(BOOKING_NAV_ACTION.BACK, async (ctx) => {
     await ctx.answerCbQuery();
 
-    if (ctx.wizard.cursor >= 2) {
-      ctx.wizard.selectStep(1);
-      await sendNameStepPrompt(ctx, '⬅️ Повертаємося до попереднього кроку.');
+    const draft = getDraftState(ctx);
+
+    if (ctx.wizard.cursor >= 4) {
+      ctx.wizard.selectStep(3);
+      await sendNameStepPrompt(ctx, draft, '⬅️ Повертаємося до попереднього кроку.', true);
       return;
     }
 
-    await sendNameStepPrompt(
+    if (ctx.wizard.cursor === 3) {
+      ctx.wizard.selectStep(2);
+      await sendMasterStepPrompt(ctx, draft, '⬅️ Повертаємося до попереднього кроку.', true);
+      return;
+    }
+
+    if (ctx.wizard.cursor === 2) {
+      ctx.wizard.selectStep(1);
+      await sendServiceStepPrompt(ctx, draft, '⬅️ Повертаємося до попереднього кроку.', true);
+      return;
+    }
+
+    await sendServiceStepPrompt(
       ctx,
-      'Ви вже на першому кроці. Введіть ім’я або перейдіть у головне меню.',
+      draft,
+      'Ви вже на першому кроці. Оберіть послугу або перейдіть у головне меню.',
+      true,
     );
   });
 

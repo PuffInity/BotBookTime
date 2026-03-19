@@ -17,6 +17,7 @@ export const CLIENT_MAIN_MENU_TEXT =
   'Оберіть потрібний розділ нижче:\n\n' +
   '👤 Профіль — ваші дані та налаштування\n' +
   '💼 Послуги — переглянути всі доступні процедури\n' +
+  '👩‍🎨 Майстри — переглянути профілі спеціалістів\n' +
   '📅 Бронювання — створити новий запис\n' +
   '❓ FAQ — відповіді на часті запитання\n\n' +
   '━━━━━━━━━━━━━━\n\n' +
@@ -28,7 +29,8 @@ export const CLIENT_MAIN_MENU_TEXT =
 export function createClientMainMenuKeyboard(): ReturnType<typeof Markup.keyboard> {
   return Markup.keyboard([
     [CLIENT_MAIN_MENU_BUTTON.PROFILE, CLIENT_MAIN_MENU_BUTTON.SERVICES],
-    [CLIENT_MAIN_MENU_BUTTON.BOOKING, CLIENT_MAIN_MENU_BUTTON.FAQ],
+    [CLIENT_MAIN_MENU_BUTTON.MASTERS, CLIENT_MAIN_MENU_BUTTON.BOOKING],
+    [CLIENT_MAIN_MENU_BUTTON.FAQ],
   ]).resize();
 }
 

@@ -9,6 +9,7 @@
 export const CLIENT_MAIN_MENU_BUTTON = {
   PROFILE: '👤 Профіль',
   SERVICES: '💼 Послуги',
+  MASTERS: '👩‍🎨 Майстри',
   BOOKING: '📅 Бронювання',
   FAQ: '❓ FAQ',
 } as const;

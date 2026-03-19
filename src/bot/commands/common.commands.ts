@@ -3,6 +3,7 @@ import { PROFILE_NAME_SCENE_ID } from '../scenes/profile-name.scene.js';
 import { PROFILE_EMAIL_VERIFY_SCENE_ID } from '../scenes/profile-email-verify.scene.js';
 import { PROFILE_EMAIL_ADD_SCENE_ID } from '../scenes/profile-email-add.scene.js';
 import { PROFILE_NOTIFICATION_SETTINGS_SCENE_ID } from '../scenes/profile-notification-settings.scene.js';
+import { MASTERS_SCENE_ID } from '../scenes/masters.scene.js';
 import { SERVICES_SCENE_ID } from '../scenes/services.scene.js';
 import { FAQ_SCENE_ID } from '../scenes/faq.scene.js';
 import type { MyContext } from '../../types/bot.types.js';
@@ -179,6 +180,16 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
         await ctx.scene.leave();
       }
       await ctx.scene.enter(SERVICES_SCENE_ID);
+    }),
+  );
+
+  bot.hears(
+    CLIENT_MAIN_MENU_BUTTON.MASTERS,
+    asyncBotHandler(async (ctx) => {
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+      await ctx.scene.enter(MASTERS_SCENE_ID);
     }),
   );
 
