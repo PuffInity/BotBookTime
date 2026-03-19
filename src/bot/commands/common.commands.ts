@@ -17,6 +17,12 @@ import {
   sendProfileCard,
   sendProfileFeatureStub,
 } from '../../helpers/bot/profile-view.bot.js';
+import { getProfileBookingStatus } from '../../helpers/db/db-profile-booking.helper.js';
+import {
+  sendProfileBookingActionStub,
+  sendProfileBookingHistory,
+  sendProfileBookingStatus,
+} from '../../helpers/bot/profile-booking-status.bot.js';
 
 /**
  * @file common.commands.ts
@@ -156,7 +162,46 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     PROFILE_ACTION.BOOKING_STATUS,
     asyncBotHandler(async (ctx) => {
       await ctx.answerCbQuery();
-      await sendProfileFeatureStub(ctx, '📅 Статус бронювання');
+      const user = await getOrCreateUser(ctx);
+      const bookingStatus = await getProfileBookingStatus(user.id);
+      await sendProfileBookingStatus(ctx, bookingStatus);
+    }),
+  );
+
+  bot.action(
+    PROFILE_ACTION.BOOKING_STATUS_VIEW_ALL,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      const user = await getOrCreateUser(ctx);
+      const bookingStatus = await getProfileBookingStatus(user.id, 20);
+      await sendProfileBookingHistory(ctx, bookingStatus);
+    }),
+  );
+
+  bot.action(
+    PROFILE_ACTION.BOOKING_STATUS_CREATE,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+      await ctx.scene.enter(BOOKING_SCENE_ID);
+    }),
+  );
+
+  bot.action(
+    PROFILE_ACTION.BOOKING_STATUS_RESCHEDULE,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      await sendProfileBookingActionStub(ctx, '🔄 Перенесення бронювання');
+    }),
+  );
+
+  bot.action(
+    PROFILE_ACTION.BOOKING_STATUS_CANCEL,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      await sendProfileBookingActionStub(ctx, '❌ Скасування бронювання');
     }),
   );
 
