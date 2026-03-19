@@ -9,7 +9,9 @@ import type {
   MasterCatalogDetails,
   MasterCatalogItem,
   MasterCatalogCertificate,
+  MasterUpcomingScheduleException,
   MasterSpecializationItem,
+  MasterWeeklyScheduleItem,
 } from '../../types/db-helpers/db-masters.types.js';
 
 /**
@@ -40,6 +42,28 @@ function formatDate(value: Date | null): string | null {
     month: '2-digit',
     year: 'numeric',
   }).format(value);
+}
+
+function formatWeekdayLabel(weekday: number): string {
+  const labels: Record<number, string> = {
+    1: 'Пн',
+    2: 'Вт',
+    3: 'Ср',
+    4: 'Чт',
+    5: 'Пт',
+    6: 'Сб',
+    7: 'Нд',
+  };
+
+  return labels[weekday] ?? `День ${weekday}`;
+}
+
+function formatWorkingRange(item: MasterWeeklyScheduleItem): string {
+  if (!item.isWorking || !item.openTime || !item.closeTime) {
+    return 'вихідний';
+  }
+
+  return `${item.openTime.slice(0, 5)}–${item.closeTime.slice(0, 5)}`;
 }
 
 function formatMasterListLine(master: MasterCatalogItem, index: number): string {
@@ -92,6 +116,58 @@ function formatContactsBlock(details: MasterCatalogDetails): string {
   );
 }
 
+function formatWeeklyScheduleBlock(details: MasterCatalogDetails): string {
+  if (details.weeklySchedule.length === 0) {
+    return '🕒 Графік роботи\nІнформацію про графік буде додано найближчим часом.';
+  }
+
+  const lines = details.weeklySchedule
+    .slice()
+    .sort((a, b) => a.weekday - b.weekday)
+    .map((item) => `• ${formatWeekdayLabel(item.weekday)}: ${formatWorkingRange(item)}`);
+
+  return `🕒 Графік роботи\n${lines.join('\n')}`;
+}
+
+function formatScheduleExceptionLine(item: MasterUpcomingScheduleException): string {
+  if (item.type === 'day_off') {
+    const dateLabel = formatDate(item.offDate) ?? '—';
+    const reasonLabel = item.reason ? ` (${item.reason})` : '';
+    return `• ${dateLabel}: вихідний${reasonLabel}`;
+  }
+
+  if (item.type === 'vacation') {
+    const from = formatDate(item.dateFrom) ?? '—';
+    const to = formatDate(item.dateTo) ?? '—';
+    const reasonLabel = item.reason ? ` (${item.reason})` : '';
+    return `• ${from}–${to}: відпустка${reasonLabel}`;
+  }
+
+  const from = formatDate(item.dateFrom) ?? '—';
+  const to = formatDate(item.dateTo) ?? '—';
+  const weekday = formatWeekdayLabel(item.weekday);
+
+  if (!item.isWorking || !item.openTime || !item.closeTime) {
+    const noteLabel = item.note ? ` (${item.note})` : '';
+    return `• ${from}–${to}, ${weekday}: вихідний${noteLabel}`;
+  }
+
+  const noteLabel = item.note ? ` (${item.note})` : '';
+  return (
+    `• ${from}–${to}, ${weekday}: ` +
+    `${item.openTime.slice(0, 5)}–${item.closeTime.slice(0, 5)}${noteLabel}`
+  );
+}
+
+function formatUpcomingScheduleExceptionsBlock(details: MasterCatalogDetails): string {
+  if (details.upcomingScheduleExceptions.length === 0) {
+    return '📅 Найближчі зміни графіка\nНаразі запланованих змін немає.';
+  }
+
+  const lines = details.upcomingScheduleExceptions.map(formatScheduleExceptionLine);
+  return `📅 Найближчі зміни графіка\n${lines.join('\n')}`;
+}
+
 /**
  * @summary Форматує текст каталогу майстрів.
  */
@@ -135,6 +211,8 @@ export function formatMasterDetailsText(details: MasterCatalogDetails): string {
     `📈 Виконано процедур: ${details.master.proceduresDoneTotal}\n\n` +
     `${formatSpecializationsBlock(details)}\n\n` +
     `${formatCertificatesBlock(details)}\n\n` +
+    `${formatWeeklyScheduleBlock(details)}\n\n` +
+    `${formatUpcomingScheduleExceptionsBlock(details)}\n\n` +
     `${bioBlock}\n\n` +
     `${materialsBlock}\n\n` +
     formatContactsBlock(details)

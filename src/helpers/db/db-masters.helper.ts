@@ -1,6 +1,14 @@
 import type {
+  MasterDaysOffEntity,
+  MasterDaysOffRow,
   MasterCertificatesEntity,
   MasterCertificatesRow,
+  MasterTemporaryHoursEntity,
+  MasterTemporaryHoursRow,
+  MasterVacationsEntity,
+  MasterVacationsRow,
+  MasterWeeklyHoursEntity,
+  MasterWeeklyHoursRow,
 } from '../../types/db/index.js';
 import type {
   GetMasterCatalogDetailsInput,
@@ -11,12 +19,18 @@ import type {
   MasterCatalogCertificate,
   MasterCatalogDetails,
   MasterCatalogItem,
+  MasterUpcomingScheduleException,
+  MasterWeeklyScheduleItem,
   MastersCatalogRow,
   MasterSpecializationItem,
   MasterSpecializationRow,
 } from '../../types/db-helpers/db-masters.types.js';
 import { queryMany, queryOne, withTransaction } from '../db.helper.js';
 import { masterCertificatesRowToEntity } from '../../utils/mappers/masterCertificates.mapp.js';
+import { masterDaysOffRowToEntity } from '../../utils/mappers/masterDaysOff.mapp.js';
+import { masterTemporaryHoursRowToEntity } from '../../utils/mappers/masterTemporaryHours.mapp.js';
+import { masterVacationsRowToEntity } from '../../utils/mappers/masterVacations.mapp.js';
+import { masterWeeklyHoursRowToEntity } from '../../utils/mappers/masterWeeklyHours.mapp.js';
 import { ValidationError, handleError } from '../../utils/error.utils.js';
 import { loggerDb } from '../../utils/logger/loggers-list.js';
 import {
@@ -24,7 +38,11 @@ import {
   SQL_LIST_ACTIVE_MASTERS_CATALOG,
   SQL_LIST_ACTIVE_MASTERS_BY_SERVICE_ID,
   SQL_LIST_MASTER_CERTIFICATES_BY_ID,
+  SQL_LIST_MASTER_UPCOMING_DAYS_OFF_BY_ID,
+  SQL_LIST_MASTER_UPCOMING_TEMPORARY_HOURS_BY_ID,
+  SQL_LIST_MASTER_UPCOMING_VACATIONS_BY_ID,
   SQL_LIST_MASTER_SPECIALIZATIONS_BY_ID,
+  SQL_LIST_MASTER_WEEKLY_HOURS_BY_ID,
 } from '../db-sql/db-masters.sql.js';
 
 /**
@@ -34,6 +52,7 @@ import {
 
 const DEFAULT_CATALOG_LIMIT = 20;
 const MAX_CATALOG_LIMIT = 50;
+const DEFAULT_SCHEDULE_EXCEPTIONS_LIMIT = 5;
 
 function normalizePositiveBigintId(value: string | number, fieldName: string): string {
   const normalized = String(value).trim();
@@ -105,6 +124,58 @@ function mapCertificateEntityToCatalog(entity: MasterCertificatesEntity): Master
     expiresOn: entity.expiresOn,
     documentUrl: entity.documentUrl,
   };
+}
+
+function mapWeeklyHoursEntityToSchedule(
+  entity: MasterWeeklyHoursEntity,
+): MasterWeeklyScheduleItem {
+  return {
+    weekday: entity.weekday,
+    isWorking: entity.isWorking,
+    openTime: entity.openTime,
+    closeTime: entity.closeTime,
+  };
+}
+
+function mapDayOffEntityToException(
+  entity: MasterDaysOffEntity,
+): MasterUpcomingScheduleException {
+  return {
+    type: 'day_off',
+    offDate: entity.offDate,
+    reason: entity.reason,
+  };
+}
+
+function mapVacationEntityToException(
+  entity: MasterVacationsEntity,
+): MasterUpcomingScheduleException {
+  return {
+    type: 'vacation',
+    dateFrom: entity.dateFrom,
+    dateTo: entity.dateTo,
+    reason: entity.reason,
+  };
+}
+
+function mapTemporaryHoursEntityToException(
+  entity: MasterTemporaryHoursEntity,
+): MasterUpcomingScheduleException {
+  return {
+    type: 'temporary',
+    dateFrom: entity.dateFrom,
+    dateTo: entity.dateTo,
+    weekday: entity.weekday,
+    isWorking: entity.isWorking,
+    openTime: entity.openTime,
+    closeTime: entity.closeTime,
+    note: entity.note,
+  };
+}
+
+function getExceptionTimestamp(item: MasterUpcomingScheduleException): number {
+  if (item.type === 'day_off') return item.offDate.getTime();
+  return item.dateFrom.getTime();
 }
 
 /**
@@ -204,10 +275,49 @@ export async function getMasterCatalogDetailsById(
         client,
       );
 
+      const weeklySchedule = await queryMany<MasterWeeklyHoursRow, MasterWeeklyHoursEntity>(
+        SQL_LIST_MASTER_WEEKLY_HOURS_BY_ID,
+        [masterId],
+        masterWeeklyHoursRowToEntity,
+        client,
+      );
+
+      const upcomingDaysOff = await queryMany<MasterDaysOffRow, MasterDaysOffEntity>(
+        SQL_LIST_MASTER_UPCOMING_DAYS_OFF_BY_ID,
+        [masterId, DEFAULT_SCHEDULE_EXCEPTIONS_LIMIT],
+        masterDaysOffRowToEntity,
+        client,
+      );
+
+      const upcomingVacations = await queryMany<MasterVacationsRow, MasterVacationsEntity>(
+        SQL_LIST_MASTER_UPCOMING_VACATIONS_BY_ID,
+        [masterId, DEFAULT_SCHEDULE_EXCEPTIONS_LIMIT],
+        masterVacationsRowToEntity,
+        client,
+      );
+
+      const upcomingTemporaryHours = await queryMany<
+        MasterTemporaryHoursRow,
+        MasterTemporaryHoursEntity
+      >(
+        SQL_LIST_MASTER_UPCOMING_TEMPORARY_HOURS_BY_ID,
+        [masterId, DEFAULT_SCHEDULE_EXCEPTIONS_LIMIT],
+        masterTemporaryHoursRowToEntity,
+        client,
+      );
+
+      const upcomingScheduleExceptions = [
+        ...upcomingDaysOff.map(mapDayOffEntityToException),
+        ...upcomingVacations.map(mapVacationEntityToException),
+        ...upcomingTemporaryHours.map(mapTemporaryHoursEntityToException),
+      ].sort((a, b) => getExceptionTimestamp(a) - getExceptionTimestamp(b));
+
       return {
         master: mastersCatalogRowToItem(masterRow),
         specializations,
         certificates: certificates.map(mapCertificateEntityToCatalog),
+        weeklySchedule: weeklySchedule.map(mapWeeklyHoursEntityToSchedule),
+        upcomingScheduleExceptions,
         contactPhoneE164: masterRow.contact_phone_e164,
         contactEmail: masterRow.contact_email,
         materialsInfo: masterRow.materials_info,
