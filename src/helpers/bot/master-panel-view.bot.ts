@@ -14,10 +14,15 @@ import {
  * @summary Текст кореневого екрану панелі майстра.
  */
 export function formatMasterPanelRootText(access: MasterPanelAccess): string {
+  const masterStatus = access.isBookable
+    ? '🟢 Статус майстра: доступний для нових записів'
+    : '🟠 Статус майстра: тимчасово недоступний для нових записів';
+
   return (
     '👩‍🎨 Панель майстра\n' +
     '━━━━━━━━━━━━━━\n\n' +
     `Вітаю, ${access.displayName}!\n\n` +
+    `${masterStatus}\n\n` +
     'Тут ви можете керувати своїми записами, робочим графіком та профілем майстра.\n' +
     'Оберіть потрібний розділ нижче.'
   );
@@ -61,4 +66,3 @@ export function createMasterPanelSectionStubKeyboard(): ReturnType<typeof Markup
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
   ]);
 }
-
