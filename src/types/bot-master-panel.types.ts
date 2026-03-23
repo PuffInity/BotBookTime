@@ -8,6 +8,13 @@ export const MASTER_PANEL_ACTION = {
   OPEN_BOOKINGS: 'master-panel:open-bookings',
   OPEN_SCHEDULE: 'master-panel:open-schedule',
   OPEN_STATS: 'master-panel:open-stats',
+  BOOKINGS_SHOW_PENDING: 'master-panel:bookings:show-pending',
+  BOOKINGS_NEXT_PENDING: 'master-panel:bookings:next-pending',
+  BOOKING_CONFIRM_PREFIX: 'master-panel:booking:confirm:',
+  BOOKING_CANCEL_REQUEST_PREFIX: 'master-panel:booking:cancel:request:',
+  BOOKING_CANCEL_CONFIRM_PREFIX: 'master-panel:booking:cancel:confirm:',
+  BOOKING_RESCHEDULE_PREFIX: 'master-panel:booking:reschedule:',
+  BOOKING_PROFILE_PREFIX: 'master-panel:booking:profile:',
   BACK_TO_PANEL: 'master-panel:back-to-panel',
   HOME: 'master-panel:home',
 } as const;
@@ -21,3 +28,32 @@ export const MASTER_PANEL_BUTTON_TEXT = {
   HOME: '🏠 Головне меню',
 } as const;
 
+export const MASTER_PANEL_BOOKING_CONFIRM_ACTION_REGEX = /^master-panel:booking:confirm:(\d+)$/;
+export const MASTER_PANEL_BOOKING_CANCEL_REQUEST_ACTION_REGEX =
+  /^master-panel:booking:cancel:request:(\d+)$/;
+export const MASTER_PANEL_BOOKING_CANCEL_CONFIRM_ACTION_REGEX =
+  /^master-panel:booking:cancel:confirm:(\d+)$/;
+export const MASTER_PANEL_BOOKING_RESCHEDULE_ACTION_REGEX =
+  /^master-panel:booking:reschedule:(\d+)$/;
+export const MASTER_PANEL_BOOKING_PROFILE_ACTION_REGEX =
+  /^master-panel:booking:profile:(\d+)$/;
+
+export function makeMasterPanelBookingConfirmAction(appointmentId: string): string {
+  return `${MASTER_PANEL_ACTION.BOOKING_CONFIRM_PREFIX}${appointmentId}`;
+}
+
+export function makeMasterPanelBookingCancelRequestAction(appointmentId: string): string {
+  return `${MASTER_PANEL_ACTION.BOOKING_CANCEL_REQUEST_PREFIX}${appointmentId}`;
+}
+
+export function makeMasterPanelBookingCancelConfirmAction(appointmentId: string): string {
+  return `${MASTER_PANEL_ACTION.BOOKING_CANCEL_CONFIRM_PREFIX}${appointmentId}`;
+}
+
+export function makeMasterPanelBookingRescheduleAction(appointmentId: string): string {
+  return `${MASTER_PANEL_ACTION.BOOKING_RESCHEDULE_PREFIX}${appointmentId}`;
+}
+
+export function makeMasterPanelBookingProfileAction(appointmentId: string): string {
+  return `${MASTER_PANEL_ACTION.BOOKING_PROFILE_PREFIX}${appointmentId}`;
+}
