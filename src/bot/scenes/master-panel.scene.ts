@@ -40,11 +40,16 @@ import {
   listMasterPendingBookings,
   rescheduleMasterPendingBooking,
 } from '../../helpers/db/db-master-bookings.helper.js';
+import { getMasterClientProfileByBooking } from '../../helpers/db/db-master-clients.helper.js';
 import { dispatchNotification } from '../../helpers/notification/notification-dispatch.helper.js';
 import { handleError, ValidationError } from '../../utils/error.utils.js';
 import { loggerNotification } from '../../utils/logger/loggers-list.js';
 import { bookingDateCodeSchema, bookingTimeCodeSchema } from '../../validator/booking-input.schema.js';
 import { buildBookingDateOptions, buildBookingTimeOptions } from '../../helpers/bot/booking-view.bot.js';
+import {
+  createMasterClientProfileKeyboard,
+  formatMasterClientProfileText,
+} from '../../helpers/bot/master-client-profile-view.bot.js';
 
 /**
  * @file master-panel.scene.ts
@@ -727,7 +732,38 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
   scene.action(MASTER_PANEL_BOOKING_PROFILE_ACTION_REGEX, async (ctx) => {
     await ctx.answerCbQuery();
-    await renderSectionStub(ctx, '👤 Профіль клієнта');
+    const state = getSceneState(ctx);
+    const access = state.access;
+
+    if (!access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const appointmentId = parseAppointmentIdFromAction(ctx, MASTER_PANEL_BOOKING_PROFILE_ACTION_REGEX);
+    const itemIndex = state.pending.findIndex((item) => item.appointmentId === appointmentId);
+    if (itemIndex >= 0) {
+      state.pendingCursor = itemIndex;
+    }
+
+    const profile = await getMasterClientProfileByBooking({
+      masterId: access.masterId,
+      appointmentId,
+    });
+
+    if (!profile) {
+      await loadPendingIntoState(state);
+      await renderPendingQueue(ctx, true);
+      return;
+    }
+
+    await renderView(
+      ctx,
+      formatMasterClientProfileText(profile),
+      createMasterClientProfileKeyboard(),
+      true,
+    );
   });
 
   scene.action(MASTER_PANEL_ACTION.BACK_TO_PANEL, async (ctx) => {
