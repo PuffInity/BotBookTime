@@ -9,6 +9,7 @@ export const MASTER_PANEL_ACCESS_SELECT_COLUMNS = `
   m.studio_id,
   m.user_id AS master_id,
   m.display_name,
+  m.is_bookable,
   u.first_name,
   u.last_name
 `;
@@ -32,4 +33,3 @@ export const SQL_GET_MASTER_PANEL_ACCESS_BY_TELEGRAM_ID = `
     AND u.is_active = TRUE
   LIMIT 1
 `;
-
