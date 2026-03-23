@@ -12,6 +12,7 @@ export type MasterPanelAccessRow = {
   studio_id: string;
   master_id: string;
   display_name: string;
+  is_bookable: boolean;
   first_name: string;
   last_name: string | null;
 };
@@ -25,7 +26,7 @@ export type MasterPanelAccess = {
   studioId: string;
   masterId: string;
   displayName: string;
+  isBookable: boolean;
   firstName: string;
   lastName: string | null;
 };
-
