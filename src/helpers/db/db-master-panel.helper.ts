@@ -20,6 +20,7 @@ function mapMasterPanelAccessRow(row: MasterPanelAccessRow): MasterPanelAccess {
     studioId: row.studio_id,
     masterId: row.master_id,
     displayName: row.display_name,
+    isBookable: row.is_bookable,
     firstName: row.first_name,
     lastName: row.last_name,
   };
@@ -54,4 +55,3 @@ export async function getMasterPanelAccessByTelegramId(
     throw error;
   }
 }
-
