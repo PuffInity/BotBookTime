@@ -14,6 +14,12 @@ export const MASTER_PANEL_ACTION = {
   BOOKING_CANCEL_REQUEST_PREFIX: 'master-panel:booking:cancel:request:',
   BOOKING_CANCEL_CONFIRM_PREFIX: 'master-panel:booking:cancel:confirm:',
   BOOKING_RESCHEDULE_PREFIX: 'master-panel:booking:reschedule:',
+  BOOKING_RESCHEDULE_DATE_PREFIX: 'master-panel:booking:reschedule:date:',
+  BOOKING_RESCHEDULE_TIME_PREFIX: 'master-panel:booking:reschedule:time:',
+  BOOKINGS_RESCHEDULE_CONFIRM: 'master-panel:bookings:reschedule:confirm',
+  BOOKINGS_RESCHEDULE_BACK_TO_DATE: 'master-panel:bookings:reschedule:back-to-date',
+  BOOKINGS_RESCHEDULE_BACK_TO_TIME: 'master-panel:bookings:reschedule:back-to-time',
+  BOOKINGS_RESCHEDULE_CANCEL: 'master-panel:bookings:reschedule:cancel',
   BOOKING_PROFILE_PREFIX: 'master-panel:booking:profile:',
   BACK_TO_PANEL: 'master-panel:back-to-panel',
   HOME: 'master-panel:home',
@@ -35,6 +41,10 @@ export const MASTER_PANEL_BOOKING_CANCEL_CONFIRM_ACTION_REGEX =
   /^master-panel:booking:cancel:confirm:(\d+)$/;
 export const MASTER_PANEL_BOOKING_RESCHEDULE_ACTION_REGEX =
   /^master-panel:booking:reschedule:(\d+)$/;
+export const MASTER_PANEL_BOOKING_RESCHEDULE_DATE_ACTION_REGEX =
+  /^master-panel:booking:reschedule:date:(\d{8})$/;
+export const MASTER_PANEL_BOOKING_RESCHEDULE_TIME_ACTION_REGEX =
+  /^master-panel:booking:reschedule:time:(\d{4})$/;
 export const MASTER_PANEL_BOOKING_PROFILE_ACTION_REGEX =
   /^master-panel:booking:profile:(\d+)$/;
 
@@ -52,6 +62,14 @@ export function makeMasterPanelBookingCancelConfirmAction(appointmentId: string)
 
 export function makeMasterPanelBookingRescheduleAction(appointmentId: string): string {
   return `${MASTER_PANEL_ACTION.BOOKING_RESCHEDULE_PREFIX}${appointmentId}`;
+}
+
+export function makeMasterPanelBookingRescheduleDateAction(dateCode: string): string {
+  return `${MASTER_PANEL_ACTION.BOOKING_RESCHEDULE_DATE_PREFIX}${dateCode}`;
+}
+
+export function makeMasterPanelBookingRescheduleTimeAction(timeCode: string): string {
+  return `${MASTER_PANEL_ACTION.BOOKING_RESCHEDULE_TIME_PREFIX}${timeCode}`;
 }
 
 export function makeMasterPanelBookingProfileAction(appointmentId: string): string {

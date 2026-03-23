@@ -58,3 +58,38 @@ export type CancelMasterPendingBookingInput = {
   appointmentId: string | number;
   cancelReason?: string;
 };
+
+export type RescheduleMasterPendingBookingInput = {
+  masterId: string | number;
+  appointmentId: string | number;
+  newStartAt: Date;
+  reason?: string;
+};
+
+export type RescheduleMasterPendingBookingResult = {
+  previous: MasterPendingBookingItem;
+  current: MasterPendingBookingItem;
+};
+
+export type MasterPendingBookingForRescheduleRow = MasterPendingBookingRow & {
+  studio_timezone: string;
+  studio_id: string;
+  booked_for_user_id: string | null;
+  service_id: string;
+  source: 'telegram_bot' | 'admin_panel' | 'master_panel';
+  internal_comment: string | null;
+  created_by: string | null;
+};
+
+export type MasterScheduleAvailabilityRow = {
+  is_available: boolean;
+  reason_code: string | null;
+};
+
+export type BookingConflictRow = {
+  has_conflict: boolean;
+};
+
+export type InsertedAppointmentIdRow = {
+  id: string;
+};

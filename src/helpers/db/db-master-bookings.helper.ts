@@ -1,18 +1,31 @@
 import type {
   CancelMasterPendingBookingInput,
+  BookingConflictRow,
   ConfirmMasterPendingBookingInput,
+  InsertedAppointmentIdRow,
   ListMasterPendingBookingsInput,
+  MasterPendingBookingForRescheduleRow,
   MasterPendingBookingItem,
   MasterPendingBookingRow,
+  MasterScheduleAvailabilityRow,
+  RescheduleMasterPendingBookingInput,
+  RescheduleMasterPendingBookingResult,
 } from '../../types/db-helpers/db-master-bookings.types.js';
-import { queryMany, queryOne, withTransaction } from '../db.helper.js';
+import { executeOne, executeVoid, queryMany, queryOne, withTransaction } from '../db.helper.js';
 import { ValidationError, handleError } from '../../utils/error.utils.js';
 import { loggerDb } from '../../utils/logger/loggers-list.js';
 import {
+  SQL_CHECK_APPOINTMENT_CONFLICT_EXCLUDING_ID,
   SQL_CANCEL_MASTER_PENDING_BOOKING,
   SQL_CONFIRM_MASTER_PENDING_BOOKING,
+  SQL_GET_MASTER_BOOKING_CARD_BY_ID,
+  SQL_GET_MASTER_PENDING_BOOKING_FOR_RESCHEDULE,
+  SQL_INSERT_APPOINTMENT_TRANSFER_LINK,
+  SQL_INSERT_RESCHEDULED_APPOINTMENT,
   SQL_LIST_MASTER_PENDING_BOOKINGS,
+  SQL_MARK_PENDING_APPOINTMENT_AS_TRANSFERRED,
 } from '../db-sql/db-master-bookings.sql.js';
+import { SQL_CHECK_MASTER_WORK_SCHEDULE_AT_SLOT } from '../db-sql/db-booking.sql.js';
 
 /**
  * @file db-master-bookings.helper.ts
@@ -41,6 +54,18 @@ function normalizePendingLimit(limit?: number): number {
   return normalized;
 }
 
+function normalizeFutureDate(value: Date, fieldName: string): Date {
+  if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
+    throw new ValidationError(`Некоректний ${fieldName}`, { [fieldName]: value });
+  }
+
+  if (value.getTime() <= Date.now()) {
+    throw new ValidationError('Час візиту має бути в майбутньому', { [fieldName]: value.toISOString() });
+  }
+
+  return value;
+}
+
 function mapMasterPendingBookingRow(row: MasterPendingBookingRow): MasterPendingBookingItem {
   return {
     appointmentId: row.appointment_id,
@@ -61,6 +86,12 @@ function mapMasterPendingBookingRow(row: MasterPendingBookingRow): MasterPending
     studioName: row.studio_name,
     masterName: row.master_name,
   };
+}
+
+function mapRescheduleRowToPendingItem(
+  row: MasterPendingBookingForRescheduleRow,
+): MasterPendingBookingItem {
+  return mapMasterPendingBookingRow(row);
 }
 
 /**
@@ -172,3 +203,157 @@ export async function cancelMasterPendingBooking(
   }
 }
 
+/**
+ * @summary Переносить pending-запис майстра:
+ * створює новий запис на новий слот, старий переводить у `transferred`,
+ * і створює звʼязок у `appointment_transfers`.
+ */
+export async function rescheduleMasterPendingBooking(
+  input: RescheduleMasterPendingBookingInput,
+): Promise<RescheduleMasterPendingBookingResult> {
+  const masterId = normalizePositiveBigintId(input.masterId, 'masterId');
+  const appointmentId = normalizePositiveBigintId(input.appointmentId, 'appointmentId');
+  const newStartAt = normalizeFutureDate(input.newStartAt, 'newStartAt');
+  const reason = input.reason?.trim() || 'Перенесено майстром через Telegram-бота';
+
+  try {
+    return await withTransaction(async (client) => {
+      const source = await queryOne<MasterPendingBookingForRescheduleRow, MasterPendingBookingForRescheduleRow>(
+        SQL_GET_MASTER_PENDING_BOOKING_FOR_RESCHEDULE,
+        [appointmentId, masterId],
+        (row) => row,
+        client,
+      );
+
+      if (!source) {
+        throw new ValidationError(
+          'Запис не знайдено або його вже оброблено. Оновіть список pending-записів.',
+          { appointmentId, masterId },
+        );
+      }
+
+      const previous = mapRescheduleRowToPendingItem(source);
+      const durationMs = source.end_at.getTime() - source.start_at.getTime();
+      if (durationMs <= 0) {
+        throw new ValidationError('Некоректна тривалість запису для перенесення', {
+          appointmentId,
+          startAt: source.start_at,
+          endAt: source.end_at,
+        });
+      }
+
+      const newEndAt = new Date(newStartAt.getTime() + durationMs);
+
+      if (newStartAt.getTime() === source.start_at.getTime()) {
+        throw new ValidationError('Новий час збігається з поточним. Оберіть інший слот.');
+      }
+
+      const scheduleAvailability = await queryOne<
+        MasterScheduleAvailabilityRow,
+        MasterScheduleAvailabilityRow
+      >(
+        SQL_CHECK_MASTER_WORK_SCHEDULE_AT_SLOT,
+        [masterId, newStartAt.toISOString(), newEndAt.toISOString(), source.studio_timezone],
+        (row) => row,
+        client,
+      );
+
+      if (!scheduleAvailability?.is_available) {
+        throw new ValidationError('Майстер недоступний на обраний час за графіком роботи', {
+          appointmentId,
+          masterId,
+          reason: scheduleAvailability?.reason_code ?? 'unknown',
+        });
+      }
+
+      const conflict = await queryOne<BookingConflictRow, BookingConflictRow>(
+        SQL_CHECK_APPOINTMENT_CONFLICT_EXCLUDING_ID,
+        [masterId, newStartAt.toISOString(), newEndAt.toISOString(), appointmentId],
+        (row) => row,
+        client,
+      );
+
+      if (conflict?.has_conflict) {
+        throw new ValidationError('Обраний слот зайнятий. Виберіть іншу дату або час.');
+      }
+
+      const inserted = await executeOne<InsertedAppointmentIdRow, string>(
+        SQL_INSERT_RESCHEDULED_APPOINTMENT,
+        [
+          source.studio_id,
+          source.client_id,
+          source.booked_for_user_id,
+          masterId,
+          source.service_id,
+          source.status,
+          source.attendee_name,
+          source.attendee_phone_e164,
+          source.attendee_email,
+          source.client_comment,
+          source.internal_comment,
+          newStartAt.toISOString(),
+          newEndAt.toISOString(),
+          source.price_amount,
+          source.currency_code,
+          source.created_by,
+          masterId,
+        ],
+        (row) => row.id,
+        client,
+      );
+
+      const transferredSourceId = await queryOne<{ id: string }, string>(
+        SQL_MARK_PENDING_APPOINTMENT_AS_TRANSFERRED,
+        [appointmentId, masterId],
+        (row) => row.id,
+        client,
+      );
+
+      if (!transferredSourceId) {
+        throw new ValidationError('Не вдалося зафіксувати перенесення запису. Спробуйте ще раз.', {
+          appointmentId,
+          masterId,
+        });
+      }
+
+      await executeVoid(
+        SQL_INSERT_APPOINTMENT_TRANSFER_LINK,
+        [appointmentId, inserted, masterId, reason],
+        client,
+      );
+
+      const current = await queryOne<MasterPendingBookingRow, MasterPendingBookingItem>(
+        SQL_GET_MASTER_BOOKING_CARD_BY_ID,
+        [inserted, masterId],
+        mapMasterPendingBookingRow,
+        client,
+      );
+
+      if (!current) {
+        throw new ValidationError('Не вдалося завантажити новий запис після перенесення', {
+          appointmentId,
+          newAppointmentId: inserted,
+          masterId,
+        });
+      }
+
+      return {
+        previous,
+        current,
+      };
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-bookings.helper',
+      action: 'Failed to reschedule master pending booking',
+      error,
+      meta: {
+        masterId,
+        appointmentId,
+        newStartAt: newStartAt.toISOString(),
+      },
+    });
+    throw error;
+  }
+}

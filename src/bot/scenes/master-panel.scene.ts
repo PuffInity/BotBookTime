@@ -13,9 +13,15 @@ import {
   createMasterCancelPendingBookingConfirmKeyboard,
   createMasterPendingBookingCardKeyboard,
   createMasterPendingBookingsEmptyKeyboard,
+  createMasterRescheduleConfirmKeyboard,
+  createMasterRescheduleDateKeyboard,
+  createMasterRescheduleTimeKeyboard,
   formatMasterCancelPendingBookingConfirmText,
   formatMasterPendingBookingCardText,
   formatMasterPendingBookingsEmptyText,
+  formatMasterRescheduleConfirmText,
+  formatMasterRescheduleDateStepText,
+  formatMasterRescheduleTimeStepText,
 } from '../../helpers/bot/master-bookings-view.bot.js';
 import {
   MASTER_PANEL_ACTION,
@@ -23,17 +29,22 @@ import {
   MASTER_PANEL_BOOKING_CANCEL_REQUEST_ACTION_REGEX,
   MASTER_PANEL_BOOKING_CONFIRM_ACTION_REGEX,
   MASTER_PANEL_BOOKING_PROFILE_ACTION_REGEX,
+  MASTER_PANEL_BOOKING_RESCHEDULE_DATE_ACTION_REGEX,
   MASTER_PANEL_BOOKING_RESCHEDULE_ACTION_REGEX,
+  MASTER_PANEL_BOOKING_RESCHEDULE_TIME_ACTION_REGEX,
 } from '../../types/bot-master-panel.types.js';
 import { getMasterPanelAccessByTelegramId } from '../../helpers/db/db-master-panel.helper.js';
 import {
   cancelMasterPendingBooking,
   confirmMasterPendingBooking,
   listMasterPendingBookings,
+  rescheduleMasterPendingBooking,
 } from '../../helpers/db/db-master-bookings.helper.js';
 import { dispatchNotification } from '../../helpers/notification/notification-dispatch.helper.js';
 import { handleError, ValidationError } from '../../utils/error.utils.js';
 import { loggerNotification } from '../../utils/logger/loggers-list.js';
+import { bookingDateCodeSchema, bookingTimeCodeSchema } from '../../validator/booking-input.schema.js';
+import { buildBookingDateOptions, buildBookingTimeOptions } from '../../helpers/bot/booking-view.bot.js';
 
 /**
  * @file master-panel.scene.ts
@@ -48,6 +59,13 @@ type MasterPanelSceneState = {
   access: MasterPanelAccess | null;
   pending: MasterPendingBookingItem[];
   pendingCursor: number;
+  rescheduleDraft:
+    | {
+        appointmentId: string;
+        dateCode: string | null;
+        timeCode: string | null;
+      }
+    | null;
 };
 
 function getSceneState(ctx: MyContext): MasterPanelSceneState {
@@ -76,10 +94,55 @@ function getPendingItemById(state: MasterPanelSceneState, appointmentId: string)
   return state.pending.find((item) => item.appointmentId === appointmentId) ?? null;
 }
 
+function getRescheduleTargetItem(state: MasterPanelSceneState): MasterPendingBookingItem | null {
+  if (!state.rescheduleDraft?.appointmentId) return null;
+  return getPendingItemById(state, state.rescheduleDraft.appointmentId);
+}
+
+function getTodayDateCode(): string {
+  const now = new Date();
+  const year = String(now.getFullYear());
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+}
+
+function toStartAt(dateCode: string, timeCode: string): Date {
+  const year = Number(dateCode.slice(0, 4));
+  const month = Number(dateCode.slice(4, 6));
+  const day = Number(dateCode.slice(6, 8));
+  const hour = Number(timeCode.slice(0, 2));
+  const minute = Number(timeCode.slice(2, 4));
+  return new Date(year, month - 1, day, hour, minute, 0, 0);
+}
+
+function getAvailableRescheduleTimeCodes(dateCode: string): string[] {
+  const options = buildBookingTimeOptions().map((value) => value.replace(':', ''));
+
+  if (dateCode !== getTodayDateCode()) {
+    return options;
+  }
+
+  const now = Date.now();
+  return options.filter((timeCode) => toStartAt(dateCode, timeCode).getTime() > now);
+}
+
+function formatDateCodeLabel(dateCode: string): string {
+  const year = Number(dateCode.slice(0, 4));
+  const month = Number(dateCode.slice(4, 6));
+  const day = Number(dateCode.slice(6, 8));
+  return `${String(day).padStart(2, '0')}.${String(month).padStart(2, '0')}.${year}`;
+}
+
+function resetRescheduleDraft(state: MasterPanelSceneState): void {
+  state.rescheduleDraft = null;
+}
+
 async function loadPendingIntoState(state: MasterPanelSceneState): Promise<void> {
   if (!state.access) {
     state.pending = [];
     state.pendingCursor = 0;
+    resetRescheduleDraft(state);
     return;
   }
 
@@ -90,6 +153,7 @@ async function loadPendingIntoState(state: MasterPanelSceneState): Promise<void>
 
   if (state.pending.length === 0) {
     state.pendingCursor = 0;
+    resetRescheduleDraft(state);
     return;
   }
 
@@ -161,6 +225,68 @@ async function renderSectionStub(ctx: MyContext, title: string): Promise<void> {
     formatMasterPanelSectionStubText(title),
     createMasterPanelSectionStubKeyboard(),
     true,
+  );
+}
+
+async function renderRescheduleDateStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
+  const state = getSceneState(ctx);
+  const item = getRescheduleTargetItem(state);
+  if (!item) {
+    await loadPendingIntoState(state);
+    await renderPendingQueue(ctx, preferEdit);
+    return;
+  }
+
+  await renderView(
+    ctx,
+    formatMasterRescheduleDateStepText(item),
+    createMasterRescheduleDateKeyboard(buildBookingDateOptions(7)),
+    preferEdit,
+  );
+}
+
+async function renderRescheduleTimeStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
+  const state = getSceneState(ctx);
+  const draft = state.rescheduleDraft;
+  const item = getRescheduleTargetItem(state);
+  if (!draft || !item || !draft.dateCode) {
+    await renderRescheduleDateStep(ctx, preferEdit);
+    return;
+  }
+
+  const timeCodes = getAvailableRescheduleTimeCodes(draft.dateCode);
+  const baseText = formatMasterRescheduleTimeStepText(item, formatDateCodeLabel(draft.dateCode));
+  const text =
+    timeCodes.length > 0
+      ? baseText
+      : `${baseText}\n\n⚠️ На цю дату вже немає доступного часу. Оберіть іншу дату.`;
+
+  await renderView(
+    ctx,
+    text,
+    createMasterRescheduleTimeKeyboard(timeCodes),
+    preferEdit,
+  );
+}
+
+async function renderRescheduleConfirmStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
+  const state = getSceneState(ctx);
+  const draft = state.rescheduleDraft;
+  const item = getRescheduleTargetItem(state);
+  if (!draft || !item || !draft.dateCode || !draft.timeCode) {
+    await renderRescheduleTimeStep(ctx, preferEdit);
+    return;
+  }
+
+  const newStartAt = toStartAt(draft.dateCode, draft.timeCode);
+  const durationMs = item.endAt.getTime() - item.startAt.getTime();
+  const newEndAt = new Date(newStartAt.getTime() + durationMs);
+
+  await renderView(
+    ctx,
+    formatMasterRescheduleConfirmText(item, newStartAt, newEndAt),
+    createMasterRescheduleConfirmKeyboard(),
+    preferEdit,
   );
 }
 
@@ -257,6 +383,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       state.access = null;
       state.pending = [];
       state.pendingCursor = 0;
+      state.rescheduleDraft = null;
 
       if (!ctx.from?.id) {
         await denyMasterPanelAccess(ctx);
@@ -293,6 +420,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
     state.pendingCursor = 0;
+    resetRescheduleDraft(state);
     await loadPendingIntoState(state);
     await renderPendingQueue(ctx, true);
   });
@@ -309,6 +437,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
   scene.action(MASTER_PANEL_ACTION.BOOKINGS_SHOW_PENDING, async (ctx) => {
     await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    resetRescheduleDraft(state);
     await renderPendingQueue(ctx, true);
   });
 
@@ -412,7 +542,187 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
   scene.action(MASTER_PANEL_BOOKING_RESCHEDULE_ACTION_REGEX, async (ctx) => {
     await ctx.answerCbQuery();
-    await renderSectionStub(ctx, '🔄 Перенесення запису');
+    const state = getSceneState(ctx);
+    const appointmentId = parseAppointmentIdFromAction(ctx, MASTER_PANEL_BOOKING_RESCHEDULE_ACTION_REGEX);
+    const targetItem = getPendingItemById(state, appointmentId);
+
+    if (!targetItem) {
+      await loadPendingIntoState(state);
+      await renderPendingQueue(ctx, true);
+      return;
+    }
+
+    state.rescheduleDraft = {
+      appointmentId,
+      dateCode: null,
+      timeCode: null,
+    };
+
+    await renderRescheduleDateStep(ctx, true);
+  });
+
+  scene.action(MASTER_PANEL_BOOKING_RESCHEDULE_DATE_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    if (!state.rescheduleDraft) {
+      await renderPendingQueue(ctx, true);
+      return;
+    }
+
+    const callbackData =
+      ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
+    const matches = callbackData.match(MASTER_PANEL_BOOKING_RESCHEDULE_DATE_ACTION_REGEX);
+    const dateCode = matches?.[1] ?? '';
+    const parsed = bookingDateCodeSchema.safeParse(dateCode);
+
+    if (!parsed.success) {
+      await renderRescheduleDateStep(ctx, true);
+      return;
+    }
+
+    state.rescheduleDraft.dateCode = parsed.data;
+    state.rescheduleDraft.timeCode = null;
+    await renderRescheduleTimeStep(ctx, true);
+  });
+
+  scene.action(MASTER_PANEL_BOOKING_RESCHEDULE_TIME_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.rescheduleDraft;
+    if (!draft || !draft.dateCode) {
+      await renderRescheduleDateStep(ctx, true);
+      return;
+    }
+
+    const callbackData =
+      ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
+    const matches = callbackData.match(MASTER_PANEL_BOOKING_RESCHEDULE_TIME_ACTION_REGEX);
+    const timeCode = matches?.[1] ?? '';
+    const parsed = bookingTimeCodeSchema.safeParse(timeCode);
+
+    if (!parsed.success) {
+      await renderRescheduleTimeStep(ctx, true);
+      return;
+    }
+
+    const allowed = new Set(getAvailableRescheduleTimeCodes(draft.dateCode));
+    if (!allowed.has(parsed.data)) {
+      await renderRescheduleTimeStep(ctx, true);
+      return;
+    }
+
+    draft.timeCode = parsed.data;
+    await renderRescheduleConfirmStep(ctx, true);
+  });
+
+  scene.action(MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_BACK_TO_DATE, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    if (!state.rescheduleDraft) {
+      await renderPendingQueue(ctx, true);
+      return;
+    }
+
+    state.rescheduleDraft.timeCode = null;
+    await renderRescheduleDateStep(ctx, true);
+  });
+
+  scene.action(MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_BACK_TO_TIME, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    if (!state.rescheduleDraft?.dateCode) {
+      await renderPendingQueue(ctx, true);
+      return;
+    }
+
+    state.rescheduleDraft.timeCode = null;
+    await renderRescheduleTimeStep(ctx, true);
+  });
+
+  scene.action(MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_CANCEL, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    resetRescheduleDraft(state);
+    await renderPendingQueue(ctx, true);
+  });
+
+  scene.action(MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_CONFIRM, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.rescheduleDraft;
+    const access = state.access;
+    const item = getRescheduleTargetItem(state);
+
+    if (!access || !draft || !draft.dateCode || !draft.timeCode || !item) {
+      resetRescheduleDraft(state);
+      await loadPendingIntoState(state);
+      await renderPendingQueue(ctx, true);
+      return;
+    }
+
+    const newStartAt = toStartAt(draft.dateCode, draft.timeCode);
+    let result;
+    try {
+      result = await rescheduleMasterPendingBooking({
+        masterId: access.masterId,
+        appointmentId: draft.appointmentId,
+        newStartAt,
+        reason: 'Перенесено майстром через Telegram-бота',
+      });
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        await ctx.reply(`⚠️ ${error.message}`);
+        await renderRescheduleTimeStep(ctx, false);
+        return;
+      }
+      throw error;
+    }
+
+    try {
+      await dispatchNotification({
+        userId: result.current.clientId,
+        notificationType: 'status_change',
+        appointmentId: result.current.appointmentId,
+        textPayload: {
+          studioName: result.current.studioName,
+          serviceName: result.current.serviceName,
+          startAt: result.current.startAt,
+          statusLabel: 'Перенесено',
+          message: 'Ваш запис перенесено. Перевірте нову дату та час.',
+        },
+        email: {
+          template: 'bookingRescheduled',
+          data: {
+            recipientName: result.current.attendeeName ?? result.current.clientFirstName,
+            bookingId: result.current.appointmentId,
+            oldStartAt: result.previous.startAt,
+            newStartAt: result.current.startAt,
+            serviceName: result.current.serviceName,
+            masterName: result.current.masterName,
+            studioName: result.current.studioName,
+          },
+        },
+        metadata: { source: 'master-panel' },
+      });
+    } catch (error) {
+      handleError({
+        logger: loggerNotification,
+        level: 'warn',
+        scope: 'master-panel.scene',
+        action: 'Failed to notify client after booking reschedule',
+        error,
+        meta: { appointmentId: result.current.appointmentId, clientId: result.current.clientId },
+      });
+    }
+
+    await ctx.reply(
+      '🟡 Запис успішно перенесено.\n\n' +
+        'Клієнту надіслано повідомлення з новою датою та часом.',
+    );
+
+    resetRescheduleDraft(state);
+    await loadPendingIntoState(state);
+    await renderPendingQueue(ctx, true);
   });
 
   scene.action(MASTER_PANEL_BOOKING_PROFILE_ACTION_REGEX, async (ctx) => {
@@ -422,6 +732,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
   scene.action(MASTER_PANEL_ACTION.BACK_TO_PANEL, async (ctx) => {
     await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    resetRescheduleDraft(state);
     await renderRoot(ctx, true);
   });
 

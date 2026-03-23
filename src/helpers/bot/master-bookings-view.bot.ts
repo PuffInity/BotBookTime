@@ -7,7 +7,9 @@ import {
   makeMasterPanelBookingCancelRequestAction,
   makeMasterPanelBookingConfirmAction,
   makeMasterPanelBookingProfileAction,
+  makeMasterPanelBookingRescheduleDateAction,
   makeMasterPanelBookingRescheduleAction,
+  makeMasterPanelBookingRescheduleTimeAction,
 } from '../../types/bot-master-panel.types.js';
 
 /**
@@ -144,3 +146,121 @@ export function createMasterCancelPendingBookingConfirmKeyboard(
   ]);
 }
 
+function formatDateLabel(date: Date): string {
+  const weekday = date.toLocaleDateString('uk-UA', { weekday: 'short' });
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  return `${weekday} ${day}.${month}`;
+}
+
+/**
+ * @summary Текст кроку вибору нової дати для перенесення.
+ */
+export function formatMasterRescheduleDateStepText(item: MasterPendingBookingItem): string {
+  return (
+    '🔄 Перенесення запису — крок 1/3\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
+    `💼 Послуга: ${item.serviceName}\n` +
+    `🕒 Поточний час: ${formatDateTimeRange(item.startAt, item.endAt)}\n\n` +
+    'Оберіть нову дату для перенесення.'
+  );
+}
+
+/**
+ * @summary Клавіатура вибору нової дати.
+ */
+export function createMasterRescheduleDateKeyboard(
+  dates: Date[],
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    ...dates.map((date) => {
+      const year = String(date.getFullYear());
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const code = `${year}${month}${day}`;
+      return [Markup.button.callback(formatDateLabel(date), makeMasterPanelBookingRescheduleDateAction(code))];
+    }),
+    [
+      Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_CANCEL),
+      Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL),
+    ],
+  ]);
+}
+
+/**
+ * @summary Текст кроку вибору нового часу.
+ */
+export function formatMasterRescheduleTimeStepText(item: MasterPendingBookingItem, dateLabel: string): string {
+  return (
+    '🔄 Перенесення запису — крок 2/3\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
+    `💼 Послуга: ${item.serviceName}\n` +
+    `📆 Нова дата: ${dateLabel}\n\n` +
+    'Оберіть новий час.'
+  );
+}
+
+/**
+ * @summary Клавіатура вибору нового часу.
+ */
+export function createMasterRescheduleTimeKeyboard(
+  timeCodes: string[],
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const rows: ReturnType<typeof Markup.button.callback>[][] = [];
+
+  for (let i = 0; i < timeCodes.length; i += 2) {
+    const first = timeCodes[i];
+    const second = timeCodes[i + 1];
+    const firstLabel = `${first.slice(0, 2)}:${first.slice(2, 4)}`;
+
+    const row = [Markup.button.callback(firstLabel, makeMasterPanelBookingRescheduleTimeAction(first))];
+    if (second) {
+      const secondLabel = `${second.slice(0, 2)}:${second.slice(2, 4)}`;
+      row.push(Markup.button.callback(secondLabel, makeMasterPanelBookingRescheduleTimeAction(second)));
+    }
+
+    rows.push(row);
+  }
+
+  return Markup.inlineKeyboard([
+    ...rows,
+    [
+      Markup.button.callback('⬅️ До вибору дати', MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_BACK_TO_DATE),
+      Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_CANCEL),
+    ],
+  ]);
+}
+
+/**
+ * @summary Текст підтвердження перенесення.
+ */
+export function formatMasterRescheduleConfirmText(
+  item: MasterPendingBookingItem,
+  newStartAt: Date,
+  newEndAt: Date,
+): string {
+  return (
+    '🔄 Перенесення запису — крок 3/3\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
+    `💼 Послуга: ${item.serviceName}\n\n` +
+    `🕒 Було: ${formatDateTimeRange(item.startAt, item.endAt)}\n` +
+    `🕒 Стане: ${formatDateTimeRange(newStartAt, newEndAt)}\n\n` +
+    'Підтвердіть перенесення запису.'
+  );
+}
+
+/**
+ * @summary Клавіатура підтвердження перенесення.
+ */
+export function createMasterRescheduleConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('✅ Підтвердити перенесення', MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_CONFIRM)],
+    [
+      Markup.button.callback('⬅️ До вибору часу', MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_BACK_TO_TIME),
+      Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_CANCEL),
+    ],
+  ]);
+}
