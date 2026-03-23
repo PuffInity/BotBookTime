@@ -7,6 +7,7 @@ import { createProfileNotificationSettingsScene } from './profile-notification-s
 import { createMastersScene } from './masters.scene.js';
 import { createServicesScene } from './services.scene.js';
 import { createFaqScene } from './faq.scene.js';
+import { createMasterPanelScene } from './master-panel.scene.js';
 import type { MyContext } from '../../types/bot.types.js';
 
 /**
@@ -23,6 +24,7 @@ export function createBotStage(): Scenes.Stage<MyContext> {
   const mastersScene = createMastersScene();
   const servicesScene = createServicesScene();
   const faqScene = createFaqScene();
+  const masterPanelScene = createMasterPanelScene();
 
   // Тут пізніше додаються інші сцени:
   // const adminApproveScene = createAdminApproveScene()
@@ -36,5 +38,6 @@ export function createBotStage(): Scenes.Stage<MyContext> {
     mastersScene,
     servicesScene,
     faqScene,
+    masterPanelScene,
   ]);
 }

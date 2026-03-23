@@ -6,6 +6,7 @@ import { PROFILE_NOTIFICATION_SETTINGS_SCENE_ID } from '../scenes/profile-notifi
 import { MASTERS_SCENE_ID } from '../scenes/masters.scene.js';
 import { SERVICES_SCENE_ID } from '../scenes/services.scene.js';
 import { FAQ_SCENE_ID } from '../scenes/faq.scene.js';
+import { MASTER_PANEL_SCENE_ID } from '../scenes/master-panel.scene.js';
 import type { MyContext } from '../../types/bot.types.js';
 import type { Telegraf } from 'telegraf';
 import { ValidationError, asyncBotHandler } from '../../utils/error.utils.js';
@@ -109,9 +110,20 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
         'Список команд:\n' +
           '/start - головне меню\n' +
           '/menu - показати головне меню\n' +
+          '/master - відкрити панель майстра\n' +
           '/booking - почати сценарій запису\n' +
           '/cancel - вийти зі сценарію',
       );
+    }),
+  );
+
+  bot.command(
+    'master',
+    asyncBotHandler(async (ctx) => {
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+      await ctx.scene.enter(MASTER_PANEL_SCENE_ID);
     }),
   );
 
