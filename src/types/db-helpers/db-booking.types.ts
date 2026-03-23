@@ -8,6 +8,7 @@ import type { AppointmentsEntity } from '../db/index.js';
 export type MasterServiceBookingMetaRow = {
   studio_id: string;
   studio_name: string;
+  studio_timezone: string;
   service_id: string;
   service_name: string;
   master_id: string;
@@ -20,6 +21,7 @@ export type MasterServiceBookingMetaRow = {
 export type MasterServiceBookingMeta = {
   studioId: string;
   studioName: string;
+  studioTimezone: string;
   serviceId: string;
   serviceName: string;
   masterId: string;
@@ -46,4 +48,9 @@ export type CreatePendingBookingResult = {
 
 export type BookingConflictRow = {
   has_conflict: boolean;
+};
+
+export type MasterScheduleAvailabilityRow = {
+  is_available: boolean;
+  reason_code: string | null;
 };

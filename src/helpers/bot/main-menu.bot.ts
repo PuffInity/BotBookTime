@@ -1,6 +1,6 @@
 import { Markup } from 'telegraf';
 import type { MyContext } from '../../types/bot.types.js';
-import { CLIENT_MAIN_MENU_BUTTON } from '../../types/bot-menu.types.js';
+import { CLIENT_MAIN_MENU_BUTTON, MAIN_MENU_ACTION } from '../../types/bot-menu.types.js';
 
 /**
  * @file main-menu.bot.ts
@@ -24,14 +24,22 @@ export const CLIENT_MAIN_MENU_TEXT =
   '⬇️ Скористайтесь кнопками нижче для навігації';
 
 /**
- * Повертає Reply-клавіатуру головного меню клієнта.
+ * Повертає Inline-клавіатуру головного меню клієнта.
  */
-export function createClientMainMenuKeyboard(): ReturnType<typeof Markup.keyboard> {
-  return Markup.keyboard([
-    [CLIENT_MAIN_MENU_BUTTON.PROFILE, CLIENT_MAIN_MENU_BUTTON.SERVICES],
-    [CLIENT_MAIN_MENU_BUTTON.MASTERS, CLIENT_MAIN_MENU_BUTTON.BOOKING],
-    [CLIENT_MAIN_MENU_BUTTON.FAQ],
-  ]).resize();
+export function createClientMainMenuKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(CLIENT_MAIN_MENU_BUTTON.PROFILE, MAIN_MENU_ACTION.PROFILE),
+      Markup.button.callback(CLIENT_MAIN_MENU_BUTTON.SERVICES, MAIN_MENU_ACTION.SERVICES),
+    ],
+    [
+      Markup.button.callback(CLIENT_MAIN_MENU_BUTTON.MASTERS, MAIN_MENU_ACTION.MASTERS),
+      Markup.button.callback(CLIENT_MAIN_MENU_BUTTON.BOOKING, MAIN_MENU_ACTION.BOOKING),
+    ],
+    [
+      Markup.button.callback(CLIENT_MAIN_MENU_BUTTON.FAQ, MAIN_MENU_ACTION.FAQ),
+    ],
+  ]);
 }
 
 /**

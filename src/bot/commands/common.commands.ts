@@ -10,7 +10,11 @@ import type { MyContext } from '../../types/bot.types.js';
 import type { Telegraf } from 'telegraf';
 import { ValidationError, asyncBotHandler } from '../../utils/error.utils.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
-import { CLIENT_MAIN_MENU_BUTTON, COMMON_NAV_ACTION } from '../../types/bot-menu.types.js';
+import {
+  CLIENT_MAIN_MENU_BUTTON,
+  COMMON_NAV_ACTION,
+  MAIN_MENU_ACTION,
+} from '../../types/bot-menu.types.js';
 import { getOrCreateUser } from '../../helpers/db/db-profile.helper.js';
 import {
   PROFILE_ACTION,
@@ -143,6 +147,15 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
   bot.hears(
     CLIENT_MAIN_MENU_BUTTON.PROFILE,
     asyncBotHandler(async (ctx) => {
+      const user = await getOrCreateUser(ctx);
+      await sendProfileCard(ctx, user);
+    }),
+  );
+
+  bot.action(
+    MAIN_MENU_ACTION.PROFILE,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
       const user = await getOrCreateUser(ctx);
       await sendProfileCard(ctx, user);
     }),
@@ -333,9 +346,31 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     }),
   );
 
+  bot.action(
+    MAIN_MENU_ACTION.SERVICES,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+      await ctx.scene.enter(SERVICES_SCENE_ID);
+    }),
+  );
+
   bot.hears(
     CLIENT_MAIN_MENU_BUTTON.MASTERS,
     asyncBotHandler(async (ctx) => {
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+      await ctx.scene.enter(MASTERS_SCENE_ID);
+    }),
+  );
+
+  bot.action(
+    MAIN_MENU_ACTION.MASTERS,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
       if (ctx.scene.current) {
         await ctx.scene.leave();
       }
@@ -353,9 +388,31 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     }),
   );
 
+  bot.action(
+    MAIN_MENU_ACTION.BOOKING,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+      await ctx.scene.enter(BOOKING_SCENE_ID);
+    }),
+  );
+
   bot.hears(
     CLIENT_MAIN_MENU_BUTTON.FAQ,
     asyncBotHandler(async (ctx) => {
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+      await ctx.scene.enter(FAQ_SCENE_ID);
+    }),
+  );
+
+  bot.action(
+    MAIN_MENU_ACTION.FAQ,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
       if (ctx.scene.current) {
         await ctx.scene.leave();
       }

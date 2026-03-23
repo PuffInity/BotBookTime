@@ -3,6 +3,7 @@ import type {
   BookingConflictRow,
   CreatePendingBookingInput,
   CreatePendingBookingResult,
+  MasterScheduleAvailabilityRow,
   MasterServiceBookingMeta,
   MasterServiceBookingMetaRow,
 } from '../../types/db-helpers/db-booking.types.js';
@@ -12,6 +13,7 @@ import { ValidationError, handleError } from '../../utils/error.utils.js';
 import { loggerDb } from '../../utils/logger/loggers-list.js';
 import {
   SQL_CHECK_APPOINTMENT_CONFLICT,
+  SQL_CHECK_MASTER_WORK_SCHEDULE_AT_SLOT,
   SQL_GET_BOOKING_META_BY_MASTER_SERVICE,
   SQL_INSERT_PENDING_APPOINTMENT,
 } from '../db-sql/db-booking.sql.js';
@@ -47,6 +49,7 @@ function mapBookingMeta(row: MasterServiceBookingMetaRow): MasterServiceBookingM
   return {
     studioId: row.studio_id,
     studioName: row.studio_name,
+    studioTimezone: row.studio_timezone,
     serviceId: row.service_id,
     serviceName: row.service_name,
     masterId: row.master_id,
@@ -89,6 +92,25 @@ export async function createPendingBooking(
       }
 
       const endAt = new Date(startAt.getTime() + meta.durationMinutes * 60 * 1000);
+
+      const scheduleAvailability = await queryOne<
+        MasterScheduleAvailabilityRow,
+        MasterScheduleAvailabilityRow
+      >(
+        SQL_CHECK_MASTER_WORK_SCHEDULE_AT_SLOT,
+        [masterId, startAt.toISOString(), endAt.toISOString(), meta.studioTimezone],
+        (row) => row,
+        client,
+      );
+
+      if (!scheduleAvailability?.is_available) {
+        throw new ValidationError('Майстер недоступний на обраний час за графіком роботи', {
+          studioId,
+          serviceId,
+          masterId,
+          reason: scheduleAvailability?.reason_code ?? 'unknown',
+        });
+      }
 
       const conflict = await queryOne<BookingConflictRow, BookingConflictRow>(
         SQL_CHECK_APPOINTMENT_CONFLICT,
