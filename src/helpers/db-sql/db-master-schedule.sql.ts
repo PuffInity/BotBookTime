@@ -16,6 +16,7 @@ export const SQL_LIST_MASTER_WEEKLY_HOURS_FOR_PANEL = `
 
 export const SQL_LIST_MASTER_UPCOMING_DAYS_OFF_FOR_PANEL = `
   SELECT
+    id,
     off_date,
     reason
   FROM master_days_off
@@ -27,6 +28,7 @@ export const SQL_LIST_MASTER_UPCOMING_DAYS_OFF_FOR_PANEL = `
 
 export const SQL_LIST_MASTER_UPCOMING_VACATIONS_FOR_PANEL = `
   SELECT
+    id,
     date_from,
     date_to,
     reason
@@ -39,6 +41,7 @@ export const SQL_LIST_MASTER_UPCOMING_VACATIONS_FOR_PANEL = `
 
 export const SQL_LIST_MASTER_UPCOMING_TEMPORARY_HOURS_FOR_PANEL = `
   SELECT
+    id,
     date_from,
     date_to,
     weekday,
@@ -190,4 +193,26 @@ export const SQL_UPSERT_MASTER_WEEKLY_HOURS = `
     open_time = EXCLUDED.open_time,
     close_time = EXCLUDED.close_time
   RETURNING weekday, is_working, open_time, close_time
+`;
+
+export const SQL_DELETE_MASTER_DAY_OFF_BY_ID = `
+  DELETE FROM master_days_off
+  WHERE id = $1::bigint
+    AND master_id = $2::bigint
+  RETURNING id
+`;
+
+export const SQL_DELETE_MASTER_VACATION_BY_ID = `
+  DELETE FROM master_vacations
+  WHERE id = $1::bigint
+    AND master_id = $2::bigint
+  RETURNING id
+`;
+
+export const SQL_DELETE_MASTER_TEMPORARY_HOURS_PERIOD = `
+  DELETE FROM master_temporary_hours
+  WHERE master_id = $1::bigint
+    AND date_from = $2::date
+    AND date_to = $3::date
+  RETURNING id
 `;

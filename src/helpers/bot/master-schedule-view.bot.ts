@@ -8,8 +8,11 @@ import type {
 import {
   MASTER_PANEL_ACTION,
   MASTER_PANEL_BUTTON_TEXT,
+  makeMasterPanelScheduleDayOffDeleteRequestAction,
   makeMasterPanelScheduleConfigureDayOffAction,
   makeMasterPanelScheduleConfigureDayWeekdayAction,
+  makeMasterPanelScheduleTemporaryDeleteRequestAction,
+  makeMasterPanelScheduleVacationDeleteRequestAction,
   makeMasterPanelTemporaryHoursDayAction,
   makeMasterPanelTemporaryHoursDayOffAction,
 } from '../../types/bot-master-panel.types.js';
@@ -31,6 +34,13 @@ const WEEKDAY_LABELS: Record<number, string> = {
 
 function dateLabel(date: Date): string {
   return date.toLocaleDateString('uk-UA');
+}
+
+function dateCode(date: Date): string {
+  const year = String(date.getFullYear());
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
 }
 
 function timeRangeLabel(item: MasterScheduleWeeklyItem): string {
@@ -150,17 +160,133 @@ function formatTemporaryHoursList(data: MasterPanelScheduleData): string {
     return '📭 Тимчасових змін графіка не знайдено.';
   }
 
-  return data.upcomingTemporaryHours
-    .slice(0, 10)
-    .map((item, index) => {
-      const day = WEEKDAY_LABELS[item.weekday] ?? `День ${item.weekday}`;
-      const note = item.note?.trim() ? `\n📝 Примітка: ${item.note.trim()}` : '';
+  const periodMap = new Map<string, MasterScheduleTemporaryHoursItem[]>();
+  for (const item of data.upcomingTemporaryHours) {
+    const key = `${dateCode(item.dateFrom)}:${dateCode(item.dateTo)}`;
+    const existing = periodMap.get(key) ?? [];
+    existing.push(item);
+    periodMap.set(key, existing);
+  }
+
+  const periods = Array.from(periodMap.values())
+    .map((items) => items.sort((a, b) => a.weekday - b.weekday))
+    .sort((a, b) => a[0].dateFrom.getTime() - b[0].dateFrom.getTime())
+    .slice(0, 10);
+
+  return periods
+    .map((items, index) => {
+      const first = items[0];
+      const daysText = items
+        .map((item) => {
+          const day = WEEKDAY_LABELS[item.weekday] ?? `День ${item.weekday}`;
+          return `${day}: ${tempTimeRangeLabel(item)}`;
+        })
+        .join('\n');
       return (
-        `${index + 1}️⃣ ${dateLabel(item.dateFrom)}–${dateLabel(item.dateTo)} (${day})\n` +
-        `🕒 ${tempTimeRangeLabel(item)}${note}`
+        `${index + 1}️⃣ ${dateLabel(first.dateFrom)}–${dateLabel(first.dateTo)}\n` +
+        `${daysText}`
       );
     })
     .join('\n\n');
+}
+
+type MasterTemporarySchedulePeriodView = {
+  dateFrom: Date;
+  dateTo: Date;
+  dateFromCode: string;
+  dateToCode: string;
+};
+
+function extractTemporaryPeriods(data: MasterPanelScheduleData): MasterTemporarySchedulePeriodView[] {
+  const periodMap = new Map<string, MasterTemporarySchedulePeriodView>();
+  for (const item of data.upcomingTemporaryHours) {
+    const fromCode = dateCode(item.dateFrom);
+    const toCode = dateCode(item.dateTo);
+    const key = `${fromCode}:${toCode}`;
+    if (!periodMap.has(key)) {
+      periodMap.set(key, {
+        dateFrom: item.dateFrom,
+        dateTo: item.dateTo,
+        dateFromCode: fromCode,
+        dateToCode: toCode,
+      });
+    }
+  }
+
+  return Array.from(periodMap.values()).sort((a, b) => a.dateFrom.getTime() - b.dateFrom.getTime());
+}
+
+/**
+ * @summary Клавіатура списку вихідних днів з діями видалення.
+ */
+export function createMasterScheduleDaysOffListKeyboard(
+  data: MasterPanelScheduleData,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const rows = data.upcomingDaysOff
+    .slice(0, 10)
+    .map((item, index) => [
+      Markup.button.callback(
+        `🗑 Видалити ${index + 1}️⃣`,
+        makeMasterPanelScheduleDayOffDeleteRequestAction(item.id),
+      ),
+    ]);
+
+  return Markup.inlineKeyboard([
+    ...rows,
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура секції "Відпустка" з діями видалення.
+ */
+export function createMasterScheduleVacationsListKeyboard(
+  data: MasterPanelScheduleData,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const rows = data.upcomingVacations
+    .slice(0, 10)
+    .map((item, index) => [
+      Markup.button.callback(
+        `🗑 Видалити ${index + 1}️⃣`,
+        makeMasterPanelScheduleVacationDeleteRequestAction(item.id),
+      ),
+    ]);
+
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('➕ Встановити період відпустки', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS_CREATE)],
+    ...rows,
+    [Markup.button.callback('🔄 Оновити список', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS)],
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура секції "Тимчасова зміна графіку" з діями видалення періоду.
+ */
+export function createMasterScheduleTemporaryHoursListKeyboard(
+  data: MasterPanelScheduleData,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const periods = extractTemporaryPeriods(data).slice(0, 10);
+  const rows = periods.map((period, index) => [
+    Markup.button.callback(
+      `🗑 Видалити період ${index + 1}️⃣`,
+      makeMasterPanelScheduleTemporaryDeleteRequestAction(period.dateFromCode, period.dateToCode),
+    ),
+  ]);
+
+  return periods.length > 0
+    ? Markup.inlineKeyboard([
+        [Markup.button.callback('➕ Встановити тимчасовий графік', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CREATE)],
+        ...rows,
+        [Markup.button.callback('🔄 Оновити список', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS)],
+        [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
+      ])
+    : Markup.inlineKeyboard([
+        [Markup.button.callback('➕ Встановити тимчасовий графік', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CREATE)],
+        [Markup.button.callback('🔄 Оновити список', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS)],
+        [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
+      ]);
 }
 
 /**
@@ -402,6 +528,64 @@ export function createMasterScheduleTemporaryHoursKeyboard(): ReturnType<typeof 
   return Markup.inlineKeyboard([
     [Markup.button.callback('➕ Встановити тимчасовий графік', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CREATE)],
     [Markup.button.callback('🔄 Оновити список', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS)],
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
+  ]);
+}
+
+/**
+ * @summary Текст підтвердження видалення вихідного дня.
+ */
+export function formatMasterScheduleDeleteDayOffConfirmText(dateValue: Date): string {
+  return (
+    '⚠️ Підтвердження видалення\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Ви впевнені, що хочете видалити вихідний день?\n\n' +
+    `📅 Дата: ${dateLabel(dateValue)}\n\n` +
+    'Після видалення майстер знову стане доступним для запису у цей день.'
+  );
+}
+
+/**
+ * @summary Текст підтвердження видалення відпустки.
+ */
+export function formatMasterScheduleDeleteVacationConfirmText(
+  dateFromValue: Date,
+  dateToValue: Date,
+): string {
+  return (
+    '⚠️ Підтвердження видалення\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Ви впевнені, що хочете видалити період відпустки?\n\n' +
+    `📅 Період: ${dateLabel(dateFromValue)} - ${dateLabel(dateToValue)}\n\n` +
+    'Після видалення ви знову станете доступним для запису у цей період.'
+  );
+}
+
+/**
+ * @summary Текст підтвердження видалення тимчасового графіку.
+ */
+export function formatMasterScheduleDeleteTemporaryConfirmText(
+  dateFromValue: Date,
+  dateToValue: Date,
+): string {
+  return (
+    '⚠️ Підтвердження видалення\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Ви впевнені, що хочете видалити тимчасову зміну графіку?\n\n' +
+    `📅 Період: ${dateLabel(dateFromValue)} - ${dateLabel(dateToValue)}\n\n` +
+    'Після видалення для цього періоду знову діятиме базовий тижневий графік.'
+  );
+}
+
+/**
+ * @summary Клавіатура підтвердження видалення запису в розкладі.
+ */
+export function createMasterScheduleDeleteConfirmKeyboard(
+  confirmAction: string,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('✅ Підтвердити видалення', confirmAction)],
+    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_DELETE_CANCEL)],
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
   ]);
 }

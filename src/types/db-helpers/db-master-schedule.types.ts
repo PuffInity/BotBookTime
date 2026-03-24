@@ -11,17 +11,20 @@ export type MasterScheduleWeeklyRow = {
 };
 
 export type MasterScheduleDayOffRow = {
+  id: string;
   off_date: Date;
   reason: string | null;
 };
 
 export type MasterScheduleVacationRow = {
+  id: string;
   date_from: Date;
   date_to: Date;
   reason: string | null;
 };
 
 export type MasterScheduleTemporaryHoursRow = {
+  id: string;
   date_from: Date;
   date_to: Date;
   weekday: number;
@@ -39,17 +42,20 @@ export type MasterScheduleWeeklyItem = {
 };
 
 export type MasterScheduleDayOffItem = {
+  id: string;
   offDate: Date;
   reason: string | null;
 };
 
 export type MasterScheduleVacationItem = {
+  id: string;
   dateFrom: Date;
   dateTo: Date;
   reason: string | null;
 };
 
 export type MasterScheduleTemporaryHoursItem = {
+  id: string;
   dateFrom: Date;
   dateTo: Date;
   weekday: number;
@@ -152,4 +158,24 @@ export type UpdateMasterWeeklyDayInput = {
   isWorking: boolean;
   openTime?: string | null;
   closeTime?: string | null;
+};
+
+export type DeleteMasterDayOffInput = {
+  masterId: string | number;
+  dayOffId: string | number;
+};
+
+export type DeleteMasterVacationInput = {
+  masterId: string | number;
+  vacationId: string | number;
+};
+
+export type DeleteMasterTemporarySchedulePeriodInput = {
+  masterId: string | number;
+  dateFrom: Date | string;
+  dateTo: Date | string;
+};
+
+export type MasterDeletedIdRow = {
+  id: string;
 };

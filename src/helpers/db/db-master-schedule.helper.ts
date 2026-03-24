@@ -4,9 +4,13 @@ import type {
   CreatedMasterDayOffItem,
   CreateMasterVacationInput,
   CreateMasterDayOffInput,
+  DeleteMasterDayOffInput,
+  DeleteMasterTemporarySchedulePeriodInput,
+  DeleteMasterVacationInput,
   MasterUpsertedWeeklyHoursRow,
   MasterScheduleTemporaryHoursOverlapRow,
   MasterTemporaryScheduleDayInput,
+  MasterDeletedIdRow,
   MasterInsertedDayOffRow,
   MasterInsertedVacationRow,
   MasterPanelScheduleData,
@@ -35,6 +39,9 @@ import {
   SQL_INSERT_MASTER_DAY_OFF,
   SQL_INSERT_MASTER_TEMPORARY_HOURS,
   SQL_INSERT_MASTER_VACATION,
+  SQL_DELETE_MASTER_DAY_OFF_BY_ID,
+  SQL_DELETE_MASTER_TEMPORARY_HOURS_PERIOD,
+  SQL_DELETE_MASTER_VACATION_BY_ID,
   SQL_LIST_MASTER_UPCOMING_DAYS_OFF_FOR_PANEL,
   SQL_LIST_MASTER_UPCOMING_TEMPORARY_HOURS_FOR_PANEL,
   SQL_LIST_MASTER_UPCOMING_VACATIONS_FOR_PANEL,
@@ -235,6 +242,7 @@ function mapWeeklyRow(row: MasterScheduleWeeklyRow): MasterScheduleWeeklyItem {
 
 function mapDayOffRow(row: MasterScheduleDayOffRow): MasterScheduleDayOffItem {
   return {
+    id: row.id,
     offDate: new Date(row.off_date),
     reason: row.reason,
   };
@@ -242,6 +250,7 @@ function mapDayOffRow(row: MasterScheduleDayOffRow): MasterScheduleDayOffItem {
 
 function mapVacationRow(row: MasterScheduleVacationRow): MasterScheduleVacationItem {
   return {
+    id: row.id,
     dateFrom: new Date(row.date_from),
     dateTo: new Date(row.date_to),
     reason: row.reason,
@@ -252,6 +261,7 @@ function mapTemporaryHoursRow(
   row: MasterScheduleTemporaryHoursRow,
 ): MasterScheduleTemporaryHoursItem {
   return {
+    id: row.id,
     dateFrom: new Date(row.date_from),
     dateTo: new Date(row.date_to),
     weekday: row.weekday,
@@ -260,6 +270,10 @@ function mapTemporaryHoursRow(
     closeTime: row.close_time,
     note: row.note,
   };
+}
+
+function normalizeEntityId(value: string | number, fieldName: string): string {
+  return normalizePositiveBigintId(value, fieldName);
 }
 
 function mapInsertedDayOffRow(row: MasterInsertedDayOffRow): CreatedMasterDayOffItem {
@@ -620,6 +634,104 @@ export async function createMasterTemporarySchedule(
       action: 'Failed to create master temporary schedule',
       error,
       meta: { masterId, dateFrom: sqlDateFrom, dateTo: sqlDateTo, createdBy },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Видаляє один вихідний день майстра.
+ */
+export async function deleteMasterDayOff(input: DeleteMasterDayOffInput): Promise<void> {
+  const masterId = normalizePositiveBigintId(input.masterId, 'masterId');
+  const dayOffId = normalizeEntityId(input.dayOffId, 'dayOffId');
+
+  try {
+    await withTransaction(async (client) => {
+      await executeOne<MasterDeletedIdRow, string>(
+        SQL_DELETE_MASTER_DAY_OFF_BY_ID,
+        [dayOffId, masterId],
+        (row) => row.id,
+        client,
+      );
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-schedule.helper',
+      action: 'Failed to delete master day off',
+      error,
+      meta: { masterId, dayOffId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Видаляє один період відпустки майстра.
+ */
+export async function deleteMasterVacation(input: DeleteMasterVacationInput): Promise<void> {
+  const masterId = normalizePositiveBigintId(input.masterId, 'masterId');
+  const vacationId = normalizeEntityId(input.vacationId, 'vacationId');
+
+  try {
+    await withTransaction(async (client) => {
+      await executeOne<MasterDeletedIdRow, string>(
+        SQL_DELETE_MASTER_VACATION_BY_ID,
+        [vacationId, masterId],
+        (row) => row.id,
+        client,
+      );
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-schedule.helper',
+      action: 'Failed to delete master vacation',
+      error,
+      meta: { masterId, vacationId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Видаляє весь період тимчасового графіку (усі 7 днів для діапазону дат).
+ */
+export async function deleteMasterTemporarySchedulePeriod(
+  input: DeleteMasterTemporarySchedulePeriodInput,
+): Promise<void> {
+  const masterId = normalizePositiveBigintId(input.masterId, 'masterId');
+  const dateFrom = normalizeTemporaryDateInput(input.dateFrom, 'dateFrom');
+  const dateTo = normalizeTemporaryDateInput(input.dateTo, 'dateTo');
+
+  if (dateTo.getTime() < dateFrom.getTime()) {
+    throw new ValidationError('Дата завершення періоду не може бути раніше дати початку');
+  }
+
+  const sqlDateFrom = toSqlDate(dateFrom);
+  const sqlDateTo = toSqlDate(dateTo);
+
+  try {
+    await withTransaction(async (client) => {
+      const deletedRows = await queryMany<MasterDeletedIdRow, string>(
+        SQL_DELETE_MASTER_TEMPORARY_HOURS_PERIOD,
+        [masterId, sqlDateFrom, sqlDateTo],
+        (row) => row.id,
+        client,
+      );
+
+      if (deletedRows.length === 0) {
+        throw new ValidationError('Період тимчасового графіку не знайдено');
+      }
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-schedule.helper',
+      action: 'Failed to delete master temporary schedule period',
+      error,
+      meta: { masterId, dateFrom: sqlDateFrom, dateTo: sqlDateTo },
     });
     throw error;
   }

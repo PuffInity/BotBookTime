@@ -25,16 +25,23 @@ export const MASTER_PANEL_ACTION = {
   SCHEDULE_SET_DAY_OFF_CONFIRM: 'master-panel:schedule:set-day-off:confirm',
   SCHEDULE_SET_DAY_OFF_CANCEL: 'master-panel:schedule:set-day-off:cancel',
   SCHEDULE_LIST_DAYS_OFF: 'master-panel:schedule:list-days-off',
+  SCHEDULE_DAY_OFF_DELETE_REQUEST_PREFIX: 'master-panel:schedule:day-off:delete:request:',
+  SCHEDULE_DAY_OFF_DELETE_CONFIRM_PREFIX: 'master-panel:schedule:day-off:delete:confirm:',
   SCHEDULE_VACATIONS: 'master-panel:schedule:vacations',
   SCHEDULE_VACATIONS_CREATE: 'master-panel:schedule:vacations:create',
   SCHEDULE_VACATIONS_CONFIRM: 'master-panel:schedule:vacations:confirm',
   SCHEDULE_VACATIONS_CANCEL: 'master-panel:schedule:vacations:cancel',
+  SCHEDULE_VACATION_DELETE_REQUEST_PREFIX: 'master-panel:schedule:vacation:delete:request:',
+  SCHEDULE_VACATION_DELETE_CONFIRM_PREFIX: 'master-panel:schedule:vacation:delete:confirm:',
   SCHEDULE_TEMPORARY_HOURS: 'master-panel:schedule:temporary-hours',
   SCHEDULE_TEMPORARY_HOURS_CREATE: 'master-panel:schedule:temporary-hours:create',
   SCHEDULE_TEMPORARY_HOURS_CONFIRM: 'master-panel:schedule:temporary-hours:confirm',
   SCHEDULE_TEMPORARY_HOURS_CANCEL: 'master-panel:schedule:temporary-hours:cancel',
   SCHEDULE_TEMPORARY_HOURS_DAY_PREFIX: 'master-panel:schedule:temporary-hours:day:',
   SCHEDULE_TEMPORARY_HOURS_DAY_OFF_PREFIX: 'master-panel:schedule:temporary-hours:day-off:',
+  SCHEDULE_TEMPORARY_DELETE_REQUEST_PREFIX: 'master-panel:schedule:temporary-hours:delete:request:',
+  SCHEDULE_TEMPORARY_DELETE_CONFIRM_PREFIX: 'master-panel:schedule:temporary-hours:delete:confirm:',
+  SCHEDULE_DELETE_CANCEL: 'master-panel:schedule:delete:cancel',
   SCHEDULE_BACK: 'master-panel:schedule:back',
   BOOKINGS_SHOW_PENDING: 'master-panel:bookings:show-pending',
   BOOKINGS_NEXT_PENDING: 'master-panel:bookings:next-pending',
@@ -101,6 +108,18 @@ export const MASTER_PANEL_TEMPORARY_HOURS_DAY_ACTION_REGEX =
   /^master-panel:schedule:temporary-hours:day:([1-7])$/;
 export const MASTER_PANEL_TEMPORARY_HOURS_DAY_OFF_ACTION_REGEX =
   /^master-panel:schedule:temporary-hours:day-off:([1-7])$/;
+export const MASTER_PANEL_SCHEDULE_DAY_OFF_DELETE_REQUEST_ACTION_REGEX =
+  /^master-panel:schedule:day-off:delete:request:(\d+)$/;
+export const MASTER_PANEL_SCHEDULE_DAY_OFF_DELETE_CONFIRM_ACTION_REGEX =
+  /^master-panel:schedule:day-off:delete:confirm:(\d+)$/;
+export const MASTER_PANEL_SCHEDULE_VACATION_DELETE_REQUEST_ACTION_REGEX =
+  /^master-panel:schedule:vacation:delete:request:(\d+)$/;
+export const MASTER_PANEL_SCHEDULE_VACATION_DELETE_CONFIRM_ACTION_REGEX =
+  /^master-panel:schedule:vacation:delete:confirm:(\d+)$/;
+export const MASTER_PANEL_SCHEDULE_TEMPORARY_DELETE_REQUEST_ACTION_REGEX =
+  /^master-panel:schedule:temporary-hours:delete:request:(\d{8}):(\d{8})$/;
+export const MASTER_PANEL_SCHEDULE_TEMPORARY_DELETE_CONFIRM_ACTION_REGEX =
+  /^master-panel:schedule:temporary-hours:delete:confirm:(\d{8}):(\d{8})$/;
 
 export function makeMasterPanelBookingConfirmAction(appointmentId: string): string {
   return `${MASTER_PANEL_ACTION.BOOKING_CONFIRM_PREFIX}${appointmentId}`;
@@ -148,4 +167,34 @@ export function makeMasterPanelScheduleConfigureDayWeekdayAction(weekday: number
 
 export function makeMasterPanelScheduleConfigureDayOffAction(weekday: number): string {
   return `${MASTER_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY_OFF_PREFIX}${weekday}`;
+}
+
+export function makeMasterPanelScheduleDayOffDeleteRequestAction(dayOffId: string): string {
+  return `${MASTER_PANEL_ACTION.SCHEDULE_DAY_OFF_DELETE_REQUEST_PREFIX}${dayOffId}`;
+}
+
+export function makeMasterPanelScheduleDayOffDeleteConfirmAction(dayOffId: string): string {
+  return `${MASTER_PANEL_ACTION.SCHEDULE_DAY_OFF_DELETE_CONFIRM_PREFIX}${dayOffId}`;
+}
+
+export function makeMasterPanelScheduleVacationDeleteRequestAction(vacationId: string): string {
+  return `${MASTER_PANEL_ACTION.SCHEDULE_VACATION_DELETE_REQUEST_PREFIX}${vacationId}`;
+}
+
+export function makeMasterPanelScheduleVacationDeleteConfirmAction(vacationId: string): string {
+  return `${MASTER_PANEL_ACTION.SCHEDULE_VACATION_DELETE_CONFIRM_PREFIX}${vacationId}`;
+}
+
+export function makeMasterPanelScheduleTemporaryDeleteRequestAction(
+  dateFromCode: string,
+  dateToCode: string,
+): string {
+  return `${MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_DELETE_REQUEST_PREFIX}${dateFromCode}:${dateToCode}`;
+}
+
+export function makeMasterPanelScheduleTemporaryDeleteConfirmAction(
+  dateFromCode: string,
+  dateToCode: string,
+): string {
+  return `${MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_DELETE_CONFIRM_PREFIX}${dateFromCode}:${dateToCode}`;
 }
