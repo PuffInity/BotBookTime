@@ -1,9 +1,13 @@
 import type {
+  GetMasterBookingCardByIdInput,
   CancelMasterPendingBookingInput,
   BookingConflictRow,
   ConfirmMasterPendingBookingInput,
   InsertedAppointmentIdRow,
+  ListMasterBookingsFeedInput,
   ListMasterPendingBookingsInput,
+  MasterBookingFeedRow,
+  MasterBookingsFeedPage,
   MasterPendingBookingForRescheduleRow,
   MasterPendingBookingItem,
   MasterPendingBookingRow,
@@ -18,6 +22,7 @@ import {
   SQL_CHECK_APPOINTMENT_CONFLICT_EXCLUDING_ID,
   SQL_CANCEL_MASTER_PENDING_BOOKING,
   SQL_CONFIRM_MASTER_PENDING_BOOKING,
+  SQL_LIST_MASTER_BOOKINGS_FEED,
   SQL_GET_MASTER_BOOKING_CARD_BY_ID,
   SQL_GET_MASTER_PENDING_BOOKING_FOR_RESCHEDULE,
   SQL_INSERT_APPOINTMENT_TRANSFER_LINK,
@@ -34,6 +39,8 @@ import { SQL_CHECK_MASTER_WORK_SCHEDULE_AT_SLOT } from '../db-sql/db-booking.sql
 
 const DEFAULT_PENDING_LIMIT = 20;
 const MAX_PENDING_LIMIT = 50;
+const DEFAULT_FEED_LIMIT = 5;
+const MAX_FEED_LIMIT = 20;
 
 function normalizePositiveBigintId(value: string | number, fieldName: string): string {
   const normalized = String(value).trim();
@@ -51,6 +58,27 @@ function normalizePendingLimit(limit?: number): number {
   const normalized = Math.trunc(limit);
   if (normalized < 1) return DEFAULT_PENDING_LIMIT;
   if (normalized > MAX_PENDING_LIMIT) return MAX_PENDING_LIMIT;
+  return normalized;
+}
+
+function normalizeFeedLimit(limit?: number): number {
+  if (limit == null || !Number.isFinite(limit)) {
+    return DEFAULT_FEED_LIMIT;
+  }
+
+  const normalized = Math.trunc(limit);
+  if (normalized < 1) return DEFAULT_FEED_LIMIT;
+  if (normalized > MAX_FEED_LIMIT) return MAX_FEED_LIMIT;
+  return normalized;
+}
+
+function normalizeOffset(offset?: number): number {
+  if (offset == null || !Number.isFinite(offset)) {
+    return 0;
+  }
+
+  const normalized = Math.trunc(offset);
+  if (normalized < 0) return 0;
   return normalized;
 }
 
@@ -88,6 +116,16 @@ function mapMasterPendingBookingRow(row: MasterPendingBookingRow): MasterPending
   };
 }
 
+function normalizeBookingsCategory(
+  category: ListMasterBookingsFeedInput['category'],
+): ListMasterBookingsFeedInput['category'] {
+  if (category === 'today' || category === 'tomorrow' || category === 'all' || category === 'canceled') {
+    return category;
+  }
+
+  throw new ValidationError('Некоректна категорія записів', { category });
+}
+
 function mapRescheduleRowToPendingItem(
   row: MasterPendingBookingForRescheduleRow,
 ): MasterPendingBookingItem {
@@ -119,6 +157,81 @@ export async function listMasterPendingBookings(
       action: 'Failed to list master pending bookings',
       error,
       meta: { masterId, limit },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Повертає сторінку записів майстра за категорією (`today|tomorrow|all|canceled`).
+ */
+export async function listMasterBookingsFeed(
+  input: ListMasterBookingsFeedInput,
+): Promise<MasterBookingsFeedPage> {
+  const masterId = normalizePositiveBigintId(input.masterId, 'masterId');
+  const category = normalizeBookingsCategory(input.category);
+  const limit = normalizeFeedLimit(input.limit);
+  const offset = normalizeOffset(input.offset);
+
+  try {
+    const rows = await withTransaction(async (client) =>
+      queryMany<MasterBookingFeedRow, MasterBookingFeedRow>(
+        SQL_LIST_MASTER_BOOKINGS_FEED,
+        [masterId, category, limit, offset],
+        (row) => row,
+        client,
+      ),
+    );
+
+    const total = rows.length > 0 ? rows[0].total_count : 0;
+    const items = rows.map((row) => mapMasterPendingBookingRow(row));
+
+    return {
+      category,
+      limit,
+      offset,
+      total,
+      items,
+      hasPrevPage: offset > 0,
+      hasNextPage: offset + items.length < total,
+    };
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-bookings.helper',
+      action: 'Failed to list master bookings feed',
+      error,
+      meta: { masterId, category, limit, offset },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Повертає картку конкретного запису майстра за id.
+ */
+export async function getMasterBookingCardById(
+  input: GetMasterBookingCardByIdInput,
+): Promise<MasterPendingBookingItem | null> {
+  const masterId = normalizePositiveBigintId(input.masterId, 'masterId');
+  const appointmentId = normalizePositiveBigintId(input.appointmentId, 'appointmentId');
+
+  try {
+    return await withTransaction(async (client) =>
+      queryOne<MasterPendingBookingRow, MasterPendingBookingItem>(
+        SQL_GET_MASTER_BOOKING_CARD_BY_ID,
+        [appointmentId, masterId],
+        mapMasterPendingBookingRow,
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-bookings.helper',
+      action: 'Failed to get master booking card by id',
+      error,
+      meta: { masterId, appointmentId },
     });
     throw error;
   }

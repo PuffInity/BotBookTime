@@ -72,7 +72,8 @@ export function formatMasterClientProfileText(profile: MasterClientProfileItem):
  */
 export function createMasterClientProfileKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('⬅️ До черги записів', MASTER_PANEL_ACTION.BOOKINGS_SHOW_PENDING)],
+    [Markup.button.callback('⬅️ До записів', MASTER_PANEL_ACTION.BOOKINGS_BACK_TO_LIST)],
+    [Markup.button.callback('📅 До меню записів', MASTER_PANEL_ACTION.BOOKINGS_OPEN_MENU)],
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
   ]);
 }

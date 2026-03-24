@@ -45,6 +45,68 @@ export const SQL_LIST_MASTER_PENDING_BOOKINGS = `
   LIMIT $2
 `;
 
+export const SQL_LIST_MASTER_BOOKINGS_FEED = `
+  WITH context AS (
+    SELECT
+      st.timezone AS studio_timezone,
+      (now() AT TIME ZONE st.timezone)::date AS today_local
+    FROM masters m
+    INNER JOIN studios st
+      ON st.id = m.studio_id
+    WHERE m.user_id = $1::bigint
+    LIMIT 1
+  )
+  SELECT
+    ${MASTER_PENDING_BOOKING_SELECT_COLUMNS},
+    COUNT(*) OVER()::int AS total_count
+  FROM appointments a
+  INNER JOIN app_users u
+    ON u.id = a.client_id
+  INNER JOIN services s
+    ON s.id = a.service_id
+   AND s.studio_id = a.studio_id
+  INNER JOIN studios st
+    ON st.id = a.studio_id
+  INNER JOIN masters m
+    ON m.user_id = a.master_id
+   AND m.studio_id = a.studio_id
+  INNER JOIN context ctx
+    ON true
+  WHERE a.master_id = $1::bigint
+    AND a.deleted_at IS NULL
+    AND (
+      ($2::text = 'today'
+        AND a.status IN ('pending', 'confirmed', 'completed', 'canceled')
+        AND (a.start_at AT TIME ZONE ctx.studio_timezone)::date = ctx.today_local)
+      OR
+      ($2::text = 'tomorrow'
+        AND a.status IN ('pending', 'confirmed', 'completed', 'canceled')
+        AND (a.start_at AT TIME ZONE ctx.studio_timezone)::date = (ctx.today_local + 1))
+      OR
+      ($2::text = 'all'
+        AND a.status IN ('pending', 'confirmed', 'completed', 'canceled'))
+      OR
+      ($2::text = 'canceled'
+        AND a.status = 'canceled')
+    )
+  ORDER BY
+    CASE
+      WHEN $2::text = 'all' THEN
+        CASE
+          WHEN a.status = 'canceled' THEN 2
+          WHEN a.start_at >= now() THEN 0
+          ELSE 1
+        END
+      WHEN a.status = 'canceled' THEN 1
+      ELSE 0
+    END ASC,
+    CASE WHEN a.start_at >= now() THEN a.start_at END ASC,
+    CASE WHEN a.start_at < now() THEN a.start_at END DESC,
+    a.id DESC
+  LIMIT $3::int
+  OFFSET $4::int
+`;
+
 export const SQL_CONFIRM_MASTER_PENDING_BOOKING = `
   WITH updated AS (
     UPDATE appointments a

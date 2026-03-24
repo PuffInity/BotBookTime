@@ -1,7 +1,11 @@
 import { Scenes } from 'telegraf';
 import type { MyContext } from '../../types/bot.types.js';
 import type { MasterPanelAccess } from '../../types/db-helpers/db-master-panel.types.js';
-import type { MasterPendingBookingItem } from '../../types/db-helpers/db-master-bookings.types.js';
+import type {
+  MasterBookingsCategory,
+  MasterBookingsFeedPage,
+  MasterPendingBookingItem,
+} from '../../types/db-helpers/db-master-bookings.types.js';
 import type { MasterTemporaryScheduleDayInput } from '../../types/db-helpers/db-master-schedule.types.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
 import {
@@ -57,12 +61,18 @@ import {
   formatMasterScheduleVacationsText,
 } from '../../helpers/bot/master-schedule-view.bot.js';
 import {
+  createMasterBookingDetailsCardKeyboard,
+  createMasterBookingsFeedKeyboard,
+  createMasterBookingsMenuKeyboard,
   createMasterCancelPendingBookingConfirmKeyboard,
   createMasterPendingBookingCardKeyboard,
   createMasterPendingBookingsEmptyKeyboard,
   createMasterRescheduleConfirmKeyboard,
   createMasterRescheduleDateKeyboard,
   createMasterRescheduleTimeKeyboard,
+  formatMasterBookingDetailsCardText,
+  formatMasterBookingsFeedText,
+  formatMasterBookingsMenuText,
   formatMasterCancelPendingBookingConfirmText,
   formatMasterPendingBookingCardText,
   formatMasterPendingBookingsEmptyText,
@@ -77,6 +87,7 @@ import {
   MASTER_PANEL_BOOKING_CANCEL_CONFIRM_ACTION_REGEX,
   MASTER_PANEL_BOOKING_CANCEL_REQUEST_ACTION_REGEX,
   MASTER_PANEL_BOOKING_CONFIRM_ACTION_REGEX,
+  MASTER_PANEL_BOOKING_OPEN_CARD_ACTION_REGEX,
   MASTER_PANEL_BOOKING_PROFILE_ACTION_REGEX,
   MASTER_PANEL_BOOKING_RESCHEDULE_DATE_ACTION_REGEX,
   MASTER_PANEL_BOOKING_RESCHEDULE_ACTION_REGEX,
@@ -88,6 +99,8 @@ import { getMasterPanelAccessByTelegramId } from '../../helpers/db/db-master-pan
 import {
   cancelMasterPendingBooking,
   confirmMasterPendingBooking,
+  getMasterBookingCardById,
+  listMasterBookingsFeed,
   listMasterPendingBookings,
   rescheduleMasterPendingBooking,
 } from '../../helpers/db/db-master-bookings.helper.js';
@@ -126,6 +139,7 @@ type MasterPanelSceneState = {
   access: MasterPanelAccess | null;
   pending: MasterPendingBookingItem[];
   pendingCursor: number;
+  bookingsFeed: MasterBookingsFeedPage | null;
   scheduleDayOffDraft:
     | {
         mode: 'awaiting_date' | 'awaiting_confirm';
@@ -369,6 +383,10 @@ function resetRescheduleDraft(state: MasterPanelSceneState): void {
   state.rescheduleDraft = null;
 }
 
+function resetBookingsFeed(state: MasterPanelSceneState): void {
+  state.bookingsFeed = null;
+}
+
 async function loadPendingIntoState(state: MasterPanelSceneState): Promise<void> {
   if (!state.access) {
     state.pending = [];
@@ -391,6 +409,24 @@ async function loadPendingIntoState(state: MasterPanelSceneState): Promise<void>
   if (state.pendingCursor < 0 || state.pendingCursor >= state.pending.length) {
     state.pendingCursor = 0;
   }
+}
+
+async function loadBookingsFeedIntoState(
+  state: MasterPanelSceneState,
+  category: MasterBookingsCategory,
+  offset: number,
+): Promise<void> {
+  if (!state.access) {
+    resetBookingsFeed(state);
+    return;
+  }
+
+  state.bookingsFeed = await listMasterBookingsFeed({
+    masterId: state.access.masterId,
+    category,
+    limit: 5,
+    offset,
+  });
 }
 
 async function renderView(
@@ -446,6 +482,32 @@ async function renderPendingQueue(ctx: MyContext, preferEdit: boolean): Promise<
     ctx,
     formatMasterPendingBookingCardText(item, cursor, state.pending.length),
     createMasterPendingBookingCardKeyboard(item, hasNext),
+    preferEdit,
+  );
+}
+
+async function renderBookingsMenu(ctx: MyContext, preferEdit: boolean): Promise<void> {
+  await renderView(
+    ctx,
+    formatMasterBookingsMenuText(),
+    createMasterBookingsMenuKeyboard(),
+    preferEdit,
+  );
+}
+
+async function renderBookingsFeed(ctx: MyContext, preferEdit: boolean): Promise<void> {
+  const state = getSceneState(ctx);
+  const feed = state.bookingsFeed;
+
+  if (!feed) {
+    await renderBookingsMenu(ctx, preferEdit);
+    return;
+  }
+
+  await renderView(
+    ctx,
+    formatMasterBookingsFeedText(feed),
+    createMasterBookingsFeedKeyboard(feed),
     preferEdit,
   );
 }
@@ -614,6 +676,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       state.access = null;
       state.pending = [];
       state.pendingCursor = 0;
+      state.bookingsFeed = null;
       state.scheduleDayOffDraft = null;
       state.scheduleVacationDraft = null;
       state.scheduleTemporaryDraft = null;
@@ -955,6 +1018,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
+    resetBookingsFeed(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
       await ctx.scene.leave();
@@ -976,10 +1040,124 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
+    state.pending = [];
     state.pendingCursor = 0;
+    resetBookingsFeed(state);
     resetRescheduleDraft(state);
-    await loadPendingIntoState(state);
-    await renderPendingQueue(ctx, true);
+    await renderBookingsMenu(ctx, true);
+  });
+
+  scene.action(MASTER_PANEL_ACTION.BOOKINGS_OPEN_MENU, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    resetRescheduleDraft(state);
+    resetBookingsFeed(state);
+    await renderBookingsMenu(ctx, true);
+  });
+
+  scene.action(MASTER_PANEL_ACTION.BOOKINGS_MENU_TODAY, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    resetRescheduleDraft(state);
+    await loadBookingsFeedIntoState(state, 'today', 0);
+    await renderBookingsFeed(ctx, true);
+  });
+
+  scene.action(MASTER_PANEL_ACTION.BOOKINGS_MENU_TOMORROW, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    resetRescheduleDraft(state);
+    await loadBookingsFeedIntoState(state, 'tomorrow', 0);
+    await renderBookingsFeed(ctx, true);
+  });
+
+  scene.action(MASTER_PANEL_ACTION.BOOKINGS_MENU_ALL, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    resetRescheduleDraft(state);
+    await loadBookingsFeedIntoState(state, 'all', 0);
+    await renderBookingsFeed(ctx, true);
+  });
+
+  scene.action(MASTER_PANEL_ACTION.BOOKINGS_MENU_CANCELED, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    resetRescheduleDraft(state);
+    await loadBookingsFeedIntoState(state, 'canceled', 0);
+    await renderBookingsFeed(ctx, true);
+  });
+
+  scene.action(MASTER_PANEL_ACTION.BOOKINGS_LIST_PREV_PAGE, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const feed = state.bookingsFeed;
+    if (!feed) {
+      await renderBookingsMenu(ctx, true);
+      return;
+    }
+
+    const nextOffset = Math.max(0, feed.offset - feed.limit);
+    await loadBookingsFeedIntoState(state, feed.category, nextOffset);
+    await renderBookingsFeed(ctx, true);
+  });
+
+  scene.action(MASTER_PANEL_ACTION.BOOKINGS_LIST_NEXT_PAGE, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const feed = state.bookingsFeed;
+    if (!feed) {
+      await renderBookingsMenu(ctx, true);
+      return;
+    }
+
+    const nextOffset = feed.offset + feed.limit;
+    await loadBookingsFeedIntoState(state, feed.category, nextOffset);
+    await renderBookingsFeed(ctx, true);
+  });
+
+  scene.action(MASTER_PANEL_BOOKING_OPEN_CARD_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const access = state.access;
+
+    if (!access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const appointmentId = parseAppointmentIdFromAction(ctx, MASTER_PANEL_BOOKING_OPEN_CARD_ACTION_REGEX);
+    const item = await getMasterBookingCardById({
+      masterId: access.masterId,
+      appointmentId,
+    });
+
+    if (!item) {
+      await renderBookingsFeed(ctx, true);
+      return;
+    }
+
+    await renderView(
+      ctx,
+      formatMasterBookingDetailsCardText(item),
+      createMasterBookingDetailsCardKeyboard(item),
+      true,
+    );
+  });
+
+  scene.action(MASTER_PANEL_ACTION.BOOKINGS_BACK_TO_LIST, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const feed = state.bookingsFeed;
+
+    if (!feed) {
+      await loadPendingIntoState(state);
+      await renderPendingQueue(ctx, true);
+      return;
+    }
+
+    await loadBookingsFeedIntoState(state, feed.category, feed.offset);
+    await renderBookingsFeed(ctx, true);
   });
 
   scene.action(MASTER_PANEL_ACTION.OPEN_SCHEDULE, async (ctx) => {
@@ -989,6 +1167,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
+    resetBookingsFeed(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
       await ctx.scene.leave();
@@ -1006,6 +1185,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
+    resetBookingsFeed(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
       await ctx.scene.leave();
@@ -1023,6 +1203,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
+    resetBookingsFeed(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
       await ctx.scene.leave();
@@ -1700,7 +1881,9 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
+    resetBookingsFeed(state);
     resetRescheduleDraft(state);
+    await loadPendingIntoState(state);
     await renderPendingQueue(ctx, true);
   });
 
@@ -2014,8 +2197,13 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     });
 
     if (!profile) {
-      await loadPendingIntoState(state);
-      await renderPendingQueue(ctx, true);
+      if (state.bookingsFeed) {
+        await loadBookingsFeedIntoState(state, state.bookingsFeed.category, state.bookingsFeed.offset);
+        await renderBookingsFeed(ctx, true);
+      } else {
+        await loadPendingIntoState(state);
+        await renderPendingQueue(ctx, true);
+      }
       return;
     }
 
@@ -2034,6 +2222,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
+    resetBookingsFeed(state);
     resetRescheduleDraft(state);
     await renderRoot(ctx, true);
   });
@@ -2045,6 +2234,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
+    resetBookingsFeed(state);
     resetRescheduleDraft(state);
     await ctx.scene.leave();
     await sendClientMainMenu(ctx);

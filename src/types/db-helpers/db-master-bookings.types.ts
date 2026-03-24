@@ -6,7 +6,7 @@
 export type MasterPendingBookingRow = {
   appointment_id: string;
   client_id: string;
-  status: 'pending' | 'confirmed' | 'canceled';
+  status: 'pending' | 'confirmed' | 'canceled' | 'completed' | 'transferred';
   start_at: Date;
   end_at: Date;
   price_amount: string;
@@ -26,7 +26,7 @@ export type MasterPendingBookingRow = {
 export type MasterPendingBookingItem = {
   appointmentId: string;
   clientId: string;
-  status: 'pending' | 'confirmed' | 'canceled';
+  status: 'pending' | 'confirmed' | 'canceled' | 'completed' | 'transferred';
   startAt: Date;
   endAt: Date;
   priceAmount: string;
@@ -46,6 +46,34 @@ export type MasterPendingBookingItem = {
 export type ListMasterPendingBookingsInput = {
   masterId: string | number;
   limit?: number;
+};
+
+export type MasterBookingsCategory = 'today' | 'tomorrow' | 'all' | 'canceled';
+
+export type ListMasterBookingsFeedInput = {
+  masterId: string | number;
+  category: MasterBookingsCategory;
+  limit?: number;
+  offset?: number;
+};
+
+export type MasterBookingFeedRow = MasterPendingBookingRow & {
+  total_count: number;
+};
+
+export type MasterBookingsFeedPage = {
+  category: MasterBookingsCategory;
+  limit: number;
+  offset: number;
+  total: number;
+  items: MasterPendingBookingItem[];
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
+};
+
+export type GetMasterBookingCardByIdInput = {
+  masterId: string | number;
+  appointmentId: string | number;
 };
 
 export type ConfirmMasterPendingBookingInput = {

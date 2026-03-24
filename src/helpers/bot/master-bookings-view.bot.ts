@@ -1,11 +1,16 @@
 import { Markup } from 'telegraf';
-import type { MasterPendingBookingItem } from '../../types/db-helpers/db-master-bookings.types.js';
+import type {
+  MasterBookingsCategory,
+  MasterBookingsFeedPage,
+  MasterPendingBookingItem,
+} from '../../types/db-helpers/db-master-bookings.types.js';
 import {
   MASTER_PANEL_ACTION,
   MASTER_PANEL_BUTTON_TEXT,
   makeMasterPanelBookingCancelConfirmAction,
   makeMasterPanelBookingCancelRequestAction,
   makeMasterPanelBookingConfirmAction,
+  makeMasterPanelBookingOpenCardAction,
   makeMasterPanelBookingProfileAction,
   makeMasterPanelBookingRescheduleDateAction,
   makeMasterPanelBookingRescheduleAction,
@@ -14,7 +19,7 @@ import {
 
 /**
  * @file master-bookings-view.bot.ts
- * @summary UI/helper-и для pending-записів у панелі майстра.
+ * @summary UI/helper-и для блоку "Мої записи" у панелі майстра.
  */
 
 function formatDateTimeRange(startAt: Date, endAt: Date): string {
@@ -37,6 +42,57 @@ function formatClientDisplayName(item: MasterPendingBookingItem): string {
 
   const fullName = `${item.clientFirstName}${item.clientLastName ? ` ${item.clientLastName}` : ''}`.trim();
   return fullName || 'Клієнт';
+}
+
+function formatBookingStatusLabel(status: MasterPendingBookingItem['status']): string {
+  switch (status) {
+    case 'pending':
+      return '🟡 Очікує підтвердження';
+    case 'confirmed':
+      return '🟢 Підтверджено';
+    case 'completed':
+      return '⚪ Завершено';
+    case 'canceled':
+      return '🔴 Скасовано';
+    case 'transferred':
+      return '🟣 Перенесено';
+    default:
+      return status;
+  }
+}
+
+function categoryTitle(category: MasterBookingsCategory): string {
+  switch (category) {
+    case 'today':
+      return '📍 Записи на сьогодні';
+    case 'tomorrow':
+      return '📆 Записи на завтра';
+    case 'all':
+      return '🗂 Усі записи';
+    case 'canceled':
+      return '❌ Скасовані записи';
+    default:
+      return '📅 Мої записи';
+  }
+}
+
+function categoryEmptyText(category: MasterBookingsCategory): string {
+  switch (category) {
+    case 'today':
+      return '📭 На сьогодні записів немає.';
+    case 'tomorrow':
+      return '📭 На завтра записів немає.';
+    case 'all':
+      return '📭 Записів не знайдено.';
+    case 'canceled':
+      return '📭 Скасованих записів не знайдено.';
+    default:
+      return '📭 Записів не знайдено.';
+  }
+}
+
+function cardIndexLabel(index: number): string {
+  return `${index + 1}️⃣`;
 }
 
 /**
@@ -105,6 +161,108 @@ export function formatMasterPendingBookingsEmptyText(): string {
  */
 export function createMasterPendingBookingsEmptyKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
+    [Markup.button.callback('📅 До меню записів', MASTER_PANEL_ACTION.BOOKINGS_OPEN_MENU)],
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+  ]);
+}
+
+/**
+ * @summary Текст меню категорій блоку "Мої записи".
+ */
+export function formatMasterBookingsMenuText(): string {
+  return (
+    '📅 Мої записи\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Керування записами.\n' +
+    'Оберіть категорію для перегляду:'
+  );
+}
+
+/**
+ * @summary Клавіатура меню категорій блоку "Мої записи".
+ */
+export function createMasterBookingsMenuKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('🆕 Нові записи (очікують підтвердження)', MASTER_PANEL_ACTION.BOOKINGS_SHOW_PENDING)],
+    [
+      Markup.button.callback('📍 Сьогодні', MASTER_PANEL_ACTION.BOOKINGS_MENU_TODAY),
+      Markup.button.callback('📆 Завтра', MASTER_PANEL_ACTION.BOOKINGS_MENU_TOMORROW),
+    ],
+    [
+      Markup.button.callback('🗂 Усі записи', MASTER_PANEL_ACTION.BOOKINGS_MENU_ALL),
+      Markup.button.callback('❌ Скасовані', MASTER_PANEL_ACTION.BOOKINGS_MENU_CANCELED),
+    ],
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+  ]);
+}
+
+/**
+ * @summary Текст списку записів по категорії.
+ */
+export function formatMasterBookingsFeedText(page: MasterBookingsFeedPage): string {
+  const title = categoryTitle(page.category);
+  if (page.items.length === 0) {
+    return (
+      `${title}\n` +
+      '━━━━━━━━━━━━━━\n\n' +
+      `${categoryEmptyText(page.category)}`
+    );
+  }
+
+  const lines = page.items.map((item, index) => {
+    return (
+      `${cardIndexLabel(index)}\n\n` +
+      `👤 ${formatClientDisplayName(item)}\n` +
+      `💼 ${item.serviceName}\n` +
+      `💰 Ціна: ${formatPrice(item.priceAmount, item.currencyCode)}\n` +
+      `📅 ${item.startAt.toLocaleDateString('uk-UA')}\n` +
+      `⏰ ${item.startAt.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}` +
+      `–${item.endAt.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}\n` +
+      `${formatBookingStatusLabel(item.status)}`
+    );
+  });
+
+  const pageNumber = Math.floor(page.offset / page.limit) + 1;
+  const totalPages = Math.max(1, Math.ceil(page.total / page.limit));
+
+  return (
+    `${title}\n` +
+    '━━━━━━━━━━━━━━\n\n' +
+    `${lines.join('\n\n⸻\n\n')}\n\n` +
+    `📄 Сторінка ${pageNumber} з ${totalPages}`
+  );
+}
+
+/**
+ * @summary Клавіатура списку записів по категорії.
+ */
+export function createMasterBookingsFeedKeyboard(
+  page: MasterBookingsFeedPage,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const numberButtons = page.items.map((item, index) => {
+    return Markup.button.callback(
+      `${index + 1}`,
+      makeMasterPanelBookingOpenCardAction(item.appointmentId),
+    );
+  });
+
+  const numberRows: ReturnType<typeof Markup.button.callback>[][] = [];
+  for (let i = 0; i < numberButtons.length; i += 3) {
+    numberRows.push(numberButtons.slice(i, i + 3));
+  }
+
+  const paginationRow: ReturnType<typeof Markup.button.callback>[] = [];
+  if (page.hasPrevPage) {
+    paginationRow.push(Markup.button.callback('⬅️ Попередня', MASTER_PANEL_ACTION.BOOKINGS_LIST_PREV_PAGE));
+  }
+  if (page.hasNextPage) {
+    paginationRow.push(Markup.button.callback('➡️ Наступна', MASTER_PANEL_ACTION.BOOKINGS_LIST_NEXT_PAGE));
+  }
+
+  return Markup.inlineKeyboard([
+    ...numberRows,
+    ...(paginationRow.length > 0 ? [paginationRow] : []),
+    [Markup.button.callback('⬅️ До меню записів', MASTER_PANEL_ACTION.BOOKINGS_OPEN_MENU)],
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
   ]);
 }
@@ -141,6 +299,65 @@ export function createMasterCancelPendingBookingConfirmKeyboard(
       ),
     ],
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+  ]);
+}
+
+/**
+ * @summary Текст детальної картки запису зі списку.
+ */
+export function formatMasterBookingDetailsCardText(item: MasterPendingBookingItem): string {
+  const comment = item.clientComment?.trim();
+  const commentBlock = comment
+    ? `\n\n📝 Коментар клієнта:\n${comment}`
+    : '';
+
+  let stateHint = '';
+  if (item.status === 'canceled') {
+    stateHint =
+      '\n\n⚠️ Цей запис уже скасований.\n' +
+      'Доступний лише перегляд інформації.';
+  } else if (item.status === 'completed') {
+    stateHint =
+      '\n\n⚠️ Цей запис уже завершений.\n' +
+      'Доступний лише перегляд інформації.';
+  } else if (item.status === 'transferred') {
+    stateHint =
+      '\n\n⚠️ Цей запис позначено як перенесений.\n' +
+      'Доступний лише перегляд інформації.';
+  } else if (item.status === 'pending') {
+    stateHint =
+      '\n\nℹ️ Для обробки pending-запису використайте розділ:\n' +
+      '«🆕 Нові записи (очікують підтвердження)».';
+  }
+
+  return (
+    '📄 Картка запису\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
+    `📱 Телефон: ${item.attendeePhoneE164 ?? 'Не вказано'}\n` +
+    `✉️ Email: ${item.attendeeEmail ?? 'Не вказано'}\n\n` +
+    `💼 Послуга: ${item.serviceName}\n` +
+    `🕒 Час: ${formatDateTimeRange(item.startAt, item.endAt)}\n` +
+    `💰 Ціна: ${formatPrice(item.priceAmount, item.currencyCode)}\n` +
+    `📌 Статус: ${formatBookingStatusLabel(item.status)}` +
+    commentBlock +
+    stateHint
+  );
+}
+
+/**
+ * @summary Клавіатура детальної картки запису зі списку.
+ */
+export function createMasterBookingDetailsCardKeyboard(
+  item: MasterPendingBookingItem,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('👤 Профіль клієнта', makeMasterPanelBookingProfileAction(item.appointmentId))],
+    ...(item.status === 'pending'
+      ? [[Markup.button.callback('🆕 До черги pending', MASTER_PANEL_ACTION.BOOKINGS_SHOW_PENDING)]]
+      : []),
+    [Markup.button.callback('⬅️ До списку', MASTER_PANEL_ACTION.BOOKINGS_BACK_TO_LIST)],
+    [Markup.button.callback('⬅️ До меню записів', MASTER_PANEL_ACTION.BOOKINGS_OPEN_MENU)],
   ]);
 }
 

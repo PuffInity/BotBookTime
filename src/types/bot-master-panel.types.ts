@@ -29,6 +29,15 @@ export const MASTER_PANEL_ACTION = {
   SCHEDULE_BACK: 'master-panel:schedule:back',
   BOOKINGS_SHOW_PENDING: 'master-panel:bookings:show-pending',
   BOOKINGS_NEXT_PENDING: 'master-panel:bookings:next-pending',
+  BOOKINGS_OPEN_MENU: 'master-panel:bookings:open-menu',
+  BOOKINGS_MENU_TODAY: 'master-panel:bookings:menu:today',
+  BOOKINGS_MENU_TOMORROW: 'master-panel:bookings:menu:tomorrow',
+  BOOKINGS_MENU_ALL: 'master-panel:bookings:menu:all',
+  BOOKINGS_MENU_CANCELED: 'master-panel:bookings:menu:canceled',
+  BOOKINGS_LIST_PREV_PAGE: 'master-panel:bookings:list:prev',
+  BOOKINGS_LIST_NEXT_PAGE: 'master-panel:bookings:list:next',
+  BOOKINGS_BACK_TO_LIST: 'master-panel:bookings:list:back',
+  BOOKING_OPEN_CARD_PREFIX: 'master-panel:booking:open-card:',
   BOOKING_CONFIRM_PREFIX: 'master-panel:booking:confirm:',
   BOOKING_CANCEL_REQUEST_PREFIX: 'master-panel:booking:cancel:request:',
   BOOKING_CANCEL_CONFIRM_PREFIX: 'master-panel:booking:cancel:confirm:',
@@ -61,6 +70,8 @@ export const MASTER_PANEL_BUTTON_TEXT = {
 } as const;
 
 export const MASTER_PANEL_BOOKING_CONFIRM_ACTION_REGEX = /^master-panel:booking:confirm:(\d+)$/;
+export const MASTER_PANEL_BOOKING_OPEN_CARD_ACTION_REGEX =
+  /^master-panel:booking:open-card:(\d+)$/;
 export const MASTER_PANEL_BOOKING_CANCEL_REQUEST_ACTION_REGEX =
   /^master-panel:booking:cancel:request:(\d+)$/;
 export const MASTER_PANEL_BOOKING_CANCEL_CONFIRM_ACTION_REGEX =
@@ -84,6 +95,10 @@ export const MASTER_PANEL_TEMPORARY_HOURS_DAY_OFF_ACTION_REGEX =
 
 export function makeMasterPanelBookingConfirmAction(appointmentId: string): string {
   return `${MASTER_PANEL_ACTION.BOOKING_CONFIRM_PREFIX}${appointmentId}`;
+}
+
+export function makeMasterPanelBookingOpenCardAction(appointmentId: string): string {
+  return `${MASTER_PANEL_ACTION.BOOKING_OPEN_CARD_PREFIX}${appointmentId}`;
 }
 
 export function makeMasterPanelBookingCancelRequestAction(appointmentId: string): string {
