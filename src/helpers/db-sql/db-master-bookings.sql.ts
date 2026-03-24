@@ -143,7 +143,7 @@ export const SQL_CANCEL_MASTER_PENDING_BOOKING = `
     WHERE a.id = $1::bigint
       AND a.master_id = $2::bigint
       AND a.deleted_at IS NULL
-      AND a.status = 'pending'
+      AND a.status IN ('pending', 'confirmed')
     RETURNING a.*
   )
   SELECT
@@ -186,7 +186,7 @@ export const SQL_GET_MASTER_PENDING_BOOKING_FOR_RESCHEDULE = `
   WHERE a.id = $1::bigint
     AND a.master_id = $2::bigint
     AND a.deleted_at IS NULL
-    AND a.status = 'pending'
+    AND a.status IN ('pending', 'confirmed')
   FOR UPDATE
 `;
 
@@ -254,7 +254,7 @@ export const SQL_MARK_PENDING_APPOINTMENT_AS_TRANSFERRED = `
   WHERE id = $1::bigint
     AND master_id = $2::bigint
     AND deleted_at IS NULL
-    AND status = 'pending'
+    AND status IN ('pending', 'confirmed')
   RETURNING id
 `;
 

@@ -271,13 +271,19 @@ export function createMasterBookingsFeedKeyboard(
  * @summary Текст підтвердження скасування pending-запису.
  */
 export function formatMasterCancelPendingBookingConfirmText(item: MasterPendingBookingItem): string {
+  const warning =
+    item.status === 'confirmed'
+      ? '\n\n⚠️ Ви скасовуєте вже підтверджений запис.\nПереконайтесь, що все узгоджено з клієнтом.'
+      : '';
+
   return (
     '⚠️ Підтвердження скасування\n' +
     '━━━━━━━━━━━━━━\n\n' +
     'Ви дійсно хочете скасувати цей запис?\n\n' +
     `👤 ${formatClientDisplayName(item)}\n` +
     `💼 ${item.serviceName}\n` +
-    `🕒 ${formatDateTimeRange(item.startAt, item.endAt)}`
+    `🕒 ${formatDateTimeRange(item.startAt, item.endAt)}` +
+    warning
   );
 }
 
@@ -295,7 +301,7 @@ export function createMasterCancelPendingBookingConfirmKeyboard(
       ),
       Markup.button.callback(
         '↩️ Ні, повернутись',
-        MASTER_PANEL_ACTION.BOOKINGS_SHOW_PENDING,
+        MASTER_PANEL_ACTION.BOOKINGS_BACK_TO_LIST,
       ),
     ],
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
@@ -328,6 +334,10 @@ export function formatMasterBookingDetailsCardText(item: MasterPendingBookingIte
     stateHint =
       '\n\nℹ️ Для обробки pending-запису використайте розділ:\n' +
       '«🆕 Нові записи (очікують підтвердження)».';
+  } else if (item.status === 'confirmed') {
+    stateHint =
+      '\n\nℹ️ Для підтвердженого запису доступні дії:\n' +
+      'перенесення або скасування.';
   }
 
   return (
@@ -351,11 +361,20 @@ export function formatMasterBookingDetailsCardText(item: MasterPendingBookingIte
 export function createMasterBookingDetailsCardKeyboard(
   item: MasterPendingBookingItem,
 ): ReturnType<typeof Markup.inlineKeyboard> {
+  const actionRows: ReturnType<typeof Markup.button.callback>[][] = [];
+
+  if (item.status === 'confirmed') {
+    actionRows.push([
+      Markup.button.callback('🔄 Перенести', makeMasterPanelBookingRescheduleAction(item.appointmentId)),
+      Markup.button.callback('❌ Скасувати', makeMasterPanelBookingCancelRequestAction(item.appointmentId)),
+    ]);
+  } else if (item.status === 'pending') {
+    actionRows.push([Markup.button.callback('🆕 До черги pending', MASTER_PANEL_ACTION.BOOKINGS_SHOW_PENDING)]);
+  }
+
   return Markup.inlineKeyboard([
+    ...actionRows,
     [Markup.button.callback('👤 Профіль клієнта', makeMasterPanelBookingProfileAction(item.appointmentId))],
-    ...(item.status === 'pending'
-      ? [[Markup.button.callback('🆕 До черги pending', MASTER_PANEL_ACTION.BOOKINGS_SHOW_PENDING)]]
-      : []),
     [Markup.button.callback('⬅️ До списку', MASTER_PANEL_ACTION.BOOKINGS_BACK_TO_LIST)],
     [Markup.button.callback('⬅️ До меню записів', MASTER_PANEL_ACTION.BOOKINGS_OPEN_MENU)],
   ]);
@@ -372,12 +391,18 @@ function formatDateLabel(date: Date): string {
  * @summary Текст кроку вибору нової дати для перенесення.
  */
 export function formatMasterRescheduleDateStepText(item: MasterPendingBookingItem): string {
+  const warning =
+    item.status === 'confirmed'
+      ? '\n⚠️ Ви змінюєте вже підтверджений запис. Переконайтесь, що новий час узгоджений з клієнтом.\n'
+      : '\n';
+
   return (
     '🔄 Перенесення запису — крок 1/3\n' +
     '━━━━━━━━━━━━━━\n\n' +
     `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
     `💼 Послуга: ${item.serviceName}\n` +
-    `🕒 Поточний час: ${formatDateTimeRange(item.startAt, item.endAt)}\n\n` +
+    `🕒 Поточний час: ${formatDateTimeRange(item.startAt, item.endAt)}\n` +
+    warning +
     'Оберіть нову дату для перенесення.'
   );
 }

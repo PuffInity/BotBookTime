@@ -185,6 +185,7 @@ type MasterPanelSceneState = {
         appointmentId: string;
         dateCode: string | null;
         timeCode: string | null;
+        sourceItem: MasterPendingBookingItem | null;
       }
     | null;
 };
@@ -217,7 +218,15 @@ function getPendingItemById(state: MasterPanelSceneState, appointmentId: string)
 
 function getRescheduleTargetItem(state: MasterPanelSceneState): MasterPendingBookingItem | null {
   if (!state.rescheduleDraft?.appointmentId) return null;
-  return getPendingItemById(state, state.rescheduleDraft.appointmentId);
+  const fromPending = getPendingItemById(state, state.rescheduleDraft.appointmentId);
+  if (fromPending) return fromPending;
+
+  const fromFeed = state.bookingsFeed?.items.find(
+    (item) => item.appointmentId === state.rescheduleDraft?.appointmentId,
+  );
+  if (fromFeed) return fromFeed;
+
+  return state.rescheduleDraft.sourceItem;
 }
 
 function getTodayDateCode(): string {
@@ -510,6 +519,38 @@ async function renderBookingsFeed(ctx: MyContext, preferEdit: boolean): Promise<
     createMasterBookingsFeedKeyboard(feed),
     preferEdit,
   );
+}
+
+async function renderBookingsContextFallback(
+  ctx: MyContext,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  if (state.bookingsFeed) {
+    await loadBookingsFeedIntoState(state, state.bookingsFeed.category, state.bookingsFeed.offset);
+    await renderBookingsFeed(ctx, preferEdit);
+    return;
+  }
+
+  await loadPendingIntoState(state);
+  await renderPendingQueue(ctx, preferEdit);
+}
+
+async function resolveBookingItemById(
+  state: MasterPanelSceneState,
+  appointmentId: string,
+): Promise<MasterPendingBookingItem | null> {
+  const fromPending = getPendingItemById(state, appointmentId);
+  if (fromPending) return fromPending;
+
+  const fromFeed = state.bookingsFeed?.items.find((item) => item.appointmentId === appointmentId) ?? null;
+  if (fromFeed) return fromFeed;
+
+  if (!state.access) return null;
+  return getMasterBookingCardById({
+    masterId: state.access.masterId,
+    appointmentId,
+  });
 }
 
 async function renderSectionStub(ctx: MyContext, title: string): Promise<void> {
@@ -1940,11 +1981,10 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
     const appointmentId = parseAppointmentIdFromAction(ctx, MASTER_PANEL_BOOKING_CANCEL_REQUEST_ACTION_REGEX);
-    const targetItem = getPendingItemById(state, appointmentId);
+    const targetItem = await resolveBookingItemById(state, appointmentId);
 
-    if (!targetItem) {
-      await loadPendingIntoState(state);
-      await renderPendingQueue(ctx, true);
+    if (!targetItem || !['pending', 'confirmed'].includes(targetItem.status)) {
+      await renderBookingsContextFallback(ctx, true);
       return;
     }
 
@@ -1966,10 +2006,9 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     const appointmentId = parseAppointmentIdFromAction(ctx, MASTER_PANEL_BOOKING_CANCEL_CONFIRM_ACTION_REGEX);
-    const targetItem = getPendingItemById(state, appointmentId);
-    if (!targetItem) {
-      await loadPendingIntoState(state);
-      await renderPendingQueue(ctx, true);
+    const targetItem = await resolveBookingItemById(state, appointmentId);
+    if (!targetItem || !['pending', 'confirmed'].includes(targetItem.status)) {
+      await renderBookingsContextFallback(ctx, true);
       return;
     }
 
@@ -1985,19 +2024,23 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
         'Клієнту надіслано сповіщення про скасування.',
     );
 
-    await loadPendingIntoState(state);
-    await renderPendingQueue(ctx, true);
+    if (state.bookingsFeed) {
+      await loadBookingsFeedIntoState(state, state.bookingsFeed.category, state.bookingsFeed.offset);
+      await renderBookingsFeed(ctx, true);
+    } else {
+      await loadPendingIntoState(state);
+      await renderPendingQueue(ctx, true);
+    }
   });
 
   scene.action(MASTER_PANEL_BOOKING_RESCHEDULE_ACTION_REGEX, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
     const appointmentId = parseAppointmentIdFromAction(ctx, MASTER_PANEL_BOOKING_RESCHEDULE_ACTION_REGEX);
-    const targetItem = getPendingItemById(state, appointmentId);
+    const targetItem = await resolveBookingItemById(state, appointmentId);
 
-    if (!targetItem) {
-      await loadPendingIntoState(state);
-      await renderPendingQueue(ctx, true);
+    if (!targetItem || !['pending', 'confirmed'].includes(targetItem.status)) {
+      await renderBookingsContextFallback(ctx, true);
       return;
     }
 
@@ -2005,6 +2048,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       appointmentId,
       dateCode: null,
       timeCode: null,
+      sourceItem: targetItem,
     };
 
     await renderRescheduleDateStep(ctx, true);
@@ -2014,7 +2058,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
     if (!state.rescheduleDraft) {
-      await renderPendingQueue(ctx, true);
+      await renderBookingsContextFallback(ctx, true);
       return;
     }
 
@@ -2039,7 +2083,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     const state = getSceneState(ctx);
     const draft = state.rescheduleDraft;
     if (!draft || !draft.dateCode) {
-      await renderRescheduleDateStep(ctx, true);
+      await renderBookingsContextFallback(ctx, true);
       return;
     }
 
@@ -2068,7 +2112,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
     if (!state.rescheduleDraft) {
-      await renderPendingQueue(ctx, true);
+      await renderBookingsContextFallback(ctx, true);
       return;
     }
 
@@ -2080,7 +2124,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
     if (!state.rescheduleDraft?.dateCode) {
-      await renderPendingQueue(ctx, true);
+      await renderBookingsContextFallback(ctx, true);
       return;
     }
 
@@ -2092,7 +2136,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
     resetRescheduleDraft(state);
-    await renderPendingQueue(ctx, true);
+    await renderBookingsContextFallback(ctx, true);
   });
 
   scene.action(MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_CONFIRM, async (ctx) => {
@@ -2104,8 +2148,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     if (!access || !draft || !draft.dateCode || !draft.timeCode || !item) {
       resetRescheduleDraft(state);
-      await loadPendingIntoState(state);
-      await renderPendingQueue(ctx, true);
+      await renderBookingsContextFallback(ctx, true);
       return;
     }
 
@@ -2170,8 +2213,13 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     );
 
     resetRescheduleDraft(state);
-    await loadPendingIntoState(state);
-    await renderPendingQueue(ctx, true);
+    if (state.bookingsFeed) {
+      await loadBookingsFeedIntoState(state, state.bookingsFeed.category, state.bookingsFeed.offset);
+      await renderBookingsFeed(ctx, true);
+    } else {
+      await loadPendingIntoState(state);
+      await renderPendingQueue(ctx, true);
+    }
   });
 
   scene.action(MASTER_PANEL_BOOKING_PROFILE_ACTION_REGEX, async (ctx) => {
