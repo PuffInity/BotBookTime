@@ -21,6 +21,23 @@ function statusLabel(isBookable: boolean): string {
   return isBookable ? '🟢 Доступний для нових записів' : '🟠 Тимчасово недоступний для нових записів';
 }
 
+export type MasterOwnProfileEditableField = 'bio' | 'materials' | 'phone' | 'email';
+
+function editableFieldLabel(field: MasterOwnProfileEditableField): string {
+  switch (field) {
+    case 'bio':
+      return 'опис профілю';
+    case 'materials':
+      return 'матеріали';
+    case 'phone':
+      return 'контактний телефон';
+    case 'email':
+      return 'контактний email';
+    default:
+      return 'поле профілю';
+  }
+}
+
 /**
  * @summary Головний екран профілю майстра.
  */
@@ -119,5 +136,107 @@ export function createMasterOwnProfileSectionKeyboard(): ReturnType<typeof Marku
   return Markup.inlineKeyboard([
     [Markup.button.callback('👤 До профілю майстра', MASTER_PANEL_ACTION.OPEN_PROFILE)],
     [Markup.button.callback('⬅️ До панелі майстра', MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура екрана "Додаткова інформація" з діями редагування.
+ */
+export function createMasterOwnProfileAdditionalKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('📝 Змінити опис', MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_BIO)],
+    [Markup.button.callback('🧴 Змінити матеріали', MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_MATERIALS)],
+    [Markup.button.callback('📞 Змінити телефон', MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_PHONE)],
+    [Markup.button.callback('✉️ Змінити email', MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_EMAIL)],
+    [Markup.button.callback('👤 До профілю майстра', MASTER_PANEL_ACTION.OPEN_PROFILE)],
+    [Markup.button.callback('⬅️ До панелі майстра', MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+  ]);
+}
+
+/**
+ * @summary Підказка для введення нового значення поля профілю майстра.
+ */
+export function formatMasterOwnProfileEditInputText(
+  field: MasterOwnProfileEditableField,
+  currentValue: string | null,
+): string {
+  const label = editableFieldLabel(field);
+  const current = currentValue?.trim().length ? currentValue : 'Не вказано';
+
+  if (field === 'bio') {
+    return (
+      '📝 Редагування опису профілю\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      `Поточне значення:\n${current}\n\n` +
+      'Введіть новий опис (мінімум 10 символів).'
+    );
+  }
+
+  if (field === 'materials') {
+    return (
+      '🧴 Редагування матеріалів\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      `Поточне значення:\n${current}\n\n` +
+      'Введіть матеріали, з якими ви працюєте.'
+    );
+  }
+
+  if (field === 'phone') {
+    return (
+      '📞 Редагування контактного телефону\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      `Поточне значення: ${current}\n\n` +
+      'Введіть телефон у форматі +420123456789.'
+    );
+  }
+
+  return (
+    '✉️ Редагування контактного email\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `Поточне значення: ${current}\n\n` +
+    'Введіть новий email (приклад: name@example.com).'
+  );
+}
+
+/**
+ * @summary Текст підтвердження перед збереженням поля профілю майстра.
+ */
+export function formatMasterOwnProfileEditConfirmText(
+  field: MasterOwnProfileEditableField,
+  value: string,
+): string {
+  return (
+    '⚠️ Підтвердження оновлення\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `Поле: ${editableFieldLabel(field)}\n` +
+    `Нове значення:\n${value}\n\n` +
+    'Підтвердіть, щоб зберегти зміни.'
+  );
+}
+
+/**
+ * @summary Повідомлення про успішне оновлення поля профілю майстра.
+ */
+export function formatMasterOwnProfileEditSuccessText(field: MasterOwnProfileEditableField): string {
+  return `✅ Поле "${editableFieldLabel(field)}" оновлено.`;
+}
+
+/**
+ * @summary Клавіатура для кроку введення нового значення.
+ */
+export function createMasterOwnProfileEditInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('❌ Скасувати', MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_CANCEL)],
+    [Markup.button.callback('⬅️ До додаткової інформації', MASTER_PANEL_ACTION.OPEN_PROFILE_ADDITIONAL)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура для кроку підтвердження змін.
+ */
+export function createMasterOwnProfileEditConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('✅ Зберегти', MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_CONFIRM)],
+    [Markup.button.callback('❌ Скасувати', MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_CANCEL)],
   ]);
 }

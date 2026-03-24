@@ -52,3 +52,34 @@ export const SQL_LIST_MASTER_OWN_PROFILE_CERTIFICATES = `
   ORDER BY mc.issued_on DESC NULLS LAST, mc.id DESC
 `;
 
+export const SQL_UPDATE_MASTER_OWN_PROFILE_BIO = `
+  UPDATE masters
+  SET bio = $2,
+      updated_at = now()
+  WHERE user_id = $1::bigint
+  RETURNING user_id
+`;
+
+export const SQL_UPDATE_MASTER_OWN_PROFILE_MATERIALS = `
+  UPDATE masters
+  SET materials_info = $2,
+      updated_at = now()
+  WHERE user_id = $1::bigint
+  RETURNING user_id
+`;
+
+export const SQL_UPDATE_MASTER_OWN_PROFILE_PHONE = `
+  UPDATE masters
+  SET contact_phone_e164 = $2,
+      updated_at = now()
+  WHERE user_id = $1::bigint
+  RETURNING user_id
+`;
+
+export const SQL_UPDATE_MASTER_OWN_PROFILE_EMAIL = `
+  UPDATE masters
+  SET contact_email = $2,
+      updated_at = now()
+  WHERE user_id = $1::bigint
+  RETURNING user_id
+`;

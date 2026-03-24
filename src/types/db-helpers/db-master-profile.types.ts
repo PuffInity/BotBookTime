@@ -61,3 +61,22 @@ export type MasterOwnProfileData = {
   }[];
 };
 
+export type UpdateMasterOwnProfileBioInput = {
+  masterId: string | number;
+  bio: string;
+};
+
+export type UpdateMasterOwnProfileMaterialsInput = {
+  masterId: string | number;
+  materialsInfo: string;
+};
+
+export type UpdateMasterOwnProfilePhoneInput = {
+  masterId: string | number;
+  contactPhoneE164: string;
+};
+
+export type UpdateMasterOwnProfileEmailInput = {
+  masterId: string | number;
+  contactEmail: string;
+};

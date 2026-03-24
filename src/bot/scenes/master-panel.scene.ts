@@ -16,10 +16,17 @@ import {
   formatMasterPanelSectionStubText,
 } from '../../helpers/bot/master-panel-view.bot.js';
 import {
+  createMasterOwnProfileAdditionalKeyboard,
+  createMasterOwnProfileEditConfirmKeyboard,
+  createMasterOwnProfileEditInputKeyboard,
   createMasterOwnProfileMainKeyboard,
   createMasterOwnProfileSectionKeyboard,
+  formatMasterOwnProfileEditConfirmText,
+  formatMasterOwnProfileEditInputText,
+  formatMasterOwnProfileEditSuccessText,
   formatMasterOwnProfileAdditionalText,
   formatMasterOwnProfileMainText,
+  type MasterOwnProfileEditableField,
   formatMasterOwnProfileProfessionalText,
   formatMasterOwnProfileServicesText,
 } from '../../helpers/bot/master-own-profile-view.bot.js';
@@ -103,7 +110,13 @@ import {
   MASTER_PANEL_TEMPORARY_HOURS_DAY_OFF_ACTION_REGEX,
 } from '../../types/bot-master-panel.types.js';
 import { getMasterPanelAccessByTelegramId } from '../../helpers/db/db-master-panel.helper.js';
-import { getMasterOwnProfile } from '../../helpers/db/db-master-profile.helper.js';
+import {
+  updateMasterOwnProfileBio,
+  updateMasterOwnProfileEmail,
+  updateMasterOwnProfileMaterials,
+  updateMasterOwnProfilePhone,
+  getMasterOwnProfile,
+} from '../../helpers/db/db-master-profile.helper.js';
 import {
   cancelMasterPendingBooking,
   confirmMasterPendingBooking,
@@ -127,6 +140,12 @@ import { handleError, ValidationError } from '../../utils/error.utils.js';
 import { loggerNotification } from '../../utils/logger/loggers-list.js';
 import { bookingDateCodeSchema, bookingTimeCodeSchema } from '../../validator/booking-input.schema.js';
 import { buildBookingDateOptions, buildBookingTimeOptions } from '../../helpers/bot/booking-view.bot.js';
+import {
+  normalizeMasterBio,
+  normalizeMasterContactEmail,
+  normalizeMasterContactPhone,
+  normalizeMasterMaterialsInfo,
+} from '../../utils/db/db-master-profile.js';
 import {
   createMasterClientProfileKeyboard,
   formatMasterClientProfileText,
@@ -187,6 +206,13 @@ type MasterPanelSceneState = {
         mode: 'awaiting_from' | 'awaiting_to';
         weekday: number | null;
         fromTime: string | null;
+      }
+    | null;
+  profileEditDraft:
+    | {
+        mode: 'awaiting_value' | 'awaiting_confirm';
+        field: MasterOwnProfileEditableField;
+        value: string | null;
       }
     | null;
   rescheduleDraft:
@@ -397,12 +423,57 @@ function resetScheduleConfigureDayDraft(state: MasterPanelSceneState): void {
   state.scheduleConfigureDayDraft = null;
 }
 
+function resetProfileEditDraft(state: MasterPanelSceneState): void {
+  state.profileEditDraft = null;
+}
+
 function resetRescheduleDraft(state: MasterPanelSceneState): void {
   state.rescheduleDraft = null;
 }
 
 function resetBookingsFeed(state: MasterPanelSceneState): void {
   state.bookingsFeed = null;
+}
+
+function normalizeMasterProfileFieldValue(
+  field: MasterOwnProfileEditableField,
+  value: string,
+): string {
+  switch (field) {
+    case 'bio':
+      return normalizeMasterBio(value);
+    case 'materials':
+      return normalizeMasterMaterialsInfo(value);
+    case 'phone':
+      return normalizeMasterContactPhone(value);
+    case 'email':
+      return normalizeMasterContactEmail(value);
+    default:
+      throw new ValidationError('Некоректне поле редагування профілю');
+  }
+}
+
+async function persistMasterProfileField(
+  masterId: string,
+  field: MasterOwnProfileEditableField,
+  value: string,
+): Promise<void> {
+  switch (field) {
+    case 'bio':
+      await updateMasterOwnProfileBio({ masterId, bio: value });
+      return;
+    case 'materials':
+      await updateMasterOwnProfileMaterials({ masterId, materialsInfo: value });
+      return;
+    case 'phone':
+      await updateMasterOwnProfilePhone({ masterId, contactPhoneE164: value });
+      return;
+    case 'email':
+      await updateMasterOwnProfileEmail({ masterId, contactEmail: value });
+      return;
+    default:
+      throw new ValidationError('Некоректне поле редагування профілю');
+  }
 }
 
 async function loadOwnProfileIntoState(state: MasterPanelSceneState): Promise<MasterOwnProfileData | null> {
@@ -742,6 +813,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       state.scheduleVacationDraft = null;
       state.scheduleTemporaryDraft = null;
       state.scheduleConfigureDayDraft = null;
+      state.profileEditDraft = null;
       state.rescheduleDraft = null;
 
       if (!ctx.from?.id) {
@@ -768,6 +840,43 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       }
 
       const state = getSceneState(ctx);
+      const profileEditDraft = state.profileEditDraft;
+      if (profileEditDraft?.mode === 'awaiting_value') {
+        try {
+          const nextValue = normalizeMasterProfileFieldValue(profileEditDraft.field, text);
+          state.profileEditDraft = {
+            mode: 'awaiting_confirm',
+            field: profileEditDraft.field,
+            value: nextValue,
+          };
+
+          await renderView(
+            ctx,
+            formatMasterOwnProfileEditConfirmText(profileEditDraft.field, nextValue),
+            createMasterOwnProfileEditConfirmKeyboard(),
+            false,
+          );
+        } catch (error) {
+          const err = error instanceof ValidationError
+            ? error
+            : new ValidationError('Виникла помилка при перевірці значення');
+
+          await ctx.reply(
+            `⚠️ ${err.message}`,
+            createMasterOwnProfileEditInputKeyboard(),
+          );
+        }
+        return;
+      }
+
+      if (profileEditDraft?.mode === 'awaiting_confirm') {
+        await ctx.reply(
+          '⚠️ Щоб завершити редагування, натисніть "✅ Зберегти" або "❌ Скасувати".',
+          createMasterOwnProfileEditConfirmKeyboard(),
+        );
+        return;
+      }
+
       const configureDayDraft = state.scheduleConfigureDayDraft;
       if (configureDayDraft?.mode === 'awaiting_from') {
         try {
@@ -1079,6 +1188,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
+    resetProfileEditDraft(state);
     resetBookingsFeed(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
@@ -1104,6 +1214,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(MASTER_PANEL_ACTION.OPEN_PROFILE_SERVICES, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
+    resetProfileEditDraft(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
       await ctx.scene.leave();
@@ -1128,6 +1239,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(MASTER_PANEL_ACTION.OPEN_PROFILE_PROFESSIONAL, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
+    resetProfileEditDraft(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
       await ctx.scene.leave();
@@ -1152,6 +1264,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(MASTER_PANEL_ACTION.OPEN_PROFILE_ADDITIONAL, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
+    resetProfileEditDraft(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
       await ctx.scene.leave();
@@ -1168,7 +1281,202 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     await renderView(
       ctx,
       formatMasterOwnProfileAdditionalText(ownProfile),
-      createMasterOwnProfileSectionKeyboard(),
+      createMasterOwnProfileAdditionalKeyboard(),
+      true,
+    );
+  });
+
+  scene.action(MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_BIO, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    if (!state.access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const ownProfile = state.ownProfile ?? (await loadOwnProfileIntoState(state));
+    if (!ownProfile) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    state.profileEditDraft = {
+      mode: 'awaiting_value',
+      field: 'bio',
+      value: null,
+    };
+
+    await renderView(
+      ctx,
+      formatMasterOwnProfileEditInputText('bio', ownProfile.bio),
+      createMasterOwnProfileEditInputKeyboard(),
+      true,
+    );
+  });
+
+  scene.action(MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_MATERIALS, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    if (!state.access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const ownProfile = state.ownProfile ?? (await loadOwnProfileIntoState(state));
+    if (!ownProfile) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    state.profileEditDraft = {
+      mode: 'awaiting_value',
+      field: 'materials',
+      value: null,
+    };
+
+    await renderView(
+      ctx,
+      formatMasterOwnProfileEditInputText('materials', ownProfile.materialsInfo),
+      createMasterOwnProfileEditInputKeyboard(),
+      true,
+    );
+  });
+
+  scene.action(MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_PHONE, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    if (!state.access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const ownProfile = state.ownProfile ?? (await loadOwnProfileIntoState(state));
+    if (!ownProfile) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    state.profileEditDraft = {
+      mode: 'awaiting_value',
+      field: 'phone',
+      value: null,
+    };
+
+    await renderView(
+      ctx,
+      formatMasterOwnProfileEditInputText('phone', ownProfile.contactPhoneE164),
+      createMasterOwnProfileEditInputKeyboard(),
+      true,
+    );
+  });
+
+  scene.action(MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_EMAIL, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    if (!state.access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const ownProfile = state.ownProfile ?? (await loadOwnProfileIntoState(state));
+    if (!ownProfile) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    state.profileEditDraft = {
+      mode: 'awaiting_value',
+      field: 'email',
+      value: null,
+    };
+
+    await renderView(
+      ctx,
+      formatMasterOwnProfileEditInputText('email', ownProfile.contactEmail),
+      createMasterOwnProfileEditInputKeyboard(),
+      true,
+    );
+  });
+
+  scene.action(MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_CONFIRM, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const access = state.access;
+    const draft = state.profileEditDraft;
+
+    if (!access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    if (!draft || draft.mode !== 'awaiting_confirm' || !draft.value) {
+      const ownProfile = state.ownProfile ?? (await loadOwnProfileIntoState(state));
+      if (!ownProfile) {
+        await denyMasterPanelAccess(ctx);
+        await ctx.scene.leave();
+        return;
+      }
+
+      resetProfileEditDraft(state);
+      await renderView(
+        ctx,
+        formatMasterOwnProfileAdditionalText(ownProfile),
+        createMasterOwnProfileAdditionalKeyboard(),
+        true,
+      );
+      return;
+    }
+
+    await persistMasterProfileField(access.masterId, draft.field, draft.value);
+    await loadOwnProfileIntoState(state);
+    await ctx.reply(formatMasterOwnProfileEditSuccessText(draft.field));
+
+    resetProfileEditDraft(state);
+
+    if (!state.ownProfile) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    await renderView(
+      ctx,
+      formatMasterOwnProfileAdditionalText(state.ownProfile),
+      createMasterOwnProfileAdditionalKeyboard(),
+      false,
+    );
+  });
+
+  scene.action(MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_CANCEL, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    if (!state.access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    resetProfileEditDraft(state);
+    const ownProfile = state.ownProfile ?? (await loadOwnProfileIntoState(state));
+    if (!ownProfile) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    await renderView(
+      ctx,
+      formatMasterOwnProfileAdditionalText(ownProfile),
+      createMasterOwnProfileAdditionalKeyboard(),
       true,
     );
   });
@@ -1180,6 +1488,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
+    resetProfileEditDraft(state);
     state.pending = [];
     state.pendingCursor = 0;
     resetBookingsFeed(state);
@@ -1190,6 +1499,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(MASTER_PANEL_ACTION.BOOKINGS_OPEN_MENU, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
+    resetProfileEditDraft(state);
     resetRescheduleDraft(state);
     resetBookingsFeed(state);
     await renderBookingsMenu(ctx, true);
@@ -1198,6 +1508,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(MASTER_PANEL_ACTION.BOOKINGS_MENU_TODAY, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
+    resetProfileEditDraft(state);
     resetRescheduleDraft(state);
     await loadBookingsFeedIntoState(state, 'today', 0);
     await renderBookingsFeed(ctx, true);
@@ -1206,6 +1517,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(MASTER_PANEL_ACTION.BOOKINGS_MENU_TOMORROW, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
+    resetProfileEditDraft(state);
     resetRescheduleDraft(state);
     await loadBookingsFeedIntoState(state, 'tomorrow', 0);
     await renderBookingsFeed(ctx, true);
@@ -1214,6 +1526,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(MASTER_PANEL_ACTION.BOOKINGS_MENU_ALL, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
+    resetProfileEditDraft(state);
     resetRescheduleDraft(state);
     await loadBookingsFeedIntoState(state, 'all', 0);
     await renderBookingsFeed(ctx, true);
@@ -1222,6 +1535,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(MASTER_PANEL_ACTION.BOOKINGS_MENU_CANCELED, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
+    resetProfileEditDraft(state);
     resetRescheduleDraft(state);
     await loadBookingsFeedIntoState(state, 'canceled', 0);
     await renderBookingsFeed(ctx, true);
@@ -1307,6 +1621,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
+    resetProfileEditDraft(state);
     resetBookingsFeed(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
@@ -1325,6 +1640,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
+    resetProfileEditDraft(state);
     resetBookingsFeed(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
@@ -1343,6 +1659,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
+    resetProfileEditDraft(state);
     resetBookingsFeed(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
@@ -1361,6 +1678,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
+    resetProfileEditDraft(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
       await ctx.scene.leave();
@@ -2021,6 +2339,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
+    resetProfileEditDraft(state);
     resetBookingsFeed(state);
     resetRescheduleDraft(state);
     await loadPendingIntoState(state);
@@ -2034,6 +2353,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
+    resetProfileEditDraft(state);
 
     if (state.pending.length === 0) {
       await renderPendingQueue(ctx, true);
@@ -2369,6 +2689,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
+    resetProfileEditDraft(state);
     resetBookingsFeed(state);
     resetRescheduleDraft(state);
     await renderRoot(ctx, true);
@@ -2381,6 +2702,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
+    resetProfileEditDraft(state);
     resetBookingsFeed(state);
     resetRescheduleDraft(state);
     await ctx.scene.leave();

@@ -3,15 +3,29 @@ import type {
   MasterOwnProfileData,
   MasterOwnProfileOverviewRow,
   MasterOwnProfileServiceRow,
+  UpdateMasterOwnProfileBioInput,
+  UpdateMasterOwnProfileEmailInput,
+  UpdateMasterOwnProfileMaterialsInput,
+  UpdateMasterOwnProfilePhoneInput,
 } from '../../types/db-helpers/db-master-profile.types.js';
-import { queryMany, queryOne, withTransaction } from '../db.helper.js';
+import { executeOne, queryMany, queryOne, withTransaction } from '../db.helper.js';
 import { ValidationError, handleError } from '../../utils/error.utils.js';
 import { loggerDb } from '../../utils/logger/loggers-list.js';
 import {
   SQL_GET_MASTER_OWN_PROFILE_OVERVIEW,
   SQL_LIST_MASTER_OWN_PROFILE_CERTIFICATES,
   SQL_LIST_MASTER_OWN_PROFILE_SERVICES,
+  SQL_UPDATE_MASTER_OWN_PROFILE_BIO,
+  SQL_UPDATE_MASTER_OWN_PROFILE_EMAIL,
+  SQL_UPDATE_MASTER_OWN_PROFILE_MATERIALS,
+  SQL_UPDATE_MASTER_OWN_PROFILE_PHONE,
 } from '../db-sql/db-master-profile.sql.js';
+import {
+  normalizeMasterBio,
+  normalizeMasterContactEmail,
+  normalizeMasterContactPhone,
+  normalizeMasterMaterialsInfo,
+} from '../../utils/db/db-master-profile.js';
 
 /**
  * @file db-master-profile.helper.ts
@@ -25,6 +39,10 @@ function normalizeMasterId(masterIdInput: string | number): string {
   }
   return normalized;
 }
+
+type UpdatedMasterIdRow = {
+  user_id: string;
+};
 
 /**
  * @summary Повертає повний snapshot власного профілю майстра.
@@ -100,3 +118,120 @@ export async function getMasterOwnProfile(masterIdInput: string | number): Promi
   }
 }
 
+/**
+ * @summary Оновлює поле `bio` у профілі майстра.
+ */
+export async function updateMasterOwnProfileBio(data: UpdateMasterOwnProfileBioInput): Promise<void> {
+  const masterId = normalizeMasterId(data.masterId);
+  const bio = normalizeMasterBio(data.bio);
+
+  try {
+    await withTransaction(async (client) => {
+      await executeOne<UpdatedMasterIdRow, string>(
+        SQL_UPDATE_MASTER_OWN_PROFILE_BIO,
+        [masterId, bio],
+        (row) => row.user_id,
+        client,
+      );
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-profile.helper',
+      action: 'Failed to update master bio',
+      error,
+      meta: { masterId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Оновлює поле `materials_info` у профілі майстра.
+ */
+export async function updateMasterOwnProfileMaterials(
+  data: UpdateMasterOwnProfileMaterialsInput,
+): Promise<void> {
+  const masterId = normalizeMasterId(data.masterId);
+  const materialsInfo = normalizeMasterMaterialsInfo(data.materialsInfo);
+
+  try {
+    await withTransaction(async (client) => {
+      await executeOne<UpdatedMasterIdRow, string>(
+        SQL_UPDATE_MASTER_OWN_PROFILE_MATERIALS,
+        [masterId, materialsInfo],
+        (row) => row.user_id,
+        client,
+      );
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-profile.helper',
+      action: 'Failed to update master materials',
+      error,
+      meta: { masterId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Оновлює поле `contact_phone_e164` у профілі майстра.
+ */
+export async function updateMasterOwnProfilePhone(
+  data: UpdateMasterOwnProfilePhoneInput,
+): Promise<void> {
+  const masterId = normalizeMasterId(data.masterId);
+  const contactPhoneE164 = normalizeMasterContactPhone(data.contactPhoneE164);
+
+  try {
+    await withTransaction(async (client) => {
+      await executeOne<UpdatedMasterIdRow, string>(
+        SQL_UPDATE_MASTER_OWN_PROFILE_PHONE,
+        [masterId, contactPhoneE164],
+        (row) => row.user_id,
+        client,
+      );
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-profile.helper',
+      action: 'Failed to update master contact phone',
+      error,
+      meta: { masterId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Оновлює поле `contact_email` у профілі майстра.
+ */
+export async function updateMasterOwnProfileEmail(
+  data: UpdateMasterOwnProfileEmailInput,
+): Promise<void> {
+  const masterId = normalizeMasterId(data.masterId);
+  const contactEmail = normalizeMasterContactEmail(data.contactEmail);
+
+  try {
+    await withTransaction(async (client) => {
+      await executeOne<UpdatedMasterIdRow, string>(
+        SQL_UPDATE_MASTER_OWN_PROFILE_EMAIL,
+        [masterId, contactEmail],
+        (row) => row.user_id,
+        client,
+      );
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-profile.helper',
+      action: 'Failed to update master contact email',
+      error,
+      meta: { masterId },
+    });
+    throw error;
+  }
+}
