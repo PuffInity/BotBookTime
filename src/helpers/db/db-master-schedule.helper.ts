@@ -1,12 +1,16 @@
 import type {
+  CreatedMasterVacationItem,
   CreatedMasterDayOffItem,
+  CreateMasterVacationInput,
   CreateMasterDayOffInput,
   MasterInsertedDayOffRow,
+  MasterInsertedVacationRow,
   MasterPanelScheduleData,
   MasterScheduleActiveBookingsCountRow,
   MasterScheduleDayOffItem,
   MasterScheduleDayOffExistsRow,
   MasterScheduleDayOffRow,
+  MasterScheduleVacationOverlapRow,
   MasterScheduleTemporaryHoursItem,
   MasterScheduleTemporaryHoursRow,
   MasterScheduleVacationItem,
@@ -18,9 +22,12 @@ import { executeOne, queryMany, queryOne, withTransaction } from '../db.helper.j
 import { ValidationError, handleError } from '../../utils/error.utils.js';
 import { loggerDb } from '../../utils/logger/loggers-list.js';
 import {
+  SQL_CHECK_MASTER_VACATION_OVERLAP,
   SQL_CHECK_MASTER_DAY_OFF_EXISTS_FOR_DATE,
+  SQL_COUNT_MASTER_ACTIVE_BOOKINGS_IN_VACATION_RANGE,
   SQL_COUNT_MASTER_ACTIVE_BOOKINGS_ON_DAY_OFF_DATE,
   SQL_INSERT_MASTER_DAY_OFF,
+  SQL_INSERT_MASTER_VACATION,
   SQL_LIST_MASTER_UPCOMING_DAYS_OFF_FOR_PANEL,
   SQL_LIST_MASTER_UPCOMING_TEMPORARY_HOURS_FOR_PANEL,
   SQL_LIST_MASTER_UPCOMING_VACATIONS_FOR_PANEL,
@@ -111,6 +118,25 @@ function normalizeDayOffDateInput(value: Date | string): Date {
   throw new ValidationError('Некоректна дата вихідного дня');
 }
 
+function normalizeVacationDateInput(value: Date | string, fieldName: 'dateFrom' | 'dateTo'): Date {
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) {
+      throw new ValidationError('Некоректна дата відпустки', { [fieldName]: value });
+    }
+    return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+  }
+
+  if (typeof value === 'string') {
+    try {
+      return parseSqlDate(value);
+    } catch {
+      throw new ValidationError('Некоректна дата відпустки', { [fieldName]: value });
+    }
+  }
+
+  throw new ValidationError('Некоректна дата відпустки', { [fieldName]: value });
+}
+
 function mapWeeklyRow(row: MasterScheduleWeeklyRow): MasterScheduleWeeklyItem {
   return {
     weekday: row.weekday,
@@ -153,6 +179,15 @@ function mapInsertedDayOffRow(row: MasterInsertedDayOffRow): CreatedMasterDayOff
   return {
     id: row.id,
     offDate: new Date(row.off_date),
+    reason: row.reason,
+  };
+}
+
+function mapInsertedVacationRow(row: MasterInsertedVacationRow): CreatedMasterVacationItem {
+  return {
+    id: row.id,
+    dateFrom: new Date(row.date_from),
+    dateTo: new Date(row.date_to),
     reason: row.reason,
   };
 }
@@ -274,6 +309,76 @@ export async function createMasterDayOff(
       action: 'Failed to create master day off',
       error,
       meta: { masterId, offDate: sqlDate, createdBy },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Створює період відпустки для майстра з перевіркою перетину та активних записів.
+ */
+export async function createMasterVacation(
+  input: CreateMasterVacationInput,
+): Promise<CreatedMasterVacationItem> {
+  const masterId = normalizePositiveBigintId(input.masterId, 'masterId');
+  const createdBy = normalizeOptionalCreatorId(input.createdBy);
+  const reason = normalizeReason(input.reason);
+  const dateFrom = normalizeVacationDateInput(input.dateFrom, 'dateFrom');
+  const dateTo = normalizeVacationDateInput(input.dateTo, 'dateTo');
+  const today = new Date();
+  const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+  if (dateFrom.getTime() < todayOnly.getTime()) {
+    throw new ValidationError('Не можна встановити відпустку, що починається у минулому');
+  }
+
+  if (dateTo.getTime() < dateFrom.getTime()) {
+    throw new ValidationError('Дата завершення відпустки не може бути раніше дати початку');
+  }
+
+  const sqlDateFrom = toSqlDate(dateFrom);
+  const sqlDateTo = toSqlDate(dateTo);
+
+  try {
+    return await withTransaction(async (client) => {
+      const hasOverlap = await queryOne<MasterScheduleVacationOverlapRow, boolean>(
+        SQL_CHECK_MASTER_VACATION_OVERLAP,
+        [masterId, sqlDateFrom, sqlDateTo],
+        (row) => row.already_exists,
+        client,
+      );
+
+      if (hasOverlap) {
+        throw new ValidationError('Цей період перетинається з уже встановленою відпусткою');
+      }
+
+      const activeBookingsCount = await queryOne<MasterScheduleActiveBookingsCountRow, number>(
+        SQL_COUNT_MASTER_ACTIVE_BOOKINGS_IN_VACATION_RANGE,
+        [masterId, sqlDateFrom, sqlDateTo],
+        (row) => row.active_count,
+        client,
+      );
+
+      if ((activeBookingsCount ?? 0) > 0) {
+        throw new ValidationError(
+          'У цьому періоді є активні записи. Спочатку перенесіть або скасуйте їх.',
+        );
+      }
+
+      return executeOne<MasterInsertedVacationRow, CreatedMasterVacationItem>(
+        SQL_INSERT_MASTER_VACATION,
+        [masterId, sqlDateFrom, sqlDateTo, reason, createdBy],
+        mapInsertedVacationRow,
+        client,
+      );
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-schedule.helper',
+      action: 'Failed to create master vacation',
+      error,
+      meta: { masterId, dateFrom: sqlDateFrom, dateTo: sqlDateTo, createdBy },
     });
     throw error;
   }

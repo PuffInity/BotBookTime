@@ -259,7 +259,8 @@ export function formatMasterScheduleVacationsText(data: MasterPanelScheduleData)
   return (
     '🏖 Ваші періоди відпустки\n' +
     '━━━━━━━━━━━━━━\n\n' +
-    `${formatVacationsList(data)}`
+    `${formatVacationsList(data)}\n\n` +
+    'Кнопками нижче можна встановити новий період відпустки.'
   );
 }
 
@@ -281,6 +282,18 @@ export function createMasterScheduleSectionKeyboard(): ReturnType<typeof Markup.
   return Markup.inlineKeyboard([
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура секції "Відпустка".
+ */
+export function createMasterScheduleVacationsKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('➕ Встановити період відпустки', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS_CREATE)],
+    [Markup.button.callback('🔄 Оновити список', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS)],
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
   ]);
 }
@@ -329,5 +342,72 @@ export function createMasterScheduleSetDayOffConfirmKeyboard(): ReturnType<typeo
     [Markup.button.callback('✅ Підтвердити', MASTER_PANEL_ACTION.SCHEDULE_SET_DAY_OFF_CONFIRM)],
     [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_SET_DAY_OFF_CANCEL)],
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
+  ]);
+}
+
+/**
+ * @summary Текст старту flow встановлення відпустки.
+ */
+export function formatMasterScheduleVacationSetText(): string {
+  return (
+    '🏖 Встановити період відпустки\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Вкажіть період відпустки у форматі:\n' +
+    'ДД.ММ.РРРР - ДД.ММ.РРРР\n\n' +
+    'Приклад: 15.07.2026 - 25.07.2026\n\n' +
+    'У цей період нові записи для клієнтів будуть недоступні.'
+  );
+}
+
+/**
+ * @summary Текст підтвердження створення періоду відпустки.
+ */
+export function formatMasterScheduleVacationConfirmText(
+  dateFromLabel: string,
+  dateToLabel: string,
+): string {
+  return (
+    '⚠️ Підтвердження\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Ви впевнені, що хочете встановити період відпустки:\n\n' +
+    `📅 ${dateFromLabel} - ${dateToLabel}\n\n` +
+    'У цей період нові записи для клієнтів будуть недоступні.'
+  );
+}
+
+/**
+ * @summary Повідомлення про успішне встановлення відпустки.
+ */
+export function formatMasterScheduleVacationSuccessText(
+  dateFromLabel: string,
+  dateToLabel: string,
+): string {
+  return (
+    '✅ Відпустку успішно встановлено\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `📅 Період: ${dateFromLabel} - ${dateToLabel}\n\n` +
+    'У цей період ви будете недоступні для нових записів.'
+  );
+}
+
+/**
+ * @summary Клавіатура кроку вводу періоду відпустки.
+ */
+export function createMasterScheduleVacationInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS_CANCEL)],
+    [Markup.button.callback('⬅️ До відпустки', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS)],
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура підтвердження періоду відпустки.
+ */
+export function createMasterScheduleVacationConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('✅ Підтвердити', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS_CONFIRM)],
+    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS_CANCEL)],
+    [Markup.button.callback('⬅️ До відпустки', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS)],
   ]);
 }

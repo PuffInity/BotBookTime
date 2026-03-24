@@ -74,6 +74,10 @@ export type MasterScheduleActiveBookingsCountRow = {
   active_count: number;
 };
 
+export type MasterScheduleVacationOverlapRow = {
+  already_exists: boolean;
+};
+
 export type MasterInsertedDayOffRow = {
   id: string;
   off_date: Date;
@@ -90,5 +94,27 @@ export type CreateMasterDayOffInput = {
 export type CreatedMasterDayOffItem = {
   id: string;
   offDate: Date;
+  reason: string | null;
+};
+
+export type MasterInsertedVacationRow = {
+  id: string;
+  date_from: Date;
+  date_to: Date;
+  reason: string | null;
+};
+
+export type CreateMasterVacationInput = {
+  masterId: string | number;
+  dateFrom: Date | string;
+  dateTo: Date | string;
+  reason?: string | null;
+  createdBy?: string | number | null;
+};
+
+export type CreatedMasterVacationItem = {
+  id: string;
+  dateFrom: Date;
+  dateTo: Date;
   reason: string | null;
 };

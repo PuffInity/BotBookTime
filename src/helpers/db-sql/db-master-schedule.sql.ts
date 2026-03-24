@@ -91,3 +91,45 @@ export const SQL_INSERT_MASTER_DAY_OFF = `
   )
   RETURNING id, off_date, reason
 `;
+
+export const SQL_CHECK_MASTER_VACATION_OVERLAP = `
+  SELECT EXISTS (
+    SELECT 1
+    FROM master_vacations
+    WHERE master_id = $1::bigint
+      AND daterange(date_from, date_to + 1, '[)')
+          && daterange($2::date, $3::date + 1, '[)')
+  ) AS already_exists
+`;
+
+export const SQL_COUNT_MASTER_ACTIVE_BOOKINGS_IN_VACATION_RANGE = `
+  SELECT COUNT(*)::int AS active_count
+  FROM appointments a
+  INNER JOIN masters m
+    ON m.user_id = a.master_id
+   AND m.studio_id = a.studio_id
+  INNER JOIN studios st
+    ON st.id = a.studio_id
+  WHERE a.master_id = $1::bigint
+    AND a.deleted_at IS NULL
+    AND a.status IN ('pending', 'confirmed')
+    AND (a.start_at AT TIME ZONE st.timezone)::date BETWEEN $2::date AND $3::date
+`;
+
+export const SQL_INSERT_MASTER_VACATION = `
+  INSERT INTO master_vacations (
+    master_id,
+    date_from,
+    date_to,
+    reason,
+    created_by
+  )
+  VALUES (
+    $1::bigint,
+    $2::date,
+    $3::date,
+    $4,
+    $5::bigint
+  )
+  RETURNING id, date_from, date_to, reason
+`;
