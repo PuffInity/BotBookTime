@@ -8,6 +8,7 @@ export const MASTER_PANEL_ACTION = {
   OPEN_BOOKINGS: 'master-panel:open-bookings',
   OPEN_SCHEDULE: 'master-panel:open-schedule',
   OPEN_STATS: 'master-panel:open-stats',
+  OPEN_STATS_FINANCE: 'master-panel:open-stats:finance',
   SCHEDULE_CONFIGURE_DAY: 'master-panel:schedule:configure-day',
   SCHEDULE_CONFIGURE_DAY_WEEKDAY_PREFIX: 'master-panel:schedule:configure-day:weekday:',
   SCHEDULE_CONFIGURE_DAY_OFF_PREFIX: 'master-panel:schedule:configure-day:off:',
@@ -54,6 +55,7 @@ export const MASTER_PANEL_BUTTON_TEXT = {
   SCHEDULE_TEMPORARY_HOURS: '🕒 Тимчасова зміна графіку',
   SCHEDULE_BACK: '⬅️ До розкладу',
   STATS: '📊 Моя статистика',
+  STATS_FINANCE: '💰 ФІНАНСИ',
   BACK_TO_PANEL: '⬅️ До панелі майстра',
   HOME: '🏠 Головне меню',
 } as const;

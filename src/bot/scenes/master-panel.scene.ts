@@ -13,6 +13,14 @@ import {
   formatMasterPanelSectionStubText,
 } from '../../helpers/bot/master-panel-view.bot.js';
 import {
+  createMasterStatsKeyboard,
+  formatMasterStatsText,
+} from '../../helpers/bot/master-stats-view.bot.js';
+import {
+  createMasterFinanceKeyboard,
+  formatMasterFinanceText,
+} from '../../helpers/bot/master-finance-view.bot.js';
+import {
   createMasterScheduleConfigureDayInputKeyboard,
   createMasterScheduleConfigureDayKeyboard,
   createMasterScheduleTemporaryConfirmKeyboard,
@@ -84,6 +92,8 @@ import {
   rescheduleMasterPendingBooking,
 } from '../../helpers/db/db-master-bookings.helper.js';
 import { getMasterClientProfileByBooking } from '../../helpers/db/db-master-clients.helper.js';
+import { getMasterPanelStats } from '../../helpers/db/db-master-stats.helper.js';
+import { getMasterPanelFinance } from '../../helpers/db/db-master-finance.helper.js';
 import {
   createMasterDayOff,
   createMasterTemporarySchedule,
@@ -996,7 +1006,31 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
-    await renderSectionStub(ctx, '📊 Моя статистика');
+    if (!state.access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const stats = await getMasterPanelStats(state.access.masterId);
+    await renderView(ctx, formatMasterStatsText(stats), createMasterStatsKeyboard(), true);
+  });
+
+  scene.action(MASTER_PANEL_ACTION.OPEN_STATS_FINANCE, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    resetScheduleDayOffDraft(state);
+    resetScheduleVacationDraft(state);
+    resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
+    if (!state.access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const finance = await getMasterPanelFinance(state.access.masterId);
+    await renderView(ctx, formatMasterFinanceText(finance), createMasterFinanceKeyboard(), true);
   });
 
   scene.action(MASTER_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY, async (ctx) => {
