@@ -12,6 +12,16 @@ import {
   formatMasterPanelSectionStubText,
 } from '../../helpers/bot/master-panel-view.bot.js';
 import {
+  createMasterScheduleSectionKeyboard,
+  createMasterScheduleKeyboard,
+  formatMasterScheduleConfigureDayText,
+  formatMasterScheduleDaysOffListText,
+  formatMasterScheduleSetDayOffText,
+  formatMasterScheduleText,
+  formatMasterScheduleTemporaryHoursText,
+  formatMasterScheduleVacationsText,
+} from '../../helpers/bot/master-schedule-view.bot.js';
+import {
   createMasterCancelPendingBookingConfirmKeyboard,
   createMasterPendingBookingCardKeyboard,
   createMasterPendingBookingsEmptyKeyboard,
@@ -43,6 +53,7 @@ import {
   rescheduleMasterPendingBooking,
 } from '../../helpers/db/db-master-bookings.helper.js';
 import { getMasterClientProfileByBooking } from '../../helpers/db/db-master-clients.helper.js';
+import { getMasterPanelSchedule } from '../../helpers/db/db-master-schedule.helper.js';
 import { dispatchNotification } from '../../helpers/notification/notification-dispatch.helper.js';
 import { handleError, ValidationError } from '../../utils/error.utils.js';
 import { loggerNotification } from '../../utils/logger/loggers-list.js';
@@ -446,12 +457,94 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
   scene.action(MASTER_PANEL_ACTION.OPEN_SCHEDULE, async (ctx) => {
     await ctx.answerCbQuery();
-    await renderSectionStub(ctx, '🕒 Мій розклад');
+    const state = getSceneState(ctx);
+    if (!state.access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const schedule = await getMasterPanelSchedule(state.access.masterId, 5);
+    await renderView(ctx, formatMasterScheduleText(schedule), createMasterScheduleKeyboard(), true);
   });
 
   scene.action(MASTER_PANEL_ACTION.OPEN_STATS, async (ctx) => {
     await ctx.answerCbQuery();
     await renderSectionStub(ctx, '📊 Моя статистика');
+  });
+
+  scene.action(MASTER_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderView(
+      ctx,
+      formatMasterScheduleConfigureDayText(),
+      createMasterScheduleSectionKeyboard(),
+      true,
+    );
+  });
+
+  scene.action(MASTER_PANEL_ACTION.SCHEDULE_SET_DAY_OFF, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderView(
+      ctx,
+      formatMasterScheduleSetDayOffText(),
+      createMasterScheduleSectionKeyboard(),
+      true,
+    );
+  });
+
+  scene.action(MASTER_PANEL_ACTION.SCHEDULE_LIST_DAYS_OFF, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    if (!state.access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const schedule = await getMasterPanelSchedule(state.access.masterId, 10);
+    await renderView(
+      ctx,
+      formatMasterScheduleDaysOffListText(schedule),
+      createMasterScheduleSectionKeyboard(),
+      true,
+    );
+  });
+
+  scene.action(MASTER_PANEL_ACTION.SCHEDULE_VACATIONS, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    if (!state.access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const schedule = await getMasterPanelSchedule(state.access.masterId, 10);
+    await renderView(
+      ctx,
+      formatMasterScheduleVacationsText(schedule),
+      createMasterScheduleSectionKeyboard(),
+      true,
+    );
+  });
+
+  scene.action(MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    if (!state.access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const schedule = await getMasterPanelSchedule(state.access.masterId, 10);
+    await renderView(
+      ctx,
+      formatMasterScheduleTemporaryHoursText(schedule),
+      createMasterScheduleSectionKeyboard(),
+      true,
+    );
   });
 
   scene.action(MASTER_PANEL_ACTION.BOOKINGS_SHOW_PENDING, async (ctx) => {
