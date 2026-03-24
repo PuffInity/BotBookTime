@@ -168,3 +168,26 @@ export const SQL_INSERT_MASTER_TEMPORARY_HOURS = `
     $9::bigint
   )
 `;
+
+export const SQL_UPSERT_MASTER_WEEKLY_HOURS = `
+  INSERT INTO master_weekly_hours (
+    master_id,
+    weekday,
+    is_working,
+    open_time,
+    close_time
+  )
+  VALUES (
+    $1::bigint,
+    $2::smallint,
+    $3::boolean,
+    $4::time,
+    $5::time
+  )
+  ON CONFLICT (master_id, weekday)
+  DO UPDATE SET
+    is_working = EXCLUDED.is_working,
+    open_time = EXCLUDED.open_time,
+    close_time = EXCLUDED.close_time
+  RETURNING weekday, is_working, open_time, close_time
+`;

@@ -9,6 +9,8 @@ export const MASTER_PANEL_ACTION = {
   OPEN_SCHEDULE: 'master-panel:open-schedule',
   OPEN_STATS: 'master-panel:open-stats',
   SCHEDULE_CONFIGURE_DAY: 'master-panel:schedule:configure-day',
+  SCHEDULE_CONFIGURE_DAY_WEEKDAY_PREFIX: 'master-panel:schedule:configure-day:weekday:',
+  SCHEDULE_CONFIGURE_DAY_OFF_PREFIX: 'master-panel:schedule:configure-day:off:',
   SCHEDULE_SET_DAY_OFF: 'master-panel:schedule:set-day-off',
   SCHEDULE_SET_DAY_OFF_CONFIRM: 'master-panel:schedule:set-day-off:confirm',
   SCHEDULE_SET_DAY_OFF_CANCEL: 'master-panel:schedule:set-day-off:cancel',
@@ -69,6 +71,10 @@ export const MASTER_PANEL_BOOKING_RESCHEDULE_TIME_ACTION_REGEX =
   /^master-panel:booking:reschedule:time:(\d{4})$/;
 export const MASTER_PANEL_BOOKING_PROFILE_ACTION_REGEX =
   /^master-panel:booking:profile:(\d+)$/;
+export const MASTER_PANEL_SCHEDULE_CONFIGURE_DAY_WEEKDAY_ACTION_REGEX =
+  /^master-panel:schedule:configure-day:weekday:([1-7])$/;
+export const MASTER_PANEL_SCHEDULE_CONFIGURE_DAY_OFF_ACTION_REGEX =
+  /^master-panel:schedule:configure-day:off:([1-7])$/;
 export const MASTER_PANEL_TEMPORARY_HOURS_DAY_ACTION_REGEX =
   /^master-panel:schedule:temporary-hours:day:([1-7])$/;
 export const MASTER_PANEL_TEMPORARY_HOURS_DAY_OFF_ACTION_REGEX =
@@ -108,4 +114,12 @@ export function makeMasterPanelTemporaryHoursDayAction(weekday: number): string 
 
 export function makeMasterPanelTemporaryHoursDayOffAction(weekday: number): string {
   return `${MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_DAY_OFF_PREFIX}${weekday}`;
+}
+
+export function makeMasterPanelScheduleConfigureDayWeekdayAction(weekday: number): string {
+  return `${MASTER_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY_WEEKDAY_PREFIX}${weekday}`;
+}
+
+export function makeMasterPanelScheduleConfigureDayOffAction(weekday: number): string {
+  return `${MASTER_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY_OFF_PREFIX}${weekday}`;
 }

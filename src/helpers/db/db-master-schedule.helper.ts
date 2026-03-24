@@ -4,6 +4,7 @@ import type {
   CreatedMasterDayOffItem,
   CreateMasterVacationInput,
   CreateMasterDayOffInput,
+  MasterUpsertedWeeklyHoursRow,
   MasterScheduleTemporaryHoursOverlapRow,
   MasterTemporaryScheduleDayInput,
   MasterInsertedDayOffRow,
@@ -18,6 +19,7 @@ import type {
   MasterScheduleTemporaryHoursRow,
   MasterScheduleVacationItem,
   MasterScheduleVacationRow,
+  UpdateMasterWeeklyDayInput,
   MasterScheduleWeeklyItem,
   MasterScheduleWeeklyRow,
 } from '../../types/db-helpers/db-master-schedule.types.js';
@@ -37,6 +39,7 @@ import {
   SQL_LIST_MASTER_UPCOMING_TEMPORARY_HOURS_FOR_PANEL,
   SQL_LIST_MASTER_UPCOMING_VACATIONS_FOR_PANEL,
   SQL_LIST_MASTER_WEEKLY_HOURS_FOR_PANEL,
+  SQL_UPSERT_MASTER_WEEKLY_HOURS,
 } from '../db-sql/db-master-schedule.sql.js';
 
 /**
@@ -276,6 +279,23 @@ function mapInsertedVacationRow(row: MasterInsertedVacationRow): CreatedMasterVa
   };
 }
 
+function normalizeWeekday(weekday: number): number {
+  if (!Number.isInteger(weekday) || weekday < 1 || weekday > 7) {
+    throw new ValidationError('Некоректний день тижня');
+  }
+  return weekday;
+}
+
+function normalizeOptionalTime(value?: string | null): string | null {
+  if (!value) return null;
+  const normalized = value.trim();
+  if (normalized.length === 0) return null;
+  if (!isValidTimeHHMM(normalized)) {
+    throw new ValidationError('Час має бути у форматі HH:MM');
+  }
+  return normalized;
+}
+
 /**
  * @summary Повертає дані для екрану "Мій розклад" у панелі майстра.
  */
@@ -330,6 +350,54 @@ export async function getMasterPanelSchedule(
       action: 'Failed to load master panel schedule',
       error,
       meta: { masterId, limit },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Оновлює тижневий графік майстра для конкретного дня.
+ */
+export async function upsertMasterWeeklyDay(
+  input: UpdateMasterWeeklyDayInput,
+): Promise<MasterScheduleWeeklyItem> {
+  const masterId = normalizePositiveBigintId(input.masterId, 'masterId');
+  const weekday = normalizeWeekday(input.weekday);
+  const isWorking = Boolean(input.isWorking);
+  const openTime = normalizeOptionalTime(input.openTime);
+  const closeTime = normalizeOptionalTime(input.closeTime);
+
+  if (isWorking) {
+    if (!openTime || !closeTime) {
+      throw new ValidationError('Для робочого дня потрібно вказати час початку і завершення');
+    }
+    if (timeToMinutes(closeTime) <= timeToMinutes(openTime)) {
+      throw new ValidationError('Час завершення має бути пізніше часу початку');
+    }
+  }
+
+  try {
+    return await withTransaction(async (client) =>
+      executeOne<MasterUpsertedWeeklyHoursRow, MasterScheduleWeeklyItem>(
+        SQL_UPSERT_MASTER_WEEKLY_HOURS,
+        [
+          masterId,
+          weekday,
+          isWorking,
+          isWorking ? openTime : null,
+          isWorking ? closeTime : null,
+        ],
+        mapWeeklyRow,
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-schedule.helper',
+      action: 'Failed to upsert master weekly day',
+      error,
+      meta: { masterId, weekday, isWorking },
     });
     throw error;
   }

@@ -8,6 +8,8 @@ import type {
 import {
   MASTER_PANEL_ACTION,
   MASTER_PANEL_BUTTON_TEXT,
+  makeMasterPanelScheduleConfigureDayOffAction,
+  makeMasterPanelScheduleConfigureDayWeekdayAction,
   makeMasterPanelTemporaryHoursDayAction,
   makeMasterPanelTemporaryHoursDayOffAction,
 } from '../../types/bot-master-panel.types.js';
@@ -215,17 +217,113 @@ export function createMasterScheduleKeyboard(): ReturnType<typeof Markup.inlineK
 }
 
 /**
- * @summary Текст екрану налаштування робочого дня (інфо-крок).
+ * @summary Текст екрану налаштування робочого дня.
  */
-export function formatMasterScheduleConfigureDayText(): string {
+export function formatMasterScheduleConfigureDayText(data: MasterPanelScheduleData): string {
+  const mapped = new Map(data.weeklyHours.map((item) => [item.weekday, item]));
+  const lines: string[] = [];
+
+  for (let weekday = 1; weekday <= 7; weekday += 1) {
+    const label = WEEKDAY_LABELS[weekday];
+    const item = mapped.get(weekday);
+    if (!item) {
+      lines.push(`${label}: не налаштовано`);
+      continue;
+    }
+    lines.push(`${label}: ${timeRangeLabel(item)}`);
+  }
+
   return (
     '👩‍🎨 Налаштування робочого дня\n' +
     '━━━━━━━━━━━━━━\n\n' +
-    'Тут змінюються години роботи для конкретного дня тижня.\n\n' +
-    'Формат часу: HH:MM–HH:MM\n' +
-    'Приклад: 10:00–19:00\n\n' +
-    'Наступним кроком підключимо редагування днів напряму в цьому розділі.'
+    `${lines.join('\n')}\n\n` +
+    'Оберіть день тижня кнопкою нижче.'
   );
+}
+
+/**
+ * @summary Клавіатура екрану налаштування робочого дня.
+ */
+export function createMasterScheduleConfigureDayKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback('Пн', makeMasterPanelScheduleConfigureDayWeekdayAction(1)),
+      Markup.button.callback('Вт', makeMasterPanelScheduleConfigureDayWeekdayAction(2)),
+      Markup.button.callback('Ср', makeMasterPanelScheduleConfigureDayWeekdayAction(3)),
+    ],
+    [
+      Markup.button.callback('Чт', makeMasterPanelScheduleConfigureDayWeekdayAction(4)),
+      Markup.button.callback('Пт', makeMasterPanelScheduleConfigureDayWeekdayAction(5)),
+      Markup.button.callback('Сб', makeMasterPanelScheduleConfigureDayWeekdayAction(6)),
+    ],
+    [Markup.button.callback('Нд', makeMasterPanelScheduleConfigureDayWeekdayAction(7))],
+    [Markup.button.callback('🔄 Оновити', MASTER_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY)],
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
+  ]);
+}
+
+/**
+ * @summary Текст кроку вводу часу початку для робочого дня.
+ */
+export function formatMasterScheduleConfigureDayFromInputText(weekday: number): string {
+  const label = WEEKDAY_LABELS[weekday] ?? `День ${weekday}`;
+  return (
+    '🕒 Налаштування робочого дня\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `📅 День: ${label}\n\n` +
+    'Введіть час початку у форматі HH:MM\n' +
+    'Приклад: 8:00'
+  );
+}
+
+/**
+ * @summary Текст кроку вводу часу завершення для робочого дня.
+ */
+export function formatMasterScheduleConfigureDayToInputText(
+  weekday: number,
+  fromTime: string,
+): string {
+  const label = WEEKDAY_LABELS[weekday] ?? `День ${weekday}`;
+  return (
+    '🕒 Налаштування робочого дня\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `📅 День: ${label}\n` +
+    `⏱ Від: ${fromTime}\n\n` +
+    'Введіть час завершення у форматі HH:MM\n' +
+    'Приклад: 17:00'
+  );
+}
+
+/**
+ * @summary Повідомлення про успішне оновлення робочого дня.
+ */
+export function formatMasterScheduleConfigureDaySuccessText(
+  weekday: number,
+  isWorking: boolean,
+  openTime: string | null,
+  closeTime: string | null,
+): string {
+  const label = WEEKDAY_LABELS[weekday] ?? `День ${weekday}`;
+  const range = !isWorking || !openTime || !closeTime ? '🚫 вихідний' : `${openTime} - ${closeTime}`;
+  return (
+    '✅ Робочий день оновлено\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `📅 ${label}: ${range}`
+  );
+}
+
+/**
+ * @summary Клавіатура для кроків вводу часу робочого дня.
+ */
+export function createMasterScheduleConfigureDayInputKeyboard(
+  weekday: number,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('🚫 Зробити вихідним', makeMasterPanelScheduleConfigureDayOffAction(weekday))],
+    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY)],
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
+  ]);
 }
 
 /**

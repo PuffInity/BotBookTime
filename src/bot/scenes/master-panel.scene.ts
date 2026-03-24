@@ -13,6 +13,8 @@ import {
   formatMasterPanelSectionStubText,
 } from '../../helpers/bot/master-panel-view.bot.js';
 import {
+  createMasterScheduleConfigureDayInputKeyboard,
+  createMasterScheduleConfigureDayKeyboard,
   createMasterScheduleTemporaryConfirmKeyboard,
   createMasterScheduleTemporaryDayInputKeyboard,
   createMasterScheduleTemporaryDaysConfigKeyboard,
@@ -25,6 +27,9 @@ import {
   createMasterScheduleSetDayOffInputKeyboard,
   createMasterScheduleSectionKeyboard,
   createMasterScheduleKeyboard,
+  formatMasterScheduleConfigureDayFromInputText,
+  formatMasterScheduleConfigureDaySuccessText,
+  formatMasterScheduleConfigureDayToInputText,
   formatMasterScheduleConfigureDayText,
   formatMasterScheduleDaysOffListText,
   formatMasterScheduleTemporaryDayFromInputText,
@@ -59,6 +64,8 @@ import {
 } from '../../helpers/bot/master-bookings-view.bot.js';
 import {
   MASTER_PANEL_ACTION,
+  MASTER_PANEL_SCHEDULE_CONFIGURE_DAY_OFF_ACTION_REGEX,
+  MASTER_PANEL_SCHEDULE_CONFIGURE_DAY_WEEKDAY_ACTION_REGEX,
   MASTER_PANEL_BOOKING_CANCEL_CONFIRM_ACTION_REGEX,
   MASTER_PANEL_BOOKING_CANCEL_REQUEST_ACTION_REGEX,
   MASTER_PANEL_BOOKING_CONFIRM_ACTION_REGEX,
@@ -82,6 +89,7 @@ import {
   createMasterTemporarySchedule,
   createMasterVacation,
   getMasterPanelSchedule,
+  upsertMasterWeeklyDay,
 } from '../../helpers/db/db-master-schedule.helper.js';
 import { dispatchNotification } from '../../helpers/notification/notification-dispatch.helper.js';
 import { handleError, ValidationError } from '../../utils/error.utils.js';
@@ -139,6 +147,13 @@ type MasterPanelSceneState = {
         days: MasterTemporaryScheduleDayInput[];
         selectedWeekday: number | null;
         pendingFromTime: string | null;
+      }
+    | null;
+  scheduleConfigureDayDraft:
+    | {
+        mode: 'awaiting_from' | 'awaiting_to';
+        weekday: number | null;
+        fromTime: string | null;
       }
     | null;
   rescheduleDraft:
@@ -334,6 +349,10 @@ function resetScheduleVacationDraft(state: MasterPanelSceneState): void {
 
 function resetScheduleTemporaryDraft(state: MasterPanelSceneState): void {
   state.scheduleTemporaryDraft = null;
+}
+
+function resetScheduleConfigureDayDraft(state: MasterPanelSceneState): void {
+  state.scheduleConfigureDayDraft = null;
 }
 
 function resetRescheduleDraft(state: MasterPanelSceneState): void {
@@ -588,6 +607,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       state.scheduleDayOffDraft = null;
       state.scheduleVacationDraft = null;
       state.scheduleTemporaryDraft = null;
+      state.scheduleConfigureDayDraft = null;
       state.rescheduleDraft = null;
 
       if (!ctx.from?.id) {
@@ -614,6 +634,99 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       }
 
       const state = getSceneState(ctx);
+      const configureDayDraft = state.scheduleConfigureDayDraft;
+      if (configureDayDraft?.mode === 'awaiting_from') {
+        try {
+          const weekday = configureDayDraft.weekday;
+          if (!weekday) {
+            throw new ValidationError('Спочатку оберіть день тижня кнопкою');
+          }
+
+          const fromTime = parseTimeInput(text);
+          state.scheduleConfigureDayDraft = {
+            mode: 'awaiting_to',
+            weekday,
+            fromTime,
+          };
+
+          await renderView(
+            ctx,
+            formatMasterScheduleConfigureDayToInputText(weekday, fromTime),
+            createMasterScheduleConfigureDayInputKeyboard(weekday),
+            false,
+          );
+        } catch (error) {
+          const err = error instanceof ValidationError
+            ? error
+            : new ValidationError('Виникла помилка при перевірці часу початку');
+
+          await ctx.reply(
+            `⚠️ ${err.message}\n\nВведіть коректний час у форматі HH:MM.`,
+            createMasterScheduleConfigureDayInputKeyboard(configureDayDraft.weekday ?? 1),
+          );
+        }
+        return;
+      }
+
+      if (configureDayDraft?.mode === 'awaiting_to') {
+        const access = state.access;
+        try {
+          const weekday = configureDayDraft.weekday;
+          const fromTime = configureDayDraft.fromTime;
+          if (!access) {
+            await denyMasterPanelAccess(ctx);
+            await ctx.scene.leave();
+            return;
+          }
+          if (!weekday || !fromTime) {
+            throw new ValidationError('Спочатку оберіть день і вкажіть час початку');
+          }
+
+          const toTime = parseTimeInput(text);
+          if (timeToMinutes(toTime) <= timeToMinutes(fromTime)) {
+            throw new ValidationError('Час завершення має бути пізніше часу початку');
+          }
+
+          const updated = await upsertMasterWeeklyDay({
+            masterId: access.masterId,
+            weekday,
+            isWorking: true,
+            openTime: fromTime,
+            closeTime: toTime,
+          });
+
+          resetScheduleConfigureDayDraft(state);
+
+          await ctx.reply(
+            formatMasterScheduleConfigureDaySuccessText(
+              updated.weekday,
+              updated.isWorking,
+              updated.openTime,
+              updated.closeTime,
+            ),
+            createMasterScheduleSectionKeyboard(),
+          );
+
+          const schedule = await getMasterPanelSchedule(access.masterId, 10);
+          await renderView(
+            ctx,
+            formatMasterScheduleConfigureDayText(schedule),
+            createMasterScheduleConfigureDayKeyboard(),
+            false,
+          );
+        } catch (error) {
+          const err = error instanceof ValidationError
+            ? error
+            : new ValidationError('Виникла помилка при перевірці часу завершення');
+
+          await ctx.reply(
+            `⚠️ ${err.message}\n\nВведіть коректний час у форматі HH:MM.`,
+            createMasterScheduleConfigureDayInputKeyboard(configureDayDraft.weekday ?? 1),
+          );
+        }
+        return;
+      }
+
       const dayOffDraft = state.scheduleDayOffDraft;
       if (dayOffDraft?.mode === 'awaiting_date') {
         try {
@@ -831,6 +944,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleDayOffDraft(state);
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
       await ctx.scene.leave();
@@ -851,6 +965,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleDayOffDraft(state);
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
     state.pendingCursor = 0;
     resetRescheduleDraft(state);
     await loadPendingIntoState(state);
@@ -863,6 +978,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleDayOffDraft(state);
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
       await ctx.scene.leave();
@@ -879,6 +995,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleDayOffDraft(state);
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
     await renderSectionStub(ctx, '📊 Моя статистика');
   });
 
@@ -888,11 +1005,89 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleDayOffDraft(state);
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
+    if (!state.access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const schedule = await getMasterPanelSchedule(state.access.masterId, 10);
     await renderView(
       ctx,
-      formatMasterScheduleConfigureDayText(),
-      createMasterScheduleSectionKeyboard(),
+      formatMasterScheduleConfigureDayText(schedule),
+      createMasterScheduleConfigureDayKeyboard(),
       true,
+    );
+  });
+
+  scene.action(MASTER_PANEL_SCHEDULE_CONFIGURE_DAY_WEEKDAY_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    resetScheduleDayOffDraft(state);
+    resetScheduleVacationDraft(state);
+    resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
+    if (!state.access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const weekday = parseWeekdayFromAction(ctx, MASTER_PANEL_SCHEDULE_CONFIGURE_DAY_WEEKDAY_ACTION_REGEX);
+    state.scheduleConfigureDayDraft = {
+      mode: 'awaiting_from',
+      weekday,
+      fromTime: null,
+    };
+
+    await renderView(
+      ctx,
+      formatMasterScheduleConfigureDayFromInputText(weekday),
+      createMasterScheduleConfigureDayInputKeyboard(weekday),
+      true,
+    );
+  });
+
+  scene.action(MASTER_PANEL_SCHEDULE_CONFIGURE_DAY_OFF_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    resetScheduleDayOffDraft(state);
+    resetScheduleVacationDraft(state);
+    resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
+
+    if (!state.access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const weekday = parseWeekdayFromAction(ctx, MASTER_PANEL_SCHEDULE_CONFIGURE_DAY_OFF_ACTION_REGEX);
+    const updated = await upsertMasterWeeklyDay({
+      masterId: state.access.masterId,
+      weekday,
+      isWorking: false,
+    });
+
+    resetScheduleConfigureDayDraft(state);
+
+    await ctx.reply(
+      formatMasterScheduleConfigureDaySuccessText(
+        updated.weekday,
+        updated.isWorking,
+        updated.openTime,
+        updated.closeTime,
+      ),
+      createMasterScheduleSectionKeyboard(),
+    );
+
+    const schedule = await getMasterPanelSchedule(state.access.masterId, 10);
+    await renderView(
+      ctx,
+      formatMasterScheduleConfigureDayText(schedule),
+      createMasterScheduleConfigureDayKeyboard(),
+      false,
     );
   });
 
@@ -901,6 +1096,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     const state = getSceneState(ctx);
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
     state.scheduleDayOffDraft = {
       mode: 'awaiting_date',
       offDate: null,
@@ -968,6 +1164,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleDayOffDraft(state);
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
 
     await ctx.reply(formatMasterScheduleSetDayOffSuccessText(successDate), createMasterScheduleSectionKeyboard());
 
@@ -981,6 +1178,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleDayOffDraft(state);
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
     const access = state.access;
 
     if (!access) {
@@ -999,6 +1197,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleDayOffDraft(state);
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
       await ctx.scene.leave();
@@ -1020,6 +1219,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleDayOffDraft(state);
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
       await ctx.scene.leave();
@@ -1117,6 +1317,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     const successTo = draft.dateToLabel;
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
 
     await ctx.reply(
       formatMasterScheduleVacationSuccessText(successFrom, successTo),
@@ -1137,6 +1338,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     const state = getSceneState(ctx);
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
     resetScheduleDayOffDraft(state);
     const access = state.access;
 
@@ -1161,6 +1363,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleDayOffDraft(state);
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
       await ctx.scene.leave();
@@ -1416,6 +1619,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     const successTo = draft.dateToLabel;
     const successDays = draft.days;
     resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
 
     await ctx.reply(
       formatMasterScheduleTemporarySuccessText(successFrom, successTo, successDays),
@@ -1435,6 +1639,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
     resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
     resetScheduleDayOffDraft(state);
     resetScheduleVacationDraft(state);
     const access = state.access;
@@ -1460,6 +1665,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleDayOffDraft(state);
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
     resetRescheduleDraft(state);
     await renderPendingQueue(ctx, true);
   });
@@ -1470,6 +1676,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleDayOffDraft(state);
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
 
     if (state.pending.length === 0) {
       await renderPendingQueue(ctx, true);
@@ -1792,6 +1999,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleDayOffDraft(state);
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
     resetRescheduleDraft(state);
     await renderRoot(ctx, true);
   });
@@ -1802,6 +2010,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleDayOffDraft(state);
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
+    resetScheduleConfigureDayDraft(state);
     resetRescheduleDraft(state);
     await ctx.scene.leave();
     await sendClientMainMenu(ctx);

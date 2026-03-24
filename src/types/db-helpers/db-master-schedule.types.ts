@@ -138,3 +138,18 @@ export type CreateMasterTemporaryScheduleInput = {
   note?: string | null;
   createdBy?: string | number | null;
 };
+
+export type MasterUpsertedWeeklyHoursRow = {
+  weekday: number;
+  is_working: boolean;
+  open_time: string | null;
+  close_time: string | null;
+};
+
+export type UpdateMasterWeeklyDayInput = {
+  masterId: string | number;
+  weekday: number;
+  isWorking: boolean;
+  openTime?: string | null;
+  closeTime?: string | null;
+};
