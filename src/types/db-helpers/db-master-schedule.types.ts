@@ -65,3 +65,30 @@ export type MasterPanelScheduleData = {
   upcomingVacations: MasterScheduleVacationItem[];
   upcomingTemporaryHours: MasterScheduleTemporaryHoursItem[];
 };
+
+export type MasterScheduleDayOffExistsRow = {
+  already_exists: boolean;
+};
+
+export type MasterScheduleActiveBookingsCountRow = {
+  active_count: number;
+};
+
+export type MasterInsertedDayOffRow = {
+  id: string;
+  off_date: Date;
+  reason: string | null;
+};
+
+export type CreateMasterDayOffInput = {
+  masterId: string | number;
+  offDate: Date | string;
+  reason?: string | null;
+  createdBy?: string | number | null;
+};
+
+export type CreatedMasterDayOffItem = {
+  id: string;
+  offDate: Date;
+  reason: string | null;
+};

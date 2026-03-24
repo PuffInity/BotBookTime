@@ -10,6 +10,8 @@ export const MASTER_PANEL_ACTION = {
   OPEN_STATS: 'master-panel:open-stats',
   SCHEDULE_CONFIGURE_DAY: 'master-panel:schedule:configure-day',
   SCHEDULE_SET_DAY_OFF: 'master-panel:schedule:set-day-off',
+  SCHEDULE_SET_DAY_OFF_CONFIRM: 'master-panel:schedule:set-day-off:confirm',
+  SCHEDULE_SET_DAY_OFF_CANCEL: 'master-panel:schedule:set-day-off:cancel',
   SCHEDULE_LIST_DAYS_OFF: 'master-panel:schedule:list-days-off',
   SCHEDULE_VACATIONS: 'master-panel:schedule:vacations',
   SCHEDULE_TEMPORARY_HOURS: 'master-panel:schedule:temporary-hours',

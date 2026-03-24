@@ -232,10 +232,12 @@ export function formatMasterScheduleSetDayOffText(): string {
   return (
     '📅 Встановити вихідний день\n' +
     '━━━━━━━━━━━━━━\n\n' +
-    'У цьому розділі майстер може додати вихідний на конкретну дату.\n\n' +
+    'Оберіть дату, на яку потрібно встановити вихідний день.\n\n' +
+    'У цей день нові записи для клієнтів будуть недоступні.\n\n' +
+    'Якщо на дату вже є активні записи, система попросить спочатку перенести або скасувати їх.\n\n' +
+    '⸻\n\n' +
     'Формат дати: ДД.ММ.РРРР\n' +
-    'Приклад: 12.03.2026\n\n' +
-    'Наступним кроком підключимо збереження цієї дати через DB flow.'
+    'Приклад: 12.03.2026'
   );
 }
 
@@ -280,5 +282,52 @@ export function createMasterScheduleSectionKeyboard(): ReturnType<typeof Markup.
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
+  ]);
+}
+
+/**
+ * @summary Текст підтвердження встановлення вихідного дня.
+ */
+export function formatMasterScheduleSetDayOffConfirmText(dateLabelValue: string): string {
+  return (
+    '⚠️ Підтвердження\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Ви впевнені, що хочете встановити вихідний день на дату:\n\n' +
+    `📅 ${dateLabelValue}\n\n` +
+    'У цей день нові записи для клієнтів будуть недоступні.'
+  );
+}
+
+/**
+ * @summary Повідомлення про успішне встановлення вихідного дня.
+ */
+export function formatMasterScheduleSetDayOffSuccessText(dateLabelValue: string): string {
+  return (
+    '✅ Вихідний день встановлено\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `📅 Дата: ${dateLabelValue}\n\n` +
+    'У цей день клієнти не зможуть записатися на процедури.'
+  );
+}
+
+/**
+ * @summary Клавіатура для кроку вводу дати вихідного дня.
+ */
+export function createMasterScheduleSetDayOffInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_SET_DAY_OFF_CANCEL)],
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура для підтвердження встановлення вихідного дня.
+ */
+export function createMasterScheduleSetDayOffConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('✅ Підтвердити', MASTER_PANEL_ACTION.SCHEDULE_SET_DAY_OFF_CONFIRM)],
+    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_SET_DAY_OFF_CANCEL)],
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
   ]);
 }
