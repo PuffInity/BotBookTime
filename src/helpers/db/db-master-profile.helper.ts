@@ -2,7 +2,10 @@ import type {
   MasterOwnProfileCertificateRow,
   MasterOwnProfileData,
   MasterOwnProfileOverviewRow,
+  MasterOwnProfileServiceManageItem,
+  MasterOwnProfileServiceManageRow,
   MasterOwnProfileServiceRow,
+  ToggleMasterOwnServiceAvailabilityInput,
   UpdateMasterOwnProfileBioInput,
   UpdateMasterOwnProfileDisplayNameInput,
   UpdateMasterOwnProfileEmailInput,
@@ -17,7 +20,9 @@ import { loggerDb } from '../../utils/logger/loggers-list.js';
 import {
   SQL_GET_MASTER_OWN_PROFILE_OVERVIEW,
   SQL_LIST_MASTER_OWN_PROFILE_CERTIFICATES,
+  SQL_LIST_MASTER_OWN_PROFILE_SERVICES_MANAGE,
   SQL_LIST_MASTER_OWN_PROFILE_SERVICES,
+  SQL_TOGGLE_MASTER_OWN_SERVICE_AVAILABILITY,
   SQL_UPDATE_MASTER_OWN_PROFILE_BIO,
   SQL_UPDATE_MASTER_OWN_PROFILE_DISPLAY_NAME,
   SQL_UPDATE_MASTER_OWN_PROFILE_EMAIL,
@@ -49,8 +54,22 @@ function normalizeMasterId(masterIdInput: string | number): string {
   return normalized;
 }
 
+function normalizeServiceId(serviceIdInput: string | number): string {
+  const normalized = String(serviceIdInput).trim();
+  if (!/^\d+$/.test(normalized) || normalized === '0') {
+    throw new ValidationError('Некоректний serviceId', { serviceId: serviceIdInput });
+  }
+  return normalized;
+}
+
 type UpdatedMasterIdRow = {
   user_id: string;
+};
+
+type ToggledMasterOwnServiceRow = {
+  service_id: string;
+  service_name: string;
+  is_active: boolean;
 };
 
 /**
@@ -330,6 +349,80 @@ export async function updateMasterOwnProfileProceduresDoneTotal(
       action: 'Failed to update master procedures done total',
       error,
       meta: { masterId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Повертає список послуг майстра для керування активністю.
+ */
+export async function listMasterOwnServicesManage(
+  masterIdInput: string | number,
+): Promise<MasterOwnProfileServiceManageItem[]> {
+  const masterId = normalizeMasterId(masterIdInput);
+
+  try {
+    return await withTransaction(async (client) =>
+      queryMany<MasterOwnProfileServiceManageRow, MasterOwnProfileServiceManageItem>(
+        SQL_LIST_MASTER_OWN_PROFILE_SERVICES_MANAGE,
+        [masterId],
+        (row) => ({
+          serviceId: row.service_id,
+          serviceName: row.service_name,
+          isActive: row.is_active,
+          durationMinutes: row.duration_minutes,
+          priceAmount: row.price_amount,
+          currencyCode: row.currency_code,
+        }),
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-profile.helper',
+      action: 'Failed to list own master services for manage',
+      error,
+      meta: { masterId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Перемикає активність послуги майстра (`master_services.is_active`).
+ */
+export async function toggleMasterOwnServiceAvailability(
+  data: ToggleMasterOwnServiceAvailabilityInput,
+): Promise<{
+  serviceId: string;
+  serviceName: string;
+  isActive: boolean;
+}> {
+  const masterId = normalizeMasterId(data.masterId);
+  const serviceId = normalizeServiceId(data.serviceId);
+
+  try {
+    return await withTransaction(async (client) =>
+      executeOne<ToggledMasterOwnServiceRow, { serviceId: string; serviceName: string; isActive: boolean }>(
+        SQL_TOGGLE_MASTER_OWN_SERVICE_AVAILABILITY,
+        [masterId, serviceId],
+        (row) => ({
+          serviceId: row.service_id,
+          serviceName: row.service_name,
+          isActive: row.is_active,
+        }),
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-profile.helper',
+      action: 'Failed to toggle own master service availability',
+      error,
+      meta: { masterId, serviceId },
     });
     throw error;
   }

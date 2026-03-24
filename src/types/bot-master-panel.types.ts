@@ -8,6 +8,7 @@ export const MASTER_PANEL_ACTION = {
   OPEN_PROFILE_SERVICES: 'master-panel:open-profile:services',
   OPEN_PROFILE_PROFESSIONAL: 'master-panel:open-profile:professional',
   OPEN_PROFILE_ADDITIONAL: 'master-panel:open-profile:additional',
+  PROFILE_SERVICE_TOGGLE_PREFIX: 'master-panel:profile:service:toggle:',
   OPEN_PROFILE_EDIT_BIO: 'master-panel:open-profile:edit:bio',
   OPEN_PROFILE_EDIT_MATERIALS: 'master-panel:open-profile:edit:materials',
   OPEN_PROFILE_EDIT_PHONE: 'master-panel:open-profile:edit:phone',
@@ -126,6 +127,8 @@ export const MASTER_PANEL_SCHEDULE_TEMPORARY_DELETE_REQUEST_ACTION_REGEX =
   /^master-panel:schedule:temporary-hours:delete:request:(\d{8}):(\d{8})$/;
 export const MASTER_PANEL_SCHEDULE_TEMPORARY_DELETE_CONFIRM_ACTION_REGEX =
   /^master-panel:schedule:temporary-hours:delete:confirm:(\d{8}):(\d{8})$/;
+export const MASTER_PANEL_PROFILE_SERVICE_TOGGLE_ACTION_REGEX =
+  /^master-panel:profile:service:toggle:(\d+)$/;
 
 export function makeMasterPanelBookingConfirmAction(appointmentId: string): string {
   return `${MASTER_PANEL_ACTION.BOOKING_CONFIRM_PREFIX}${appointmentId}`;
@@ -207,4 +210,8 @@ export function makeMasterPanelScheduleTemporaryDeleteConfirmAction(
   dateToCode: string,
 ): string {
   return `${MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_DELETE_CONFIRM_PREFIX}${dateFromCode}:${dateToCode}`;
+}
+
+export function makeMasterPanelProfileServiceToggleAction(serviceId: string): string {
+  return `${MASTER_PANEL_ACTION.PROFILE_SERVICE_TOGGLE_PREFIX}${serviceId}`;
 }

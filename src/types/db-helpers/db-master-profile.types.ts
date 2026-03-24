@@ -26,11 +26,29 @@ export type MasterOwnProfileServiceRow = {
   service_name: string;
 };
 
+export type MasterOwnProfileServiceManageRow = {
+  service_id: string;
+  service_name: string;
+  is_active: boolean;
+  duration_minutes: number;
+  price_amount: string;
+  currency_code: string;
+};
+
 export type MasterOwnProfileCertificateRow = {
   certificate_id: string;
   title: string;
   issuer: string | null;
   issued_on: Date | null;
+};
+
+export type MasterOwnProfileServiceManageItem = {
+  serviceId: string;
+  serviceName: string;
+  isActive: boolean;
+  durationMinutes: number;
+  priceAmount: string;
+  currencyCode: string;
 };
 
 export type MasterOwnProfileData = {
@@ -94,4 +112,9 @@ export type UpdateMasterOwnProfileStartedOnInput = {
 export type UpdateMasterOwnProfileProceduresDoneTotalInput = {
   masterId: string | number;
   proceduresDoneTotal: string | number;
+};
+
+export type ToggleMasterOwnServiceAvailabilityInput = {
+  masterId: string | number;
+  serviceId: string | number;
 };

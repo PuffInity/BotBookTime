@@ -21,7 +21,7 @@ import {
   createMasterOwnProfileEditInputKeyboard,
   createMasterOwnProfileMainKeyboard,
   createMasterOwnProfileProfessionalKeyboard,
-  createMasterOwnProfileSectionKeyboard,
+  createMasterOwnProfileServicesKeyboard,
   formatMasterOwnProfileEditConfirmText,
   formatMasterOwnProfileEditInputText,
   formatMasterOwnProfileEditSuccessText,
@@ -119,6 +119,7 @@ import {
   MASTER_PANEL_BOOKING_RESCHEDULE_DATE_ACTION_REGEX,
   MASTER_PANEL_BOOKING_RESCHEDULE_ACTION_REGEX,
   MASTER_PANEL_BOOKING_RESCHEDULE_TIME_ACTION_REGEX,
+  MASTER_PANEL_PROFILE_SERVICE_TOGGLE_ACTION_REGEX,
   MASTER_PANEL_TEMPORARY_HOURS_DAY_ACTION_REGEX,
   MASTER_PANEL_TEMPORARY_HOURS_DAY_OFF_ACTION_REGEX,
   makeMasterPanelScheduleDayOffDeleteConfirmAction,
@@ -135,6 +136,8 @@ import {
   updateMasterOwnProfileProceduresDoneTotal,
   updateMasterOwnProfileStartedOn,
   getMasterOwnProfile,
+  listMasterOwnServicesManage,
+  toggleMasterOwnServiceAvailability,
 } from '../../helpers/db/db-master-profile.helper.js';
 import {
   cancelMasterPendingBooking,
@@ -281,6 +284,18 @@ function parseAppointmentIdFromAction(ctx: MyContext, regex: RegExp): string {
 
   if (!matches?.[1]) {
     throw new ValidationError('Некоректна callback-дія запису майстра');
+  }
+
+  return matches[1];
+}
+
+function parseServiceIdFromAction(ctx: MyContext, regex: RegExp): string {
+  const callbackData =
+    ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
+  const matches = callbackData.match(regex);
+
+  if (!matches?.[1]) {
+    throw new ValidationError('Некоректна callback-дія керування послугою майстра');
   }
 
   return matches[1];
@@ -725,6 +740,23 @@ async function renderView(
   }
 
   await ctx.reply(text, keyboard);
+}
+
+async function safeAnswerCbQuery(ctx: MyContext, text?: string): Promise<void> {
+  if (ctx.updateType !== 'callback_query') {
+    return;
+  }
+
+  try {
+    if (text) {
+      await ctx.answerCbQuery(text);
+      return;
+    }
+
+    await ctx.answerCbQuery();
+  } catch {
+    // Ігноруємо помилку answerCbQuery (протермінований callback / вже відповіли раніше).
+  }
 }
 
 async function renderRoot(ctx: MyContext, preferEdit: boolean): Promise<void> {
@@ -1395,32 +1427,59 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
   });
 
   scene.action(MASTER_PANEL_ACTION.OPEN_PROFILE_SERVICES, async (ctx) => {
-    await ctx.answerCbQuery();
+    await safeAnswerCbQuery(ctx);
     const state = getSceneState(ctx);
     resetProfileEditDraft(state);
-    if (!state.access) {
+    const access = state.access;
+    if (!access) {
       await denyMasterPanelAccess(ctx);
       await ctx.scene.leave();
       return;
     }
 
-    const ownProfile = state.ownProfile ?? (await loadOwnProfileIntoState(state));
-    if (!ownProfile) {
-      await denyMasterPanelAccess(ctx);
-      await ctx.scene.leave();
-      return;
-    }
+    const services = await listMasterOwnServicesManage(access.masterId);
 
     await renderView(
       ctx,
-      formatMasterOwnProfileServicesText(ownProfile),
-      createMasterOwnProfileSectionKeyboard(),
+      formatMasterOwnProfileServicesText(services),
+      createMasterOwnProfileServicesKeyboard(services),
+      true,
+    );
+  });
+
+  scene.action(MASTER_PANEL_PROFILE_SERVICE_TOGGLE_ACTION_REGEX, async (ctx) => {
+    const state = getSceneState(ctx);
+    resetProfileEditDraft(state);
+    const access = state.access;
+    if (!access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const serviceId = parseServiceIdFromAction(ctx, MASTER_PANEL_PROFILE_SERVICE_TOGGLE_ACTION_REGEX);
+    const toggled = await toggleMasterOwnServiceAvailability({
+      masterId: access.masterId,
+      serviceId,
+    });
+    const services = await listMasterOwnServicesManage(access.masterId);
+
+    await safeAnswerCbQuery(
+      ctx,
+      toggled.isActive
+        ? `Послуга "${toggled.serviceName}" увімкнена`
+        : `Послуга "${toggled.serviceName}" вимкнена`,
+    );
+    await renderView(
+      ctx,
+      formatMasterOwnProfileServicesText(services),
+      createMasterOwnProfileServicesKeyboard(services),
       true,
     );
   });
 
   scene.action(MASTER_PANEL_ACTION.OPEN_PROFILE_PROFESSIONAL, async (ctx) => {
-    await ctx.answerCbQuery();
+    await safeAnswerCbQuery(ctx);
     const state = getSceneState(ctx);
     resetProfileEditDraft(state);
     if (!state.access) {
@@ -1445,7 +1504,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
   });
 
   scene.action(MASTER_PANEL_ACTION.OPEN_PROFILE_ADDITIONAL, async (ctx) => {
-    await ctx.answerCbQuery();
+    await safeAnswerCbQuery(ctx);
     const state = getSceneState(ctx);
     resetProfileEditDraft(state);
     if (!state.access) {

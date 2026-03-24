@@ -41,6 +41,26 @@ export const SQL_LIST_MASTER_OWN_PROFILE_SERVICES = `
   ORDER BY s.name ASC
 `;
 
+export const SQL_LIST_MASTER_OWN_PROFILE_SERVICES_MANAGE = `
+  SELECT
+    s.id AS service_id,
+    s.name AS service_name,
+    ms.is_active,
+    COALESCE(ms.custom_duration_minutes, s.duration_minutes) AS duration_minutes,
+    COALESCE(ms.custom_price, s.base_price)::text AS price_amount,
+    s.currency_code
+  FROM master_services ms
+  INNER JOIN services s
+    ON s.id = ms.service_id
+   AND s.studio_id = ms.studio_id
+  INNER JOIN masters m
+    ON m.user_id = ms.master_id
+   AND m.studio_id = ms.studio_id
+  WHERE m.user_id = $1::bigint
+    AND s.is_active = TRUE
+  ORDER BY ms.is_active DESC, s.name ASC
+`;
+
 export const SQL_LIST_MASTER_OWN_PROFILE_CERTIFICATES = `
   SELECT
     mc.id AS certificate_id,
@@ -106,4 +126,19 @@ export const SQL_UPDATE_MASTER_OWN_PROFILE_PROCEDURES_DONE_TOTAL = `
       updated_at = now()
   WHERE user_id = $1::bigint
   RETURNING user_id
+`;
+
+export const SQL_TOGGLE_MASTER_OWN_SERVICE_AVAILABILITY = `
+  UPDATE master_services ms
+  SET is_active = NOT ms.is_active,
+      updated_at = now()
+  FROM masters m, services s
+  WHERE m.user_id = $1::bigint
+    AND ms.master_id = m.user_id
+    AND ms.studio_id = m.studio_id
+    AND ms.service_id = $2::bigint
+    AND s.id = ms.service_id
+    AND s.studio_id = ms.studio_id
+    AND s.is_active = TRUE
+  RETURNING ms.service_id, s.name AS service_name, ms.is_active
 `;

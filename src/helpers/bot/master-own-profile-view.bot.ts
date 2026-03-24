@@ -1,15 +1,27 @@
 import { Markup } from 'telegraf';
-import type { MasterOwnProfileData } from '../../types/db-helpers/db-master-profile.types.js';
-import { MASTER_PANEL_ACTION } from '../../types/bot-master-panel.types.js';
+import type {
+  MasterOwnProfileData,
+  MasterOwnProfileServiceManageItem,
+} from '../../types/db-helpers/db-master-profile.types.js';
+import {
+  MASTER_PANEL_ACTION,
+  makeMasterPanelProfileServiceToggleAction,
+} from '../../types/bot-master-panel.types.js';
 
 /**
  * @file master-own-profile-view.bot.ts
  * @summary UI/helper-и блоку "Мій профіль майстра" у master panel.
  */
 
-function formatDate(value: Date | null): string {
+function formatDate(value: Date | string | null): string {
   if (!value) return 'Не вказано';
-  return value.toLocaleDateString('uk-UA');
+
+  const parsed = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return 'Не вказано';
+  }
+
+  return parsed.toLocaleDateString('uk-UA');
 }
 
 function telegramLabel(username: string | null): string {
@@ -73,16 +85,25 @@ export function formatMasterOwnProfileMainText(profile: MasterOwnProfileData): s
 /**
  * @summary Екран "Керування послугами" (навігаційний блок).
  */
-export function formatMasterOwnProfileServicesText(profile: MasterOwnProfileData): string {
+export function formatMasterOwnProfileServicesText(services: MasterOwnProfileServiceManageItem[]): string {
   const servicesText =
-    profile.services.length > 0
-      ? profile.services.map((service, index) => `${index + 1}️⃣ ${service.serviceName}`).join('\n')
+    services.length > 0
+      ? services
+          .map((service, index) => {
+            const status = service.isActive ? '🟢 Активна' : '⚪️ Вимкнена';
+            return (
+              `${index + 1}️⃣ ${service.serviceName}\n` +
+              `   • ${service.durationMinutes} хв • ${service.priceAmount} ${service.currencyCode}\n` +
+              `   • ${status}`
+            );
+          })
+          .join('\n\n')
       : 'Послуги поки не додані.';
 
   return (
     '💼 Керування послугами\n' +
     '━━━━━━━━━━━━━━\n\n' +
-    'Поточні активні послуги майстра:\n\n' +
+    'Натисніть на послугу нижче, щоб увімкнути або вимкнути її для запису.\n\n' +
     `${servicesText}`
   );
 }
@@ -147,6 +168,29 @@ export function createMasterOwnProfileMainKeyboard(): ReturnType<typeof Markup.i
  */
 export function createMasterOwnProfileSectionKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
+    [Markup.button.callback('👤 До профілю майстра', MASTER_PANEL_ACTION.OPEN_PROFILE)],
+    [Markup.button.callback('⬅️ До панелі майстра', MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура екрана "Керування послугами" з діями увімкнення/вимкнення.
+ */
+export function createMasterOwnProfileServicesKeyboard(
+  services: MasterOwnProfileServiceManageItem[],
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const rows = services.map((service) => {
+    const status = service.isActive ? '🟢' : '⚪️';
+    return [
+      Markup.button.callback(
+        `${status} ${service.serviceName}`,
+        makeMasterPanelProfileServiceToggleAction(service.serviceId),
+      ),
+    ];
+  });
+
+  return Markup.inlineKeyboard([
+    ...rows,
     [Markup.button.callback('👤 До профілю майстра', MASTER_PANEL_ACTION.OPEN_PROFILE)],
     [Markup.button.callback('⬅️ До панелі майстра', MASTER_PANEL_ACTION.BACK_TO_PANEL)],
   ]);
