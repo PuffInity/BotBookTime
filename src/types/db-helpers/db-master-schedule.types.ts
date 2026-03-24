@@ -78,6 +78,10 @@ export type MasterScheduleVacationOverlapRow = {
   already_exists: boolean;
 };
 
+export type MasterScheduleTemporaryHoursOverlapRow = {
+  already_exists: boolean;
+};
+
 export type MasterInsertedDayOffRow = {
   id: string;
   off_date: Date;
@@ -117,4 +121,20 @@ export type CreatedMasterVacationItem = {
   dateFrom: Date;
   dateTo: Date;
   reason: string | null;
+};
+
+export type MasterTemporaryScheduleDayInput = {
+  weekday: number;
+  isWorking: boolean;
+  openTime: string | null;
+  closeTime: string | null;
+};
+
+export type CreateMasterTemporaryScheduleInput = {
+  masterId: string | number;
+  dateFrom: Date | string;
+  dateTo: Date | string;
+  days: MasterTemporaryScheduleDayInput[];
+  note?: string | null;
+  createdBy?: string | number | null;
 };

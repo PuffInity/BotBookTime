@@ -133,3 +133,38 @@ export const SQL_INSERT_MASTER_VACATION = `
   )
   RETURNING id, date_from, date_to, reason
 `;
+
+export const SQL_CHECK_MASTER_TEMPORARY_HOURS_OVERLAP = `
+  SELECT EXISTS (
+    SELECT 1
+    FROM master_temporary_hours
+    WHERE master_id = $1::bigint
+      AND daterange(date_from, date_to + 1, '[)')
+          && daterange($2::date, $3::date + 1, '[)')
+  ) AS already_exists
+`;
+
+export const SQL_INSERT_MASTER_TEMPORARY_HOURS = `
+  INSERT INTO master_temporary_hours (
+    master_id,
+    date_from,
+    date_to,
+    weekday,
+    is_working,
+    open_time,
+    close_time,
+    note,
+    created_by
+  )
+  VALUES (
+    $1::bigint,
+    $2::date,
+    $3::date,
+    $4::smallint,
+    $5::boolean,
+    $6::time,
+    $7::time,
+    $8,
+    $9::bigint
+  )
+`;

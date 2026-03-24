@@ -1,12 +1,15 @@
 import { Markup } from 'telegraf';
 import type {
   MasterPanelScheduleData,
+  MasterTemporaryScheduleDayInput,
   MasterScheduleTemporaryHoursItem,
   MasterScheduleWeeklyItem,
 } from '../../types/db-helpers/db-master-schedule.types.js';
 import {
   MASTER_PANEL_ACTION,
   MASTER_PANEL_BUTTON_TEXT,
+  makeMasterPanelTemporaryHoursDayAction,
+  makeMasterPanelTemporaryHoursDayOffAction,
 } from '../../types/bot-master-panel.types.js';
 
 /**
@@ -271,7 +274,8 @@ export function formatMasterScheduleTemporaryHoursText(data: MasterPanelSchedule
   return (
     '🕒 Тимчасові зміни графіку\n' +
     '━━━━━━━━━━━━━━\n\n' +
-    `${formatTemporaryHoursList(data)}`
+    `${formatTemporaryHoursList(data)}\n\n` +
+    'Кнопками нижче можна встановити новий період тимчасового графіку.'
   );
 }
 
@@ -293,6 +297,18 @@ export function createMasterScheduleVacationsKeyboard(): ReturnType<typeof Marku
   return Markup.inlineKeyboard([
     [Markup.button.callback('➕ Встановити період відпустки', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS_CREATE)],
     [Markup.button.callback('🔄 Оновити список', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS)],
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура секції "Тимчасова зміна графіку".
+ */
+export function createMasterScheduleTemporaryHoursKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('➕ Встановити тимчасовий графік', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CREATE)],
+    [Markup.button.callback('🔄 Оновити список', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS)],
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
   ]);
@@ -409,5 +425,230 @@ export function createMasterScheduleVacationConfirmKeyboard(): ReturnType<typeof
     [Markup.button.callback('✅ Підтвердити', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS_CONFIRM)],
     [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS_CANCEL)],
     [Markup.button.callback('⬅️ До відпустки', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS)],
+  ]);
+}
+
+/**
+ * @summary Текст старту flow встановлення тимчасового графіку.
+ */
+export function formatMasterScheduleTemporarySetPeriodText(): string {
+  return (
+    '🕒 Встановити тимчасовий графік\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Вкажіть період дії у форматі:\n' +
+    'ДД.ММ.РРРР - ДД.ММ.РРРР\n\n' +
+    'Приклад: 10.03.2026 - 16.03.2026\n\n' +
+    'Мінімальна тривалість періоду: 7 календарних днів.'
+  );
+}
+
+const TEMPORARY_WEEKDAY_LABELS: Record<number, string> = {
+  1: 'Пн',
+  2: 'Вт',
+  3: 'Ср',
+  4: 'Чт',
+  5: 'Пт',
+  6: 'Сб',
+  7: 'Нд',
+};
+
+type TemporaryPreviewDay = {
+  weekday: number;
+  isWorking: boolean;
+  openTime: string | null;
+  closeTime: string | null;
+};
+
+function formatTemporaryPreviewLines(days: TemporaryPreviewDay[]): string {
+  return days
+    .sort((a, b) => a.weekday - b.weekday)
+    .map((day) => {
+      const label = TEMPORARY_WEEKDAY_LABELS[day.weekday] ?? `День ${day.weekday}`;
+      if (!day.isWorking || !day.openTime || !day.closeTime) {
+        return `${label}: вихідний`;
+      }
+      return `${label}: ${day.openTime} - ${day.closeTime}`;
+    })
+    .join('\n');
+}
+
+function formatTemporaryDayState(day: MasterTemporaryScheduleDayInput | null): string {
+  if (!day) {
+    return 'не налаштовано';
+  }
+  if (!day.isWorking || !day.openTime || !day.closeTime) {
+    return 'вихідний';
+  }
+  return `${day.openTime} - ${day.closeTime}`;
+}
+
+/**
+ * @summary Текст кроку вибору днів для тимчасового графіку.
+ */
+export function formatMasterScheduleTemporaryDaysConfigText(
+  dateFromLabel: string,
+  dateToLabel: string,
+  days: MasterTemporaryScheduleDayInput[],
+): string {
+  const byWeekday = new Map<number, MasterTemporaryScheduleDayInput>(
+    days.map((day) => [day.weekday, day]),
+  );
+
+  const lines: string[] = [];
+  for (let weekday = 1; weekday <= 7; weekday += 1) {
+    const label = TEMPORARY_WEEKDAY_LABELS[weekday];
+    const day = byWeekday.get(weekday) ?? null;
+    lines.push(`${label}: ${formatTemporaryDayState(day)}`);
+  }
+
+  const configuredDays = days.length;
+
+  return (
+    '🕒 Налаштування тимчасового графіку\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `📅 Період: ${dateFromLabel} - ${dateToLabel}\n` +
+    `✅ Налаштовано днів: ${configuredDays}/7\n\n` +
+    `${lines.join('\n')}\n\n` +
+    'Оберіть день кнопкою нижче, потім введіть час "від" та "до".'
+  );
+}
+
+/**
+ * @summary Текст кроку вводу часу початку для обраного дня.
+ */
+export function formatMasterScheduleTemporaryDayFromInputText(weekday: number): string {
+  const label = TEMPORARY_WEEKDAY_LABELS[weekday] ?? `День ${weekday}`;
+  return (
+    '🕒 Налаштування дня\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `📅 День: ${label}\n\n` +
+    'Введіть час початку у форматі HH:MM\n' +
+    'Приклад: 10:00'
+  );
+}
+
+/**
+ * @summary Текст кроку вводу часу завершення для обраного дня.
+ */
+export function formatMasterScheduleTemporaryDayToInputText(
+  weekday: number,
+  fromTime: string,
+): string {
+  const label = TEMPORARY_WEEKDAY_LABELS[weekday] ?? `День ${weekday}`;
+  return (
+    '🕒 Налаштування дня\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `📅 День: ${label}\n` +
+    `⏱ Від: ${fromTime}\n\n` +
+    'Введіть час завершення у форматі HH:MM\n' +
+    'Приклад: 18:00'
+  );
+}
+
+/**
+ * @summary Текст підтвердження встановлення тимчасового графіку.
+ */
+export function formatMasterScheduleTemporaryConfirmText(
+  dateFromLabel: string,
+  dateToLabel: string,
+  days: TemporaryPreviewDay[],
+): string {
+  return (
+    '⚠️ Підтвердження\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `📅 Період: ${dateFromLabel} - ${dateToLabel}\n\n` +
+    '🕒 Новий тимчасовий графік:\n' +
+    `${formatTemporaryPreviewLines(days)}\n\n` +
+    'Після підтвердження цей графік буде діяти лише у вказаний період.'
+  );
+}
+
+/**
+ * @summary Повідомлення про успішне встановлення тимчасового графіку.
+ */
+export function formatMasterScheduleTemporarySuccessText(
+  dateFromLabel: string,
+  dateToLabel: string,
+  days: TemporaryPreviewDay[],
+): string {
+  return (
+    '✅ Тимчасовий графік успішно встановлено\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `📅 Період дії: ${dateFromLabel} - ${dateToLabel}\n\n` +
+    '🕒 Графік:\n' +
+    `${formatTemporaryPreviewLines(days)}`
+  );
+}
+
+/**
+ * @summary Клавіатура кроку вводу періоду тимчасового графіку.
+ */
+export function createMasterScheduleTemporaryPeriodInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CANCEL)],
+    [Markup.button.callback('⬅️ До тимчасового графіку', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS)],
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура кроку налаштування днів тижня для тимчасового графіку.
+ */
+export function createMasterScheduleTemporaryDaysConfigKeyboard(
+  days: MasterTemporaryScheduleDayInput[],
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const byWeekday = new Map<number, MasterTemporaryScheduleDayInput>(
+    days.map((day) => [day.weekday, day]),
+  );
+
+  const rows = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7],
+  ];
+
+  const dayRows = rows.map((row) =>
+    row.map((weekday) => {
+      const label = TEMPORARY_WEEKDAY_LABELS[weekday];
+      const day = byWeekday.get(weekday);
+      const icon = day ? '✅' : '⚪';
+      return Markup.button.callback(
+        `${icon} ${label}`,
+        makeMasterPanelTemporaryHoursDayAction(weekday),
+      );
+    }),
+  );
+
+  return Markup.inlineKeyboard([
+    ...dayRows,
+    [Markup.button.callback('✅ Підтвердити графік', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CONFIRM)],
+    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CANCEL)],
+    [Markup.button.callback('⬅️ До тимчасового графіку', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS)],
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура кроку вводу часу для обраного дня.
+ */
+export function createMasterScheduleTemporaryDayInputKeyboard(
+  weekday: number,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('🚫 Зробити вихідним', makeMasterPanelTemporaryHoursDayOffAction(weekday))],
+    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CANCEL)],
+    [Markup.button.callback('⬅️ До налаштування днів', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CREATE)],
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура підтвердження тимчасового графіку.
+ */
+export function createMasterScheduleTemporaryConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('✅ Підтвердити', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CONFIRM)],
+    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CANCEL)],
+    [Markup.button.callback('⬅️ До налаштування днів', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CREATE)],
   ]);
 }

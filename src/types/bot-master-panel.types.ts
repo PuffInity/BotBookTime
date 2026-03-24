@@ -18,6 +18,11 @@ export const MASTER_PANEL_ACTION = {
   SCHEDULE_VACATIONS_CONFIRM: 'master-panel:schedule:vacations:confirm',
   SCHEDULE_VACATIONS_CANCEL: 'master-panel:schedule:vacations:cancel',
   SCHEDULE_TEMPORARY_HOURS: 'master-panel:schedule:temporary-hours',
+  SCHEDULE_TEMPORARY_HOURS_CREATE: 'master-panel:schedule:temporary-hours:create',
+  SCHEDULE_TEMPORARY_HOURS_CONFIRM: 'master-panel:schedule:temporary-hours:confirm',
+  SCHEDULE_TEMPORARY_HOURS_CANCEL: 'master-panel:schedule:temporary-hours:cancel',
+  SCHEDULE_TEMPORARY_HOURS_DAY_PREFIX: 'master-panel:schedule:temporary-hours:day:',
+  SCHEDULE_TEMPORARY_HOURS_DAY_OFF_PREFIX: 'master-panel:schedule:temporary-hours:day-off:',
   SCHEDULE_BACK: 'master-panel:schedule:back',
   BOOKINGS_SHOW_PENDING: 'master-panel:bookings:show-pending',
   BOOKINGS_NEXT_PENDING: 'master-panel:bookings:next-pending',
@@ -64,6 +69,10 @@ export const MASTER_PANEL_BOOKING_RESCHEDULE_TIME_ACTION_REGEX =
   /^master-panel:booking:reschedule:time:(\d{4})$/;
 export const MASTER_PANEL_BOOKING_PROFILE_ACTION_REGEX =
   /^master-panel:booking:profile:(\d+)$/;
+export const MASTER_PANEL_TEMPORARY_HOURS_DAY_ACTION_REGEX =
+  /^master-panel:schedule:temporary-hours:day:([1-7])$/;
+export const MASTER_PANEL_TEMPORARY_HOURS_DAY_OFF_ACTION_REGEX =
+  /^master-panel:schedule:temporary-hours:day-off:([1-7])$/;
 
 export function makeMasterPanelBookingConfirmAction(appointmentId: string): string {
   return `${MASTER_PANEL_ACTION.BOOKING_CONFIRM_PREFIX}${appointmentId}`;
@@ -91,4 +100,12 @@ export function makeMasterPanelBookingRescheduleTimeAction(timeCode: string): st
 
 export function makeMasterPanelBookingProfileAction(appointmentId: string): string {
   return `${MASTER_PANEL_ACTION.BOOKING_PROFILE_PREFIX}${appointmentId}`;
+}
+
+export function makeMasterPanelTemporaryHoursDayAction(weekday: number): string {
+  return `${MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_DAY_PREFIX}${weekday}`;
+}
+
+export function makeMasterPanelTemporaryHoursDayOffAction(weekday: number): string {
+  return `${MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_DAY_OFF_PREFIX}${weekday}`;
 }

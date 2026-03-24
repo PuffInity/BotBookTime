@@ -1,8 +1,11 @@
 import type {
+  CreateMasterTemporaryScheduleInput,
   CreatedMasterVacationItem,
   CreatedMasterDayOffItem,
   CreateMasterVacationInput,
   CreateMasterDayOffInput,
+  MasterScheduleTemporaryHoursOverlapRow,
+  MasterTemporaryScheduleDayInput,
   MasterInsertedDayOffRow,
   MasterInsertedVacationRow,
   MasterPanelScheduleData,
@@ -18,15 +21,17 @@ import type {
   MasterScheduleWeeklyItem,
   MasterScheduleWeeklyRow,
 } from '../../types/db-helpers/db-master-schedule.types.js';
-import { executeOne, queryMany, queryOne, withTransaction } from '../db.helper.js';
+import { executeOne, executeVoid, queryMany, queryOne, withTransaction } from '../db.helper.js';
 import { ValidationError, handleError } from '../../utils/error.utils.js';
 import { loggerDb } from '../../utils/logger/loggers-list.js';
 import {
+  SQL_CHECK_MASTER_TEMPORARY_HOURS_OVERLAP,
   SQL_CHECK_MASTER_VACATION_OVERLAP,
   SQL_CHECK_MASTER_DAY_OFF_EXISTS_FOR_DATE,
   SQL_COUNT_MASTER_ACTIVE_BOOKINGS_IN_VACATION_RANGE,
   SQL_COUNT_MASTER_ACTIVE_BOOKINGS_ON_DAY_OFF_DATE,
   SQL_INSERT_MASTER_DAY_OFF,
+  SQL_INSERT_MASTER_TEMPORARY_HOURS,
   SQL_INSERT_MASTER_VACATION,
   SQL_LIST_MASTER_UPCOMING_DAYS_OFF_FOR_PANEL,
   SQL_LIST_MASTER_UPCOMING_TEMPORARY_HOURS_FOR_PANEL,
@@ -41,6 +46,8 @@ import {
 
 const DEFAULT_EXCEPTIONS_LIMIT = 5;
 const MAX_EXCEPTIONS_LIMIT = 20;
+const MIN_TEMPORARY_SCHEDULE_DAYS = 7;
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 function normalizePositiveBigintId(value: string | number, fieldName: string): string {
   const normalized = String(value).trim();
@@ -135,6 +142,83 @@ function normalizeVacationDateInput(value: Date | string, fieldName: 'dateFrom' 
   }
 
   throw new ValidationError('Некоректна дата відпустки', { [fieldName]: value });
+}
+
+function normalizeTemporaryDateInput(value: Date | string, fieldName: 'dateFrom' | 'dateTo'): Date {
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) {
+      throw new ValidationError('Некоректна дата тимчасового графіку', { [fieldName]: value });
+    }
+    return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+  }
+
+  if (typeof value === 'string') {
+    try {
+      return parseSqlDate(value);
+    } catch {
+      throw new ValidationError('Некоректна дата тимчасового графіку', { [fieldName]: value });
+    }
+  }
+
+  throw new ValidationError('Некоректна дата тимчасового графіку', { [fieldName]: value });
+}
+
+function isValidTimeHHMM(value: string): boolean {
+  return /^(?:\d|[01]\d|2[0-3]):[0-5]\d$/.test(value);
+}
+
+function timeToMinutes(value: string): number {
+  const [hour, minute] = value.split(':').map(Number);
+  return hour * 60 + minute;
+}
+
+function normalizeTemporaryDays(days: MasterTemporaryScheduleDayInput[]): MasterTemporaryScheduleDayInput[] {
+  if (!Array.isArray(days) || days.length !== 7) {
+    throw new ValidationError('Тимчасовий графік має містити всі 7 днів тижня');
+  }
+
+  const byWeekday = new Map<number, MasterTemporaryScheduleDayInput>();
+  for (const day of days) {
+    if (!Number.isInteger(day.weekday) || day.weekday < 1 || day.weekday > 7) {
+      throw new ValidationError('Некоректний день тижня у тимчасовому графіку');
+    }
+    if (byWeekday.has(day.weekday)) {
+      throw new ValidationError('Дубльований день тижня у тимчасовому графіку');
+    }
+
+    if (!day.isWorking) {
+      byWeekday.set(day.weekday, {
+        weekday: day.weekday,
+        isWorking: false,
+        openTime: null,
+        closeTime: null,
+      });
+      continue;
+    }
+
+    if (!day.openTime || !day.closeTime || !isValidTimeHHMM(day.openTime) || !isValidTimeHHMM(day.closeTime)) {
+      throw new ValidationError('Некоректний час у тимчасовому графіку');
+    }
+
+    if (timeToMinutes(day.closeTime) <= timeToMinutes(day.openTime)) {
+      throw new ValidationError('Час завершення має бути пізніше часу початку');
+    }
+
+    byWeekday.set(day.weekday, {
+      weekday: day.weekday,
+      isWorking: true,
+      openTime: day.openTime,
+      closeTime: day.closeTime,
+    });
+  }
+
+  for (let weekday = 1; weekday <= 7; weekday += 1) {
+    if (!byWeekday.has(weekday)) {
+      throw new ValidationError('Тимчасовий графік має містити всі 7 днів тижня');
+    }
+  }
+
+  return Array.from(byWeekday.values()).sort((a, b) => a.weekday - b.weekday);
 }
 
 function mapWeeklyRow(row: MasterScheduleWeeklyRow): MasterScheduleWeeklyItem {
@@ -377,6 +461,95 @@ export async function createMasterVacation(
       logger: loggerDb,
       scope: 'db-master-schedule.helper',
       action: 'Failed to create master vacation',
+      error,
+      meta: { masterId, dateFrom: sqlDateFrom, dateTo: sqlDateTo, createdBy },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Створює тимчасову зміну графіка для періоду (7 днів тижня).
+ */
+export async function createMasterTemporarySchedule(
+  input: CreateMasterTemporaryScheduleInput,
+): Promise<void> {
+  const masterId = normalizePositiveBigintId(input.masterId, 'masterId');
+  const createdBy = normalizeOptionalCreatorId(input.createdBy);
+  const note = normalizeReason(input.note);
+  const dateFrom = normalizeTemporaryDateInput(input.dateFrom, 'dateFrom');
+  const dateTo = normalizeTemporaryDateInput(input.dateTo, 'dateTo');
+  const normalizedDays = normalizeTemporaryDays(input.days);
+  const today = new Date();
+  const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+  if (dateFrom.getTime() < todayOnly.getTime()) {
+    throw new ValidationError('Не можна встановити тимчасовий графік, що починається у минулому');
+  }
+
+  if (dateTo.getTime() < dateFrom.getTime()) {
+    throw new ValidationError('Дата завершення періоду не може бути раніше дати початку');
+  }
+
+  const rangeDays = Math.floor((dateTo.getTime() - dateFrom.getTime()) / DAY_IN_MS) + 1;
+  if (rangeDays < MIN_TEMPORARY_SCHEDULE_DAYS) {
+    throw new ValidationError(
+      `Тимчасовий графік можна встановити лише на період від ${MIN_TEMPORARY_SCHEDULE_DAYS} днів`,
+    );
+  }
+
+  const sqlDateFrom = toSqlDate(dateFrom);
+  const sqlDateTo = toSqlDate(dateTo);
+
+  try {
+    await withTransaction(async (client) => {
+      const hasOverlap = await queryOne<MasterScheduleTemporaryHoursOverlapRow, boolean>(
+        SQL_CHECK_MASTER_TEMPORARY_HOURS_OVERLAP,
+        [masterId, sqlDateFrom, sqlDateTo],
+        (row) => row.already_exists,
+        client,
+      );
+
+      if (hasOverlap) {
+        throw new ValidationError('У цьому періоді вже є встановлена тимчасова зміна графіку');
+      }
+
+      const activeBookingsCount = await queryOne<MasterScheduleActiveBookingsCountRow, number>(
+        SQL_COUNT_MASTER_ACTIVE_BOOKINGS_IN_VACATION_RANGE,
+        [masterId, sqlDateFrom, sqlDateTo],
+        (row) => row.active_count,
+        client,
+      );
+
+      if ((activeBookingsCount ?? 0) > 0) {
+        throw new ValidationError(
+          'У цьому періоді є активні записи. Спочатку перенесіть або скасуйте їх.',
+        );
+      }
+
+      for (const day of normalizedDays) {
+        await executeVoid(
+          SQL_INSERT_MASTER_TEMPORARY_HOURS,
+          [
+            masterId,
+            sqlDateFrom,
+            sqlDateTo,
+            day.weekday,
+            day.isWorking,
+            day.openTime,
+            day.closeTime,
+            note,
+            createdBy,
+          ],
+          client,
+        );
+      }
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-schedule.helper',
+      action: 'Failed to create master temporary schedule',
       error,
       meta: { masterId, dateFrom: sqlDateFrom, dateTo: sqlDateTo, createdBy },
     });
