@@ -29,6 +29,27 @@ export function formatMasterPanelRootText(access: MasterPanelAccess): string {
 }
 
 /**
+ * @summary Текст екрану "Мій профіль" у панелі майстра.
+ */
+export function formatMasterPanelOwnProfileText(access: MasterPanelAccess): string {
+  const fullName = `${access.firstName}${access.lastName ? ` ${access.lastName}` : ''}`.trim();
+  const statusLabel = access.isBookable
+    ? '🟢 Доступний для запису'
+    : '🟠 Тимчасово недоступний для запису';
+
+  return (
+    '👤 Мій профіль\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `🪪 ID майстра: ${access.masterId}\n` +
+    `🏢 ID студії: ${access.studioId}\n\n` +
+    `👩‍🎨 Імʼя в профілі: ${access.displayName}\n` +
+    `🧾 Повне імʼя: ${fullName}\n\n` +
+    `📌 Поточний статус: ${statusLabel}\n\n` +
+    'Ці дані використовуються для роботи панелі майстра та записів клієнтів.'
+  );
+}
+
+/**
  * @summary Inline-клавіатура головного екрану панелі майстра.
  */
 export function createMasterPanelRootKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
@@ -41,6 +62,16 @@ export function createMasterPanelRootKeyboard(): ReturnType<typeof Markup.inline
       Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE, MASTER_PANEL_ACTION.OPEN_SCHEDULE),
       Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.STATS, MASTER_PANEL_ACTION.OPEN_STATS),
     ],
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура екрану "Мій профіль".
+ */
+export function createMasterPanelOwnProfileKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
   ]);
 }

@@ -4,8 +4,10 @@ import type { MasterPanelAccess } from '../../types/db-helpers/db-master-panel.t
 import type { MasterPendingBookingItem } from '../../types/db-helpers/db-master-bookings.types.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
 import {
+  createMasterPanelOwnProfileKeyboard,
   createMasterPanelRootKeyboard,
   createMasterPanelSectionStubKeyboard,
+  formatMasterPanelOwnProfileText,
   formatMasterPanelRootText,
   formatMasterPanelSectionStubText,
 } from '../../helpers/bot/master-panel-view.bot.js';
@@ -418,7 +420,19 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
   scene.action(MASTER_PANEL_ACTION.OPEN_PROFILE, async (ctx) => {
     await ctx.answerCbQuery();
-    await renderSectionStub(ctx, '👤 Мій профіль');
+    const state = getSceneState(ctx);
+    if (!state.access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    await renderView(
+      ctx,
+      formatMasterPanelOwnProfileText(state.access),
+      createMasterPanelOwnProfileKeyboard(),
+      true,
+    );
   });
 
   scene.action(MASTER_PANEL_ACTION.OPEN_BOOKINGS, async (ctx) => {
