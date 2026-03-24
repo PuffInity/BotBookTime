@@ -212,7 +212,6 @@ export function createMasterScheduleKeyboard(): ReturnType<typeof Markup.inlineK
     ],
     [Markup.button.callback('🔄 Оновити розклад', MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
   ]);
 }
 
@@ -259,7 +258,6 @@ export function createMasterScheduleConfigureDayKeyboard(): ReturnType<typeof Ma
     [Markup.button.callback('Нд', makeMasterPanelScheduleConfigureDayWeekdayAction(7))],
     [Markup.button.callback('🔄 Оновити', MASTER_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY)],
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
   ]);
 }
 
@@ -322,7 +320,6 @@ export function createMasterScheduleConfigureDayInputKeyboard(
   return Markup.inlineKeyboard([
     [Markup.button.callback('🚫 Зробити вихідним', makeMasterPanelScheduleConfigureDayOffAction(weekday))],
     [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
   ]);
 }
 
@@ -384,7 +381,6 @@ export function createMasterScheduleSectionKeyboard(): ReturnType<typeof Markup.
   return Markup.inlineKeyboard([
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
   ]);
 }
 
@@ -396,7 +392,6 @@ export function createMasterScheduleVacationsKeyboard(): ReturnType<typeof Marku
     [Markup.button.callback('➕ Встановити період відпустки', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS_CREATE)],
     [Markup.button.callback('🔄 Оновити список', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS)],
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
   ]);
 }
 
@@ -408,7 +403,6 @@ export function createMasterScheduleTemporaryHoursKeyboard(): ReturnType<typeof 
     [Markup.button.callback('➕ Встановити тимчасовий графік', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CREATE)],
     [Markup.button.callback('🔄 Оновити список', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS)],
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
   ]);
 }
 
@@ -444,7 +438,6 @@ export function createMasterScheduleSetDayOffInputKeyboard(): ReturnType<typeof 
   return Markup.inlineKeyboard([
     [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_SET_DAY_OFF_CANCEL)],
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
   ]);
 }
 
@@ -511,7 +504,6 @@ export function createMasterScheduleVacationInputKeyboard(): ReturnType<typeof M
   return Markup.inlineKeyboard([
     [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS_CANCEL)],
     [Markup.button.callback('⬅️ До відпустки', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
   ]);
 }
 
@@ -685,7 +677,6 @@ export function createMasterScheduleTemporaryPeriodInputKeyboard(): ReturnType<t
   return Markup.inlineKeyboard([
     [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CANCEL)],
     [Markup.button.callback('⬅️ До тимчасового графіку', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
   ]);
 }
 
@@ -722,7 +713,6 @@ export function createMasterScheduleTemporaryDaysConfigKeyboard(
     [Markup.button.callback('✅ Підтвердити графік', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CONFIRM)],
     [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CANCEL)],
     [Markup.button.callback('⬅️ До тимчасового графіку', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
   ]);
 }
 
@@ -736,7 +726,6 @@ export function createMasterScheduleTemporaryDayInputKeyboard(
     [Markup.button.callback('🚫 Зробити вихідним', makeMasterPanelTemporaryHoursDayOffAction(weekday))],
     [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CANCEL)],
     [Markup.button.callback('⬅️ До налаштування днів', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CREATE)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
   ]);
 }
 

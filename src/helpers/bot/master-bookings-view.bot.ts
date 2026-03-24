@@ -87,7 +87,6 @@ export function createMasterPendingBookingCardKeyboard(
       ? [[Markup.button.callback('🆕 Наступний непідтверджений запис', MASTER_PANEL_ACTION.BOOKINGS_NEXT_PENDING)]]
       : []),
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
   ]);
 }
 
@@ -107,7 +106,6 @@ export function formatMasterPendingBookingsEmptyText(): string {
 export function createMasterPendingBookingsEmptyKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.HOME, MASTER_PANEL_ACTION.HOME)],
   ]);
 }
 
