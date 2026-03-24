@@ -1,6 +1,7 @@
 import { Scenes } from 'telegraf';
 import type { MyContext } from '../../types/bot.types.js';
 import type { MasterPanelAccess } from '../../types/db-helpers/db-master-panel.types.js';
+import type { MasterOwnProfileData } from '../../types/db-helpers/db-master-profile.types.js';
 import type {
   MasterBookingsCategory,
   MasterBookingsFeedPage,
@@ -9,13 +10,19 @@ import type {
 import type { MasterTemporaryScheduleDayInput } from '../../types/db-helpers/db-master-schedule.types.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
 import {
-  createMasterPanelOwnProfileKeyboard,
   createMasterPanelRootKeyboard,
   createMasterPanelSectionStubKeyboard,
-  formatMasterPanelOwnProfileText,
   formatMasterPanelRootText,
   formatMasterPanelSectionStubText,
 } from '../../helpers/bot/master-panel-view.bot.js';
+import {
+  createMasterOwnProfileMainKeyboard,
+  createMasterOwnProfileSectionKeyboard,
+  formatMasterOwnProfileAdditionalText,
+  formatMasterOwnProfileMainText,
+  formatMasterOwnProfileProfessionalText,
+  formatMasterOwnProfileServicesText,
+} from '../../helpers/bot/master-own-profile-view.bot.js';
 import {
   createMasterStatsKeyboard,
   formatMasterStatsText,
@@ -96,6 +103,7 @@ import {
   MASTER_PANEL_TEMPORARY_HOURS_DAY_OFF_ACTION_REGEX,
 } from '../../types/bot-master-panel.types.js';
 import { getMasterPanelAccessByTelegramId } from '../../helpers/db/db-master-panel.helper.js';
+import { getMasterOwnProfile } from '../../helpers/db/db-master-profile.helper.js';
 import {
   cancelMasterPendingBooking,
   confirmMasterPendingBooking,
@@ -137,6 +145,7 @@ const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 type MasterPanelSceneState = {
   access: MasterPanelAccess | null;
+  ownProfile: MasterOwnProfileData | null;
   pending: MasterPendingBookingItem[];
   pendingCursor: number;
   bookingsFeed: MasterBookingsFeedPage | null;
@@ -394,6 +403,16 @@ function resetRescheduleDraft(state: MasterPanelSceneState): void {
 
 function resetBookingsFeed(state: MasterPanelSceneState): void {
   state.bookingsFeed = null;
+}
+
+async function loadOwnProfileIntoState(state: MasterPanelSceneState): Promise<MasterOwnProfileData | null> {
+  if (!state.access) {
+    state.ownProfile = null;
+    return null;
+  }
+
+  state.ownProfile = await getMasterOwnProfile(state.access.masterId);
+  return state.ownProfile;
 }
 
 async function loadPendingIntoState(state: MasterPanelSceneState): Promise<void> {
@@ -715,6 +734,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     async (ctx) => {
       const state = getSceneState(ctx);
       state.access = null;
+      state.ownProfile = null;
       state.pending = [];
       state.pendingCursor = 0;
       state.bookingsFeed = null;
@@ -1066,10 +1086,89 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
+    const ownProfile = await loadOwnProfileIntoState(state);
+    if (!ownProfile) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
     await renderView(
       ctx,
-      formatMasterPanelOwnProfileText(state.access),
-      createMasterPanelOwnProfileKeyboard(),
+      formatMasterOwnProfileMainText(ownProfile),
+      createMasterOwnProfileMainKeyboard(),
+      true,
+    );
+  });
+
+  scene.action(MASTER_PANEL_ACTION.OPEN_PROFILE_SERVICES, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    if (!state.access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const ownProfile = state.ownProfile ?? (await loadOwnProfileIntoState(state));
+    if (!ownProfile) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    await renderView(
+      ctx,
+      formatMasterOwnProfileServicesText(ownProfile),
+      createMasterOwnProfileSectionKeyboard(),
+      true,
+    );
+  });
+
+  scene.action(MASTER_PANEL_ACTION.OPEN_PROFILE_PROFESSIONAL, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    if (!state.access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const ownProfile = state.ownProfile ?? (await loadOwnProfileIntoState(state));
+    if (!ownProfile) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    await renderView(
+      ctx,
+      formatMasterOwnProfileProfessionalText(ownProfile),
+      createMasterOwnProfileSectionKeyboard(),
+      true,
+    );
+  });
+
+  scene.action(MASTER_PANEL_ACTION.OPEN_PROFILE_ADDITIONAL, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    if (!state.access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const ownProfile = state.ownProfile ?? (await loadOwnProfileIntoState(state));
+    if (!ownProfile) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    await renderView(
+      ctx,
+      formatMasterOwnProfileAdditionalText(ownProfile),
+      createMasterOwnProfileSectionKeyboard(),
       true,
     );
   });

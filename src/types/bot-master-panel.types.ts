@@ -5,6 +5,9 @@
 
 export const MASTER_PANEL_ACTION = {
   OPEN_PROFILE: 'master-panel:open-profile',
+  OPEN_PROFILE_SERVICES: 'master-panel:open-profile:services',
+  OPEN_PROFILE_PROFESSIONAL: 'master-panel:open-profile:professional',
+  OPEN_PROFILE_ADDITIONAL: 'master-panel:open-profile:additional',
   OPEN_BOOKINGS: 'master-panel:open-bookings',
   OPEN_SCHEDULE: 'master-panel:open-schedule',
   OPEN_STATS: 'master-panel:open-stats',
