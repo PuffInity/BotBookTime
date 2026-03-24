@@ -4,9 +4,12 @@ import type {
   MasterOwnProfileOverviewRow,
   MasterOwnProfileServiceRow,
   UpdateMasterOwnProfileBioInput,
+  UpdateMasterOwnProfileDisplayNameInput,
   UpdateMasterOwnProfileEmailInput,
   UpdateMasterOwnProfileMaterialsInput,
   UpdateMasterOwnProfilePhoneInput,
+  UpdateMasterOwnProfileProceduresDoneTotalInput,
+  UpdateMasterOwnProfileStartedOnInput,
 } from '../../types/db-helpers/db-master-profile.types.js';
 import { executeOne, queryMany, queryOne, withTransaction } from '../db.helper.js';
 import { ValidationError, handleError } from '../../utils/error.utils.js';
@@ -16,15 +19,21 @@ import {
   SQL_LIST_MASTER_OWN_PROFILE_CERTIFICATES,
   SQL_LIST_MASTER_OWN_PROFILE_SERVICES,
   SQL_UPDATE_MASTER_OWN_PROFILE_BIO,
+  SQL_UPDATE_MASTER_OWN_PROFILE_DISPLAY_NAME,
   SQL_UPDATE_MASTER_OWN_PROFILE_EMAIL,
   SQL_UPDATE_MASTER_OWN_PROFILE_MATERIALS,
   SQL_UPDATE_MASTER_OWN_PROFILE_PHONE,
+  SQL_UPDATE_MASTER_OWN_PROFILE_PROCEDURES_DONE_TOTAL,
+  SQL_UPDATE_MASTER_OWN_PROFILE_STARTED_ON,
 } from '../db-sql/db-master-profile.sql.js';
 import {
   normalizeMasterBio,
+  normalizeMasterDisplayName,
   normalizeMasterContactEmail,
   normalizeMasterContactPhone,
   normalizeMasterMaterialsInfo,
+  normalizeMasterProceduresDoneTotal,
+  normalizeMasterStartedOn,
 } from '../../utils/db/db-master-profile.js';
 
 /**
@@ -229,6 +238,96 @@ export async function updateMasterOwnProfileEmail(
       logger: loggerDb,
       scope: 'db-master-profile.helper',
       action: 'Failed to update master contact email',
+      error,
+      meta: { masterId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Оновлює поле `display_name` у профілі майстра.
+ */
+export async function updateMasterOwnProfileDisplayName(
+  data: UpdateMasterOwnProfileDisplayNameInput,
+): Promise<void> {
+  const masterId = normalizeMasterId(data.masterId);
+  const displayName = normalizeMasterDisplayName(data.displayName);
+
+  try {
+    await withTransaction(async (client) => {
+      await executeOne<UpdatedMasterIdRow, string>(
+        SQL_UPDATE_MASTER_OWN_PROFILE_DISPLAY_NAME,
+        [masterId, displayName],
+        (row) => row.user_id,
+        client,
+      );
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-profile.helper',
+      action: 'Failed to update master display name',
+      error,
+      meta: { masterId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Оновлює поле `started_on` у профілі майстра.
+ */
+export async function updateMasterOwnProfileStartedOn(
+  data: UpdateMasterOwnProfileStartedOnInput,
+): Promise<void> {
+  const masterId = normalizeMasterId(data.masterId);
+  const startedOn = normalizeMasterStartedOn(data.startedOn);
+
+  try {
+    await withTransaction(async (client) => {
+      await executeOne<UpdatedMasterIdRow, string>(
+        SQL_UPDATE_MASTER_OWN_PROFILE_STARTED_ON,
+        [masterId, startedOn],
+        (row) => row.user_id,
+        client,
+      );
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-profile.helper',
+      action: 'Failed to update master started on',
+      error,
+      meta: { masterId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Оновлює поле `procedures_done_total` у профілі майстра.
+ */
+export async function updateMasterOwnProfileProceduresDoneTotal(
+  data: UpdateMasterOwnProfileProceduresDoneTotalInput,
+): Promise<void> {
+  const masterId = normalizeMasterId(data.masterId);
+  const proceduresDoneTotal = normalizeMasterProceduresDoneTotal(data.proceduresDoneTotal);
+
+  try {
+    await withTransaction(async (client) => {
+      await executeOne<UpdatedMasterIdRow, string>(
+        SQL_UPDATE_MASTER_OWN_PROFILE_PROCEDURES_DONE_TOTAL,
+        [masterId, proceduresDoneTotal],
+        (row) => row.user_id,
+        client,
+      );
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-profile.helper',
+      action: 'Failed to update master procedures done total',
       error,
       meta: { masterId },
     });

@@ -83,3 +83,27 @@ export const SQL_UPDATE_MASTER_OWN_PROFILE_EMAIL = `
   WHERE user_id = $1::bigint
   RETURNING user_id
 `;
+
+export const SQL_UPDATE_MASTER_OWN_PROFILE_DISPLAY_NAME = `
+  UPDATE masters
+  SET display_name = $2,
+      updated_at = now()
+  WHERE user_id = $1::bigint
+  RETURNING user_id
+`;
+
+export const SQL_UPDATE_MASTER_OWN_PROFILE_STARTED_ON = `
+  UPDATE masters
+  SET started_on = $2::date,
+      updated_at = now()
+  WHERE user_id = $1::bigint
+  RETURNING user_id
+`;
+
+export const SQL_UPDATE_MASTER_OWN_PROFILE_PROCEDURES_DONE_TOTAL = `
+  UPDATE masters
+  SET procedures_done_total = $2::int,
+      updated_at = now()
+  WHERE user_id = $1::bigint
+  RETURNING user_id
+`;

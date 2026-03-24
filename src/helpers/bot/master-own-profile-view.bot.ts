@@ -21,7 +21,14 @@ function statusLabel(isBookable: boolean): string {
   return isBookable ? '🟢 Доступний для нових записів' : '🟠 Тимчасово недоступний для нових записів';
 }
 
-export type MasterOwnProfileEditableField = 'bio' | 'materials' | 'phone' | 'email';
+export type MasterOwnProfileEditableField =
+  | 'bio'
+  | 'materials'
+  | 'phone'
+  | 'email'
+  | 'display_name'
+  | 'started_on'
+  | 'procedures_done_total';
 
 function editableFieldLabel(field: MasterOwnProfileEditableField): string {
   switch (field) {
@@ -33,6 +40,12 @@ function editableFieldLabel(field: MasterOwnProfileEditableField): string {
       return 'контактний телефон';
     case 'email':
       return 'контактний email';
+    case 'display_name':
+      return 'ім’я майстра в профілі';
+    case 'started_on':
+      return 'дата початку роботи';
+    case 'procedures_done_total':
+      return 'кількість виконаних процедур';
     default:
       return 'поле профілю';
   }
@@ -140,6 +153,24 @@ export function createMasterOwnProfileSectionKeyboard(): ReturnType<typeof Marku
 }
 
 /**
+ * @summary Клавіатура екрана "Професійна інформація" з діями редагування.
+ */
+export function createMasterOwnProfileProfessionalKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('👩‍🎨 Змінити імʼя', MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_DISPLAY_NAME)],
+    [Markup.button.callback('📅 Змінити дату початку роботи', MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_STARTED_ON)],
+    [
+      Markup.button.callback(
+        '📈 Оновити кількість процедур',
+        MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_PROCEDURES_DONE_TOTAL,
+      ),
+    ],
+    [Markup.button.callback('👤 До профілю майстра', MASTER_PANEL_ACTION.OPEN_PROFILE)],
+    [Markup.button.callback('⬅️ До панелі майстра', MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+  ]);
+}
+
+/**
  * @summary Клавіатура екрана "Додаткова інформація" з діями редагування.
  */
 export function createMasterOwnProfileAdditionalKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
@@ -190,6 +221,35 @@ export function formatMasterOwnProfileEditInputText(
     );
   }
 
+  if (field === 'display_name') {
+    return (
+      '👩‍🎨 Редагування імені майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      `Поточне значення: ${current}\n\n` +
+      'Введіть нове імʼя для відображення у профілі.\n' +
+      'Приклад: Анна В.'
+    );
+  }
+
+  if (field === 'started_on') {
+    return (
+      '📅 Редагування дати початку роботи\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      `Поточне значення: ${current}\n\n` +
+      'Введіть нову дату у форматі ДД.ММ.РРРР.\n' +
+      'Приклад: 12.04.2019'
+    );
+  }
+
+  if (field === 'procedures_done_total') {
+    return (
+      '📈 Редагування кількості процедур\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      `Поточне значення: ${current}\n\n` +
+      'Введіть число від 0 до 100000.'
+    );
+  }
+
   return (
     '✉️ Редагування контактного email\n' +
     '━━━━━━━━━━━━━━\n\n' +
@@ -227,7 +287,7 @@ export function formatMasterOwnProfileEditSuccessText(field: MasterOwnProfileEdi
 export function createMasterOwnProfileEditInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [Markup.button.callback('❌ Скасувати', MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_CANCEL)],
-    [Markup.button.callback('⬅️ До додаткової інформації', MASTER_PANEL_ACTION.OPEN_PROFILE_ADDITIONAL)],
+    [Markup.button.callback('👤 До профілю майстра', MASTER_PANEL_ACTION.OPEN_PROFILE)],
   ]);
 }
 

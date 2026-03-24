@@ -80,3 +80,18 @@ export type UpdateMasterOwnProfileEmailInput = {
   masterId: string | number;
   contactEmail: string;
 };
+
+export type UpdateMasterOwnProfileDisplayNameInput = {
+  masterId: string | number;
+  displayName: string;
+};
+
+export type UpdateMasterOwnProfileStartedOnInput = {
+  masterId: string | number;
+  startedOn: string;
+};
+
+export type UpdateMasterOwnProfileProceduresDoneTotalInput = {
+  masterId: string | number;
+  proceduresDoneTotal: string | number;
+};
