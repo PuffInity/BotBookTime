@@ -46,3 +46,35 @@ export const SQL_GET_MASTER_CLIENT_PROFILE_BY_BOOKING = `
     u.created_at
   LIMIT 1
 `;
+
+export const SQL_LIST_MASTER_CLIENT_BOOKINGS_HISTORY_BY_BOOKING = `
+  SELECT
+    a.id AS appointment_id,
+    s.name AS service_name,
+    a.price_amount,
+    a.currency_code,
+    a.start_at,
+    a.end_at,
+    a.status
+  FROM appointments a
+  INNER JOIN appointments target
+    ON target.id = $2::bigint
+   AND target.master_id = $1::bigint
+   AND target.deleted_at IS NULL
+   AND target.client_id = a.client_id
+  INNER JOIN services s
+    ON s.id = a.service_id
+   AND s.studio_id = a.studio_id
+  WHERE a.master_id = $1::bigint
+    AND a.deleted_at IS NULL
+  ORDER BY
+    CASE
+      WHEN a.status = 'canceled' THEN 3
+      WHEN a.start_at >= now() THEN 1
+      ELSE 2
+    END ASC,
+    CASE WHEN a.start_at >= now() THEN a.start_at END ASC,
+    CASE WHEN a.start_at < now() THEN a.start_at END DESC,
+    a.id DESC
+  LIMIT $3::int
+`;

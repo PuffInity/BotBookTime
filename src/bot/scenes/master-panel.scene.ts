@@ -111,6 +111,7 @@ import {
   MASTER_PANEL_SCHEDULE_CONFIGURE_DAY_WEEKDAY_ACTION_REGEX,
   MASTER_PANEL_BOOKING_CANCEL_CONFIRM_ACTION_REGEX,
   MASTER_PANEL_BOOKING_CANCEL_REQUEST_ACTION_REGEX,
+  MASTER_PANEL_BOOKING_CLIENT_HISTORY_ACTION_REGEX,
   MASTER_PANEL_BOOKING_CONFIRM_ACTION_REGEX,
   MASTER_PANEL_BOOKING_OPEN_CARD_ACTION_REGEX,
   MASTER_PANEL_BOOKING_PROFILE_ACTION_REGEX,
@@ -139,7 +140,10 @@ import {
   listMasterPendingBookings,
   rescheduleMasterPendingBooking,
 } from '../../helpers/db/db-master-bookings.helper.js';
-import { getMasterClientProfileByBooking } from '../../helpers/db/db-master-clients.helper.js';
+import {
+  getMasterClientProfileByBooking,
+  listMasterClientBookingsHistoryByBooking,
+} from '../../helpers/db/db-master-clients.helper.js';
 import { getMasterPanelStats } from '../../helpers/db/db-master-stats.helper.js';
 import { getMasterPanelFinance } from '../../helpers/db/db-master-finance.helper.js';
 import {
@@ -164,7 +168,9 @@ import {
   normalizeMasterMaterialsInfo,
 } from '../../utils/db/db-master-profile.js';
 import {
+  createMasterClientBookingsHistoryKeyboard,
   createMasterClientProfileKeyboard,
+  formatMasterClientBookingsHistoryText,
   formatMasterClientProfileText,
 } from '../../helpers/bot/master-client-profile-view.bot.js';
 
@@ -3146,7 +3152,54 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     await renderView(
       ctx,
       formatMasterClientProfileText(profile),
-      createMasterClientProfileKeyboard(),
+      createMasterClientProfileKeyboard(appointmentId),
+      true,
+    );
+  });
+
+  scene.action(MASTER_PANEL_BOOKING_CLIENT_HISTORY_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const access = state.access;
+
+    if (!access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const appointmentId = parseAppointmentIdFromAction(
+      ctx,
+      MASTER_PANEL_BOOKING_CLIENT_HISTORY_ACTION_REGEX,
+    );
+
+    const [profile, history] = await Promise.all([
+      getMasterClientProfileByBooking({
+        masterId: access.masterId,
+        appointmentId,
+      }),
+      listMasterClientBookingsHistoryByBooking({
+        masterId: access.masterId,
+        appointmentId,
+        limit: 20,
+      }),
+    ]);
+
+    if (!profile) {
+      if (state.bookingsFeed) {
+        await loadBookingsFeedIntoState(state, state.bookingsFeed.category, state.bookingsFeed.offset);
+        await renderBookingsFeed(ctx, true);
+      } else {
+        await loadPendingIntoState(state);
+        await renderPendingQueue(ctx, true);
+      }
+      return;
+    }
+
+    await renderView(
+      ctx,
+      formatMasterClientBookingsHistoryText(profile, history),
+      createMasterClientBookingsHistoryKeyboard(appointmentId),
       true,
     );
   });

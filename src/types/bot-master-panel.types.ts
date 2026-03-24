@@ -65,6 +65,7 @@ export const MASTER_PANEL_ACTION = {
   BOOKINGS_RESCHEDULE_BACK_TO_TIME: 'master-panel:bookings:reschedule:back-to-time',
   BOOKINGS_RESCHEDULE_CANCEL: 'master-panel:bookings:reschedule:cancel',
   BOOKING_PROFILE_PREFIX: 'master-panel:booking:profile:',
+  BOOKING_CLIENT_HISTORY_PREFIX: 'master-panel:booking:client-history:',
   BACK_TO_PANEL: 'master-panel:back-to-panel',
   HOME: 'master-panel:home',
 } as const;
@@ -100,6 +101,8 @@ export const MASTER_PANEL_BOOKING_RESCHEDULE_TIME_ACTION_REGEX =
   /^master-panel:booking:reschedule:time:(\d{4})$/;
 export const MASTER_PANEL_BOOKING_PROFILE_ACTION_REGEX =
   /^master-panel:booking:profile:(\d+)$/;
+export const MASTER_PANEL_BOOKING_CLIENT_HISTORY_ACTION_REGEX =
+  /^master-panel:booking:client-history:(\d+)$/;
 export const MASTER_PANEL_SCHEDULE_CONFIGURE_DAY_WEEKDAY_ACTION_REGEX =
   /^master-panel:schedule:configure-day:weekday:([1-7])$/;
 export const MASTER_PANEL_SCHEDULE_CONFIGURE_DAY_OFF_ACTION_REGEX =
@@ -151,6 +154,10 @@ export function makeMasterPanelBookingRescheduleTimeAction(timeCode: string): st
 
 export function makeMasterPanelBookingProfileAction(appointmentId: string): string {
   return `${MASTER_PANEL_ACTION.BOOKING_PROFILE_PREFIX}${appointmentId}`;
+}
+
+export function makeMasterPanelBookingClientHistoryAction(appointmentId: string): string {
+  return `${MASTER_PANEL_ACTION.BOOKING_CLIENT_HISTORY_PREFIX}${appointmentId}`;
 }
 
 export function makeMasterPanelTemporaryHoursDayAction(weekday: number): string {

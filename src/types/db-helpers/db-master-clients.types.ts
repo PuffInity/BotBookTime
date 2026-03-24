@@ -47,3 +47,29 @@ export type GetMasterClientProfileByBookingInput = {
   masterId: string | number;
   appointmentId: string | number;
 };
+
+export type MasterClientBookingsHistoryRow = {
+  appointment_id: string;
+  service_name: string;
+  price_amount: string;
+  currency_code: string;
+  start_at: Date;
+  end_at: Date;
+  status: 'pending' | 'confirmed' | 'canceled' | 'completed' | 'transferred';
+};
+
+export type MasterClientBookingsHistoryItem = {
+  appointmentId: string;
+  serviceName: string;
+  priceAmount: string;
+  currencyCode: string;
+  startAt: Date;
+  endAt: Date;
+  status: 'pending' | 'confirmed' | 'canceled' | 'completed' | 'transferred';
+};
+
+export type GetMasterClientBookingsHistoryByBookingInput = {
+  masterId: string | number;
+  appointmentId: string | number;
+  limit?: number;
+};
