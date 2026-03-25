@@ -5,7 +5,10 @@
 
 export const ADMIN_BOOKING_SELECT_COLUMNS = `
   a.id AS appointment_id,
+  a.studio_id,
   a.client_id,
+  a.master_id,
+  a.service_id,
   a.status,
   a.start_at,
   a.end_at,
@@ -21,6 +24,197 @@ export const ADMIN_BOOKING_SELECT_COLUMNS = `
   s.name AS service_name,
   st.name AS studio_name,
   m.display_name AS master_name
+`;
+
+export const SQL_CONFIRM_ADMIN_PENDING_BOOKING = `
+  WITH updated AS (
+    UPDATE appointments a
+    SET status = 'confirmed',
+        updated_by = $3::bigint
+    WHERE a.id = $1::bigint
+      AND a.studio_id = $2::bigint
+      AND a.deleted_at IS NULL
+      AND a.status = 'pending'
+    RETURNING a.*
+  )
+  SELECT
+    ${ADMIN_BOOKING_SELECT_COLUMNS}
+  FROM updated a
+  INNER JOIN app_users u
+    ON u.id = a.client_id
+  INNER JOIN services s
+    ON s.id = a.service_id
+   AND s.studio_id = a.studio_id
+  INNER JOIN studios st
+    ON st.id = a.studio_id
+  INNER JOIN masters m
+    ON m.user_id = a.master_id
+   AND m.studio_id = a.studio_id
+  LIMIT 1
+`;
+
+export const SQL_CANCEL_ADMIN_BOOKING = `
+  WITH updated AS (
+    UPDATE appointments a
+    SET status = 'canceled',
+        canceled_reason = $4,
+        updated_by = $3::bigint
+    WHERE a.id = $1::bigint
+      AND a.studio_id = $2::bigint
+      AND a.deleted_at IS NULL
+      AND a.status IN ('pending', 'confirmed')
+    RETURNING a.*
+  )
+  SELECT
+    ${ADMIN_BOOKING_SELECT_COLUMNS}
+  FROM updated a
+  INNER JOIN app_users u
+    ON u.id = a.client_id
+  INNER JOIN services s
+    ON s.id = a.service_id
+   AND s.studio_id = a.studio_id
+  INNER JOIN studios st
+    ON st.id = a.studio_id
+  INNER JOIN masters m
+    ON m.user_id = a.master_id
+   AND m.studio_id = a.studio_id
+  LIMIT 1
+`;
+
+export const SQL_GET_ADMIN_BOOKING_FOR_RESCHEDULE = `
+  SELECT
+    ${ADMIN_BOOKING_SELECT_COLUMNS},
+    st.timezone AS studio_timezone,
+    a.booked_for_user_id,
+    a.source,
+    a.internal_comment,
+    a.created_by
+  FROM appointments a
+  INNER JOIN app_users u
+    ON u.id = a.client_id
+  INNER JOIN services s
+    ON s.id = a.service_id
+   AND s.studio_id = a.studio_id
+  INNER JOIN studios st
+    ON st.id = a.studio_id
+  INNER JOIN masters m
+    ON m.user_id = a.master_id
+   AND m.studio_id = a.studio_id
+  WHERE a.id = $1::bigint
+    AND a.studio_id = $2::bigint
+    AND a.deleted_at IS NULL
+    AND a.status IN ('pending', 'confirmed')
+  FOR UPDATE
+`;
+
+export const SQL_CHECK_APPOINTMENT_CONFLICT_EXCLUDING_ID = `
+  SELECT EXISTS (
+    SELECT 1
+    FROM appointments a
+    WHERE a.master_id = $1::bigint
+      AND a.deleted_at IS NULL
+      AND a.status IN ('pending', 'confirmed')
+      AND a.id <> $4::bigint
+      AND tstzrange(a.start_at, a.end_at, '[)')
+          && tstzrange($2::timestamptz, $3::timestamptz, '[)')
+  ) AS has_conflict
+`;
+
+export const SQL_INSERT_RESCHEDULED_APPOINTMENT = `
+  INSERT INTO appointments (
+    studio_id,
+    client_id,
+    booked_for_user_id,
+    master_id,
+    service_id,
+    source,
+    status,
+    attendee_name,
+    attendee_phone_e164,
+    attendee_email,
+    client_comment,
+    internal_comment,
+    start_at,
+    end_at,
+    price_amount,
+    currency_code,
+    created_by,
+    updated_by
+  )
+  VALUES (
+    $1::bigint,
+    $2::bigint,
+    $3::bigint,
+    $4::bigint,
+    $5::bigint,
+    'admin_panel',
+    $6::appointment_status,
+    $7,
+    $8,
+    $9,
+    $10,
+    $11,
+    $12::timestamptz,
+    $13::timestamptz,
+    $14,
+    $15,
+    $16::bigint,
+    $17::bigint
+  )
+  RETURNING id
+`;
+
+export const SQL_MARK_ADMIN_APPOINTMENT_AS_TRANSFERRED = `
+  UPDATE appointments
+  SET status = 'transferred',
+      updated_by = $3::bigint
+  WHERE id = $1::bigint
+    AND studio_id = $2::bigint
+    AND deleted_at IS NULL
+    AND status IN ('pending', 'confirmed')
+  RETURNING id
+`;
+
+export const SQL_INSERT_APPOINTMENT_TRANSFER_LINK = `
+  INSERT INTO appointment_transfers (
+    from_appointment_id,
+    to_appointment_id,
+    transferred_by,
+    reason
+  )
+  VALUES (
+    $1::bigint,
+    $2::bigint,
+    $3::bigint,
+    $4
+  )
+`;
+
+export const SQL_REASSIGN_ADMIN_BOOKING_MASTER = `
+  WITH updated AS (
+    UPDATE appointments a
+    SET master_id = $3::bigint,
+        updated_by = $4::bigint
+    WHERE a.id = $1::bigint
+      AND a.studio_id = $2::bigint
+      AND a.deleted_at IS NULL
+      AND a.status IN ('pending', 'confirmed')
+    RETURNING a.*
+  )
+  SELECT
+    ${ADMIN_BOOKING_SELECT_COLUMNS}
+  FROM updated a
+  INNER JOIN app_users u
+    ON u.id = a.client_id
+  INNER JOIN services s
+    ON s.id = a.service_id
+   AND s.studio_id = a.studio_id
+  INNER JOIN studios st
+    ON st.id = a.studio_id
+  INNER JOIN masters m
+    ON m.user_id = a.master_id
+   AND m.studio_id = a.studio_id
+  LIMIT 1
 `;
 
 export const SQL_LIST_ADMIN_BOOKINGS_FEED = `

@@ -4,10 +4,19 @@ import type {
   AdminBookingsCategory,
   AdminBookingsFeedPage,
 } from '../../types/db-helpers/db-admin-bookings.types.js';
+import type { MasterBookingOption } from '../../types/db-helpers/db-masters.types.js';
 import {
   ADMIN_PANEL_ACTION,
   ADMIN_PANEL_BUTTON_TEXT,
+  makeAdminPanelRecordsCancelConfirmAction,
+  makeAdminPanelRecordsCancelRequestAction,
+  makeAdminPanelRecordsChangeMasterAction,
+  makeAdminPanelRecordsChangeMasterSelectAction,
+  makeAdminPanelRecordsConfirmAction,
   makeAdminPanelRecordsOpenCardAction,
+  makeAdminPanelRecordsRescheduleAction,
+  makeAdminPanelRecordsRescheduleDateAction,
+  makeAdminPanelRecordsRescheduleTimeAction,
 } from '../../types/bot-admin-panel.types.js';
 
 /**
@@ -92,6 +101,20 @@ function cardIndexLabel(index: number): string {
   return `${index + 1}️⃣`;
 }
 
+function formatDateLabel(date: Date): string {
+  const weekday = date.toLocaleDateString('uk-UA', { weekday: 'short' });
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  return `${weekday} ${day}.${month}`;
+}
+
+function formatDateCodeLabel(dateCode: string): string {
+  const year = Number(dateCode.slice(0, 4));
+  const month = Number(dateCode.slice(4, 6));
+  const day = Number(dateCode.slice(6, 8));
+  return new Date(year, month - 1, day).toLocaleDateString('uk-UA');
+}
+
 /**
  * @summary Форматує текст списку записів по категорії.
  */
@@ -163,6 +186,18 @@ export function createAdminBookingsFeedKeyboard(
 export function formatAdminBookingDetailsCardText(item: AdminBookingItem): string {
   const comment = item.clientComment?.trim();
   const commentBlock = comment ? `\n\n📝 Коментар клієнта:\n${comment}` : '';
+  let stateHint = '';
+  if (item.status === 'canceled') {
+    stateHint = '\n\n⚠️ Цей запис уже скасований.\nДоступний лише перегляд інформації.';
+  } else if (item.status === 'completed') {
+    stateHint = '\n\n⚠️ Цей запис уже завершений.\nДоступний лише перегляд інформації.';
+  } else if (item.status === 'transferred') {
+    stateHint = '\n\n⚠️ Цей запис позначено як перенесений.\nДоступний лише перегляд інформації.';
+  } else if (item.status === 'pending') {
+    stateHint = '\n\nℹ️ Доступні дії: підтвердити, скасувати, перенести, змінити майстра.';
+  } else if (item.status === 'confirmed') {
+    stateHint = '\n\nℹ️ Доступні дії: скасувати, перенести, змінити майстра.';
+  }
 
   return (
     '📄 Картка запису\n' +
@@ -176,18 +211,302 @@ export function formatAdminBookingDetailsCardText(item: AdminBookingItem): strin
     `💰 Ціна: ${formatPrice(item.priceAmount, item.currencyCode)}\n` +
     `📌 Статус: ${formatBookingStatusLabel(item.status)}` +
     commentBlock +
-    '\n\nℹ️ Дії з карткою (перенести/скасувати/змінити майстра) підключимо у наступному підблоці.'
+    stateHint
   );
 }
 
 /**
  * @summary Клавіатура детальної картки запису.
  */
-export function createAdminBookingDetailsCardKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminBookingDetailsCardKeyboard(
+  item: AdminBookingItem,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const actionRows: ReturnType<typeof Markup.button.callback>[][] = [];
+  if (item.status === 'pending') {
+    actionRows.push([
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.RECORDS_CONFIRM,
+        makeAdminPanelRecordsConfirmAction(item.appointmentId),
+      ),
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.RECORDS_CANCEL,
+        makeAdminPanelRecordsCancelRequestAction(item.appointmentId),
+      ),
+    ]);
+    actionRows.push([
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.RECORDS_RESCHEDULE,
+        makeAdminPanelRecordsRescheduleAction(item.appointmentId),
+      ),
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.RECORDS_CHANGE_MASTER,
+        makeAdminPanelRecordsChangeMasterAction(item.appointmentId),
+      ),
+    ]);
+  } else if (item.status === 'confirmed') {
+    actionRows.push([
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.RECORDS_RESCHEDULE,
+        makeAdminPanelRecordsRescheduleAction(item.appointmentId),
+      ),
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.RECORDS_CANCEL,
+        makeAdminPanelRecordsCancelRequestAction(item.appointmentId),
+      ),
+    ]);
+    actionRows.push([
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.RECORDS_CHANGE_MASTER,
+        makeAdminPanelRecordsChangeMasterAction(item.appointmentId),
+      ),
+    ]);
+  }
+
   return Markup.inlineKeyboard([
+    ...actionRows,
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_LIST, ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_MENU, ADMIN_PANEL_ACTION.OPEN_RECORDS)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK, ADMIN_PANEL_ACTION.RECORDS_BACK)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.HOME, ADMIN_PANEL_ACTION.HOME)],
+  ]);
+}
+
+/**
+ * @summary Текст підтвердження скасування запису адміністратором.
+ */
+export function formatAdminCancelBookingConfirmText(item: AdminBookingItem): string {
+  const warning =
+    item.status === 'confirmed'
+      ? '\n\n⚠️ Ви скасовуєте вже підтверджений запис.\nПереконайтесь, що все узгоджено з клієнтом.'
+      : '';
+
+  return (
+    '⚠️ Підтвердження скасування\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Ви дійсно хочете скасувати цей запис?\n\n' +
+    `👤 ${formatClientDisplayName(item)}\n` +
+    `💼 ${item.serviceName}\n` +
+    `👩‍🎨 ${item.masterName}\n` +
+    `🕒 ${formatDateTimeRange(item.startAt, item.endAt)}` +
+    warning
+  );
+}
+
+/**
+ * @summary Клавіатура підтвердження скасування.
+ */
+export function createAdminCancelBookingConfirmKeyboard(
+  item: AdminBookingItem,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.RECORDS_CONFIRM_CANCEL,
+        makeAdminPanelRecordsCancelConfirmAction(item.appointmentId),
+      ),
+    ],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_LIST, ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK, ADMIN_PANEL_ACTION.RECORDS_BACK)],
+  ]);
+}
+
+/**
+ * @summary Текст кроку вибору дати для перенесення.
+ */
+export function formatAdminRescheduleDateStepText(item: AdminBookingItem): string {
+  return (
+    '🔄 Перенесення запису — крок 1/3\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
+    `💼 Послуга: ${item.serviceName}\n` +
+    `👩‍🎨 Майстер: ${item.masterName}\n` +
+    `🕒 Поточний час: ${formatDateTimeRange(item.startAt, item.endAt)}\n\n` +
+    'Оберіть нову дату для перенесення.'
+  );
+}
+
+/**
+ * @summary Клавіатура кроку вибору дати.
+ */
+export function createAdminRescheduleDateKeyboard(
+  dates: Date[],
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    ...dates.map((date) => {
+      const year = String(date.getFullYear());
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const code = `${year}${month}${day}`;
+      return [
+        Markup.button.callback(
+          formatDateLabel(date),
+          makeAdminPanelRecordsRescheduleDateAction(code),
+        ),
+      ];
+    }),
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CANCEL_ACTION, ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK, ADMIN_PANEL_ACTION.RECORDS_BACK)],
+  ]);
+}
+
+/**
+ * @summary Текст кроку вибору часу для перенесення.
+ */
+export function formatAdminRescheduleTimeStepText(
+  item: AdminBookingItem,
+  dateCode: string,
+): string {
+  return (
+    '🔄 Перенесення запису — крок 2/3\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
+    `💼 Послуга: ${item.serviceName}\n` +
+    `👩‍🎨 Майстер: ${item.masterName}\n` +
+    `📆 Нова дата: ${formatDateCodeLabel(dateCode)}\n\n` +
+    'Оберіть новий час.'
+  );
+}
+
+/**
+ * @summary Клавіатура кроку вибору часу.
+ */
+export function createAdminRescheduleTimeKeyboard(
+  timeCodes: string[],
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const rows: ReturnType<typeof Markup.button.callback>[][] = [];
+
+  for (let i = 0; i < timeCodes.length; i += 2) {
+    const first = timeCodes[i];
+    const second = timeCodes[i + 1];
+    const firstLabel = `${first.slice(0, 2)}:${first.slice(2, 4)}`;
+
+    const row = [Markup.button.callback(firstLabel, makeAdminPanelRecordsRescheduleTimeAction(first))];
+    if (second) {
+      const secondLabel = `${second.slice(0, 2)}:${second.slice(2, 4)}`;
+      row.push(Markup.button.callback(secondLabel, makeAdminPanelRecordsRescheduleTimeAction(second)));
+    }
+
+    rows.push(row);
+  }
+
+  return Markup.inlineKeyboard([
+    ...rows,
+    [
+      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_DATE, ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_BACK_TO_DATE),
+      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CANCEL_ACTION, ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_CANCEL),
+    ],
+  ]);
+}
+
+/**
+ * @summary Текст підтвердження перенесення.
+ */
+export function formatAdminRescheduleConfirmText(
+  item: AdminBookingItem,
+  newStartAt: Date,
+  newEndAt: Date,
+): string {
+  return (
+    '🔄 Перенесення запису — крок 3/3\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
+    `💼 Послуга: ${item.serviceName}\n` +
+    `👩‍🎨 Майстер: ${item.masterName}\n\n` +
+    `🕒 Було: ${formatDateTimeRange(item.startAt, item.endAt)}\n` +
+    `🕒 Стане: ${formatDateTimeRange(newStartAt, newEndAt)}\n\n` +
+    'Підтвердіть перенесення запису.'
+  );
+}
+
+/**
+ * @summary Клавіатура підтвердження перенесення.
+ */
+export function createAdminRescheduleConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CONFIRM_RESCHEDULE, ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_CONFIRM)],
+    [
+      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_TIME, ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_BACK_TO_TIME),
+      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CANCEL_ACTION, ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_CANCEL),
+    ],
+  ]);
+}
+
+/**
+ * @summary Текст кроку вибору нового майстра.
+ */
+export function formatAdminChangeMasterStepText(
+  item: AdminBookingItem,
+  masters: MasterBookingOption[],
+): string {
+  const emptyHint =
+    masters.length === 0
+      ? '\n\n⚠️ Немає доступних майстрів для цієї послуги.'
+      : '\n\nОберіть нового майстра:';
+
+  return (
+    '👩‍🎨 Зміна майстра\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
+    `💼 Послуга: ${item.serviceName}\n` +
+    `👩‍🎨 Поточний майстер: ${item.masterName}\n` +
+    `🕒 Час: ${formatDateTimeRange(item.startAt, item.endAt)}` +
+    emptyHint
+  );
+}
+
+/**
+ * @summary Клавіатура вибору нового майстра.
+ */
+export function createAdminChangeMasterSelectKeyboard(
+  item: AdminBookingItem,
+  masters: MasterBookingOption[],
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const rows = masters.map((master, index) => {
+    const ratingSuffix = master.ratingCount > 0 ? ` ⭐ ${master.ratingAvg}` : '';
+    return [
+      Markup.button.callback(
+        `${index + 1}. ${master.displayName}${ratingSuffix}`,
+        makeAdminPanelRecordsChangeMasterSelectAction(item.appointmentId, master.masterId),
+      ),
+    ];
+  });
+
+  return Markup.inlineKeyboard([
+    ...rows,
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_LIST, ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CANCEL_ACTION, ADMIN_PANEL_ACTION.RECORDS_CHANGE_MASTER_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK, ADMIN_PANEL_ACTION.RECORDS_BACK)],
+  ]);
+}
+
+/**
+ * @summary Текст підтвердження зміни майстра.
+ */
+export function formatAdminChangeMasterConfirmText(
+  item: AdminBookingItem,
+  newMasterDisplayName: string,
+): string {
+  return (
+    '👩‍🎨 Підтвердження зміни майстра\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
+    `💼 Послуга: ${item.serviceName}\n` +
+    `🕒 Час: ${formatDateTimeRange(item.startAt, item.endAt)}\n\n` +
+    `👩‍🎨 Було: ${item.masterName}\n` +
+    `👩‍🎨 Стане: ${newMasterDisplayName}\n\n` +
+    'Підтвердіть зміну майстра.'
+  );
+}
+
+/**
+ * @summary Клавіатура підтвердження зміни майстра.
+ */
+export function createAdminChangeMasterConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CONFIRM_CHANGE_MASTER, ADMIN_PANEL_ACTION.RECORDS_CHANGE_MASTER_CONFIRM)],
+    [
+      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CHANGE_MASTER, ADMIN_PANEL_ACTION.RECORDS_CHANGE_MASTER_BACK),
+      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CANCEL_ACTION, ADMIN_PANEL_ACTION.RECORDS_CHANGE_MASTER_CANCEL),
+    ],
   ]);
 }

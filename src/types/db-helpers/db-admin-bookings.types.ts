@@ -7,7 +7,10 @@ export type AdminBookingsCategory = 'pending' | 'today' | 'tomorrow' | 'all' | '
 
 export type AdminBookingRow = {
   appointment_id: string;
+  studio_id: string;
   client_id: string;
+  master_id: string;
+  service_id: string;
   status: 'pending' | 'confirmed' | 'canceled' | 'completed' | 'transferred';
   start_at: string;
   end_at: string;
@@ -31,7 +34,10 @@ export type AdminBookingFeedRow = AdminBookingRow & {
 
 export type AdminBookingItem = {
   appointmentId: string;
+  studioId: string;
   clientId: string;
+  masterId: string;
+  serviceId: string;
   status: 'pending' | 'confirmed' | 'canceled' | 'completed' | 'transferred';
   startAt: Date;
   endAt: Date;
@@ -69,4 +75,50 @@ export type AdminBookingsFeedPage = {
 export type GetAdminBookingCardByIdInput = {
   studioId: string | number;
   appointmentId: string | number;
+};
+
+export type ConfirmAdminPendingBookingInput = {
+  studioId: string | number;
+  actorUserId: string | number;
+  appointmentId: string | number;
+};
+
+export type CancelAdminBookingInput = {
+  studioId: string | number;
+  actorUserId: string | number;
+  appointmentId: string | number;
+  cancelReason?: string | null;
+};
+
+export type RescheduleAdminBookingInput = {
+  studioId: string | number;
+  actorUserId: string | number;
+  appointmentId: string | number;
+  newStartAt: Date;
+  reason?: string | null;
+};
+
+export type ReassignAdminBookingMasterInput = {
+  studioId: string | number;
+  actorUserId: string | number;
+  appointmentId: string | number;
+  newMasterId: string | number;
+};
+
+export type RescheduleAdminBookingResult = {
+  previous: AdminBookingItem;
+  current: AdminBookingItem;
+};
+
+export type InsertedAppointmentIdRow = {
+  id: string;
+};
+
+export type BookingConflictRow = {
+  has_conflict: boolean;
+};
+
+export type MasterScheduleAvailabilityRow = {
+  is_available: boolean;
+  reason_code: string | null;
 };

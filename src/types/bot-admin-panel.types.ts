@@ -18,6 +18,21 @@ export const ADMIN_PANEL_ACTION = {
   RECORDS_LIST_PREV_PAGE: 'admin-panel:records:list:prev',
   RECORDS_LIST_NEXT_PAGE: 'admin-panel:records:list:next',
   RECORDS_OPEN_CARD_PREFIX: 'admin-panel:records:open-card:',
+  RECORDS_CONFIRM_PREFIX: 'admin-panel:records:confirm:',
+  RECORDS_CANCEL_REQUEST_PREFIX: 'admin-panel:records:cancel:request:',
+  RECORDS_CANCEL_CONFIRM_PREFIX: 'admin-panel:records:cancel:confirm:',
+  RECORDS_RESCHEDULE_PREFIX: 'admin-panel:records:reschedule:',
+  RECORDS_RESCHEDULE_DATE_PREFIX: 'admin-panel:records:reschedule:date:',
+  RECORDS_RESCHEDULE_TIME_PREFIX: 'admin-panel:records:reschedule:time:',
+  RECORDS_RESCHEDULE_CONFIRM: 'admin-panel:records:reschedule:confirm',
+  RECORDS_RESCHEDULE_BACK_TO_DATE: 'admin-panel:records:reschedule:back-to-date',
+  RECORDS_RESCHEDULE_BACK_TO_TIME: 'admin-panel:records:reschedule:back-to-time',
+  RECORDS_RESCHEDULE_CANCEL: 'admin-panel:records:reschedule:cancel',
+  RECORDS_CHANGE_MASTER_PREFIX: 'admin-panel:records:change-master:',
+  RECORDS_CHANGE_MASTER_SELECT_PREFIX: 'admin-panel:records:change-master:select:',
+  RECORDS_CHANGE_MASTER_CONFIRM: 'admin-panel:records:change-master:confirm',
+  RECORDS_CHANGE_MASTER_BACK: 'admin-panel:records:change-master:back',
+  RECORDS_CHANGE_MASTER_CANCEL: 'admin-panel:records:change-master:cancel',
   RECORDS_BACK_TO_LIST: 'admin-panel:records:list:back',
   RECORDS_BACK: 'admin-panel:records:back',
   BACK_TO_ROOT: 'admin-panel:back-to-root',
@@ -37,6 +52,16 @@ export const ADMIN_PANEL_BUTTON_TEXT = {
   RECORDS_TOMORROW: '📆 Завтра',
   RECORDS_ALL: '🗂 Усі записи',
   RECORDS_CANCELED: '❌ Скасовані',
+  RECORDS_CONFIRM: '✅ Підтвердити',
+  RECORDS_CANCEL: '❌ Скасувати',
+  RECORDS_RESCHEDULE: '🔄 Перенести',
+  RECORDS_CHANGE_MASTER: '👩‍🎨 Змінити майстра',
+  RECORDS_CONFIRM_CANCEL: '✅ Так, скасувати',
+  RECORDS_CONFIRM_RESCHEDULE: '✅ Підтвердити перенесення',
+  RECORDS_CONFIRM_CHANGE_MASTER: '✅ Підтвердити зміну майстра',
+  RECORDS_BACK_TO_DATE: '⬅️ До вибору дати',
+  RECORDS_BACK_TO_TIME: '⬅️ До вибору часу',
+  RECORDS_CANCEL_ACTION: '❌ Скасувати дію',
   RECORDS_PREV_PAGE: '⬅️ Попередня',
   RECORDS_NEXT_PAGE: '➡️ Наступна',
   RECORDS_BACK_TO_LIST: '⬅️ До списку',
@@ -48,7 +73,57 @@ export const ADMIN_PANEL_BUTTON_TEXT = {
 } as const;
 
 export const ADMIN_PANEL_RECORDS_OPEN_CARD_ACTION_REGEX = /^admin-panel:records:open-card:(\d+)$/;
+export const ADMIN_PANEL_RECORDS_CONFIRM_ACTION_REGEX = /^admin-panel:records:confirm:(\d+)$/;
+export const ADMIN_PANEL_RECORDS_CANCEL_REQUEST_ACTION_REGEX =
+  /^admin-panel:records:cancel:request:(\d+)$/;
+export const ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_ACTION_REGEX =
+  /^admin-panel:records:cancel:confirm:(\d+)$/;
+export const ADMIN_PANEL_RECORDS_RESCHEDULE_ACTION_REGEX =
+  /^admin-panel:records:reschedule:(\d+)$/;
+export const ADMIN_PANEL_RECORDS_RESCHEDULE_DATE_ACTION_REGEX =
+  /^admin-panel:records:reschedule:date:(\d{8})$/;
+export const ADMIN_PANEL_RECORDS_RESCHEDULE_TIME_ACTION_REGEX =
+  /^admin-panel:records:reschedule:time:(\d{4})$/;
+export const ADMIN_PANEL_RECORDS_CHANGE_MASTER_ACTION_REGEX =
+  /^admin-panel:records:change-master:(\d+)$/;
+export const ADMIN_PANEL_RECORDS_CHANGE_MASTER_SELECT_ACTION_REGEX =
+  /^admin-panel:records:change-master:select:(\d+):(\d+)$/;
 
 export function makeAdminPanelRecordsOpenCardAction(appointmentId: string): string {
   return `${ADMIN_PANEL_ACTION.RECORDS_OPEN_CARD_PREFIX}${appointmentId}`;
+}
+
+export function makeAdminPanelRecordsConfirmAction(appointmentId: string): string {
+  return `${ADMIN_PANEL_ACTION.RECORDS_CONFIRM_PREFIX}${appointmentId}`;
+}
+
+export function makeAdminPanelRecordsCancelRequestAction(appointmentId: string): string {
+  return `${ADMIN_PANEL_ACTION.RECORDS_CANCEL_REQUEST_PREFIX}${appointmentId}`;
+}
+
+export function makeAdminPanelRecordsCancelConfirmAction(appointmentId: string): string {
+  return `${ADMIN_PANEL_ACTION.RECORDS_CANCEL_CONFIRM_PREFIX}${appointmentId}`;
+}
+
+export function makeAdminPanelRecordsRescheduleAction(appointmentId: string): string {
+  return `${ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_PREFIX}${appointmentId}`;
+}
+
+export function makeAdminPanelRecordsRescheduleDateAction(dateCode: string): string {
+  return `${ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_DATE_PREFIX}${dateCode}`;
+}
+
+export function makeAdminPanelRecordsRescheduleTimeAction(timeCode: string): string {
+  return `${ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_TIME_PREFIX}${timeCode}`;
+}
+
+export function makeAdminPanelRecordsChangeMasterAction(appointmentId: string): string {
+  return `${ADMIN_PANEL_ACTION.RECORDS_CHANGE_MASTER_PREFIX}${appointmentId}`;
+}
+
+export function makeAdminPanelRecordsChangeMasterSelectAction(
+  appointmentId: string,
+  masterId: string,
+): string {
+  return `${ADMIN_PANEL_ACTION.RECORDS_CHANGE_MASTER_SELECT_PREFIX}${appointmentId}:${masterId}`;
 }
