@@ -9,6 +9,7 @@
 export type AdminPanelAccessRow = {
   user_id: string;
   telegram_user_id: string;
+  studio_id: string | null;
   first_name: string;
   last_name: string | null;
 };
@@ -19,6 +20,7 @@ export type AdminPanelAccessRow = {
 export type AdminPanelAccess = {
   userId: string;
   telegramUserId: string;
+  studioId: string | null;
   firstName: string;
   lastName: string | null;
 };

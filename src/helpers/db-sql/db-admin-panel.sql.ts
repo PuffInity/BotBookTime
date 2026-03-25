@@ -6,6 +6,7 @@
 export const ADMIN_PANEL_ACCESS_SELECT_COLUMNS = `
   u.id AS user_id,
   u.telegram_user_id,
+  u.studio_id,
   u.first_name,
   u.last_name
 `;

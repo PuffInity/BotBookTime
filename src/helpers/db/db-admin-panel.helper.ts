@@ -17,6 +17,7 @@ function mapAdminPanelAccessRow(row: AdminPanelAccessRow): AdminPanelAccess {
   return {
     userId: row.user_id,
     telegramUserId: row.telegram_user_id,
+    studioId: row.studio_id,
     firstName: row.first_name,
     lastName: row.last_name,
   };
