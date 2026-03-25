@@ -109,3 +109,17 @@ export function normalizeMasterStartedOn(value: string): string {
   const dd = String(day).padStart(2, '0');
   return `${year}-${mm}-${dd}`;
 }
+
+export function normalizeMasterCertificateTitle(value: string): string {
+  const normalized = value.trim().replace(/\s+/g, ' ');
+
+  if (normalized.length < 5) {
+    throw new ValidationError('Назва документа має містити мінімум 5 символів', { value });
+  }
+
+  if (normalized.length > 120) {
+    throw new ValidationError('Назва документа занадто довга (максимум 120 символів)', { value });
+  }
+
+  return normalized;
+}

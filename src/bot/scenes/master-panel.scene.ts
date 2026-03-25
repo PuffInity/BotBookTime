@@ -17,16 +17,30 @@ import {
 } from '../../helpers/bot/master-panel-view.bot.js';
 import {
   createMasterOwnProfileAdditionalKeyboard,
+  createMasterOwnProfileCertificateConfirmKeyboard,
+  createMasterOwnProfileCertificateDeleteConfirmKeyboard,
+  createMasterOwnProfileCertificateDeleteListKeyboard,
+  createMasterOwnProfileCertificateInputKeyboard,
+  createMasterOwnProfileCertificatesKeyboard,
   createMasterOwnProfileEditConfirmKeyboard,
   createMasterOwnProfileEditInputKeyboard,
   createMasterOwnProfileMainKeyboard,
   createMasterOwnProfileProfessionalKeyboard,
+  createMasterOwnProfileServicesAddKeyboard,
+  createMasterOwnProfileServicesRemoveKeyboard,
   createMasterOwnProfileServicesKeyboard,
+  formatMasterOwnProfileCertificateConfirmText,
+  formatMasterOwnProfileCertificateDeleteConfirmText,
+  formatMasterOwnProfileCertificateDeleteListText,
+  formatMasterOwnProfileCertificateInputText,
+  formatMasterOwnProfileCertificatesText,
   formatMasterOwnProfileEditConfirmText,
   formatMasterOwnProfileEditInputText,
   formatMasterOwnProfileEditSuccessText,
   formatMasterOwnProfileAdditionalText,
   formatMasterOwnProfileMainText,
+  formatMasterOwnProfileServicesAddText,
+  formatMasterOwnProfileServicesRemoveText,
   type MasterOwnProfileEditableField,
   formatMasterOwnProfileProfessionalText,
   formatMasterOwnProfileServicesText,
@@ -119,6 +133,10 @@ import {
   MASTER_PANEL_BOOKING_RESCHEDULE_DATE_ACTION_REGEX,
   MASTER_PANEL_BOOKING_RESCHEDULE_ACTION_REGEX,
   MASTER_PANEL_BOOKING_RESCHEDULE_TIME_ACTION_REGEX,
+  MASTER_PANEL_PROFILE_CERTIFICATE_DELETE_CONFIRM_ACTION_REGEX,
+  MASTER_PANEL_PROFILE_CERTIFICATE_DELETE_REQUEST_ACTION_REGEX,
+  MASTER_PANEL_PROFILE_SERVICE_ADD_ACTION_REGEX,
+  MASTER_PANEL_PROFILE_SERVICE_REMOVE_ACTION_REGEX,
   MASTER_PANEL_PROFILE_SERVICE_TOGGLE_ACTION_REGEX,
   MASTER_PANEL_TEMPORARY_HOURS_DAY_ACTION_REGEX,
   MASTER_PANEL_TEMPORARY_HOURS_DAY_OFF_ACTION_REGEX,
@@ -128,6 +146,13 @@ import {
 } from '../../types/bot-master-panel.types.js';
 import { getMasterPanelAccessByTelegramId } from '../../helpers/db/db-master-panel.helper.js';
 import {
+  addMasterOwnCertificate,
+  addMasterOwnService,
+  deleteMasterOwnCertificate,
+  listMasterOwnCertificatesManage,
+  listMasterOwnServicesAddCandidates,
+  listMasterOwnServicesRemoveCandidates,
+  removeMasterOwnService,
   updateMasterOwnProfileBio,
   updateMasterOwnProfileDisplayName,
   updateMasterOwnProfileEmail,
@@ -170,6 +195,7 @@ import { bookingDateCodeSchema, bookingTimeCodeSchema } from '../../validator/bo
 import { buildBookingDateOptions, buildBookingTimeOptions } from '../../helpers/bot/booking-view.bot.js';
 import {
   normalizeMasterBio,
+  normalizeMasterCertificateTitle,
   normalizeMasterDisplayName,
   normalizeMasterContactEmail,
   normalizeMasterContactPhone,
@@ -257,6 +283,18 @@ type MasterPanelSceneState = {
         value: string | null;
       }
     | null;
+  certificateAddDraft:
+    | {
+        mode: 'awaiting_title' | 'awaiting_confirm';
+        title: string | null;
+      }
+    | null;
+  certificateDeleteDraft:
+    | {
+        certificateId: string | null;
+        title: string | null;
+      }
+    | null;
   rescheduleDraft:
     | {
         appointmentId: string;
@@ -299,6 +337,15 @@ function parseServiceIdFromAction(ctx: MyContext, regex: RegExp): string {
   }
 
   return matches[1];
+}
+
+async function getMasterCertificateTitleById(
+  masterId: string,
+  certificateId: string,
+): Promise<string | null> {
+  const certificates = await listMasterOwnCertificatesManage(masterId);
+  const found = certificates.find((certificate) => certificate.certificateId === certificateId);
+  return found?.title ?? null;
 }
 
 function getPendingItemById(state: MasterPanelSceneState, appointmentId: string): MasterPendingBookingItem | null {
@@ -568,6 +615,20 @@ function resetProfileEditDraft(state: MasterPanelSceneState): void {
   state.profileEditDraft = null;
 }
 
+function resetCertificateAddDraft(state: MasterPanelSceneState): void {
+  state.certificateAddDraft = null;
+}
+
+function resetCertificateDeleteDraft(state: MasterPanelSceneState): void {
+  state.certificateDeleteDraft = null;
+}
+
+function resetProfileDrafts(state: MasterPanelSceneState): void {
+  resetProfileEditDraft(state);
+  resetCertificateAddDraft(state);
+  resetCertificateDeleteDraft(state);
+}
+
 function resetRescheduleDraft(state: MasterPanelSceneState): void {
   state.rescheduleDraft = null;
 }
@@ -668,6 +729,76 @@ async function renderMasterProfileSectionByField(
     ctx,
     formatMasterOwnProfileAdditionalText(state.ownProfile),
     createMasterOwnProfileAdditionalKeyboard(),
+    preferEdit,
+  );
+}
+
+async function renderMasterServicesManage(
+  ctx: MyContext,
+  masterId: string,
+  preferEdit: boolean,
+): Promise<void> {
+  const services = await listMasterOwnServicesManage(masterId);
+  await renderView(
+    ctx,
+    formatMasterOwnProfileServicesText(services),
+    createMasterOwnProfileServicesKeyboard(services),
+    preferEdit,
+  );
+}
+
+async function renderMasterServicesAddCandidates(
+  ctx: MyContext,
+  masterId: string,
+  preferEdit: boolean,
+): Promise<void> {
+  const services = await listMasterOwnServicesAddCandidates(masterId);
+  await renderView(
+    ctx,
+    formatMasterOwnProfileServicesAddText(services),
+    createMasterOwnProfileServicesAddKeyboard(services),
+    preferEdit,
+  );
+}
+
+async function renderMasterServicesRemoveCandidates(
+  ctx: MyContext,
+  masterId: string,
+  preferEdit: boolean,
+): Promise<void> {
+  const services = await listMasterOwnServicesRemoveCandidates(masterId);
+  await renderView(
+    ctx,
+    formatMasterOwnProfileServicesRemoveText(services),
+    createMasterOwnProfileServicesRemoveKeyboard(services),
+    preferEdit,
+  );
+}
+
+async function renderMasterCertificatesManage(
+  ctx: MyContext,
+  masterId: string,
+  preferEdit: boolean,
+): Promise<void> {
+  const certificates = await listMasterOwnCertificatesManage(masterId);
+  await renderView(
+    ctx,
+    formatMasterOwnProfileCertificatesText(certificates),
+    createMasterOwnProfileCertificatesKeyboard(),
+    preferEdit,
+  );
+}
+
+async function renderMasterCertificatesDeleteList(
+  ctx: MyContext,
+  masterId: string,
+  preferEdit: boolean,
+): Promise<void> {
+  const certificates = await listMasterOwnCertificatesManage(masterId);
+  await renderView(
+    ctx,
+    formatMasterOwnProfileCertificateDeleteListText(certificates),
+    createMasterOwnProfileCertificateDeleteListKeyboard(certificates),
     preferEdit,
   );
 }
@@ -1028,6 +1159,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       state.scheduleConfigureDayDraft = null;
       state.scheduleDeleteDraft = null;
       state.profileEditDraft = null;
+      state.certificateAddDraft = null;
+      state.certificateDeleteDraft = null;
       state.rescheduleDraft = null;
 
       if (!ctx.from?.id) {
@@ -1087,6 +1220,42 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
         await ctx.reply(
           '⚠️ Щоб завершити редагування, натисніть "✅ Зберегти" або "❌ Скасувати".',
           createMasterOwnProfileEditConfirmKeyboard(),
+        );
+        return;
+      }
+
+      const certificateAddDraft = state.certificateAddDraft;
+      if (certificateAddDraft?.mode === 'awaiting_title') {
+        try {
+          const title = normalizeMasterCertificateTitle(text);
+          state.certificateAddDraft = {
+            mode: 'awaiting_confirm',
+            title,
+          };
+
+          await renderView(
+            ctx,
+            formatMasterOwnProfileCertificateConfirmText(title),
+            createMasterOwnProfileCertificateConfirmKeyboard(),
+            false,
+          );
+        } catch (error) {
+          const err = error instanceof ValidationError
+            ? error
+            : new ValidationError('Виникла помилка при перевірці назви документа');
+
+          await ctx.reply(
+            `⚠️ ${err.message}`,
+            createMasterOwnProfileCertificateInputKeyboard(),
+          );
+        }
+        return;
+      }
+
+      if (certificateAddDraft?.mode === 'awaiting_confirm') {
+        await ctx.reply(
+          '⚠️ Для завершення додавання документа натисніть "✅ Додати документ" або "❌ Скасувати дію".',
+          createMasterOwnProfileCertificateConfirmKeyboard(),
         );
         return;
       }
@@ -1403,7 +1572,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
     resetScheduleDeleteDraft(state);
-    resetProfileEditDraft(state);
+    resetProfileDrafts(state);
     resetBookingsFeed(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
@@ -1429,7 +1598,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(MASTER_PANEL_ACTION.OPEN_PROFILE_SERVICES, async (ctx) => {
     await safeAnswerCbQuery(ctx);
     const state = getSceneState(ctx);
-    resetProfileEditDraft(state);
+    resetProfileDrafts(state);
     const access = state.access;
     if (!access) {
       await denyMasterPanelAccess(ctx);
@@ -1437,19 +1606,80 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    const services = await listMasterOwnServicesManage(access.masterId);
+    await renderMasterServicesManage(ctx, access.masterId, true);
+  });
 
-    await renderView(
-      ctx,
-      formatMasterOwnProfileServicesText(services),
-      createMasterOwnProfileServicesKeyboard(services),
-      true,
-    );
+  scene.action(MASTER_PANEL_ACTION.PROFILE_SERVICE_ADD_OPEN, async (ctx) => {
+    await safeAnswerCbQuery(ctx);
+    const state = getSceneState(ctx);
+    resetProfileDrafts(state);
+    const access = state.access;
+    if (!access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    await renderMasterServicesAddCandidates(ctx, access.masterId, true);
+  });
+
+  scene.action(MASTER_PANEL_ACTION.PROFILE_SERVICE_REMOVE_OPEN, async (ctx) => {
+    await safeAnswerCbQuery(ctx);
+    const state = getSceneState(ctx);
+    resetProfileDrafts(state);
+    const access = state.access;
+    if (!access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    await renderMasterServicesRemoveCandidates(ctx, access.masterId, true);
+  });
+
+  scene.action(MASTER_PANEL_PROFILE_SERVICE_ADD_ACTION_REGEX, async (ctx) => {
+    const state = getSceneState(ctx);
+    resetProfileDrafts(state);
+    const access = state.access;
+    if (!access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const serviceId = parseServiceIdFromAction(ctx, MASTER_PANEL_PROFILE_SERVICE_ADD_ACTION_REGEX);
+    const added = await addMasterOwnService({
+      masterId: access.masterId,
+      serviceId,
+    });
+
+    await safeAnswerCbQuery(ctx, `Послугу "${added.serviceName}" додано до профілю`);
+    await renderMasterServicesAddCandidates(ctx, access.masterId, true);
+  });
+
+  scene.action(MASTER_PANEL_PROFILE_SERVICE_REMOVE_ACTION_REGEX, async (ctx) => {
+    const state = getSceneState(ctx);
+    resetProfileDrafts(state);
+    const access = state.access;
+    if (!access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const serviceId = parseServiceIdFromAction(ctx, MASTER_PANEL_PROFILE_SERVICE_REMOVE_ACTION_REGEX);
+    const removed = await removeMasterOwnService({
+      masterId: access.masterId,
+      serviceId,
+    });
+
+    await safeAnswerCbQuery(ctx, `Послугу "${removed.serviceName}" вимкнено`);
+    await renderMasterServicesRemoveCandidates(ctx, access.masterId, true);
   });
 
   scene.action(MASTER_PANEL_PROFILE_SERVICE_TOGGLE_ACTION_REGEX, async (ctx) => {
     const state = getSceneState(ctx);
-    resetProfileEditDraft(state);
+    resetProfileDrafts(state);
     const access = state.access;
     if (!access) {
       await denyMasterPanelAccess(ctx);
@@ -1481,7 +1711,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(MASTER_PANEL_ACTION.OPEN_PROFILE_PROFESSIONAL, async (ctx) => {
     await safeAnswerCbQuery(ctx);
     const state = getSceneState(ctx);
-    resetProfileEditDraft(state);
+    resetProfileDrafts(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
       await ctx.scene.leave();
@@ -1503,10 +1733,182 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     );
   });
 
+  scene.action(MASTER_PANEL_ACTION.OPEN_PROFILE_CERTIFICATES, async (ctx) => {
+    await safeAnswerCbQuery(ctx);
+    const state = getSceneState(ctx);
+    resetProfileDrafts(state);
+    const access = state.access;
+    if (!access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    await renderMasterCertificatesManage(ctx, access.masterId, true);
+  });
+
+  scene.action(MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_ADD_OPEN, async (ctx) => {
+    await safeAnswerCbQuery(ctx);
+    const state = getSceneState(ctx);
+    resetProfileDrafts(state);
+    if (!state.access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    state.certificateAddDraft = {
+      mode: 'awaiting_title',
+      title: null,
+    };
+
+    await renderView(
+      ctx,
+      formatMasterOwnProfileCertificateInputText(),
+      createMasterOwnProfileCertificateInputKeyboard(),
+      true,
+    );
+  });
+
+  scene.action(MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_ADD_CONFIRM, async (ctx) => {
+    await safeAnswerCbQuery(ctx);
+    const state = getSceneState(ctx);
+    const access = state.access;
+    const draft = state.certificateAddDraft;
+    if (!access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    if (!draft || draft.mode !== 'awaiting_confirm' || !draft.title) {
+      resetProfileDrafts(state);
+      await renderMasterCertificatesManage(ctx, access.masterId, true);
+      return;
+    }
+
+    const added = await addMasterOwnCertificate({
+      masterId: access.masterId,
+      title: draft.title,
+    });
+
+    await ctx.reply(`✅ Документ "${added.title}" додано.`);
+    resetProfileDrafts(state);
+    await renderMasterCertificatesManage(ctx, access.masterId, false);
+  });
+
+  scene.action(MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_ADD_CANCEL, async (ctx) => {
+    await safeAnswerCbQuery(ctx);
+    const state = getSceneState(ctx);
+    const access = state.access;
+    if (!access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    resetProfileDrafts(state);
+    await renderMasterCertificatesManage(ctx, access.masterId, true);
+  });
+
+  scene.action(MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_DELETE_OPEN, async (ctx) => {
+    await safeAnswerCbQuery(ctx);
+    const state = getSceneState(ctx);
+    resetProfileDrafts(state);
+    const access = state.access;
+    if (!access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    await renderMasterCertificatesDeleteList(ctx, access.masterId, true);
+  });
+
+  scene.action(MASTER_PANEL_PROFILE_CERTIFICATE_DELETE_REQUEST_ACTION_REGEX, async (ctx) => {
+    await safeAnswerCbQuery(ctx);
+    const state = getSceneState(ctx);
+    resetProfileDrafts(state);
+    const access = state.access;
+    if (!access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const certificateId = parseNumericIdFromAction(
+      ctx,
+      MASTER_PANEL_PROFILE_CERTIFICATE_DELETE_REQUEST_ACTION_REGEX,
+      'certificateId',
+    );
+    const title = await getMasterCertificateTitleById(access.masterId, certificateId);
+    if (!title) {
+      await renderMasterCertificatesDeleteList(ctx, access.masterId, true);
+      return;
+    }
+
+    state.certificateDeleteDraft = {
+      certificateId,
+      title,
+    };
+
+    await renderView(
+      ctx,
+      formatMasterOwnProfileCertificateDeleteConfirmText(title),
+      createMasterOwnProfileCertificateDeleteConfirmKeyboard(certificateId),
+      true,
+    );
+  });
+
+  scene.action(MASTER_PANEL_PROFILE_CERTIFICATE_DELETE_CONFIRM_ACTION_REGEX, async (ctx) => {
+    await safeAnswerCbQuery(ctx);
+    const state = getSceneState(ctx);
+    const access = state.access;
+    if (!access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    const certificateIdFromAction = parseNumericIdFromAction(
+      ctx,
+      MASTER_PANEL_PROFILE_CERTIFICATE_DELETE_CONFIRM_ACTION_REGEX,
+      'certificateId',
+    );
+    const draft = state.certificateDeleteDraft;
+    if (!draft || draft.certificateId !== certificateIdFromAction || !draft.title) {
+      resetCertificateDeleteDraft(state);
+      await renderMasterCertificatesDeleteList(ctx, access.masterId, true);
+      return;
+    }
+
+    const deleted = await deleteMasterOwnCertificate({
+      masterId: access.masterId,
+      certificateId: draft.certificateId,
+    });
+    resetCertificateDeleteDraft(state);
+    await ctx.reply(`✅ Документ "${deleted.title}" видалено.`);
+    await renderMasterCertificatesDeleteList(ctx, access.masterId, false);
+  });
+
+  scene.action(MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_DELETE_CANCEL, async (ctx) => {
+    await safeAnswerCbQuery(ctx);
+    const state = getSceneState(ctx);
+    const access = state.access;
+    if (!access) {
+      await denyMasterPanelAccess(ctx);
+      await ctx.scene.leave();
+      return;
+    }
+
+    resetCertificateDeleteDraft(state);
+    await renderMasterCertificatesManage(ctx, access.masterId, true);
+  });
+
   scene.action(MASTER_PANEL_ACTION.OPEN_PROFILE_ADDITIONAL, async (ctx) => {
     await safeAnswerCbQuery(ctx);
     const state = getSceneState(ctx);
-    resetProfileEditDraft(state);
+    resetProfileDrafts(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
       await ctx.scene.leave();
@@ -1764,7 +2166,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
         return;
       }
 
-      resetProfileEditDraft(state);
+      resetProfileDrafts(state);
       await renderView(ctx, formatMasterOwnProfileMainText(ownProfile), createMasterOwnProfileMainKeyboard(), true);
       return;
     }
@@ -1774,7 +2176,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     await loadOwnProfileIntoState(state);
     await ctx.reply(formatMasterOwnProfileEditSuccessText(draft.field));
 
-    resetProfileEditDraft(state);
+    resetProfileDrafts(state);
 
     if (!state.ownProfile) {
       await denyMasterPanelAccess(ctx);
@@ -1795,7 +2197,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     const canceledField = state.profileEditDraft?.field ?? 'bio';
-    resetProfileEditDraft(state);
+    resetProfileDrafts(state);
     const ownProfile = state.ownProfile ?? (await loadOwnProfileIntoState(state));
     if (!ownProfile) {
       await denyMasterPanelAccess(ctx);
@@ -1815,7 +2217,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
     resetScheduleDeleteDraft(state);
-    resetProfileEditDraft(state);
+    resetProfileDrafts(state);
     state.pending = [];
     state.pendingCursor = 0;
     resetBookingsFeed(state);
@@ -1826,7 +2228,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(MASTER_PANEL_ACTION.BOOKINGS_OPEN_MENU, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
-    resetProfileEditDraft(state);
+    resetProfileDrafts(state);
     resetRescheduleDraft(state);
     resetBookingsFeed(state);
     await renderBookingsMenu(ctx, true);
@@ -1835,7 +2237,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(MASTER_PANEL_ACTION.BOOKINGS_MENU_TODAY, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
-    resetProfileEditDraft(state);
+    resetProfileDrafts(state);
     resetRescheduleDraft(state);
     await loadBookingsFeedIntoState(state, 'today', 0);
     await renderBookingsFeed(ctx, true);
@@ -1844,7 +2246,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(MASTER_PANEL_ACTION.BOOKINGS_MENU_TOMORROW, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
-    resetProfileEditDraft(state);
+    resetProfileDrafts(state);
     resetRescheduleDraft(state);
     await loadBookingsFeedIntoState(state, 'tomorrow', 0);
     await renderBookingsFeed(ctx, true);
@@ -1853,7 +2255,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(MASTER_PANEL_ACTION.BOOKINGS_MENU_ALL, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
-    resetProfileEditDraft(state);
+    resetProfileDrafts(state);
     resetRescheduleDraft(state);
     await loadBookingsFeedIntoState(state, 'all', 0);
     await renderBookingsFeed(ctx, true);
@@ -1862,7 +2264,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(MASTER_PANEL_ACTION.BOOKINGS_MENU_CANCELED, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
-    resetProfileEditDraft(state);
+    resetProfileDrafts(state);
     resetRescheduleDraft(state);
     await loadBookingsFeedIntoState(state, 'canceled', 0);
     await renderBookingsFeed(ctx, true);
@@ -1949,7 +2351,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
     resetScheduleDeleteDraft(state);
-    resetProfileEditDraft(state);
+    resetProfileDrafts(state);
     resetBookingsFeed(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
@@ -1969,7 +2371,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
     resetScheduleDeleteDraft(state);
-    resetProfileEditDraft(state);
+    resetProfileDrafts(state);
     resetBookingsFeed(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
@@ -1989,7 +2391,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
     resetScheduleDeleteDraft(state);
-    resetProfileEditDraft(state);
+    resetProfileDrafts(state);
     resetBookingsFeed(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
@@ -2009,7 +2411,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
     resetScheduleDeleteDraft(state);
-    resetProfileEditDraft(state);
+    resetProfileDrafts(state);
     if (!state.access) {
       await denyMasterPanelAccess(ctx);
       await ctx.scene.leave();
@@ -3019,7 +3421,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
-    resetProfileEditDraft(state);
+    resetProfileDrafts(state);
     resetBookingsFeed(state);
     resetRescheduleDraft(state);
     await loadPendingIntoState(state);
@@ -3033,7 +3435,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleVacationDraft(state);
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
-    resetProfileEditDraft(state);
+    resetProfileDrafts(state);
 
     if (state.pending.length === 0) {
       await renderPendingQueue(ctx, true);
@@ -3417,7 +3819,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
     resetScheduleDeleteDraft(state);
-    resetProfileEditDraft(state);
+    resetProfileDrafts(state);
     resetBookingsFeed(state);
     resetRescheduleDraft(state);
     await renderRoot(ctx, true);
@@ -3431,7 +3833,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
     resetScheduleDeleteDraft(state);
-    resetProfileEditDraft(state);
+    resetProfileDrafts(state);
     resetBookingsFeed(state);
     resetRescheduleDraft(state);
     await ctx.scene.leave();

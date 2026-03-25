@@ -51,6 +51,20 @@ export type MasterOwnProfileServiceManageItem = {
   currencyCode: string;
 };
 
+export type MasterOwnProfileCertificateManageRow = {
+  certificate_id: string;
+  title: string;
+  issuer: string | null;
+  issued_on: Date | null;
+};
+
+export type MasterOwnProfileCertificateManageItem = {
+  certificateId: string;
+  title: string;
+  issuer: string | null;
+  issuedOn: Date | null;
+};
+
 export type MasterOwnProfileData = {
   userId: string;
   studioId: string;
@@ -117,4 +131,24 @@ export type UpdateMasterOwnProfileProceduresDoneTotalInput = {
 export type ToggleMasterOwnServiceAvailabilityInput = {
   masterId: string | number;
   serviceId: string | number;
+};
+
+export type AddMasterOwnServiceInput = {
+  masterId: string | number;
+  serviceId: string | number;
+};
+
+export type RemoveMasterOwnServiceInput = {
+  masterId: string | number;
+  serviceId: string | number;
+};
+
+export type AddMasterOwnCertificateInput = {
+  masterId: string | number;
+  title: string;
+};
+
+export type DeleteMasterOwnCertificateInput = {
+  masterId: string | number;
+  certificateId: string | number;
 };

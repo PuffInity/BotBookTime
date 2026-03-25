@@ -433,6 +433,17 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
   );
 
   bot.action(
+    MAIN_MENU_ACTION.MASTER_PANEL,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+      await ctx.scene.enter(MASTER_PANEL_SCENE_ID);
+    }),
+  );
+
+  bot.action(
     COMMON_NAV_ACTION.BACK,
     asyncBotHandler(async (ctx) => {
       await ctx.answerCbQuery();

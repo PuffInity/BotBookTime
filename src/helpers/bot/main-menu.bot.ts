@@ -1,6 +1,7 @@
 import { Markup } from 'telegraf';
 import type { MyContext } from '../../types/bot.types.js';
 import { CLIENT_MAIN_MENU_BUTTON, MAIN_MENU_ACTION } from '../../types/bot-menu.types.js';
+import { getMasterPanelAccessByTelegramId } from '../db/db-master-panel.helper.js';
 
 /**
  * @file main-menu.bot.ts
@@ -26,8 +27,10 @@ export const CLIENT_MAIN_MENU_TEXT =
 /**
  * Повертає Inline-клавіатуру головного меню клієнта.
  */
-export function createClientMainMenuKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
-  return Markup.inlineKeyboard([
+export function createClientMainMenuKeyboard(
+  hasMasterPanelAccess: boolean,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const rows = [
     [
       Markup.button.callback(CLIENT_MAIN_MENU_BUTTON.PROFILE, MAIN_MENU_ACTION.PROFILE),
       Markup.button.callback(CLIENT_MAIN_MENU_BUTTON.SERVICES, MAIN_MENU_ACTION.SERVICES),
@@ -39,12 +42,25 @@ export function createClientMainMenuKeyboard(): ReturnType<typeof Markup.inlineK
     [
       Markup.button.callback(CLIENT_MAIN_MENU_BUTTON.FAQ, MAIN_MENU_ACTION.FAQ),
     ],
-  ]);
+  ];
+
+  if (hasMasterPanelAccess) {
+    rows.push([
+      Markup.button.callback(CLIENT_MAIN_MENU_BUTTON.MASTER_PANEL, MAIN_MENU_ACTION.MASTER_PANEL),
+    ]);
+  }
+
+  return Markup.inlineKeyboard(rows);
 }
 
 /**
  * Надсилає головне меню клієнта в поточний чат.
  */
 export async function sendClientMainMenu(ctx: MyContext): Promise<void> {
-  await ctx.reply(CLIENT_MAIN_MENU_TEXT, createClientMainMenuKeyboard());
+  const telegramId = ctx.from?.id;
+  const hasMasterPanelAccess = telegramId
+    ? Boolean(await getMasterPanelAccessByTelegramId(telegramId))
+    : false;
+
+  await ctx.reply(CLIENT_MAIN_MENU_TEXT, createClientMainMenuKeyboard(hasMasterPanelAccess));
 }

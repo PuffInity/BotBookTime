@@ -1,11 +1,15 @@
 import { Markup } from 'telegraf';
 import type {
+  MasterOwnProfileCertificateManageItem,
   MasterOwnProfileData,
   MasterOwnProfileServiceManageItem,
 } from '../../types/db-helpers/db-master-profile.types.js';
 import {
   MASTER_PANEL_ACTION,
-  makeMasterPanelProfileServiceToggleAction,
+  makeMasterPanelProfileCertificateDeleteConfirmAction,
+  makeMasterPanelProfileCertificateDeleteRequestAction,
+  makeMasterPanelProfileServiceAddAction,
+  makeMasterPanelProfileServiceRemoveAction,
 } from '../../types/bot-master-panel.types.js';
 
 /**
@@ -103,7 +107,57 @@ export function formatMasterOwnProfileServicesText(services: MasterOwnProfileSer
   return (
     '💼 Керування послугами\n' +
     '━━━━━━━━━━━━━━\n\n' +
-    'Натисніть на послугу нижче, щоб увімкнути або вимкнути її для запису.\n\n' +
+    'У цьому розділі ви можете додавати або вимикати послуги для онлайн-запису.\n\n' +
+    `${servicesText}`
+  );
+}
+
+/**
+ * @summary Текст вибору послуги для додавання у профіль майстра.
+ */
+export function formatMasterOwnProfileServicesAddText(
+  services: MasterOwnProfileServiceManageItem[],
+): string {
+  const servicesText =
+    services.length > 0
+      ? services
+          .map(
+            (service, index) =>
+              `${index + 1}️⃣ ${service.serviceName}\n` +
+              `   • ${service.durationMinutes} хв • ${service.priceAmount} ${service.currencyCode}`,
+          )
+          .join('\n\n')
+      : 'Наразі немає доступних послуг для додавання.';
+
+  return (
+    '➕ Додати послугу\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Оберіть послугу, яку хочете додати до свого профілю:\n\n' +
+    `${servicesText}`
+  );
+}
+
+/**
+ * @summary Текст вибору послуги для вимкнення в профілі майстра.
+ */
+export function formatMasterOwnProfileServicesRemoveText(
+  services: MasterOwnProfileServiceManageItem[],
+): string {
+  const servicesText =
+    services.length > 0
+      ? services
+          .map(
+            (service, index) =>
+              `${index + 1}️⃣ ${service.serviceName}\n` +
+              `   • ${service.durationMinutes} хв • ${service.priceAmount} ${service.currencyCode}`,
+          )
+          .join('\n\n')
+      : 'Активних послуг для вимкнення немає.';
+
+  return (
+    '➖ Вимкнути послугу\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Оберіть послугу, яку потрібно вимкнути для нових записів:\n\n' +
     `${servicesText}`
   );
 }
@@ -179,20 +233,49 @@ export function createMasterOwnProfileSectionKeyboard(): ReturnType<typeof Marku
 export function createMasterOwnProfileServicesKeyboard(
   services: MasterOwnProfileServiceManageItem[],
 ): ReturnType<typeof Markup.inlineKeyboard> {
-  const rows = services.map((service) => {
-    const status = service.isActive ? '🟢' : '⚪️';
-    return [
-      Markup.button.callback(
-        `${status} ${service.serviceName}`,
-        makeMasterPanelProfileServiceToggleAction(service.serviceId),
-      ),
-    ];
-  });
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('➕ Додати послугу', MASTER_PANEL_ACTION.PROFILE_SERVICE_ADD_OPEN)],
+    [Markup.button.callback('➖ Вимкнути послугу', MASTER_PANEL_ACTION.PROFILE_SERVICE_REMOVE_OPEN)],
+    [Markup.button.callback('👤 До профілю майстра', MASTER_PANEL_ACTION.OPEN_PROFILE)],
+    [Markup.button.callback('⬅️ До панелі майстра', MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура вибору послуги для додавання.
+ */
+export function createMasterOwnProfileServicesAddKeyboard(
+  services: MasterOwnProfileServiceManageItem[],
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const rows = services.map((service) => [
+    Markup.button.callback(
+      `➕ ${service.serviceName}`,
+      makeMasterPanelProfileServiceAddAction(service.serviceId),
+    ),
+  ]);
 
   return Markup.inlineKeyboard([
     ...rows,
-    [Markup.button.callback('👤 До профілю майстра', MASTER_PANEL_ACTION.OPEN_PROFILE)],
-    [Markup.button.callback('⬅️ До панелі майстра', MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+    [Markup.button.callback('⬅️ До керування послугами', MASTER_PANEL_ACTION.OPEN_PROFILE_SERVICES)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура вибору послуги для вимкнення.
+ */
+export function createMasterOwnProfileServicesRemoveKeyboard(
+  services: MasterOwnProfileServiceManageItem[],
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const rows = services.map((service) => [
+    Markup.button.callback(
+      `🗑 ${service.serviceName}`,
+      makeMasterPanelProfileServiceRemoveAction(service.serviceId),
+    ),
+  ]);
+
+  return Markup.inlineKeyboard([
+    ...rows,
+    [Markup.button.callback('⬅️ До керування послугами', MASTER_PANEL_ACTION.OPEN_PROFILE_SERVICES)],
   ]);
 }
 
@@ -209,8 +292,156 @@ export function createMasterOwnProfileProfessionalKeyboard(): ReturnType<typeof 
         MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_PROCEDURES_DONE_TOTAL,
       ),
     ],
+    [Markup.button.callback('🎓 Керувати документами', MASTER_PANEL_ACTION.OPEN_PROFILE_CERTIFICATES)],
     [Markup.button.callback('👤 До профілю майстра', MASTER_PANEL_ACTION.OPEN_PROFILE)],
     [Markup.button.callback('⬅️ До панелі майстра', MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+  ]);
+}
+
+/**
+ * @summary Екран керування дипломами/сертифікатами майстра.
+ */
+export function formatMasterOwnProfileCertificatesText(
+  certificates: MasterOwnProfileCertificateManageItem[],
+): string {
+  const certificatesText =
+    certificates.length > 0
+      ? certificates
+          .map((certificate, index) => {
+            const issuer = certificate.issuer ? ` (${certificate.issuer})` : '';
+            const issued = certificate.issuedOn ? ` • ${formatDate(certificate.issuedOn)}` : '';
+            return `${index + 1}️⃣ ${certificate.title}${issuer}${issued}`;
+          })
+          .join('\n')
+      : 'Документи поки не додані.';
+
+  return (
+    '🎓 Керування дипломами та сертифікатами\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `${certificatesText}`
+  );
+}
+
+/**
+ * @summary Клавіатура екрана керування документами майстра.
+ */
+export function createMasterOwnProfileCertificatesKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('➕ Додати документ', MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_ADD_OPEN)],
+    [Markup.button.callback('➖ Видалити документ', MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_DELETE_OPEN)],
+    [Markup.button.callback('⬅️ До професійної інформації', MASTER_PANEL_ACTION.OPEN_PROFILE_PROFESSIONAL)],
+  ]);
+}
+
+/**
+ * @summary Текст кроку введення назви документа.
+ */
+export function formatMasterOwnProfileCertificateInputText(): string {
+  return (
+    '➕ Додати диплом або сертифікат\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Введіть назву документа.\n\n' +
+    'Приклад: Манікюр та моделювання нігтів — Beauty Academy'
+  );
+}
+
+/**
+ * @summary Клавіатура кроку введення назви документа.
+ */
+export function createMasterOwnProfileCertificateInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_ADD_CANCEL)],
+    [Markup.button.callback('⬅️ До документів', MASTER_PANEL_ACTION.OPEN_PROFILE_CERTIFICATES)],
+  ]);
+}
+
+/**
+ * @summary Текст підтвердження додавання документа.
+ */
+export function formatMasterOwnProfileCertificateConfirmText(title: string): string {
+  return (
+    '⚠️ Підтвердження додавання\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `Документ: ${title}\n\n` +
+    'Підтвердіть, щоб додати документ до профілю.'
+  );
+}
+
+/**
+ * @summary Клавіатура підтвердження додавання документа.
+ */
+export function createMasterOwnProfileCertificateConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('✅ Додати документ', MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_ADD_CONFIRM)],
+    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_ADD_CANCEL)],
+  ]);
+}
+
+/**
+ * @summary Текст вибору документа для видалення.
+ */
+export function formatMasterOwnProfileCertificateDeleteListText(
+  certificates: MasterOwnProfileCertificateManageItem[],
+): string {
+  const items =
+    certificates.length > 0
+      ? certificates
+          .map((certificate, index) => `${index + 1}️⃣ ${certificate.title}`)
+          .join('\n')
+      : 'Немає документів для видалення.';
+
+  return (
+    '➖ Видалити диплом або сертифікат\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `${items}`
+  );
+}
+
+/**
+ * @summary Клавіатура списку документів для видалення.
+ */
+export function createMasterOwnProfileCertificateDeleteListKeyboard(
+  certificates: MasterOwnProfileCertificateManageItem[],
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const rows = certificates.map((certificate) => [
+    Markup.button.callback(
+      `🗑 ${certificate.title}`,
+      makeMasterPanelProfileCertificateDeleteRequestAction(certificate.certificateId),
+    ),
+  ]);
+
+  return Markup.inlineKeyboard([
+    ...rows,
+    [Markup.button.callback('⬅️ До документів', MASTER_PANEL_ACTION.OPEN_PROFILE_CERTIFICATES)],
+  ]);
+}
+
+/**
+ * @summary Текст підтвердження видалення документа.
+ */
+export function formatMasterOwnProfileCertificateDeleteConfirmText(title: string): string {
+  return (
+    '⚠️ Підтвердження видалення\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `Документ: ${title}\n\n` +
+    'Ви впевнені, що хочете видалити цей документ?'
+  );
+}
+
+/**
+ * @summary Клавіатура підтвердження видалення документа.
+ */
+export function createMasterOwnProfileCertificateDeleteConfirmKeyboard(
+  certificateId: string,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(
+        '🗑 Видалити документ',
+        makeMasterPanelProfileCertificateDeleteConfirmAction(certificateId),
+      ),
+    ],
+    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_DELETE_CANCEL)],
   ]);
 }
 

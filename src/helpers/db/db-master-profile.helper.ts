@@ -1,7 +1,13 @@
 import type {
+  AddMasterOwnCertificateInput,
+  AddMasterOwnServiceInput,
+  DeleteMasterOwnCertificateInput,
   MasterOwnProfileCertificateRow,
+  MasterOwnProfileCertificateManageItem,
+  MasterOwnProfileCertificateManageRow,
   MasterOwnProfileData,
   MasterOwnProfileOverviewRow,
+  RemoveMasterOwnServiceInput,
   MasterOwnProfileServiceManageItem,
   MasterOwnProfileServiceManageRow,
   MasterOwnProfileServiceRow,
@@ -18,10 +24,18 @@ import { executeOne, queryMany, queryOne, withTransaction } from '../db.helper.j
 import { ValidationError, handleError } from '../../utils/error.utils.js';
 import { loggerDb } from '../../utils/logger/loggers-list.js';
 import {
+  SQL_ADD_MASTER_OWN_SERVICE,
+  SQL_DELETE_MASTER_OWN_CERTIFICATE,
+  SQL_FIND_MASTER_OWN_CERTIFICATE_BY_TITLE,
   SQL_GET_MASTER_OWN_PROFILE_OVERVIEW,
+  SQL_INSERT_MASTER_OWN_CERTIFICATE,
+  SQL_LIST_MASTER_OWN_PROFILE_CERTIFICATES_MANAGE,
+  SQL_LIST_MASTER_OWN_PROFILE_SERVICES_ADD_CANDIDATES,
   SQL_LIST_MASTER_OWN_PROFILE_CERTIFICATES,
+  SQL_LIST_MASTER_OWN_PROFILE_SERVICES_REMOVE_CANDIDATES,
   SQL_LIST_MASTER_OWN_PROFILE_SERVICES_MANAGE,
   SQL_LIST_MASTER_OWN_PROFILE_SERVICES,
+  SQL_REMOVE_MASTER_OWN_SERVICE,
   SQL_TOGGLE_MASTER_OWN_SERVICE_AVAILABILITY,
   SQL_UPDATE_MASTER_OWN_PROFILE_BIO,
   SQL_UPDATE_MASTER_OWN_PROFILE_DISPLAY_NAME,
@@ -33,6 +47,7 @@ import {
 } from '../db-sql/db-master-profile.sql.js';
 import {
   normalizeMasterBio,
+  normalizeMasterCertificateTitle,
   normalizeMasterDisplayName,
   normalizeMasterContactEmail,
   normalizeMasterContactPhone,
@@ -62,6 +77,14 @@ function normalizeServiceId(serviceIdInput: string | number): string {
   return normalized;
 }
 
+function normalizeCertificateId(certificateIdInput: string | number): string {
+  const normalized = String(certificateIdInput).trim();
+  if (!/^\d+$/.test(normalized) || normalized === '0') {
+    throw new ValidationError('Некоректний certificateId', { certificateId: certificateIdInput });
+  }
+  return normalized;
+}
+
 type UpdatedMasterIdRow = {
   user_id: string;
 };
@@ -70,6 +93,21 @@ type ToggledMasterOwnServiceRow = {
   service_id: string;
   service_name: string;
   is_active: boolean;
+};
+
+type AddedOrRemovedMasterOwnServiceRow = {
+  service_id: string;
+  service_name: string;
+  is_active: boolean;
+};
+
+type CreatedOrDeletedMasterOwnCertificateRow = {
+  certificate_id: string;
+  title: string;
+};
+
+type ExistingMasterOwnCertificateByTitleRow = {
+  certificate_id: string;
 };
 
 /**
@@ -391,6 +429,78 @@ export async function listMasterOwnServicesManage(
 }
 
 /**
+ * @summary Повертає послуги, які можна додати майстру (ще не активні у майстра).
+ */
+export async function listMasterOwnServicesAddCandidates(
+  masterIdInput: string | number,
+): Promise<MasterOwnProfileServiceManageItem[]> {
+  const masterId = normalizeMasterId(masterIdInput);
+
+  try {
+    return await withTransaction(async (client) =>
+      queryMany<MasterOwnProfileServiceManageRow, MasterOwnProfileServiceManageItem>(
+        SQL_LIST_MASTER_OWN_PROFILE_SERVICES_ADD_CANDIDATES,
+        [masterId],
+        (row) => ({
+          serviceId: row.service_id,
+          serviceName: row.service_name,
+          isActive: row.is_active,
+          durationMinutes: row.duration_minutes,
+          priceAmount: row.price_amount,
+          currencyCode: row.currency_code,
+        }),
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-profile.helper',
+      action: 'Failed to list add-candidate services for master profile',
+      error,
+      meta: { masterId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Повертає активні послуги майстра, які можна вимкнути.
+ */
+export async function listMasterOwnServicesRemoveCandidates(
+  masterIdInput: string | number,
+): Promise<MasterOwnProfileServiceManageItem[]> {
+  const masterId = normalizeMasterId(masterIdInput);
+
+  try {
+    return await withTransaction(async (client) =>
+      queryMany<MasterOwnProfileServiceManageRow, MasterOwnProfileServiceManageItem>(
+        SQL_LIST_MASTER_OWN_PROFILE_SERVICES_REMOVE_CANDIDATES,
+        [masterId],
+        (row) => ({
+          serviceId: row.service_id,
+          serviceName: row.service_name,
+          isActive: row.is_active,
+          durationMinutes: row.duration_minutes,
+          priceAmount: row.price_amount,
+          currencyCode: row.currency_code,
+        }),
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-profile.helper',
+      action: 'Failed to list remove-candidate services for master profile',
+      error,
+      meta: { masterId },
+    });
+    throw error;
+  }
+}
+
+/**
  * @summary Перемикає активність послуги майстра (`master_services.is_active`).
  */
 export async function toggleMasterOwnServiceAvailability(
@@ -423,6 +533,196 @@ export async function toggleMasterOwnServiceAvailability(
       action: 'Failed to toggle own master service availability',
       error,
       meta: { masterId, serviceId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Додає (або повторно активує) послугу майстра.
+ */
+export async function addMasterOwnService(
+  data: AddMasterOwnServiceInput,
+): Promise<{
+  serviceId: string;
+  serviceName: string;
+  isActive: boolean;
+}> {
+  const masterId = normalizeMasterId(data.masterId);
+  const serviceId = normalizeServiceId(data.serviceId);
+
+  try {
+    return await withTransaction(async (client) =>
+      executeOne<AddedOrRemovedMasterOwnServiceRow, { serviceId: string; serviceName: string; isActive: boolean }>(
+        SQL_ADD_MASTER_OWN_SERVICE,
+        [masterId, serviceId],
+        (row) => ({
+          serviceId: row.service_id,
+          serviceName: row.service_name,
+          isActive: row.is_active,
+        }),
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-profile.helper',
+      action: 'Failed to add own master service',
+      error,
+      meta: { masterId, serviceId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Вимикає послугу майстра (логічне видалення з публічного списку).
+ */
+export async function removeMasterOwnService(
+  data: RemoveMasterOwnServiceInput,
+): Promise<{
+  serviceId: string;
+  serviceName: string;
+  isActive: boolean;
+}> {
+  const masterId = normalizeMasterId(data.masterId);
+  const serviceId = normalizeServiceId(data.serviceId);
+
+  try {
+    return await withTransaction(async (client) =>
+      executeOne<AddedOrRemovedMasterOwnServiceRow, { serviceId: string; serviceName: string; isActive: boolean }>(
+        SQL_REMOVE_MASTER_OWN_SERVICE,
+        [masterId, serviceId],
+        (row) => ({
+          serviceId: row.service_id,
+          serviceName: row.service_name,
+          isActive: row.is_active,
+        }),
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-profile.helper',
+      action: 'Failed to remove own master service',
+      error,
+      meta: { masterId, serviceId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Повертає список дипломів/сертифікатів майстра для керування.
+ */
+export async function listMasterOwnCertificatesManage(
+  masterIdInput: string | number,
+): Promise<MasterOwnProfileCertificateManageItem[]> {
+  const masterId = normalizeMasterId(masterIdInput);
+
+  try {
+    return await withTransaction(async (client) =>
+      queryMany<MasterOwnProfileCertificateManageRow, MasterOwnProfileCertificateManageItem>(
+        SQL_LIST_MASTER_OWN_PROFILE_CERTIFICATES_MANAGE,
+        [masterId],
+        (row) => ({
+          certificateId: row.certificate_id,
+          title: row.title,
+          issuer: row.issuer,
+          issuedOn: row.issued_on ? new Date(row.issued_on) : null,
+        }),
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-profile.helper',
+      action: 'Failed to list own master certificates for manage',
+      error,
+      meta: { masterId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Додає новий сертифікат у профіль майстра.
+ */
+export async function addMasterOwnCertificate(
+  data: AddMasterOwnCertificateInput,
+): Promise<{ certificateId: string; title: string }> {
+  const masterId = normalizeMasterId(data.masterId);
+  const title = normalizeMasterCertificateTitle(data.title);
+
+  try {
+    return await withTransaction(async (client) => {
+      const existing = await queryOne<
+        ExistingMasterOwnCertificateByTitleRow,
+        ExistingMasterOwnCertificateByTitleRow
+      >(
+        SQL_FIND_MASTER_OWN_CERTIFICATE_BY_TITLE,
+        [masterId, title],
+        (row) => row,
+        client,
+      );
+
+      if (existing) {
+        throw new ValidationError('Такий документ уже додано', { title });
+      }
+
+      return executeOne<CreatedOrDeletedMasterOwnCertificateRow, { certificateId: string; title: string }>(
+        SQL_INSERT_MASTER_OWN_CERTIFICATE,
+        [masterId, title],
+        (row) => ({
+          certificateId: row.certificate_id,
+          title: row.title,
+        }),
+        client,
+      );
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-profile.helper',
+      action: 'Failed to add own master certificate',
+      error,
+      meta: { masterId, title },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Видаляє сертифікат з профілю майстра.
+ */
+export async function deleteMasterOwnCertificate(
+  data: DeleteMasterOwnCertificateInput,
+): Promise<{ certificateId: string; title: string }> {
+  const masterId = normalizeMasterId(data.masterId);
+  const certificateId = normalizeCertificateId(data.certificateId);
+
+  try {
+    return await withTransaction(async (client) =>
+      executeOne<CreatedOrDeletedMasterOwnCertificateRow, { certificateId: string; title: string }>(
+        SQL_DELETE_MASTER_OWN_CERTIFICATE,
+        [masterId, certificateId],
+        (row) => ({
+          certificateId: row.certificate_id,
+          title: row.title,
+        }),
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-master-profile.helper',
+      action: 'Failed to delete own master certificate',
+      error,
+      meta: { masterId, certificateId },
     });
     throw error;
   }
