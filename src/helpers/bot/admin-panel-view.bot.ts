@@ -78,3 +78,52 @@ export function createAdminPanelSectionStubKeyboard(): ReturnType<typeof Markup.
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.HOME, ADMIN_PANEL_ACTION.HOME)],
   ]);
 }
+
+/**
+ * @summary Текст меню блоку "Записи" в адмін-панелі.
+ */
+export function formatAdminRecordsMenuText(): string {
+  return (
+    '📅 Записи\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Блок 1 активний.\n' +
+    'Оберіть категорію для перегляду записів:'
+  );
+}
+
+/**
+ * @summary Клавіатура меню блоку "Записи".
+ */
+export function createAdminRecordsMenuKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_PENDING, ADMIN_PANEL_ACTION.RECORDS_MENU_PENDING)],
+    [
+      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_TODAY, ADMIN_PANEL_ACTION.RECORDS_MENU_TODAY),
+      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_TOMORROW, ADMIN_PANEL_ACTION.RECORDS_MENU_TOMORROW),
+    ],
+    [
+      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_ALL, ADMIN_PANEL_ACTION.RECORDS_MENU_ALL),
+      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CANCELED, ADMIN_PANEL_ACTION.RECORDS_MENU_CANCELED),
+    ],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK, ADMIN_PANEL_ACTION.RECORDS_BACK)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.HOME, ADMIN_PANEL_ACTION.HOME)],
+  ]);
+}
+
+/**
+ * @summary Текст заглушки підкатегорії блоку "Записи".
+ */
+export function formatAdminRecordsCategoryStubText(
+  title: string,
+  categoryCode: string,
+): string {
+  return (
+    `${title}\n` +
+    '━━━━━━━━━━━━━━\n\n' +
+    '📦 Підблок блоку 1\n' +
+    `Код категорії: ${categoryCode}\n\n` +
+    'Поточний етап:\n' +
+    'ми зафіксували навігацію та структуру.\n\n' +
+    'На наступному кроці тут буде реальна видача з БД (списки, пагінація, картка запису).'
+  );
+}

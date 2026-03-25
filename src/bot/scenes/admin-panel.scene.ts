@@ -3,8 +3,11 @@ import type { MyContext } from '../../types/bot.types.js';
 import type { AdminPanelAccess } from '../../types/db-helpers/db-admin-panel.types.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
 import {
+  createAdminRecordsMenuKeyboard,
   createAdminPanelRootKeyboard,
   createAdminPanelSectionStubKeyboard,
+  formatAdminRecordsCategoryStubText,
+  formatAdminRecordsMenuText,
   formatAdminPanelRootText,
   formatAdminPanelSectionStubText,
 } from '../../helpers/bot/admin-panel-view.bot.js';
@@ -63,6 +66,32 @@ async function renderStubSection(
   }
 }
 
+async function renderRecordsMenu(ctx: MyContext): Promise<void> {
+  const text = formatAdminRecordsMenuText();
+  const keyboard = createAdminRecordsMenuKeyboard();
+
+  try {
+    await ctx.editMessageText(text, keyboard);
+  } catch {
+    await ctx.reply(text, keyboard);
+  }
+}
+
+async function renderRecordsCategoryStub(
+  ctx: MyContext,
+  title: string,
+  categoryCode: string,
+): Promise<void> {
+  const text = formatAdminRecordsCategoryStubText(title, categoryCode);
+  const keyboard = createAdminRecordsMenuKeyboard();
+
+  try {
+    await ctx.editMessageText(text, keyboard);
+  } catch {
+    await ctx.reply(text, keyboard);
+  }
+}
+
 export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
   const scene = new Scenes.WizardScene<MyContext>(
     ADMIN_PANEL_SCENE_ID,
@@ -95,7 +124,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
   scene.action(ADMIN_PANEL_ACTION.OPEN_RECORDS, async (ctx) => {
     await ctx.answerCbQuery();
-    await renderStubSection(ctx, '📅 Записи', 1);
+    await renderRecordsMenu(ctx);
   });
 
   scene.action(ADMIN_PANEL_ACTION.OPEN_SCHEDULE, async (ctx) => {
@@ -121,6 +150,36 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(ADMIN_PANEL_ACTION.OPEN_SETTINGS, async (ctx) => {
     await ctx.answerCbQuery();
     await renderStubSection(ctx, '⚙️ Налаштування', 6);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.RECORDS_MENU_PENDING, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderRecordsCategoryStub(ctx, '🆕 Нові записи (очікують підтвердження)', 'pending');
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.RECORDS_MENU_TODAY, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderRecordsCategoryStub(ctx, '📍 Записи на сьогодні', 'today');
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.RECORDS_MENU_TOMORROW, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderRecordsCategoryStub(ctx, '📆 Записи на завтра', 'tomorrow');
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.RECORDS_MENU_ALL, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderRecordsCategoryStub(ctx, '🗂 Усі записи', 'all');
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.RECORDS_MENU_CANCELED, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderRecordsCategoryStub(ctx, '❌ Скасовані записи', 'canceled');
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.RECORDS_BACK, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderAdminRoot(ctx, true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.BACK_TO_ROOT, async (ctx) => {
