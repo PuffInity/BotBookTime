@@ -8,6 +8,7 @@ import type {
   RescheduleAdminBookingResult,
 } from '../../types/db-helpers/db-admin-bookings.types.js';
 import type { MasterBookingOption } from '../../types/db-helpers/db-masters.types.js';
+import type { AdminStudioScheduleData } from '../../types/db-helpers/db-admin-schedule.types.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
 import {
   createAdminRecordsMenuKeyboard,
@@ -17,6 +18,15 @@ import {
   formatAdminPanelRootText,
   formatAdminPanelSectionStubText,
 } from '../../helpers/bot/admin-panel-view.bot.js';
+import {
+  createAdminScheduleMenuKeyboard,
+  createAdminScheduleSectionKeyboard,
+  formatAdminScheduleDaysOffText,
+  formatAdminScheduleHolidaysText,
+  formatAdminScheduleMenuText,
+  formatAdminScheduleOverviewText,
+  formatAdminScheduleTemporaryText,
+} from '../../helpers/bot/admin-schedule-view.bot.js';
 import {
   createAdminCancelBookingConfirmKeyboard,
   createAdminChangeMasterConfirmKeyboard,
@@ -56,6 +66,7 @@ import {
   reassignAdminBookingMaster,
   rescheduleAdminBooking,
 } from '../../helpers/db/db-admin-bookings.helper.js';
+import { getAdminStudioSchedule } from '../../helpers/db/db-admin-schedule.helper.js';
 import { listActiveMastersByService } from '../../helpers/db/db-masters.helper.js';
 import { buildBookingDateOptions, buildBookingTimeOptions } from '../../helpers/bot/booking-view.bot.js';
 import { bookingDateCodeSchema, bookingTimeCodeSchema } from '../../validator/booking-input.schema.js';
@@ -86,6 +97,8 @@ type AdminChangeMasterDraft = {
   candidates: MasterBookingOption[];
 };
 
+type AdminScheduleSection = 'overview' | 'days-off' | 'holidays' | 'temporary';
+
 type AdminPanelSceneState = {
   access: AdminPanelAccess | null;
   recordsFeed: AdminBookingsFeedPage | null;
@@ -93,6 +106,8 @@ type AdminPanelSceneState = {
   recordsOpenedAppointmentId: string | null;
   recordsRescheduleDraft: AdminRescheduleDraft | null;
   recordsChangeMasterDraft: AdminChangeMasterDraft | null;
+  scheduleData: AdminStudioScheduleData | null;
+  scheduleCurrentSection: AdminScheduleSection | null;
 };
 
 function getSceneState(ctx: MyContext): AdminPanelSceneState {
@@ -174,6 +189,70 @@ async function renderRecordsMenu(ctx: MyContext): Promise<void> {
   } catch {
     await ctx.reply(text, keyboard);
   }
+}
+
+async function renderScheduleMenu(ctx: MyContext): Promise<void> {
+  const text = formatAdminScheduleMenuText();
+  const keyboard = createAdminScheduleMenuKeyboard();
+
+  try {
+    await ctx.editMessageText(text, keyboard);
+  } catch {
+    await ctx.reply(text, keyboard);
+  }
+}
+
+async function loadAdminSchedule(state: AdminPanelSceneState): Promise<AdminStudioScheduleData> {
+  const studioId = state.access?.studioId;
+  if (!studioId) {
+    throw new ValidationError('Не вдалося визначити студію адміністратора');
+  }
+
+  const data = await getAdminStudioSchedule(studioId, 12);
+  state.scheduleData = data;
+  return data;
+}
+
+function formatScheduleSectionText(
+  section: AdminScheduleSection,
+  data: AdminStudioScheduleData,
+): string {
+  switch (section) {
+    case 'overview':
+      return formatAdminScheduleOverviewText(data);
+    case 'days-off':
+      return formatAdminScheduleDaysOffText(data);
+    case 'holidays':
+      return formatAdminScheduleHolidaysText(data);
+    case 'temporary':
+      return formatAdminScheduleTemporaryText(data);
+    default:
+      return formatAdminScheduleOverviewText(data);
+  }
+}
+
+async function renderScheduleSection(
+  ctx: MyContext,
+  section: AdminScheduleSection,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const data = await loadAdminSchedule(state);
+  state.scheduleCurrentSection = section;
+
+  const text = formatScheduleSectionText(section, data);
+  const keyboard = createAdminScheduleSectionKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
 }
 
 async function renderRecordsCategoryStub(
@@ -593,6 +672,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.recordsOpenedAppointmentId = null;
       state.recordsRescheduleDraft = null;
       state.recordsChangeMasterDraft = null;
+      state.scheduleData = null;
+      state.scheduleCurrentSection = null;
 
       if (!state.access) {
         await ctx.reply(
@@ -624,7 +705,51 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
   scene.action(ADMIN_PANEL_ACTION.OPEN_SCHEDULE, async (ctx) => {
     await ctx.answerCbQuery();
-    await renderStubSection(ctx, '🕒 Розклад', 2);
+    const state = getSceneState(ctx);
+    state.scheduleCurrentSection = null;
+    state.scheduleData = null;
+    await renderScheduleMenu(ctx);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SCHEDULE_OPEN_OVERVIEW, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderScheduleSection(ctx, 'overview', true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SCHEDULE_OPEN_DAYS_OFF, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderScheduleSection(ctx, 'days-off', true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SCHEDULE_OPEN_HOLIDAYS, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderScheduleSection(ctx, 'holidays', true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SCHEDULE_OPEN_TEMPORARY, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderScheduleSection(ctx, 'temporary', true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SCHEDULE_REFRESH, async (ctx) => {
+    await ctx.answerCbQuery();
+    const section = getSceneState(ctx).scheduleCurrentSection ?? 'overview';
+    await renderScheduleSection(ctx, section, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    state.scheduleCurrentSection = null;
+    await renderScheduleMenu(ctx);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SCHEDULE_BACK, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    state.scheduleCurrentSection = null;
+    state.scheduleData = null;
+    await renderAdminRoot(ctx, true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.OPEN_MASTERS, async (ctx) => {
