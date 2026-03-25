@@ -1,10 +1,16 @@
 import { Markup } from 'telegraf';
-import type { AdminStudioScheduleData } from '../../types/db-helpers/db-admin-schedule.types.js';
+import type {
+  AdminStudioScheduleData,
+  AdminStudioTemporaryScheduleDayInput,
+} from '../../types/db-helpers/db-admin-schedule.types.js';
 import {
   ADMIN_PANEL_ACTION,
   ADMIN_PANEL_BUTTON_TEXT,
   makeAdminPanelScheduleDayOffDeleteRequestAction,
   makeAdminPanelScheduleHolidayDeleteRequestAction,
+  makeAdminPanelScheduleTemporaryDayAction,
+  makeAdminPanelScheduleTemporaryDayOffAction,
+  makeAdminPanelScheduleTemporaryDeleteRequestAction,
 } from '../../types/bot-admin-panel.types.js';
 
 /**
@@ -22,6 +28,12 @@ const WEEKDAY_LABELS: Record<number, string> = {
   7: 'Нд',
 };
 
+const TEMPORARY_WEEKDAY_ROWS = [
+  [1, 2, 3],
+  [4, 5, 6],
+  [7],
+];
+
 function formatDate(date: Date): string {
   return date.toLocaleDateString('uk-UA');
 }
@@ -31,6 +43,13 @@ function formatWeeklyLine(weekday: number, isOpen: boolean, openTime: string | n
   if (!isOpen) return `• ${day}: вихідний`;
   if (!openTime || !closeTime) return `• ${day}: графік не заповнено`;
   return `• ${day}: ${openTime}–${closeTime}`;
+}
+
+function dateToCode(date: Date): string {
+  const year = String(date.getFullYear());
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
 }
 
 /**
@@ -351,4 +370,231 @@ export function createAdminScheduleDeleteConfirmKeyboard(
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_DELETE_CANCEL, ADMIN_PANEL_ACTION.SCHEDULE_DELETE_CANCEL)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
   ]);
+}
+
+type TemporaryPeriod = {
+  dateFrom: Date;
+  dateTo: Date;
+  dateFromCode: string;
+  dateToCode: string;
+};
+
+function extractTemporaryPeriods(data: AdminStudioScheduleData): TemporaryPeriod[] {
+  const unique = new Map<string, TemporaryPeriod>();
+
+  for (const item of data.upcomingTemporaryHours) {
+    const key = `${dateToCode(item.dateFrom)}:${dateToCode(item.dateTo)}`;
+    if (!unique.has(key)) {
+      unique.set(key, {
+        dateFrom: item.dateFrom,
+        dateTo: item.dateTo,
+        dateFromCode: dateToCode(item.dateFrom),
+        dateToCode: dateToCode(item.dateTo),
+      });
+    }
+  }
+
+  return Array.from(unique.values()).sort((a, b) => a.dateFrom.getTime() - b.dateFrom.getTime());
+}
+
+/**
+ * @summary Клавіатура розділу "Тимчасові зміни графіку".
+ */
+export function createAdminScheduleTemporaryKeyboard(
+  data: AdminStudioScheduleData,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const periods = extractTemporaryPeriods(data).slice(0, 10);
+  const deleteRows = periods.map((period, index) => [
+    Markup.button.callback(
+      `🗑 Видалити період #${index + 1}`,
+      makeAdminPanelScheduleTemporaryDeleteRequestAction(period.dateFromCode, period.dateToCode),
+    ),
+  ]);
+
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_ADD_TEMPORARY, ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_OPEN)],
+    ...deleteRows,
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_REFRESH, ADMIN_PANEL_ACTION.SCHEDULE_OPEN_TEMPORARY)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK, ADMIN_PANEL_ACTION.SCHEDULE_BACK)],
+  ]);
+}
+
+/**
+ * @summary Текст старту flow встановлення тимчасового графіку.
+ */
+export function formatAdminScheduleTemporarySetPeriodText(): string {
+  return (
+    '🕒 Встановити тимчасовий графік студії\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Вкажіть період дії у форматі:\n' +
+    'ДД.ММ.РРРР - ДД.ММ.РРРР\n\n' +
+    'Приклад: 10.03.2026 - 16.03.2026\n\n' +
+    'Мінімальна тривалість періоду: 7 календарних днів.'
+  );
+}
+
+function formatTemporaryDayState(day: AdminStudioTemporaryScheduleDayInput | null): string {
+  if (!day) return 'не налаштовано';
+  if (!day.isOpen || !day.openTime || !day.closeTime) return 'вихідний';
+  return `${day.openTime} - ${day.closeTime}`;
+}
+
+/**
+ * @summary Текст кроку налаштування днів для тимчасового графіку.
+ */
+export function formatAdminScheduleTemporaryDaysConfigText(
+  dateFromLabel: string,
+  dateToLabel: string,
+  days: AdminStudioTemporaryScheduleDayInput[],
+): string {
+  const byWeekday = new Map<number, AdminStudioTemporaryScheduleDayInput>(
+    days.map((day) => [day.weekday, day]),
+  );
+
+  const lines: string[] = [];
+  for (let weekday = 1; weekday <= 7; weekday += 1) {
+    const label = WEEKDAY_LABELS[weekday];
+    const day = byWeekday.get(weekday) ?? null;
+    lines.push(`${label}: ${formatTemporaryDayState(day)}`);
+  }
+
+  return (
+    '🕒 Налаштування тимчасового графіку\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `📅 Період: ${dateFromLabel} - ${dateToLabel}\n` +
+    `✅ Налаштовано днів: ${days.length}/7\n\n` +
+    `${lines.join('\n')}\n\n` +
+    'Оберіть день кнопкою нижче, потім введіть час "від" та "до".'
+  );
+}
+
+/**
+ * @summary Текст кроку вводу часу початку для обраного дня.
+ */
+export function formatAdminScheduleTemporaryDayFromInputText(weekday: number): string {
+  const label = WEEKDAY_LABELS[weekday] ?? `День ${weekday}`;
+  return (
+    '🕒 Налаштування дня\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `📅 День: ${label}\n\n` +
+    'Введіть час початку у форматі HH:MM\n' +
+    'Приклад: 10:00'
+  );
+}
+
+/**
+ * @summary Текст кроку вводу часу завершення для обраного дня.
+ */
+export function formatAdminScheduleTemporaryDayToInputText(
+  weekday: number,
+  fromTime: string,
+): string {
+  const label = WEEKDAY_LABELS[weekday] ?? `День ${weekday}`;
+  return (
+    '🕒 Налаштування дня\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `📅 День: ${label}\n` +
+    `⏱ Від: ${fromTime}\n\n` +
+    'Введіть час завершення у форматі HH:MM\n' +
+    'Приклад: 18:00'
+  );
+}
+
+function formatTemporaryPreviewLines(days: AdminStudioTemporaryScheduleDayInput[]): string {
+  return days
+    .sort((a, b) => a.weekday - b.weekday)
+    .map((day) => {
+      const label = WEEKDAY_LABELS[day.weekday] ?? `День ${day.weekday}`;
+      if (!day.isOpen || !day.openTime || !day.closeTime) {
+        return `${label}: вихідний`;
+      }
+      return `${label}: ${day.openTime} - ${day.closeTime}`;
+    })
+    .join('\n');
+}
+
+/**
+ * @summary Текст підтвердження тимчасового графіку.
+ */
+export function formatAdminScheduleTemporaryConfirmText(
+  dateFromLabel: string,
+  dateToLabel: string,
+  days: AdminStudioTemporaryScheduleDayInput[],
+): string {
+  return (
+    '⚠️ Підтвердження\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `📅 Період: ${dateFromLabel} - ${dateToLabel}\n\n` +
+    '🕒 Новий тимчасовий графік студії:\n' +
+    `${formatTemporaryPreviewLines(days)}\n\n` +
+    'Після підтвердження цей графік буде діяти лише у вказаний період.'
+  );
+}
+
+/**
+ * @summary Клавіатура вводу періоду тимчасового графіку.
+ */
+export function createAdminScheduleTemporaryPeriodInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CANCEL_ACTION, ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_SECTION, ADMIN_PANEL_ACTION.SCHEDULE_OPEN_TEMPORARY)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура налаштування днів тижня для тимчасового графіку.
+ */
+export function createAdminScheduleTemporaryDaysConfigKeyboard(
+  days: AdminStudioTemporaryScheduleDayInput[],
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const byWeekday = new Map<number, AdminStudioTemporaryScheduleDayInput>(
+    days.map((day) => [day.weekday, day]),
+  );
+
+  const dayRows = TEMPORARY_WEEKDAY_ROWS.map((row) =>
+    row.map((weekday) => {
+      const label = WEEKDAY_LABELS[weekday];
+      const day = byWeekday.get(weekday);
+      const icon = day ? '✅' : '⚪';
+      return Markup.button.callback(
+        `${icon} ${label}`,
+        makeAdminPanelScheduleTemporaryDayAction(weekday),
+      );
+    }),
+  );
+
+  return Markup.inlineKeyboard([
+    ...dayRows,
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CONFIRM, ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_CONFIRM)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CANCEL_ACTION, ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_SECTION, ADMIN_PANEL_ACTION.SCHEDULE_OPEN_TEMPORARY)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура вводу часу для обраного дня тимчасового графіку.
+ */
+export function createAdminScheduleTemporaryDayInputKeyboard(
+  weekday: number,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('🚫 Зробити вихідним', makeAdminPanelScheduleTemporaryDayOffAction(weekday))],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CANCEL_ACTION, ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_SECTION, ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_OPEN)],
+  ]);
+}
+
+/**
+ * @summary Текст підтвердження видалення періоду тимчасового графіку.
+ */
+export function formatAdminScheduleDeleteTemporaryConfirmText(
+  dateFrom: Date,
+  dateTo: Date,
+): string {
+  return (
+    '⚠️ Видалення тимчасового графіку\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `Видалити тимчасовий графік за період ${formatDate(dateFrom)} - ${formatDate(dateTo)}?`
+  );
 }

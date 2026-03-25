@@ -20,11 +20,23 @@ export const ADMIN_PANEL_ACTION = {
   SCHEDULE_HOLIDAY_ADD_CANCEL: 'admin-panel:schedule:holiday:add:cancel',
   SCHEDULE_HOLIDAY_DELETE_REQUEST_PREFIX: 'admin-panel:schedule:holiday:delete:request:',
   SCHEDULE_HOLIDAY_DELETE_CONFIRM_PREFIX: 'admin-panel:schedule:holiday:delete:confirm:',
+  SCHEDULE_TEMPORARY_CREATE_OPEN: 'admin-panel:schedule:temporary:create:open',
+  SCHEDULE_TEMPORARY_CREATE_CONFIRM: 'admin-panel:schedule:temporary:create:confirm',
+  SCHEDULE_TEMPORARY_CREATE_CANCEL: 'admin-panel:schedule:temporary:create:cancel',
+  SCHEDULE_TEMPORARY_DAY_PREFIX: 'admin-panel:schedule:temporary:day:',
+  SCHEDULE_TEMPORARY_DAY_OFF_PREFIX: 'admin-panel:schedule:temporary:day-off:',
+  SCHEDULE_TEMPORARY_DELETE_REQUEST_PREFIX: 'admin-panel:schedule:temporary:delete:request:',
+  SCHEDULE_TEMPORARY_DELETE_CONFIRM_PREFIX: 'admin-panel:schedule:temporary:delete:confirm:',
   SCHEDULE_DELETE_CANCEL: 'admin-panel:schedule:delete:cancel',
   SCHEDULE_REFRESH: 'admin-panel:schedule:refresh',
   SCHEDULE_BACK_TO_MENU: 'admin-panel:schedule:back-to-menu',
   SCHEDULE_BACK: 'admin-panel:schedule:back',
   OPEN_MASTERS: 'admin-panel:open-masters',
+  MASTERS_OPEN_PREFIX: 'admin-panel:masters:open:',
+  MASTERS_OPEN_BOOKINGS_PREFIX: 'admin-panel:masters:open-bookings:',
+  MASTERS_OPEN_STATS_PREFIX: 'admin-panel:masters:open-stats:',
+  MASTERS_BACK_TO_LIST: 'admin-panel:masters:back-to-list',
+  MASTERS_BACK: 'admin-panel:masters:back',
   OPEN_SERVICES: 'admin-panel:open-services',
   OPEN_STATS: 'admin-panel:open-stats',
   OPEN_SETTINGS: 'admin-panel:open-settings',
@@ -67,13 +79,19 @@ export const ADMIN_PANEL_BUTTON_TEXT = {
   SCHEDULE_TEMPORARY: '🕒 Тимчасові зміни',
   SCHEDULE_ADD_DAY_OFF: '➕ Додати вихідний',
   SCHEDULE_ADD_HOLIDAY: '➕ Додати свято',
+  SCHEDULE_ADD_TEMPORARY: '➕ Додати тимчасовий графік',
   SCHEDULE_CONFIRM: '✅ Підтвердити',
   SCHEDULE_CANCEL_ACTION: '❌ Скасувати дію',
   SCHEDULE_DELETE_CANCEL: '⬅️ Скасувати видалення',
+  SCHEDULE_BACK_TO_SECTION: '⬅️ До розділу',
   SCHEDULE_REFRESH: '🔄 Оновити',
   SCHEDULE_BACK_TO_MENU: '⬅️ До меню розкладу',
   SCHEDULE_BACK: '⬅️ До адмін-панелі',
   MASTERS: '👩‍🎨 Майстри',
+  MASTERS_OPEN_BOOKINGS: '📅 Записи майстра',
+  MASTERS_OPEN_STATS: '📊 Статистика майстра',
+  MASTERS_BACK_TO_LIST: '⬅️ До списку майстрів',
+  MASTERS_BACK: '⬅️ До адмін-панелі',
   SERVICES: '💼 Послуги',
   STATS: '📊 Статистика',
   SETTINGS: '⚙️ Налаштування',
@@ -126,6 +144,18 @@ export const ADMIN_PANEL_SCHEDULE_HOLIDAY_DELETE_REQUEST_ACTION_REGEX =
   /^admin-panel:schedule:holiday:delete:request:(\d+)$/;
 export const ADMIN_PANEL_SCHEDULE_HOLIDAY_DELETE_CONFIRM_ACTION_REGEX =
   /^admin-panel:schedule:holiday:delete:confirm:(\d+)$/;
+export const ADMIN_PANEL_SCHEDULE_TEMPORARY_DAY_ACTION_REGEX =
+  /^admin-panel:schedule:temporary:day:([1-7])$/;
+export const ADMIN_PANEL_SCHEDULE_TEMPORARY_DAY_OFF_ACTION_REGEX =
+  /^admin-panel:schedule:temporary:day-off:([1-7])$/;
+export const ADMIN_PANEL_SCHEDULE_TEMPORARY_DELETE_REQUEST_ACTION_REGEX =
+  /^admin-panel:schedule:temporary:delete:request:(\d{8}):(\d{8})$/;
+export const ADMIN_PANEL_SCHEDULE_TEMPORARY_DELETE_CONFIRM_ACTION_REGEX =
+  /^admin-panel:schedule:temporary:delete:confirm:(\d{8}):(\d{8})$/;
+export const ADMIN_PANEL_MASTERS_OPEN_ACTION_REGEX = /^admin-panel:masters:open:(\d+)$/;
+export const ADMIN_PANEL_MASTERS_OPEN_BOOKINGS_ACTION_REGEX =
+  /^admin-panel:masters:open-bookings:(\d+)$/;
+export const ADMIN_PANEL_MASTERS_OPEN_STATS_ACTION_REGEX = /^admin-panel:masters:open-stats:(\d+)$/;
 
 export function makeAdminPanelRecordsOpenCardAction(appointmentId: string): string {
   return `${ADMIN_PANEL_ACTION.RECORDS_OPEN_CARD_PREFIX}${appointmentId}`;
@@ -180,4 +210,38 @@ export function makeAdminPanelScheduleHolidayDeleteRequestAction(holidayId: stri
 
 export function makeAdminPanelScheduleHolidayDeleteConfirmAction(holidayId: string): string {
   return `${ADMIN_PANEL_ACTION.SCHEDULE_HOLIDAY_DELETE_CONFIRM_PREFIX}${holidayId}`;
+}
+
+export function makeAdminPanelScheduleTemporaryDayAction(weekday: number): string {
+  return `${ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_DAY_PREFIX}${weekday}`;
+}
+
+export function makeAdminPanelScheduleTemporaryDayOffAction(weekday: number): string {
+  return `${ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_DAY_OFF_PREFIX}${weekday}`;
+}
+
+export function makeAdminPanelScheduleTemporaryDeleteRequestAction(
+  dateFromCode: string,
+  dateToCode: string,
+): string {
+  return `${ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_DELETE_REQUEST_PREFIX}${dateFromCode}:${dateToCode}`;
+}
+
+export function makeAdminPanelScheduleTemporaryDeleteConfirmAction(
+  dateFromCode: string,
+  dateToCode: string,
+): string {
+  return `${ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_DELETE_CONFIRM_PREFIX}${dateFromCode}:${dateToCode}`;
+}
+
+export function makeAdminPanelMastersOpenAction(masterId: string): string {
+  return `${ADMIN_PANEL_ACTION.MASTERS_OPEN_PREFIX}${masterId}`;
+}
+
+export function makeAdminPanelMastersOpenBookingsAction(masterId: string): string {
+  return `${ADMIN_PANEL_ACTION.MASTERS_OPEN_BOOKINGS_PREFIX}${masterId}`;
+}
+
+export function makeAdminPanelMastersOpenStatsAction(masterId: string): string {
+  return `${ADMIN_PANEL_ACTION.MASTERS_OPEN_STATS_PREFIX}${masterId}`;
 }

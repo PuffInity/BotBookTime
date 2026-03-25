@@ -129,3 +129,46 @@ export const SQL_DELETE_STUDIO_HOLIDAY_BY_ID = `
     AND studio_id = $2::bigint
   RETURNING id
 `;
+
+export const SQL_CHECK_STUDIO_TEMPORARY_HOURS_OVERLAP = `
+  SELECT EXISTS (
+    SELECT 1
+    FROM studio_temporary_hours
+    WHERE studio_id = $1::bigint
+      AND daterange(date_from, date_to + 1, '[)')
+          && daterange($2::date, $3::date + 1, '[)')
+  ) AS already_exists
+`;
+
+export const SQL_INSERT_STUDIO_TEMPORARY_HOURS = `
+  INSERT INTO studio_temporary_hours (
+    studio_id,
+    date_from,
+    date_to,
+    weekday,
+    is_open,
+    open_time,
+    close_time,
+    note,
+    created_by
+  )
+  VALUES (
+    $1::bigint,
+    $2::date,
+    $3::date,
+    $4::smallint,
+    $5::boolean,
+    $6::time,
+    $7::time,
+    $8,
+    $9::bigint
+  )
+`;
+
+export const SQL_DELETE_STUDIO_TEMPORARY_HOURS_PERIOD = `
+  DELETE FROM studio_temporary_hours
+  WHERE studio_id = $1::bigint
+    AND date_from = $2::date
+    AND date_to = $3::date
+  RETURNING id
+`;

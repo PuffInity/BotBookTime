@@ -102,6 +102,32 @@ export type DeleteAdminStudioHolidayInput = {
   holidayId: string | number;
 };
 
+export type AdminStudioTemporaryScheduleDayInput = {
+  weekday: number;
+  isOpen: boolean;
+  openTime: string | null;
+  closeTime: string | null;
+};
+
+export type CreateAdminStudioTemporaryScheduleInput = {
+  studioId: string | number;
+  dateFrom: Date | string;
+  dateTo: Date | string;
+  days: AdminStudioTemporaryScheduleDayInput[];
+  note?: string | null;
+  createdBy?: string | number | null;
+};
+
+export type DeleteAdminStudioTemporarySchedulePeriodInput = {
+  studioId: string | number;
+  dateFrom: Date | string;
+  dateTo: Date | string;
+};
+
+export type AdminStudioTemporaryHoursOverlapRow = {
+  already_exists: boolean;
+};
+
 export type AdminInsertedStudioDayOffRow = {
   id: string;
   off_date: Date;

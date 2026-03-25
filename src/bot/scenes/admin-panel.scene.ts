@@ -7,8 +7,13 @@ import type {
   AdminBookingsFeedPage,
   RescheduleAdminBookingResult,
 } from '../../types/db-helpers/db-admin-bookings.types.js';
-import type { MasterBookingOption } from '../../types/db-helpers/db-masters.types.js';
+import type {
+  MasterBookingOption,
+  MasterCatalogDetails,
+  MasterCatalogItem,
+} from '../../types/db-helpers/db-masters.types.js';
 import type { AdminStudioScheduleData } from '../../types/db-helpers/db-admin-schedule.types.js';
+import type { AdminStudioTemporaryScheduleDayInput } from '../../types/db-helpers/db-admin-schedule.types.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
 import {
   createAdminRecordsMenuKeyboard,
@@ -27,17 +32,27 @@ import {
   createAdminScheduleHolidayConfirmKeyboard,
   createAdminScheduleHolidayInputKeyboard,
   createAdminScheduleMenuKeyboard,
+  createAdminScheduleTemporaryDayInputKeyboard,
+  createAdminScheduleTemporaryDaysConfigKeyboard,
+  createAdminScheduleTemporaryKeyboard,
+  createAdminScheduleTemporaryPeriodInputKeyboard,
   createAdminScheduleSectionKeyboard,
   formatAdminScheduleDayOffConfirmText,
   formatAdminScheduleDayOffInputText,
   formatAdminScheduleDeleteDayOffConfirmText,
   formatAdminScheduleDeleteHolidayConfirmText,
+  formatAdminScheduleDeleteTemporaryConfirmText,
   formatAdminScheduleDaysOffText,
   formatAdminScheduleHolidayConfirmText,
   formatAdminScheduleHolidayDateInputText,
   formatAdminScheduleHolidayNameInputText,
   formatAdminScheduleHolidaysText,
   formatAdminScheduleMenuText,
+  formatAdminScheduleTemporaryConfirmText,
+  formatAdminScheduleTemporaryDayFromInputText,
+  formatAdminScheduleTemporaryDayToInputText,
+  formatAdminScheduleTemporaryDaysConfigText,
+  formatAdminScheduleTemporarySetPeriodText,
   formatAdminScheduleOverviewText,
   formatAdminScheduleTemporaryText,
 } from '../../helpers/bot/admin-schedule-view.bot.js';
@@ -60,7 +75,18 @@ import {
   formatAdminRescheduleTimeStepText,
 } from '../../helpers/bot/admin-bookings-view.bot.js';
 import {
+  createAdminMasterDetailsKeyboard,
+  createAdminMastersCatalogKeyboard,
+  formatAdminMasterBookingsStubText,
+  formatAdminMasterDetailsText,
+  formatAdminMastersCatalogText,
+  formatAdminMasterStatsStubText,
+} from '../../helpers/bot/admin-masters-view.bot.js';
+import {
   ADMIN_PANEL_ACTION,
+  ADMIN_PANEL_MASTERS_OPEN_ACTION_REGEX,
+  ADMIN_PANEL_MASTERS_OPEN_BOOKINGS_ACTION_REGEX,
+  ADMIN_PANEL_MASTERS_OPEN_STATS_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_CANCEL_REQUEST_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_CHANGE_MASTER_ACTION_REGEX,
@@ -74,8 +100,13 @@ import {
   ADMIN_PANEL_SCHEDULE_DAY_OFF_DELETE_REQUEST_ACTION_REGEX,
   ADMIN_PANEL_SCHEDULE_HOLIDAY_DELETE_CONFIRM_ACTION_REGEX,
   ADMIN_PANEL_SCHEDULE_HOLIDAY_DELETE_REQUEST_ACTION_REGEX,
+  ADMIN_PANEL_SCHEDULE_TEMPORARY_DAY_ACTION_REGEX,
+  ADMIN_PANEL_SCHEDULE_TEMPORARY_DAY_OFF_ACTION_REGEX,
+  ADMIN_PANEL_SCHEDULE_TEMPORARY_DELETE_CONFIRM_ACTION_REGEX,
+  ADMIN_PANEL_SCHEDULE_TEMPORARY_DELETE_REQUEST_ACTION_REGEX,
   makeAdminPanelScheduleDayOffDeleteConfirmAction,
   makeAdminPanelScheduleHolidayDeleteConfirmAction,
+  makeAdminPanelScheduleTemporaryDeleteConfirmAction,
 } from '../../types/bot-admin-panel.types.js';
 import { getAdminPanelAccessByTelegramId } from '../../helpers/db/db-admin-panel.helper.js';
 import {
@@ -89,11 +120,17 @@ import {
 import {
   createAdminStudioDayOff,
   createAdminStudioHoliday,
+  createAdminStudioTemporarySchedule,
   deleteAdminStudioDayOff,
   deleteAdminStudioHoliday,
+  deleteAdminStudioTemporarySchedulePeriod,
   getAdminStudioSchedule,
 } from '../../helpers/db/db-admin-schedule.helper.js';
-import { listActiveMastersByService } from '../../helpers/db/db-masters.helper.js';
+import {
+  getMasterCatalogDetailsById,
+  listActiveMastersByService,
+  listActiveMastersCatalog,
+} from '../../helpers/db/db-masters.helper.js';
 import { buildBookingDateOptions, buildBookingTimeOptions } from '../../helpers/bot/booking-view.bot.js';
 import { bookingDateCodeSchema, bookingTimeCodeSchema } from '../../validator/booking-input.schema.js';
 import { dispatchNotification } from '../../helpers/notification/notification-dispatch.helper.js';
@@ -138,10 +175,30 @@ type AdminScheduleHolidayDraft = {
   holidayName: string | null;
 };
 
-type AdminScheduleDeleteDraft = {
-  type: 'day_off' | 'holiday';
-  id: string;
+type AdminScheduleTemporaryDraft = {
+  mode:
+    | 'awaiting_period'
+    | 'configuring_days'
+    | 'awaiting_day_from'
+    | 'awaiting_day_to'
+    | 'awaiting_confirm';
+  dateFrom: string | null;
+  dateTo: string | null;
+  dateFromLabel: string | null;
+  dateToLabel: string | null;
+  days: AdminStudioTemporaryScheduleDayInput[];
+  selectedWeekday: number | null;
+  pendingFromTime: string | null;
 };
+
+type AdminScheduleDeleteDraft = {
+  type: 'day_off' | 'holiday' | 'temporary_period';
+  id: string | null;
+  dateFrom: string | null;
+  dateTo: string | null;
+};
+
+type AdminMasterSubSection = 'catalog' | 'details' | 'bookings-stub' | 'stats-stub';
 
 type AdminPanelSceneState = {
   access: AdminPanelAccess | null;
@@ -154,7 +211,11 @@ type AdminPanelSceneState = {
   scheduleCurrentSection: AdminScheduleSection | null;
   scheduleDayOffDraft: AdminScheduleDayOffDraft | null;
   scheduleHolidayDraft: AdminScheduleHolidayDraft | null;
+  scheduleTemporaryDraft: AdminScheduleTemporaryDraft | null;
   scheduleDeleteDraft: AdminScheduleDeleteDraft | null;
+  mastersCatalog: MasterCatalogItem[] | null;
+  mastersSelectedMasterId: string | null;
+  mastersCurrentSection: AdminMasterSubSection | null;
 };
 
 function getSceneState(ctx: MyContext): AdminPanelSceneState {
@@ -169,7 +230,14 @@ function resetRecordsActionDrafts(state: AdminPanelSceneState): void {
 function resetScheduleDrafts(state: AdminPanelSceneState): void {
   state.scheduleDayOffDraft = null;
   state.scheduleHolidayDraft = null;
+  state.scheduleTemporaryDraft = null;
   state.scheduleDeleteDraft = null;
+}
+
+function resetMastersState(state: AdminPanelSceneState): void {
+  state.mastersCatalog = null;
+  state.mastersSelectedMasterId = null;
+  state.mastersCurrentSection = null;
 }
 
 function getUserText(ctx: MyContext): string | null {
@@ -230,6 +298,82 @@ function normalizeHolidayName(value: string): string {
     throw new ValidationError('Назва свята занадто довга (максимум 120 символів)');
   }
   return normalized;
+}
+
+const MIN_TEMPORARY_SCHEDULE_DAYS = 7;
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+function parseDateRangeInput(input: string): { dateFrom: Date; dateTo: Date } {
+  const normalized = input.trim();
+  const match = normalized.match(
+    /^(\d{2}\.\d{2}\.\d{4})\s*[-–—]\s*(\d{2}\.\d{2}\.\d{4})$/,
+  );
+
+  if (!match) {
+    throw new ValidationError('Період має бути у форматі ДД.ММ.РРРР - ДД.ММ.РРРР');
+  }
+
+  const dateFrom = parseFutureDateInput(match[1]);
+  const dateTo = parseFutureDateInput(match[2]);
+  if (dateTo.getTime() < dateFrom.getTime()) {
+    throw new ValidationError('Дата завершення не може бути раніше дати початку');
+  }
+
+  return { dateFrom, dateTo };
+}
+
+function countInclusiveDays(dateFrom: Date, dateTo: Date): number {
+  return Math.floor((dateTo.getTime() - dateFrom.getTime()) / DAY_IN_MS) + 1;
+}
+
+function parseTimeInput(value: string): string {
+  const normalized = value.trim();
+  const match = normalized.match(/^(\d{1,2}):([0-5]\d)$/);
+  if (!match) {
+    throw new ValidationError('Час має бути у форматі HH:MM (приклад: 10:00)');
+  }
+
+  const hour = Number(match[1]);
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23) {
+    throw new ValidationError('Година має бути в діапазоні від 0 до 23');
+  }
+
+  return `${hour}:${match[2]}`;
+}
+
+function timeToMinutes(time: string): number {
+  const [hour, minute] = time.split(':').map(Number);
+  return hour * 60 + minute;
+}
+
+function upsertTemporaryDay(
+  days: AdminStudioTemporaryScheduleDayInput[],
+  day: AdminStudioTemporaryScheduleDayInput,
+): AdminStudioTemporaryScheduleDayInput[] {
+  const filtered = days.filter((current) => current.weekday !== day.weekday);
+  return [...filtered, day].sort((a, b) => a.weekday - b.weekday);
+}
+
+function parseDateFromCode(code: string): Date {
+  const normalized = code.trim();
+  const match = normalized.match(/^(\d{4})(\d{2})(\d{2})$/);
+  if (!match) {
+    throw new ValidationError('Некоректний код дати');
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const parsed = new Date(year, month - 1, day);
+  if (
+    parsed.getFullYear() !== year ||
+    parsed.getMonth() !== month - 1 ||
+    parsed.getDate() !== day
+  ) {
+    throw new ValidationError('Некоректна дата');
+  }
+
+  return parsed;
 }
 
 function getTodayDateCode(): string {
@@ -359,7 +503,77 @@ async function renderScheduleSection(
       ? createAdminScheduleDaysOffKeyboard(data)
       : section === 'holidays'
         ? createAdminScheduleHolidaysKeyboard(data)
+        : section === 'temporary'
+          ? createAdminScheduleTemporaryKeyboard(data)
         : createAdminScheduleSectionKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function loadAdminMastersCatalog(state: AdminPanelSceneState): Promise<MasterCatalogItem[]> {
+  const studioId = state.access?.studioId;
+  if (!studioId) {
+    throw new ValidationError('Не вдалося визначити студію адміністратора');
+  }
+
+  const masters = await listActiveMastersCatalog({ studioId, limit: 50 });
+  state.mastersCatalog = masters;
+  return masters;
+}
+
+async function renderAdminMastersCatalog(ctx: MyContext, preferEdit: boolean): Promise<void> {
+  const state = getSceneState(ctx);
+  const masters = await loadAdminMastersCatalog(state);
+  state.mastersCurrentSection = 'catalog';
+  state.mastersSelectedMasterId = null;
+
+  const text = formatAdminMastersCatalogText(masters);
+  const keyboard = createAdminMastersCatalogKeyboard(masters);
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminMasterDetails(
+  ctx: MyContext,
+  masterId: string,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const studioId = state.access?.studioId;
+  if (!studioId) {
+    throw new ValidationError('Не вдалося визначити студію адміністратора');
+  }
+
+  const details = await getMasterCatalogDetailsById({ masterId, studioId });
+  if (!details) {
+    await ctx.reply('⚠️ Майстра не знайдено або профіль вже неактивний.');
+    await renderAdminMastersCatalog(ctx, false);
+    return;
+  }
+
+  state.mastersCurrentSection = 'details';
+  state.mastersSelectedMasterId = masterId;
+
+  const text = formatAdminMasterDetailsText(details);
+  const keyboard = createAdminMasterDetailsKeyboard(masterId);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -805,7 +1019,11 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.scheduleCurrentSection = null;
       state.scheduleDayOffDraft = null;
       state.scheduleHolidayDraft = null;
+      state.scheduleTemporaryDraft = null;
       state.scheduleDeleteDraft = null;
+      state.mastersCatalog = null;
+      state.mastersSelectedMasterId = null;
+      state.mastersCurrentSection = null;
 
       if (!state.access) {
         await ctx.reply(
@@ -927,6 +1145,134 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         return;
       }
 
+      const temporaryDraft = state.scheduleTemporaryDraft;
+      if (temporaryDraft?.mode === 'awaiting_period') {
+        try {
+          const { dateFrom, dateTo } = parseDateRangeInput(text);
+          const rangeDays = countInclusiveDays(dateFrom, dateTo);
+          if (rangeDays < MIN_TEMPORARY_SCHEDULE_DAYS) {
+            throw new ValidationError(
+              `Тимчасовий графік можна встановити лише на період від ${MIN_TEMPORARY_SCHEDULE_DAYS} днів`,
+            );
+          }
+
+          state.scheduleTemporaryDraft = {
+            mode: 'configuring_days',
+            dateFrom: formatDateSql(dateFrom),
+            dateTo: formatDateSql(dateTo),
+            dateFromLabel: formatDateLabel(dateFrom),
+            dateToLabel: formatDateLabel(dateTo),
+            days: [],
+            selectedWeekday: null,
+            pendingFromTime: null,
+          };
+
+          await ctx.reply(
+            formatAdminScheduleTemporaryDaysConfigText(
+              formatDateLabel(dateFrom),
+              formatDateLabel(dateTo),
+              [],
+            ),
+            createAdminScheduleTemporaryDaysConfigKeyboard([]),
+          );
+        } catch (error) {
+          const err = error instanceof ValidationError
+            ? error
+            : new ValidationError('Виникла помилка при перевірці періоду');
+
+          await ctx.reply(
+            `⚠️ ${err.message}\n\nСпробуйте ще раз у форматі ДД.ММ.РРРР - ДД.ММ.РРРР.`,
+            createAdminScheduleTemporaryPeriodInputKeyboard(),
+          );
+        }
+        return;
+      }
+
+      if (temporaryDraft?.mode === 'awaiting_day_from') {
+        try {
+          const weekday = temporaryDraft.selectedWeekday;
+          if (!weekday) {
+            throw new ValidationError('Спочатку оберіть день тижня кнопкою');
+          }
+
+          const fromTime = parseTimeInput(text);
+          state.scheduleTemporaryDraft = {
+            ...temporaryDraft,
+            mode: 'awaiting_day_to',
+            pendingFromTime: fromTime,
+          };
+
+          await ctx.reply(
+            formatAdminScheduleTemporaryDayToInputText(weekday, fromTime),
+            createAdminScheduleTemporaryDayInputKeyboard(weekday),
+          );
+        } catch (error) {
+          const err = error instanceof ValidationError
+            ? error
+            : new ValidationError('Виникла помилка при перевірці часу початку');
+          await ctx.reply(
+            `⚠️ ${err.message}\n\nВведіть коректний час у форматі HH:MM.`,
+            createAdminScheduleTemporaryDayInputKeyboard(temporaryDraft.selectedWeekday ?? 1),
+          );
+        }
+        return;
+      }
+
+      if (temporaryDraft?.mode === 'awaiting_day_to') {
+        try {
+          const weekday = temporaryDraft.selectedWeekday;
+          const fromTime = temporaryDraft.pendingFromTime;
+          if (!weekday || !fromTime) {
+            throw new ValidationError('Спочатку оберіть день і задайте час початку');
+          }
+
+          const toTime = parseTimeInput(text);
+          if (timeToMinutes(toTime) <= timeToMinutes(fromTime)) {
+            throw new ValidationError('Час завершення має бути пізніше часу початку');
+          }
+
+          const updatedDays = upsertTemporaryDay(temporaryDraft.days, {
+            weekday,
+            isOpen: true,
+            openTime: fromTime,
+            closeTime: toTime,
+          });
+
+          state.scheduleTemporaryDraft = {
+            ...temporaryDraft,
+            mode: 'configuring_days',
+            days: updatedDays,
+            selectedWeekday: null,
+            pendingFromTime: null,
+          };
+
+          await ctx.reply(
+            formatAdminScheduleTemporaryDaysConfigText(
+              temporaryDraft.dateFromLabel ?? '',
+              temporaryDraft.dateToLabel ?? '',
+              updatedDays,
+            ),
+            createAdminScheduleTemporaryDaysConfigKeyboard(updatedDays),
+          );
+        } catch (error) {
+          const err = error instanceof ValidationError
+            ? error
+            : new ValidationError('Виникла помилка при перевірці часу завершення');
+          await ctx.reply(
+            `⚠️ ${err.message}\n\nВведіть коректний час у форматі HH:MM.`,
+            createAdminScheduleTemporaryDayInputKeyboard(temporaryDraft.selectedWeekday ?? 1),
+          );
+        }
+        return;
+      }
+
+      if (temporaryDraft?.mode === 'awaiting_confirm' || temporaryDraft?.mode === 'configuring_days') {
+        await ctx.reply(
+          '⚠️ Для завершення дії використовуйте кнопки під повідомленням.',
+        );
+        return;
+      }
+
       if (state.scheduleCurrentSection) {
         await ctx.reply(
           'ℹ️ Для керування цим розділом використовуйте кнопки під повідомленням.',
@@ -943,6 +1289,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const state = getSceneState(ctx);
     resetRecordsActionDrafts(state);
     resetScheduleDrafts(state);
+    resetMastersState(state);
     state.scheduleCurrentSection = null;
     await renderRecordsMenu(ctx);
   });
@@ -950,6 +1297,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(ADMIN_PANEL_ACTION.OPEN_SCHEDULE, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
+    resetMastersState(state);
     state.scheduleCurrentSection = null;
     state.scheduleData = null;
     resetScheduleDrafts(state);
@@ -1102,6 +1450,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     state.scheduleDeleteDraft = {
       type: 'day_off',
       id: dayOffId,
+      dateFrom: null,
+      dateTo: null,
     };
     state.scheduleDayOffDraft = null;
     state.scheduleHolidayDraft = null;
@@ -1258,6 +1608,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     state.scheduleDeleteDraft = {
       type: 'holiday',
       id: holidayId,
+      dateFrom: null,
+      dateTo: null,
     };
     state.scheduleDayOffDraft = null;
     state.scheduleHolidayDraft = null;
@@ -1308,32 +1660,417 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(ADMIN_PANEL_ACTION.SCHEDULE_DELETE_CANCEL, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
-    const section = state.scheduleCurrentSection === 'holidays' ? 'holidays' : 'days-off';
+    const section =
+      state.scheduleCurrentSection === 'holidays'
+        ? 'holidays'
+        : state.scheduleCurrentSection === 'temporary'
+          ? 'temporary'
+          : 'days-off';
     state.scheduleDeleteDraft = null;
     await renderScheduleSection(ctx, section, true);
   });
 
+  scene.action(ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_OPEN, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    state.scheduleCurrentSection = 'temporary';
+    state.scheduleTemporaryDraft = {
+      mode: 'awaiting_period',
+      dateFrom: null,
+      dateTo: null,
+      dateFromLabel: null,
+      dateToLabel: null,
+      days: [],
+      selectedWeekday: null,
+      pendingFromTime: null,
+    };
+    state.scheduleDayOffDraft = null;
+    state.scheduleHolidayDraft = null;
+    state.scheduleDeleteDraft = null;
+
+    try {
+      await ctx.editMessageText(
+        formatAdminScheduleTemporarySetPeriodText(),
+        createAdminScheduleTemporaryPeriodInputKeyboard(),
+      );
+    } catch {
+      await ctx.reply(
+        formatAdminScheduleTemporarySetPeriodText(),
+        createAdminScheduleTemporaryPeriodInputKeyboard(),
+      );
+    }
+  });
+
+  scene.action(ADMIN_PANEL_SCHEDULE_TEMPORARY_DAY_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.scheduleTemporaryDraft;
+    if (!draft || draft.mode === 'awaiting_period' || !draft.dateFromLabel || !draft.dateToLabel) {
+      await renderScheduleSection(ctx, 'temporary', true);
+      return;
+    }
+
+    const weekday = Number(
+      (
+        (ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '')
+          .match(ADMIN_PANEL_SCHEDULE_TEMPORARY_DAY_ACTION_REGEX)?.[1] ?? ''
+      ),
+    );
+    if (!Number.isInteger(weekday) || weekday < 1 || weekday > 7) {
+      await renderScheduleSection(ctx, 'temporary', true);
+      return;
+    }
+
+    state.scheduleTemporaryDraft = {
+      ...draft,
+      mode: 'awaiting_day_from',
+      selectedWeekday: weekday,
+      pendingFromTime: null,
+    };
+
+    try {
+      await ctx.editMessageText(
+        formatAdminScheduleTemporaryDayFromInputText(weekday),
+        createAdminScheduleTemporaryDayInputKeyboard(weekday),
+      );
+    } catch {
+      await ctx.reply(
+        formatAdminScheduleTemporaryDayFromInputText(weekday),
+        createAdminScheduleTemporaryDayInputKeyboard(weekday),
+      );
+    }
+  });
+
+  scene.action(ADMIN_PANEL_SCHEDULE_TEMPORARY_DAY_OFF_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.scheduleTemporaryDraft;
+    if (!draft || !draft.dateFromLabel || !draft.dateToLabel || !draft.dateFrom || !draft.dateTo) {
+      await renderScheduleSection(ctx, 'temporary', true);
+      return;
+    }
+
+    const weekday = Number(
+      (
+        (ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '')
+          .match(ADMIN_PANEL_SCHEDULE_TEMPORARY_DAY_OFF_ACTION_REGEX)?.[1] ?? ''
+      ),
+    );
+    if (!Number.isInteger(weekday) || weekday < 1 || weekday > 7) {
+      await renderScheduleSection(ctx, 'temporary', true);
+      return;
+    }
+
+    const updatedDays = upsertTemporaryDay(draft.days, {
+      weekday,
+      isOpen: false,
+      openTime: null,
+      closeTime: null,
+    });
+
+    state.scheduleTemporaryDraft = {
+      ...draft,
+      mode: updatedDays.length === 7 ? 'awaiting_confirm' : 'configuring_days',
+      days: updatedDays,
+      selectedWeekday: null,
+      pendingFromTime: null,
+    };
+
+    await ctx.reply(
+      formatAdminScheduleTemporaryDaysConfigText(
+        draft.dateFromLabel,
+        draft.dateToLabel,
+        updatedDays,
+      ),
+      createAdminScheduleTemporaryDaysConfigKeyboard(updatedDays),
+    );
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_CONFIRM, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const access = state.access;
+    const draft = state.scheduleTemporaryDraft;
+    if (
+      !access?.studioId ||
+      !draft ||
+      !draft.dateFrom ||
+      !draft.dateTo ||
+      !draft.dateFromLabel ||
+      !draft.dateToLabel
+    ) {
+      await renderScheduleSection(ctx, 'temporary', true);
+      return;
+    }
+
+    if (draft.days.length < 7) {
+      await ctx.reply(
+        `⚠️ Потрібно налаштувати всі 7 днів тижня. Зараз налаштовано: ${draft.days.length}/7.`,
+      );
+      await ctx.reply(
+        formatAdminScheduleTemporaryDaysConfigText(draft.dateFromLabel, draft.dateToLabel, draft.days),
+        createAdminScheduleTemporaryDaysConfigKeyboard(draft.days),
+      );
+      return;
+    }
+
+    if (draft.mode !== 'awaiting_confirm') {
+      state.scheduleTemporaryDraft = {
+        ...draft,
+        mode: 'awaiting_confirm',
+      };
+      await ctx.reply(
+        formatAdminScheduleTemporaryConfirmText(draft.dateFromLabel, draft.dateToLabel, draft.days),
+        createAdminScheduleTemporaryDaysConfigKeyboard(draft.days),
+      );
+      return;
+    }
+
+    try {
+      await createAdminStudioTemporarySchedule({
+        studioId: access.studioId,
+        dateFrom: draft.dateFrom,
+        dateTo: draft.dateTo,
+        days: draft.days,
+        createdBy: access.userId,
+      });
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        await ctx.reply(
+          `⚠️ ${error.message}`,
+          createAdminScheduleTemporaryDaysConfigKeyboard(draft.days),
+        );
+        return;
+      }
+      throw error;
+    }
+
+    state.scheduleTemporaryDraft = null;
+    await ctx.reply(
+      `✅ Тимчасовий графік студії успішно встановлено на період ${draft.dateFromLabel} - ${draft.dateToLabel}.`,
+    );
+    await renderScheduleSection(ctx, 'temporary', false);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_CANCEL, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    state.scheduleTemporaryDraft = null;
+    await renderScheduleSection(ctx, 'temporary', true);
+  });
+
+  scene.action(ADMIN_PANEL_SCHEDULE_TEMPORARY_DELETE_REQUEST_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const callbackData = ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
+    const match = callbackData.match(ADMIN_PANEL_SCHEDULE_TEMPORARY_DELETE_REQUEST_ACTION_REGEX);
+    const dateFromCode = match?.[1] ?? '';
+    const dateToCode = match?.[2] ?? '';
+
+    let dateFrom: Date;
+    let dateTo: Date;
+    try {
+      dateFrom = parseDateFromCode(dateFromCode);
+      dateTo = parseDateFromCode(dateToCode);
+    } catch {
+      await renderScheduleSection(ctx, 'temporary', true);
+      return;
+    }
+
+    const dateFromSql = formatDateSql(dateFrom);
+    const dateToSql = formatDateSql(dateTo);
+    state.scheduleCurrentSection = 'temporary';
+    state.scheduleDeleteDraft = {
+      type: 'temporary_period',
+      id: null,
+      dateFrom: dateFromSql,
+      dateTo: dateToSql,
+    };
+    state.scheduleTemporaryDraft = null;
+    state.scheduleDayOffDraft = null;
+    state.scheduleHolidayDraft = null;
+
+    try {
+      await ctx.editMessageText(
+        formatAdminScheduleDeleteTemporaryConfirmText(dateFrom, dateTo),
+        createAdminScheduleDeleteConfirmKeyboard(
+          makeAdminPanelScheduleTemporaryDeleteConfirmAction(dateFromCode, dateToCode),
+        ),
+      );
+    } catch {
+      await ctx.reply(
+        formatAdminScheduleDeleteTemporaryConfirmText(dateFrom, dateTo),
+        createAdminScheduleDeleteConfirmKeyboard(
+          makeAdminPanelScheduleTemporaryDeleteConfirmAction(dateFromCode, dateToCode),
+        ),
+      );
+    }
+  });
+
+  scene.action(ADMIN_PANEL_SCHEDULE_TEMPORARY_DELETE_CONFIRM_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const access = state.access;
+    const callbackData = ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
+    const match = callbackData.match(ADMIN_PANEL_SCHEDULE_TEMPORARY_DELETE_CONFIRM_ACTION_REGEX);
+    const dateFromCode = match?.[1] ?? '';
+    const dateToCode = match?.[2] ?? '';
+
+    let dateFrom: Date;
+    let dateTo: Date;
+    try {
+      dateFrom = parseDateFromCode(dateFromCode);
+      dateTo = parseDateFromCode(dateToCode);
+    } catch {
+      await renderScheduleSection(ctx, 'temporary', true);
+      return;
+    }
+
+    const dateFromSql = formatDateSql(dateFrom);
+    const dateToSql = formatDateSql(dateTo);
+    if (
+      !access?.studioId ||
+      !state.scheduleDeleteDraft ||
+      state.scheduleDeleteDraft.type !== 'temporary_period' ||
+      state.scheduleDeleteDraft.dateFrom !== dateFromSql ||
+      state.scheduleDeleteDraft.dateTo !== dateToSql
+    ) {
+      state.scheduleDeleteDraft = null;
+      await renderScheduleSection(ctx, 'temporary', true);
+      return;
+    }
+
+    await deleteAdminStudioTemporarySchedulePeriod({
+      studioId: access.studioId,
+      dateFrom: dateFromSql,
+      dateTo: dateToSql,
+    });
+
+    state.scheduleDeleteDraft = null;
+    await ctx.reply('✅ Тимчасовий графік за обраний період успішно видалено.');
+    await renderScheduleSection(ctx, 'temporary', false);
+  });
+
   scene.action(ADMIN_PANEL_ACTION.OPEN_MASTERS, async (ctx) => {
     await ctx.answerCbQuery();
-    resetScheduleDrafts(getSceneState(ctx));
-    await renderStubSection(ctx, '👩‍🎨 Майстри', 3);
+    const state = getSceneState(ctx);
+    resetRecordsActionDrafts(state);
+    resetScheduleDrafts(state);
+    resetMastersState(state);
+    await renderAdminMastersCatalog(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_MASTERS_OPEN_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const masterId = parseNumericIdFromAction(
+      ctx,
+      ADMIN_PANEL_MASTERS_OPEN_ACTION_REGEX,
+      'id майстра',
+    );
+    await renderAdminMasterDetails(ctx, masterId, true);
+    state.mastersSelectedMasterId = masterId;
+  });
+
+  scene.action(ADMIN_PANEL_MASTERS_OPEN_BOOKINGS_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const masterId = parseNumericIdFromAction(
+      ctx,
+      ADMIN_PANEL_MASTERS_OPEN_BOOKINGS_ACTION_REGEX,
+      'id майстра',
+    );
+    const details = await getMasterCatalogDetailsById({
+      masterId,
+      studioId: state.access?.studioId,
+    });
+    if (!details) {
+      await renderAdminMastersCatalog(ctx, true);
+      return;
+    }
+
+    state.mastersCurrentSection = 'bookings-stub';
+    state.mastersSelectedMasterId = masterId;
+
+    try {
+      await ctx.editMessageText(
+        formatAdminMasterBookingsStubText(details.master.displayName),
+        createAdminMasterDetailsKeyboard(masterId),
+      );
+    } catch {
+      await ctx.reply(
+        formatAdminMasterBookingsStubText(details.master.displayName),
+        createAdminMasterDetailsKeyboard(masterId),
+      );
+    }
+  });
+
+  scene.action(ADMIN_PANEL_MASTERS_OPEN_STATS_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const masterId = parseNumericIdFromAction(
+      ctx,
+      ADMIN_PANEL_MASTERS_OPEN_STATS_ACTION_REGEX,
+      'id майстра',
+    );
+    const details = await getMasterCatalogDetailsById({
+      masterId,
+      studioId: state.access?.studioId,
+    });
+    if (!details) {
+      await renderAdminMastersCatalog(ctx, true);
+      return;
+    }
+
+    state.mastersCurrentSection = 'stats-stub';
+    state.mastersSelectedMasterId = masterId;
+
+    try {
+      await ctx.editMessageText(
+        formatAdminMasterStatsStubText(details.master.displayName),
+        createAdminMasterDetailsKeyboard(masterId),
+      );
+    } catch {
+      await ctx.reply(
+        formatAdminMasterStatsStubText(details.master.displayName),
+        createAdminMasterDetailsKeyboard(masterId),
+      );
+    }
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_BACK_TO_LIST, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderAdminMastersCatalog(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_BACK, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    resetMastersState(state);
+    await renderAdminRoot(ctx, true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.OPEN_SERVICES, async (ctx) => {
     await ctx.answerCbQuery();
-    resetScheduleDrafts(getSceneState(ctx));
+    const state = getSceneState(ctx);
+    resetScheduleDrafts(state);
+    resetMastersState(state);
     await renderStubSection(ctx, '💼 Послуги', 4);
   });
 
   scene.action(ADMIN_PANEL_ACTION.OPEN_STATS, async (ctx) => {
     await ctx.answerCbQuery();
-    resetScheduleDrafts(getSceneState(ctx));
+    const state = getSceneState(ctx);
+    resetScheduleDrafts(state);
+    resetMastersState(state);
     await renderStubSection(ctx, '📊 Статистика', 5);
   });
 
   scene.action(ADMIN_PANEL_ACTION.OPEN_SETTINGS, async (ctx) => {
     await ctx.answerCbQuery();
-    resetScheduleDrafts(getSceneState(ctx));
+    const state = getSceneState(ctx);
+    resetScheduleDrafts(state);
+    resetMastersState(state);
     await renderStubSection(ctx, '⚙️ Налаштування', 6);
   });
 
