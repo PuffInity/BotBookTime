@@ -7,6 +7,7 @@ import { MASTERS_SCENE_ID } from '../scenes/masters.scene.js';
 import { SERVICES_SCENE_ID } from '../scenes/services.scene.js';
 import { FAQ_SCENE_ID } from '../scenes/faq.scene.js';
 import { MASTER_PANEL_SCENE_ID } from '../scenes/master-panel.scene.js';
+import { ADMIN_PANEL_SCENE_ID } from '../scenes/admin-panel.scene.js';
 import type { MyContext } from '../../types/bot.types.js';
 import type { Telegraf } from 'telegraf';
 import { ValidationError, asyncBotHandler } from '../../utils/error.utils.js';
@@ -111,6 +112,7 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
           '/start - головне меню\n' +
           '/menu - показати головне меню\n' +
           '/master - відкрити панель майстра\n' +
+          '/admin - відкрити адмін-панель\n' +
           '/booking - почати сценарій запису\n' +
           '/cancel - вийти зі сценарію',
       );
@@ -124,6 +126,16 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
         await ctx.scene.leave();
       }
       await ctx.scene.enter(MASTER_PANEL_SCENE_ID);
+    }),
+  );
+
+  bot.command(
+    'admin',
+    asyncBotHandler(async (ctx) => {
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+      await ctx.scene.enter(ADMIN_PANEL_SCENE_ID);
     }),
   );
 
@@ -440,6 +452,27 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
         await ctx.scene.leave();
       }
       await ctx.scene.enter(MASTER_PANEL_SCENE_ID);
+    }),
+  );
+
+  bot.hears(
+    CLIENT_MAIN_MENU_BUTTON.ADMIN_PANEL,
+    asyncBotHandler(async (ctx) => {
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+      await ctx.scene.enter(ADMIN_PANEL_SCENE_ID);
+    }),
+  );
+
+  bot.action(
+    MAIN_MENU_ACTION.ADMIN_PANEL,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+      await ctx.scene.enter(ADMIN_PANEL_SCENE_ID);
     }),
   );
 

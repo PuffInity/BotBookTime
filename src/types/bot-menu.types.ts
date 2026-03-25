@@ -13,6 +13,7 @@ export const CLIENT_MAIN_MENU_BUTTON = {
   BOOKING: '📅 Бронювання',
   FAQ: '❓ FAQ',
   MASTER_PANEL: '🛠 Панель майстра',
+  ADMIN_PANEL: '🛡 Адмін-панель',
 } as const;
 
 export type ClientMainMenuButton =
@@ -28,6 +29,7 @@ export const MAIN_MENU_ACTION = {
   BOOKING: 'menu:booking',
   FAQ: 'menu:faq',
   MASTER_PANEL: 'menu:master-panel',
+  ADMIN_PANEL: 'menu:admin-panel',
 } as const;
 
 export type MainMenuAction = (typeof MAIN_MENU_ACTION)[keyof typeof MAIN_MENU_ACTION];

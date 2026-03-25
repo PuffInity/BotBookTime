@@ -2,6 +2,7 @@ import { Markup } from 'telegraf';
 import type { MyContext } from '../../types/bot.types.js';
 import { CLIENT_MAIN_MENU_BUTTON, MAIN_MENU_ACTION } from '../../types/bot-menu.types.js';
 import { getMasterPanelAccessByTelegramId } from '../db/db-master-panel.helper.js';
+import { getAdminPanelAccessByTelegramId } from '../db/db-admin-panel.helper.js';
 
 /**
  * @file main-menu.bot.ts
@@ -29,6 +30,7 @@ export const CLIENT_MAIN_MENU_TEXT =
  */
 export function createClientMainMenuKeyboard(
   hasMasterPanelAccess: boolean,
+  hasAdminPanelAccess: boolean,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const rows = [
     [
@@ -50,6 +52,12 @@ export function createClientMainMenuKeyboard(
     ]);
   }
 
+  if (hasAdminPanelAccess) {
+    rows.push([
+      Markup.button.callback(CLIENT_MAIN_MENU_BUTTON.ADMIN_PANEL, MAIN_MENU_ACTION.ADMIN_PANEL),
+    ]);
+  }
+
   return Markup.inlineKeyboard(rows);
 }
 
@@ -58,9 +66,15 @@ export function createClientMainMenuKeyboard(
  */
 export async function sendClientMainMenu(ctx: MyContext): Promise<void> {
   const telegramId = ctx.from?.id;
-  const hasMasterPanelAccess = telegramId
-    ? Boolean(await getMasterPanelAccessByTelegramId(telegramId))
-    : false;
+  const [hasMasterPanelAccess, hasAdminPanelAccess] = telegramId
+    ? await Promise.all([
+        getMasterPanelAccessByTelegramId(telegramId).then(Boolean),
+        getAdminPanelAccessByTelegramId(telegramId).then(Boolean),
+      ])
+    : [false, false];
 
-  await ctx.reply(CLIENT_MAIN_MENU_TEXT, createClientMainMenuKeyboard(hasMasterPanelAccess));
+  await ctx.reply(
+    CLIENT_MAIN_MENU_TEXT,
+    createClientMainMenuKeyboard(hasMasterPanelAccess, hasAdminPanelAccess),
+  );
 }

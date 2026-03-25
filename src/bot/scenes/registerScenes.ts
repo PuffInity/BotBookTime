@@ -8,6 +8,7 @@ import { createMastersScene } from './masters.scene.js';
 import { createServicesScene } from './services.scene.js';
 import { createFaqScene } from './faq.scene.js';
 import { createMasterPanelScene } from './master-panel.scene.js';
+import { createAdminPanelScene } from './admin-panel.scene.js';
 import type { MyContext } from '../../types/bot.types.js';
 
 /**
@@ -25,6 +26,7 @@ export function createBotStage(): Scenes.Stage<MyContext> {
   const servicesScene = createServicesScene();
   const faqScene = createFaqScene();
   const masterPanelScene = createMasterPanelScene();
+  const adminPanelScene = createAdminPanelScene();
 
   // Тут пізніше додаються інші сцени:
   // const adminApproveScene = createAdminApproveScene()
@@ -39,5 +41,6 @@ export function createBotStage(): Scenes.Stage<MyContext> {
     servicesScene,
     faqScene,
     masterPanelScene,
+    adminPanelScene,
   ]);
 }
