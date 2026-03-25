@@ -19,9 +19,23 @@ import {
   formatAdminPanelSectionStubText,
 } from '../../helpers/bot/admin-panel-view.bot.js';
 import {
+  createAdminScheduleDaysOffKeyboard,
+  createAdminScheduleDeleteConfirmKeyboard,
+  createAdminScheduleDayOffConfirmKeyboard,
+  createAdminScheduleDayOffInputKeyboard,
+  createAdminScheduleHolidaysKeyboard,
+  createAdminScheduleHolidayConfirmKeyboard,
+  createAdminScheduleHolidayInputKeyboard,
   createAdminScheduleMenuKeyboard,
   createAdminScheduleSectionKeyboard,
+  formatAdminScheduleDayOffConfirmText,
+  formatAdminScheduleDayOffInputText,
+  formatAdminScheduleDeleteDayOffConfirmText,
+  formatAdminScheduleDeleteHolidayConfirmText,
   formatAdminScheduleDaysOffText,
+  formatAdminScheduleHolidayConfirmText,
+  formatAdminScheduleHolidayDateInputText,
+  formatAdminScheduleHolidayNameInputText,
   formatAdminScheduleHolidaysText,
   formatAdminScheduleMenuText,
   formatAdminScheduleOverviewText,
@@ -56,6 +70,12 @@ import {
   ADMIN_PANEL_RECORDS_RESCHEDULE_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_RESCHEDULE_DATE_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_RESCHEDULE_TIME_ACTION_REGEX,
+  ADMIN_PANEL_SCHEDULE_DAY_OFF_DELETE_CONFIRM_ACTION_REGEX,
+  ADMIN_PANEL_SCHEDULE_DAY_OFF_DELETE_REQUEST_ACTION_REGEX,
+  ADMIN_PANEL_SCHEDULE_HOLIDAY_DELETE_CONFIRM_ACTION_REGEX,
+  ADMIN_PANEL_SCHEDULE_HOLIDAY_DELETE_REQUEST_ACTION_REGEX,
+  makeAdminPanelScheduleDayOffDeleteConfirmAction,
+  makeAdminPanelScheduleHolidayDeleteConfirmAction,
 } from '../../types/bot-admin-panel.types.js';
 import { getAdminPanelAccessByTelegramId } from '../../helpers/db/db-admin-panel.helper.js';
 import {
@@ -66,7 +86,13 @@ import {
   reassignAdminBookingMaster,
   rescheduleAdminBooking,
 } from '../../helpers/db/db-admin-bookings.helper.js';
-import { getAdminStudioSchedule } from '../../helpers/db/db-admin-schedule.helper.js';
+import {
+  createAdminStudioDayOff,
+  createAdminStudioHoliday,
+  deleteAdminStudioDayOff,
+  deleteAdminStudioHoliday,
+  getAdminStudioSchedule,
+} from '../../helpers/db/db-admin-schedule.helper.js';
 import { listActiveMastersByService } from '../../helpers/db/db-masters.helper.js';
 import { buildBookingDateOptions, buildBookingTimeOptions } from '../../helpers/bot/booking-view.bot.js';
 import { bookingDateCodeSchema, bookingTimeCodeSchema } from '../../validator/booking-input.schema.js';
@@ -99,6 +125,24 @@ type AdminChangeMasterDraft = {
 
 type AdminScheduleSection = 'overview' | 'days-off' | 'holidays' | 'temporary';
 
+type AdminScheduleDayOffDraft = {
+  mode: 'awaiting_date' | 'awaiting_confirm';
+  offDate: string | null;
+  offDateLabel: string | null;
+};
+
+type AdminScheduleHolidayDraft = {
+  mode: 'awaiting_date' | 'awaiting_name' | 'awaiting_confirm';
+  holidayDate: string | null;
+  holidayDateLabel: string | null;
+  holidayName: string | null;
+};
+
+type AdminScheduleDeleteDraft = {
+  type: 'day_off' | 'holiday';
+  id: string;
+};
+
 type AdminPanelSceneState = {
   access: AdminPanelAccess | null;
   recordsFeed: AdminBookingsFeedPage | null;
@@ -108,6 +152,9 @@ type AdminPanelSceneState = {
   recordsChangeMasterDraft: AdminChangeMasterDraft | null;
   scheduleData: AdminStudioScheduleData | null;
   scheduleCurrentSection: AdminScheduleSection | null;
+  scheduleDayOffDraft: AdminScheduleDayOffDraft | null;
+  scheduleHolidayDraft: AdminScheduleHolidayDraft | null;
+  scheduleDeleteDraft: AdminScheduleDeleteDraft | null;
 };
 
 function getSceneState(ctx: MyContext): AdminPanelSceneState {
@@ -117,6 +164,72 @@ function getSceneState(ctx: MyContext): AdminPanelSceneState {
 function resetRecordsActionDrafts(state: AdminPanelSceneState): void {
   state.recordsRescheduleDraft = null;
   state.recordsChangeMasterDraft = null;
+}
+
+function resetScheduleDrafts(state: AdminPanelSceneState): void {
+  state.scheduleDayOffDraft = null;
+  state.scheduleHolidayDraft = null;
+  state.scheduleDeleteDraft = null;
+}
+
+function getUserText(ctx: MyContext): string | null {
+  if (!ctx.message) return null;
+  if (!('text' in ctx.message)) return null;
+  return ctx.message.text.trim();
+}
+
+function formatDateLabel(date: Date): string {
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}.${month}.${year}`;
+}
+
+function formatDateSql(date: Date): string {
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${year}-${month}-${day}`;
+}
+
+function parseFutureDateInput(input: string): Date {
+  const normalized = input.trim();
+  const match = normalized.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+  if (!match) {
+    throw new ValidationError('Дата має бути у форматі ДД.ММ.РРРР');
+  }
+
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+  const parsed = new Date(year, month - 1, day);
+  if (
+    parsed.getFullYear() !== year ||
+    parsed.getMonth() !== month - 1 ||
+    parsed.getDate() !== day
+  ) {
+    throw new ValidationError('Введено некоректну дату');
+  }
+
+  const parsedDay = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (parsedDay.getTime() < today.getTime()) {
+    throw new ValidationError('Не можна вказувати дату у минулому');
+  }
+
+  return parsedDay;
+}
+
+function normalizeHolidayName(value: string): string {
+  const normalized = value.trim().replace(/\s+/g, ' ');
+  if (normalized.length < 2) {
+    throw new ValidationError('Назва свята має містити мінімум 2 символи');
+  }
+  if (normalized.length > 120) {
+    throw new ValidationError('Назва свята занадто довга (максимум 120 символів)');
+  }
+  return normalized;
 }
 
 function getTodayDateCode(): string {
@@ -241,7 +354,12 @@ async function renderScheduleSection(
   state.scheduleCurrentSection = section;
 
   const text = formatScheduleSectionText(section, data);
-  const keyboard = createAdminScheduleSectionKeyboard();
+  const keyboard =
+    section === 'days-off'
+      ? createAdminScheduleDaysOffKeyboard(data)
+      : section === 'holidays'
+        ? createAdminScheduleHolidaysKeyboard(data)
+        : createAdminScheduleSectionKeyboard();
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -300,6 +418,17 @@ function parseAppointmentIdFromAction(ctx: MyContext, regex: RegExp): string {
   }
 
   return appointmentId;
+}
+
+function parseNumericIdFromAction(ctx: MyContext, regex: RegExp, fieldLabel: string): string {
+  const callbackData =
+    ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
+  const match = callbackData.match(regex);
+  const id = match?.[1]?.trim() ?? '';
+  if (!/^\d+$/.test(id) || id === '0') {
+    throw new ValidationError(`Некоректний ${fieldLabel}`);
+  }
+  return id;
 }
 
 async function resolveAdminRecordById(
@@ -674,6 +803,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.recordsChangeMasterDraft = null;
       state.scheduleData = null;
       state.scheduleCurrentSection = null;
+      state.scheduleDayOffDraft = null;
+      state.scheduleHolidayDraft = null;
+      state.scheduleDeleteDraft = null;
 
       if (!state.access) {
         await ctx.reply(
@@ -689,10 +821,120 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       return ctx.wizard.next();
     },
     async (ctx) => {
-      // Адмін-панель працює через inline callback-и.
-      if (ctx.message && 'text' in ctx.message) {
-        await renderAdminRoot(ctx, false);
+      const state = getSceneState(ctx);
+      const text = getUserText(ctx);
+      if (!text) return;
+
+      const dayOffDraft = state.scheduleDayOffDraft;
+      if (dayOffDraft?.mode === 'awaiting_date') {
+        try {
+          const date = parseFutureDateInput(text);
+          state.scheduleDayOffDraft = {
+            mode: 'awaiting_confirm',
+            offDate: formatDateSql(date),
+            offDateLabel: formatDateLabel(date),
+          };
+
+          await ctx.reply(
+            formatAdminScheduleDayOffConfirmText(formatDateLabel(date)),
+            createAdminScheduleDayOffConfirmKeyboard(),
+          );
+        } catch (error) {
+          const err = error instanceof ValidationError
+            ? error
+            : new ValidationError('Виникла помилка при перевірці дати');
+
+          await ctx.reply(
+            `⚠️ ${err.message}\n\nСпробуйте ще раз у форматі ДД.ММ.РРРР.`,
+            createAdminScheduleDayOffInputKeyboard(),
+          );
+        }
+        return;
       }
+
+      if (dayOffDraft?.mode === 'awaiting_confirm') {
+        await ctx.reply(
+          '⚠️ Для завершення дії натисніть "✅ Підтвердити" або "❌ Скасувати дію".',
+          createAdminScheduleDayOffConfirmKeyboard(),
+        );
+        return;
+      }
+
+      const holidayDraft = state.scheduleHolidayDraft;
+      if (holidayDraft?.mode === 'awaiting_date') {
+        try {
+          const date = parseFutureDateInput(text);
+          state.scheduleHolidayDraft = {
+            mode: 'awaiting_name',
+            holidayDate: formatDateSql(date),
+            holidayDateLabel: formatDateLabel(date),
+            holidayName: null,
+          };
+
+          await ctx.reply(
+            formatAdminScheduleHolidayNameInputText(formatDateLabel(date)),
+            createAdminScheduleHolidayInputKeyboard(),
+          );
+        } catch (error) {
+          const err = error instanceof ValidationError
+            ? error
+            : new ValidationError('Виникла помилка при перевірці дати');
+
+          await ctx.reply(
+            `⚠️ ${err.message}\n\nСпробуйте ще раз у форматі ДД.ММ.РРРР.`,
+            createAdminScheduleHolidayInputKeyboard(),
+          );
+        }
+        return;
+      }
+
+      if (holidayDraft?.mode === 'awaiting_name') {
+        try {
+          const holidayName = normalizeHolidayName(text);
+          if (!holidayDraft.holidayDate || !holidayDraft.holidayDateLabel) {
+            throw new ValidationError('Спочатку вкажіть дату свята');
+          }
+
+          state.scheduleHolidayDraft = {
+            mode: 'awaiting_confirm',
+            holidayDate: holidayDraft.holidayDate,
+            holidayDateLabel: holidayDraft.holidayDateLabel,
+            holidayName,
+          };
+
+          await ctx.reply(
+            formatAdminScheduleHolidayConfirmText(holidayDraft.holidayDateLabel, holidayName),
+            createAdminScheduleHolidayConfirmKeyboard(),
+          );
+        } catch (error) {
+          const err = error instanceof ValidationError
+            ? error
+            : new ValidationError('Виникла помилка при перевірці назви свята');
+
+          await ctx.reply(
+            `⚠️ ${err.message}`,
+            createAdminScheduleHolidayInputKeyboard(),
+          );
+        }
+        return;
+      }
+
+      if (holidayDraft?.mode === 'awaiting_confirm') {
+        await ctx.reply(
+          '⚠️ Для завершення дії натисніть "✅ Підтвердити" або "❌ Скасувати дію".',
+          createAdminScheduleHolidayConfirmKeyboard(),
+        );
+        return;
+      }
+
+      if (state.scheduleCurrentSection) {
+        await ctx.reply(
+          'ℹ️ Для керування цим розділом використовуйте кнопки під повідомленням.',
+        );
+        return;
+      }
+
+      await renderAdminRoot(ctx, false);
     },
   );
 
@@ -700,6 +942,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
     resetRecordsActionDrafts(state);
+    resetScheduleDrafts(state);
+    state.scheduleCurrentSection = null;
     await renderRecordsMenu(ctx);
   });
 
@@ -708,26 +952,31 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const state = getSceneState(ctx);
     state.scheduleCurrentSection = null;
     state.scheduleData = null;
+    resetScheduleDrafts(state);
     await renderScheduleMenu(ctx);
   });
 
   scene.action(ADMIN_PANEL_ACTION.SCHEDULE_OPEN_OVERVIEW, async (ctx) => {
     await ctx.answerCbQuery();
+    resetScheduleDrafts(getSceneState(ctx));
     await renderScheduleSection(ctx, 'overview', true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.SCHEDULE_OPEN_DAYS_OFF, async (ctx) => {
     await ctx.answerCbQuery();
+    resetScheduleDrafts(getSceneState(ctx));
     await renderScheduleSection(ctx, 'days-off', true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.SCHEDULE_OPEN_HOLIDAYS, async (ctx) => {
     await ctx.answerCbQuery();
+    resetScheduleDrafts(getSceneState(ctx));
     await renderScheduleSection(ctx, 'holidays', true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.SCHEDULE_OPEN_TEMPORARY, async (ctx) => {
     await ctx.answerCbQuery();
+    resetScheduleDrafts(getSceneState(ctx));
     await renderScheduleSection(ctx, 'temporary', true);
   });
 
@@ -741,6 +990,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
     state.scheduleCurrentSection = null;
+    resetScheduleDrafts(state);
     await renderScheduleMenu(ctx);
   });
 
@@ -749,26 +999,341 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const state = getSceneState(ctx);
     state.scheduleCurrentSection = null;
     state.scheduleData = null;
+    resetScheduleDrafts(state);
     await renderAdminRoot(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SCHEDULE_DAY_OFF_ADD_OPEN, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    state.scheduleCurrentSection = 'days-off';
+    state.scheduleDayOffDraft = {
+      mode: 'awaiting_date',
+      offDate: null,
+      offDateLabel: null,
+    };
+    state.scheduleHolidayDraft = null;
+    state.scheduleDeleteDraft = null;
+
+    try {
+      await ctx.editMessageText(
+        formatAdminScheduleDayOffInputText(),
+        createAdminScheduleDayOffInputKeyboard(),
+      );
+    } catch {
+      await ctx.reply(
+        formatAdminScheduleDayOffInputText(),
+        createAdminScheduleDayOffInputKeyboard(),
+      );
+    }
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SCHEDULE_DAY_OFF_ADD_CONFIRM, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const access = state.access;
+    const draft = state.scheduleDayOffDraft;
+    if (!access?.studioId || !draft || draft.mode !== 'awaiting_confirm' || !draft.offDate || !draft.offDateLabel) {
+      state.scheduleDayOffDraft = {
+        mode: 'awaiting_date',
+        offDate: null,
+        offDateLabel: null,
+      };
+
+      await ctx.reply(
+        formatAdminScheduleDayOffInputText(),
+        createAdminScheduleDayOffInputKeyboard(),
+      );
+      return;
+    }
+
+    try {
+      await createAdminStudioDayOff({
+        studioId: access.studioId,
+        offDate: draft.offDate,
+        createdBy: access.userId,
+      });
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        state.scheduleDayOffDraft = {
+          mode: 'awaiting_date',
+          offDate: null,
+          offDateLabel: null,
+        };
+        await ctx.reply(
+          `⚠️ ${error.message}\n\nВведіть іншу дату у форматі ДД.ММ.РРРР.`,
+          createAdminScheduleDayOffInputKeyboard(),
+        );
+        return;
+      }
+      throw error;
+    }
+
+    state.scheduleDayOffDraft = null;
+    await ctx.reply(`✅ Вихідний день на ${draft.offDateLabel} успішно додано.`);
+    await renderScheduleSection(ctx, 'days-off', false);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SCHEDULE_DAY_OFF_ADD_CANCEL, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    state.scheduleDayOffDraft = null;
+    await renderScheduleSection(ctx, 'days-off', true);
+  });
+
+  scene.action(ADMIN_PANEL_SCHEDULE_DAY_OFF_DELETE_REQUEST_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const dayOffId = parseNumericIdFromAction(
+      ctx,
+      ADMIN_PANEL_SCHEDULE_DAY_OFF_DELETE_REQUEST_ACTION_REGEX,
+      'id вихідного дня',
+    );
+
+    const data = await loadAdminSchedule(state);
+    const target = data.upcomingDaysOff.find((item) => item.id === dayOffId);
+    if (!target) {
+      state.scheduleDeleteDraft = null;
+      await renderScheduleSection(ctx, 'days-off', true);
+      return;
+    }
+
+    state.scheduleCurrentSection = 'days-off';
+    state.scheduleDeleteDraft = {
+      type: 'day_off',
+      id: dayOffId,
+    };
+    state.scheduleDayOffDraft = null;
+    state.scheduleHolidayDraft = null;
+
+    try {
+      await ctx.editMessageText(
+        formatAdminScheduleDeleteDayOffConfirmText(target.offDate),
+        createAdminScheduleDeleteConfirmKeyboard(
+          makeAdminPanelScheduleDayOffDeleteConfirmAction(dayOffId),
+        ),
+      );
+    } catch {
+      await ctx.reply(
+        formatAdminScheduleDeleteDayOffConfirmText(target.offDate),
+        createAdminScheduleDeleteConfirmKeyboard(
+          makeAdminPanelScheduleDayOffDeleteConfirmAction(dayOffId),
+        ),
+      );
+    }
+  });
+
+  scene.action(ADMIN_PANEL_SCHEDULE_DAY_OFF_DELETE_CONFIRM_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const access = state.access;
+    const dayOffId = parseNumericIdFromAction(
+      ctx,
+      ADMIN_PANEL_SCHEDULE_DAY_OFF_DELETE_CONFIRM_ACTION_REGEX,
+      'id вихідного дня',
+    );
+
+    if (!access?.studioId || !state.scheduleDeleteDraft || state.scheduleDeleteDraft.type !== 'day_off' || state.scheduleDeleteDraft.id !== dayOffId) {
+      state.scheduleDeleteDraft = null;
+      await renderScheduleSection(ctx, 'days-off', true);
+      return;
+    }
+
+    await deleteAdminStudioDayOff({
+      studioId: access.studioId,
+      dayOffId,
+    });
+
+    state.scheduleDeleteDraft = null;
+    await ctx.reply('✅ Вихідний день успішно видалено.');
+    await renderScheduleSection(ctx, 'days-off', false);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SCHEDULE_HOLIDAY_ADD_OPEN, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    state.scheduleCurrentSection = 'holidays';
+    state.scheduleHolidayDraft = {
+      mode: 'awaiting_date',
+      holidayDate: null,
+      holidayDateLabel: null,
+      holidayName: null,
+    };
+    state.scheduleDayOffDraft = null;
+    state.scheduleDeleteDraft = null;
+
+    try {
+      await ctx.editMessageText(
+        formatAdminScheduleHolidayDateInputText(),
+        createAdminScheduleHolidayInputKeyboard(),
+      );
+    } catch {
+      await ctx.reply(
+        formatAdminScheduleHolidayDateInputText(),
+        createAdminScheduleHolidayInputKeyboard(),
+      );
+    }
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SCHEDULE_HOLIDAY_ADD_CONFIRM, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const access = state.access;
+    const draft = state.scheduleHolidayDraft;
+    if (
+      !access?.studioId ||
+      !draft ||
+      draft.mode !== 'awaiting_confirm' ||
+      !draft.holidayDate ||
+      !draft.holidayDateLabel ||
+      !draft.holidayName
+    ) {
+      state.scheduleHolidayDraft = {
+        mode: 'awaiting_date',
+        holidayDate: null,
+        holidayDateLabel: null,
+        holidayName: null,
+      };
+      await ctx.reply(
+        formatAdminScheduleHolidayDateInputText(),
+        createAdminScheduleHolidayInputKeyboard(),
+      );
+      return;
+    }
+
+    try {
+      await createAdminStudioHoliday({
+        studioId: access.studioId,
+        holidayDate: draft.holidayDate,
+        holidayName: draft.holidayName,
+        createdBy: access.userId,
+      });
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        state.scheduleHolidayDraft = {
+          mode: 'awaiting_date',
+          holidayDate: null,
+          holidayDateLabel: null,
+          holidayName: null,
+        };
+        await ctx.reply(
+          `⚠️ ${error.message}\n\nСпробуйте ще раз.`,
+          createAdminScheduleHolidayInputKeyboard(),
+        );
+        return;
+      }
+      throw error;
+    }
+
+    state.scheduleHolidayDraft = null;
+    await ctx.reply(`✅ Свято "${draft.holidayName}" на ${draft.holidayDateLabel} успішно додано.`);
+    await renderScheduleSection(ctx, 'holidays', false);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SCHEDULE_HOLIDAY_ADD_CANCEL, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    state.scheduleHolidayDraft = null;
+    await renderScheduleSection(ctx, 'holidays', true);
+  });
+
+  scene.action(ADMIN_PANEL_SCHEDULE_HOLIDAY_DELETE_REQUEST_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const holidayId = parseNumericIdFromAction(
+      ctx,
+      ADMIN_PANEL_SCHEDULE_HOLIDAY_DELETE_REQUEST_ACTION_REGEX,
+      'id святкового дня',
+    );
+
+    const data = await loadAdminSchedule(state);
+    const target = data.upcomingHolidays.find((item) => item.id === holidayId);
+    if (!target) {
+      state.scheduleDeleteDraft = null;
+      await renderScheduleSection(ctx, 'holidays', true);
+      return;
+    }
+
+    state.scheduleCurrentSection = 'holidays';
+    state.scheduleDeleteDraft = {
+      type: 'holiday',
+      id: holidayId,
+    };
+    state.scheduleDayOffDraft = null;
+    state.scheduleHolidayDraft = null;
+
+    try {
+      await ctx.editMessageText(
+        formatAdminScheduleDeleteHolidayConfirmText(target.holidayDate, target.holidayName),
+        createAdminScheduleDeleteConfirmKeyboard(
+          makeAdminPanelScheduleHolidayDeleteConfirmAction(holidayId),
+        ),
+      );
+    } catch {
+      await ctx.reply(
+        formatAdminScheduleDeleteHolidayConfirmText(target.holidayDate, target.holidayName),
+        createAdminScheduleDeleteConfirmKeyboard(
+          makeAdminPanelScheduleHolidayDeleteConfirmAction(holidayId),
+        ),
+      );
+    }
+  });
+
+  scene.action(ADMIN_PANEL_SCHEDULE_HOLIDAY_DELETE_CONFIRM_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const access = state.access;
+    const holidayId = parseNumericIdFromAction(
+      ctx,
+      ADMIN_PANEL_SCHEDULE_HOLIDAY_DELETE_CONFIRM_ACTION_REGEX,
+      'id святкового дня',
+    );
+
+    if (!access?.studioId || !state.scheduleDeleteDraft || state.scheduleDeleteDraft.type !== 'holiday' || state.scheduleDeleteDraft.id !== holidayId) {
+      state.scheduleDeleteDraft = null;
+      await renderScheduleSection(ctx, 'holidays', true);
+      return;
+    }
+
+    await deleteAdminStudioHoliday({
+      studioId: access.studioId,
+      holidayId,
+    });
+
+    state.scheduleDeleteDraft = null;
+    await ctx.reply('✅ Святковий день успішно видалено.');
+    await renderScheduleSection(ctx, 'holidays', false);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SCHEDULE_DELETE_CANCEL, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const section = state.scheduleCurrentSection === 'holidays' ? 'holidays' : 'days-off';
+    state.scheduleDeleteDraft = null;
+    await renderScheduleSection(ctx, section, true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.OPEN_MASTERS, async (ctx) => {
     await ctx.answerCbQuery();
+    resetScheduleDrafts(getSceneState(ctx));
     await renderStubSection(ctx, '👩‍🎨 Майстри', 3);
   });
 
   scene.action(ADMIN_PANEL_ACTION.OPEN_SERVICES, async (ctx) => {
     await ctx.answerCbQuery();
+    resetScheduleDrafts(getSceneState(ctx));
     await renderStubSection(ctx, '💼 Послуги', 4);
   });
 
   scene.action(ADMIN_PANEL_ACTION.OPEN_STATS, async (ctx) => {
     await ctx.answerCbQuery();
+    resetScheduleDrafts(getSceneState(ctx));
     await renderStubSection(ctx, '📊 Статистика', 5);
   });
 
   scene.action(ADMIN_PANEL_ACTION.OPEN_SETTINGS, async (ctx) => {
     await ctx.answerCbQuery();
+    resetScheduleDrafts(getSceneState(ctx));
     await renderStubSection(ctx, '⚙️ Налаштування', 6);
   });
 

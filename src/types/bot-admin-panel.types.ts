@@ -10,6 +10,17 @@ export const ADMIN_PANEL_ACTION = {
   SCHEDULE_OPEN_DAYS_OFF: 'admin-panel:schedule:open-days-off',
   SCHEDULE_OPEN_HOLIDAYS: 'admin-panel:schedule:open-holidays',
   SCHEDULE_OPEN_TEMPORARY: 'admin-panel:schedule:open-temporary',
+  SCHEDULE_DAY_OFF_ADD_OPEN: 'admin-panel:schedule:day-off:add:open',
+  SCHEDULE_DAY_OFF_ADD_CONFIRM: 'admin-panel:schedule:day-off:add:confirm',
+  SCHEDULE_DAY_OFF_ADD_CANCEL: 'admin-panel:schedule:day-off:add:cancel',
+  SCHEDULE_DAY_OFF_DELETE_REQUEST_PREFIX: 'admin-panel:schedule:day-off:delete:request:',
+  SCHEDULE_DAY_OFF_DELETE_CONFIRM_PREFIX: 'admin-panel:schedule:day-off:delete:confirm:',
+  SCHEDULE_HOLIDAY_ADD_OPEN: 'admin-panel:schedule:holiday:add:open',
+  SCHEDULE_HOLIDAY_ADD_CONFIRM: 'admin-panel:schedule:holiday:add:confirm',
+  SCHEDULE_HOLIDAY_ADD_CANCEL: 'admin-panel:schedule:holiday:add:cancel',
+  SCHEDULE_HOLIDAY_DELETE_REQUEST_PREFIX: 'admin-panel:schedule:holiday:delete:request:',
+  SCHEDULE_HOLIDAY_DELETE_CONFIRM_PREFIX: 'admin-panel:schedule:holiday:delete:confirm:',
+  SCHEDULE_DELETE_CANCEL: 'admin-panel:schedule:delete:cancel',
   SCHEDULE_REFRESH: 'admin-panel:schedule:refresh',
   SCHEDULE_BACK_TO_MENU: 'admin-panel:schedule:back-to-menu',
   SCHEDULE_BACK: 'admin-panel:schedule:back',
@@ -54,6 +65,11 @@ export const ADMIN_PANEL_BUTTON_TEXT = {
   SCHEDULE_DAYS_OFF: '📅 Вихідні студії',
   SCHEDULE_HOLIDAYS: '🎉 Святкові дні',
   SCHEDULE_TEMPORARY: '🕒 Тимчасові зміни',
+  SCHEDULE_ADD_DAY_OFF: '➕ Додати вихідний',
+  SCHEDULE_ADD_HOLIDAY: '➕ Додати свято',
+  SCHEDULE_CONFIRM: '✅ Підтвердити',
+  SCHEDULE_CANCEL_ACTION: '❌ Скасувати дію',
+  SCHEDULE_DELETE_CANCEL: '⬅️ Скасувати видалення',
   SCHEDULE_REFRESH: '🔄 Оновити',
   SCHEDULE_BACK_TO_MENU: '⬅️ До меню розкладу',
   SCHEDULE_BACK: '⬅️ До адмін-панелі',
@@ -102,6 +118,14 @@ export const ADMIN_PANEL_RECORDS_CHANGE_MASTER_ACTION_REGEX =
   /^admin-panel:records:change-master:(\d+)$/;
 export const ADMIN_PANEL_RECORDS_CHANGE_MASTER_SELECT_ACTION_REGEX =
   /^admin-panel:records:change-master:select:(\d+):(\d+)$/;
+export const ADMIN_PANEL_SCHEDULE_DAY_OFF_DELETE_REQUEST_ACTION_REGEX =
+  /^admin-panel:schedule:day-off:delete:request:(\d+)$/;
+export const ADMIN_PANEL_SCHEDULE_DAY_OFF_DELETE_CONFIRM_ACTION_REGEX =
+  /^admin-panel:schedule:day-off:delete:confirm:(\d+)$/;
+export const ADMIN_PANEL_SCHEDULE_HOLIDAY_DELETE_REQUEST_ACTION_REGEX =
+  /^admin-panel:schedule:holiday:delete:request:(\d+)$/;
+export const ADMIN_PANEL_SCHEDULE_HOLIDAY_DELETE_CONFIRM_ACTION_REGEX =
+  /^admin-panel:schedule:holiday:delete:confirm:(\d+)$/;
 
 export function makeAdminPanelRecordsOpenCardAction(appointmentId: string): string {
   return `${ADMIN_PANEL_ACTION.RECORDS_OPEN_CARD_PREFIX}${appointmentId}`;
@@ -140,4 +164,20 @@ export function makeAdminPanelRecordsChangeMasterSelectAction(
   masterId: string,
 ): string {
   return `${ADMIN_PANEL_ACTION.RECORDS_CHANGE_MASTER_SELECT_PREFIX}${appointmentId}:${masterId}`;
+}
+
+export function makeAdminPanelScheduleDayOffDeleteRequestAction(dayOffId: string): string {
+  return `${ADMIN_PANEL_ACTION.SCHEDULE_DAY_OFF_DELETE_REQUEST_PREFIX}${dayOffId}`;
+}
+
+export function makeAdminPanelScheduleDayOffDeleteConfirmAction(dayOffId: string): string {
+  return `${ADMIN_PANEL_ACTION.SCHEDULE_DAY_OFF_DELETE_CONFIRM_PREFIX}${dayOffId}`;
+}
+
+export function makeAdminPanelScheduleHolidayDeleteRequestAction(holidayId: string): string {
+  return `${ADMIN_PANEL_ACTION.SCHEDULE_HOLIDAY_DELETE_REQUEST_PREFIX}${holidayId}`;
+}
+
+export function makeAdminPanelScheduleHolidayDeleteConfirmAction(holidayId: string): string {
+  return `${ADMIN_PANEL_ACTION.SCHEDULE_HOLIDAY_DELETE_CONFIRM_PREFIX}${holidayId}`;
 }

@@ -70,3 +70,46 @@ export type AdminStudioScheduleData = {
   upcomingTemporaryHours: AdminStudioTemporaryHoursItem[];
 };
 
+export type AdminStudioExistsForDateRow = {
+  already_exists: boolean;
+};
+
+export type AdminStudioActiveBookingsCountRow = {
+  active_count: number;
+};
+
+export type CreateAdminStudioDayOffInput = {
+  studioId: string | number;
+  offDate: Date | string;
+  reason?: string | null;
+  createdBy?: string | number | null;
+};
+
+export type CreateAdminStudioHolidayInput = {
+  studioId: string | number;
+  holidayDate: Date | string;
+  holidayName: string;
+  createdBy?: string | number | null;
+};
+
+export type DeleteAdminStudioDayOffInput = {
+  studioId: string | number;
+  dayOffId: string | number;
+};
+
+export type DeleteAdminStudioHolidayInput = {
+  studioId: string | number;
+  holidayId: string | number;
+};
+
+export type AdminInsertedStudioDayOffRow = {
+  id: string;
+  off_date: Date;
+  reason: string | null;
+};
+
+export type AdminInsertedStudioHolidayRow = {
+  id: string;
+  holiday_date: Date;
+  holiday_name: string;
+};

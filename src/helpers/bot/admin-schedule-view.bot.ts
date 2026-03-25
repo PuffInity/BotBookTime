@@ -1,6 +1,11 @@
 import { Markup } from 'telegraf';
 import type { AdminStudioScheduleData } from '../../types/db-helpers/db-admin-schedule.types.js';
-import { ADMIN_PANEL_ACTION, ADMIN_PANEL_BUTTON_TEXT } from '../../types/bot-admin-panel.types.js';
+import {
+  ADMIN_PANEL_ACTION,
+  ADMIN_PANEL_BUTTON_TEXT,
+  makeAdminPanelScheduleDayOffDeleteRequestAction,
+  makeAdminPanelScheduleHolidayDeleteRequestAction,
+} from '../../types/bot-admin-panel.types.js';
 
 /**
  * @file admin-schedule-view.bot.ts
@@ -163,3 +168,187 @@ export function createAdminScheduleSectionKeyboard(): ReturnType<typeof Markup.i
   ]);
 }
 
+/**
+ * @summary Клавіатура розділу "Вихідні студії".
+ */
+export function createAdminScheduleDaysOffKeyboard(
+  data: AdminStudioScheduleData,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const deleteRows = data.upcomingDaysOff.map((item, index) => [
+    Markup.button.callback(
+      `🗑 Видалити #${index + 1}`,
+      makeAdminPanelScheduleDayOffDeleteRequestAction(item.id),
+    ),
+  ]);
+
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_ADD_DAY_OFF, ADMIN_PANEL_ACTION.SCHEDULE_DAY_OFF_ADD_OPEN)],
+    ...deleteRows,
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_REFRESH, ADMIN_PANEL_ACTION.SCHEDULE_OPEN_DAYS_OFF)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK, ADMIN_PANEL_ACTION.SCHEDULE_BACK)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура розділу "Святкові дні".
+ */
+export function createAdminScheduleHolidaysKeyboard(
+  data: AdminStudioScheduleData,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const deleteRows = data.upcomingHolidays.map((item, index) => [
+    Markup.button.callback(
+      `🗑 Видалити #${index + 1}`,
+      makeAdminPanelScheduleHolidayDeleteRequestAction(item.id),
+    ),
+  ]);
+
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_ADD_HOLIDAY, ADMIN_PANEL_ACTION.SCHEDULE_HOLIDAY_ADD_OPEN)],
+    ...deleteRows,
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_REFRESH, ADMIN_PANEL_ACTION.SCHEDULE_OPEN_HOLIDAYS)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK, ADMIN_PANEL_ACTION.SCHEDULE_BACK)],
+  ]);
+}
+
+/**
+ * @summary Текст вводу дати для вихідного дня.
+ */
+export function formatAdminScheduleDayOffInputText(): string {
+  return (
+    '📅 Додавання вихідного дня\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Введіть дату вихідного дня у форматі ДД.ММ.РРРР\n' +
+    'Наприклад: 25.12.2026'
+  );
+}
+
+/**
+ * @summary Текст підтвердження створення вихідного дня.
+ */
+export function formatAdminScheduleDayOffConfirmText(dateLabel: string): string {
+  return (
+    '⚠️ Підтвердження вихідного дня\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `Встановити вихідний день на ${dateLabel}?\n\n` +
+    'У цей день нові записи для клієнтів будуть недоступні.'
+  );
+}
+
+/**
+ * @summary Клавіатура для вводу вихідного дня.
+ */
+export function createAdminScheduleDayOffInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CANCEL_ACTION, ADMIN_PANEL_ACTION.SCHEDULE_DAY_OFF_ADD_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура підтвердження вихідного дня.
+ */
+export function createAdminScheduleDayOffConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CONFIRM, ADMIN_PANEL_ACTION.SCHEDULE_DAY_OFF_ADD_CONFIRM)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CANCEL_ACTION, ADMIN_PANEL_ACTION.SCHEDULE_DAY_OFF_ADD_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
+  ]);
+}
+
+/**
+ * @summary Текст кроку вводу дати свята.
+ */
+export function formatAdminScheduleHolidayDateInputText(): string {
+  return (
+    '🎉 Додавання святкового дня — крок 1/2\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Введіть дату свята у форматі ДД.ММ.РРРР\n' +
+    'Наприклад: 24.12.2026'
+  );
+}
+
+/**
+ * @summary Текст кроку вводу назви свята.
+ */
+export function formatAdminScheduleHolidayNameInputText(dateLabel: string): string {
+  return (
+    '🎉 Додавання святкового дня — крок 2/2\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `📅 Дата: ${dateLabel}\n\n` +
+    'Введіть назву свята.'
+  );
+}
+
+/**
+ * @summary Текст підтвердження створення свята.
+ */
+export function formatAdminScheduleHolidayConfirmText(dateLabel: string, holidayName: string): string {
+  return (
+    '⚠️ Підтвердження святкового дня\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `📅 Дата: ${dateLabel}\n` +
+    `🎉 Назва: ${holidayName}\n\n` +
+    'Підтвердьте створення святкового дня.'
+  );
+}
+
+/**
+ * @summary Клавіатура вводу свята.
+ */
+export function createAdminScheduleHolidayInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CANCEL_ACTION, ADMIN_PANEL_ACTION.SCHEDULE_HOLIDAY_ADD_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура підтвердження свята.
+ */
+export function createAdminScheduleHolidayConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CONFIRM, ADMIN_PANEL_ACTION.SCHEDULE_HOLIDAY_ADD_CONFIRM)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CANCEL_ACTION, ADMIN_PANEL_ACTION.SCHEDULE_HOLIDAY_ADD_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
+  ]);
+}
+
+/**
+ * @summary Текст підтвердження видалення вихідного дня.
+ */
+export function formatAdminScheduleDeleteDayOffConfirmText(date: Date): string {
+  return (
+    '⚠️ Видалення вихідного дня\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `Видалити вихідний день на дату ${formatDate(date)}?`
+  );
+}
+
+/**
+ * @summary Текст підтвердження видалення свята.
+ */
+export function formatAdminScheduleDeleteHolidayConfirmText(
+  date: Date,
+  holidayName: string,
+): string {
+  return (
+    '⚠️ Видалення святкового дня\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `Видалити святковий день ${formatDate(date)} — ${holidayName}?`
+  );
+}
+
+/**
+ * @summary Базова клавіатура підтвердження видалення.
+ */
+export function createAdminScheduleDeleteConfirmKeyboard(
+  confirmAction: string,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CONFIRM, confirmAction)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_DELETE_CANCEL, ADMIN_PANEL_ACTION.SCHEDULE_DELETE_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
+  ]);
+}
