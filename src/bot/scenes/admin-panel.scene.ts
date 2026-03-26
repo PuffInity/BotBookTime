@@ -27,6 +27,10 @@ import type {
   AdminPanelStatsServiceDetails,
   AdminPanelStatsServicesFeedPage,
 } from '../../types/db-helpers/db-admin-stats.types.js';
+import type {
+  AdminStudioAdminMember,
+  AdminStudioUserLookup,
+} from '../../types/db-helpers/db-admin-settings.types.js';
 import type { AdminStudioScheduleData } from '../../types/db-helpers/db-admin-schedule.types.js';
 import type { AdminStudioTemporaryScheduleDayInput } from '../../types/db-helpers/db-admin-schedule.types.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
@@ -37,9 +41,19 @@ import {
   formatAdminPanelRootText,
 } from '../../helpers/bot/admin-panel-view.bot.js';
 import {
+  createAdminSettingsAdminsKeyboard,
+  createAdminSettingsGrantConfirmKeyboard,
+  createAdminSettingsGrantInputKeyboard,
   createAdminSettingsMenuKeyboard,
+  createAdminSettingsRevokeConfirmKeyboard,
+  createAdminSettingsRevokeInputKeyboard,
   createAdminSettingsSectionKeyboard,
+  formatAdminSettingsAdminsText,
+  formatAdminSettingsGrantConfirmText,
+  formatAdminSettingsGrantInputText,
   formatAdminSettingsMenuText,
+  formatAdminSettingsRevokeConfirmText,
+  formatAdminSettingsRevokeInputText,
   formatAdminSettingsSectionText,
 } from '../../helpers/bot/admin-settings-view.bot.js';
 import {
@@ -202,6 +216,12 @@ import {
   listAdminPanelStatsMastersFeed,
   listAdminPanelStatsServicesFeed,
 } from '../../helpers/db/db-admin-stats.helper.js';
+import {
+  findAdminStudioUserByTelegramId,
+  grantStudioAdminRole,
+  listAdminStudioAdmins,
+  revokeStudioAdminRole,
+} from '../../helpers/db/db-admin-settings.helper.js';
 import { buildBookingDateOptions, buildBookingTimeOptions } from '../../helpers/bot/booking-view.bot.js';
 import { bookingDateCodeSchema, bookingTimeCodeSchema } from '../../validator/booking-input.schema.js';
 import { dispatchNotification } from '../../helpers/notification/notification-dispatch.helper.js';
@@ -273,6 +293,13 @@ type AdminMasterSubSection = 'catalog' | 'details' | 'bookings' | 'stats';
 type AdminServiceSubSection = 'catalog' | 'details' | 'stats';
 type AdminStatsSection = 'overview' | 'masters' | 'services' | 'monthly' | 'clients';
 type AdminSettingsSection = 'menu' | 'language' | 'admins' | 'studio' | 'notifications';
+type AdminSettingsAdminsAction = 'grant' | 'revoke';
+
+type AdminSettingsAdminsDraft = {
+  action: AdminSettingsAdminsAction;
+  mode: 'awaiting_telegram_id' | 'awaiting_confirm';
+  target: AdminStudioUserLookup | null;
+};
 
 type AdminPanelSceneState = {
   access: AdminPanelAccess | null;
@@ -309,6 +336,8 @@ type AdminPanelSceneState = {
   statsSelectedClientId: string | null;
   statsClientDetails: AdminPanelStatsClientDetails | null;
   statsCurrentSection: AdminStatsSection | null;
+  settingsAdmins: AdminStudioAdminMember[] | null;
+  settingsAdminsDraft: AdminSettingsAdminsDraft | null;
   settingsCurrentSection: AdminSettingsSection | null;
 };
 
@@ -366,6 +395,8 @@ function resetStatsState(state: AdminPanelSceneState): void {
 }
 
 function resetSettingsState(state: AdminPanelSceneState): void {
+  state.settingsAdmins = null;
+  state.settingsAdminsDraft = null;
   state.settingsCurrentSection = null;
 }
 
@@ -689,6 +720,103 @@ async function renderAdminSettingsSection(
 
   const text = getSettingsSectionText(section);
   const keyboard = createAdminSettingsSectionKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function loadAdminSettingsAdmins(
+  state: AdminPanelSceneState,
+): Promise<AdminStudioAdminMember[]> {
+  const studioId = state.access?.studioId;
+  if (!studioId) {
+    throw new ValidationError('Не вдалося визначити студію адміністратора');
+  }
+
+  const admins = await listAdminStudioAdmins({ studioId });
+  state.settingsAdmins = admins;
+  return admins;
+}
+
+async function renderAdminSettingsAdmins(ctx: MyContext, preferEdit: boolean): Promise<void> {
+  const state = getSceneState(ctx);
+  const admins = await loadAdminSettingsAdmins(state);
+  state.settingsCurrentSection = 'admins';
+  state.settingsAdminsDraft = null;
+
+  const text = formatAdminSettingsAdminsText(admins);
+  const keyboard = createAdminSettingsAdminsKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminSettingsAdminsInput(
+  ctx: MyContext,
+  action: AdminSettingsAdminsAction,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  state.settingsCurrentSection = 'admins';
+  state.settingsAdminsDraft = {
+    action,
+    mode: 'awaiting_telegram_id',
+    target: null,
+  };
+
+  const text =
+    action === 'grant' ? formatAdminSettingsGrantInputText() : formatAdminSettingsRevokeInputText();
+  const keyboard =
+    action === 'grant'
+      ? createAdminSettingsGrantInputKeyboard()
+      : createAdminSettingsRevokeInputKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminSettingsAdminsConfirm(
+  ctx: MyContext,
+  draft: AdminSettingsAdminsDraft,
+  preferEdit: boolean,
+): Promise<void> {
+  if (!draft.target) {
+    await renderAdminSettingsAdmins(ctx, preferEdit);
+    return;
+  }
+
+  const text =
+    draft.action === 'grant'
+      ? formatAdminSettingsGrantConfirmText(draft.target)
+      : formatAdminSettingsRevokeConfirmText(draft.target);
+  const keyboard =
+    draft.action === 'grant'
+      ? createAdminSettingsGrantConfirmKeyboard()
+      : createAdminSettingsRevokeConfirmKeyboard();
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1779,6 +1907,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.statsSelectedClientId = null;
       state.statsClientDetails = null;
       state.statsCurrentSection = null;
+      state.settingsAdmins = null;
+      state.settingsAdminsDraft = null;
       state.settingsCurrentSection = null;
 
       if (!state.access) {
@@ -2032,6 +2162,101 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       if (state.scheduleCurrentSection) {
         await ctx.reply(
           'ℹ️ Для керування цим розділом використовуйте кнопки під повідомленням.',
+        );
+        return;
+      }
+
+      const settingsDraft = state.settingsAdminsDraft;
+      if (
+        state.settingsCurrentSection === 'admins' &&
+        settingsDraft &&
+        settingsDraft.mode === 'awaiting_telegram_id'
+      ) {
+        const access = state.access;
+        if (!access?.studioId) {
+          throw new ValidationError('Не вдалося визначити студію адміністратора');
+        }
+
+        const candidateTelegramId = text.trim();
+        if (!/^\d+$/.test(candidateTelegramId)) {
+          await ctx.reply(
+            '⚠️ Telegram ID має містити тільки цифри.',
+            settingsDraft.action === 'grant'
+              ? createAdminSettingsGrantInputKeyboard()
+              : createAdminSettingsRevokeInputKeyboard(),
+          );
+          return;
+        }
+
+        let target: AdminStudioUserLookup | null;
+        try {
+          target = await findAdminStudioUserByTelegramId({
+            studioId: access.studioId,
+            telegramId: candidateTelegramId,
+          });
+        } catch (error) {
+          if (error instanceof ValidationError) {
+            await ctx.reply(
+              `⚠️ ${error.message}`,
+              settingsDraft.action === 'grant'
+                ? createAdminSettingsGrantInputKeyboard()
+                : createAdminSettingsRevokeInputKeyboard(),
+            );
+            return;
+          }
+          throw error;
+        }
+
+        if (!target) {
+          await ctx.reply(
+            '⚠️ Користувача з таким Telegram ID не знайдено в цьому салоні.',
+            settingsDraft.action === 'grant'
+              ? createAdminSettingsGrantInputKeyboard()
+              : createAdminSettingsRevokeInputKeyboard(),
+          );
+          return;
+        }
+
+        if (settingsDraft.action === 'grant' && target.isAdmin) {
+          await ctx.reply(
+            '⚠️ Цей користувач уже має роль адміністратора.',
+            createAdminSettingsGrantInputKeyboard(),
+          );
+          return;
+        }
+
+        if (settingsDraft.action === 'revoke' && !target.isAdmin) {
+          await ctx.reply(
+            '⚠️ У цього користувача немає ролі адміністратора.',
+            createAdminSettingsRevokeInputKeyboard(),
+          );
+          return;
+        }
+
+        if (settingsDraft.action === 'revoke' && target.userId === access.userId) {
+          await ctx.reply(
+            '⚠️ Не можна забрати роль адміністратора у власного профілю.',
+            createAdminSettingsRevokeInputKeyboard(),
+          );
+          return;
+        }
+
+        settingsDraft.mode = 'awaiting_confirm';
+        settingsDraft.target = target;
+        await renderAdminSettingsAdminsConfirm(ctx, settingsDraft, false);
+        return;
+      }
+
+      if (
+        state.settingsCurrentSection === 'admins' &&
+        settingsDraft &&
+        settingsDraft.mode === 'awaiting_confirm'
+      ) {
+        await ctx.reply(
+          'ℹ️ Для завершення дії використовуйте кнопки підтвердження під повідомленням.',
+          settingsDraft.action === 'grant'
+            ? createAdminSettingsGrantConfirmKeyboard()
+            : createAdminSettingsRevokeConfirmKeyboard(),
         );
         return;
       }
@@ -3209,7 +3434,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
   scene.action(ADMIN_PANEL_ACTION.SETTINGS_OPEN_ADMINS, async (ctx) => {
     await ctx.answerCbQuery();
-    await renderAdminSettingsSection(ctx, 'admins', true);
+    await renderAdminSettingsAdmins(ctx, true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.SETTINGS_OPEN_STUDIO, async (ctx) => {
@@ -3224,6 +3449,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
   scene.action(ADMIN_PANEL_ACTION.SETTINGS_BACK_TO_MENU, async (ctx) => {
     await ctx.answerCbQuery();
+    resetSettingsState(getSceneState(ctx));
     await renderAdminSettingsMenu(ctx, true);
   });
 
@@ -3232,6 +3458,108 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const state = getSceneState(ctx);
     resetSettingsState(state);
     await renderAdminRoot(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SETTINGS_ADMINS_GRANT_OPEN, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderAdminSettingsAdminsInput(ctx, 'grant', true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SETTINGS_ADMINS_REVOKE_OPEN, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderAdminSettingsAdminsInput(ctx, 'revoke', true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SETTINGS_ADMINS_GRANT_CANCEL, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    state.settingsAdminsDraft = null;
+    await renderAdminSettingsAdmins(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SETTINGS_ADMINS_REVOKE_CANCEL, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    state.settingsAdminsDraft = null;
+    await renderAdminSettingsAdmins(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SETTINGS_ADMINS_GRANT_CONFIRM, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const access = state.access;
+    const draft = state.settingsAdminsDraft;
+
+    if (
+      !access?.studioId ||
+      !draft ||
+      draft.action !== 'grant' ||
+      draft.mode !== 'awaiting_confirm' ||
+      !draft.target
+    ) {
+      await renderAdminSettingsAdmins(ctx, true);
+      return;
+    }
+
+    try {
+      const granted = await grantStudioAdminRole({
+        studioId: access.studioId,
+        telegramId: draft.target.telegramUserId,
+        grantedByUserId: access.userId,
+      });
+
+      state.settingsAdminsDraft = null;
+      await ctx.reply(
+        `✅ Роль адміністратора успішно надано.\n\n👤 ${granted.displayName}\n🆔 ${granted.telegramUserId}`,
+      );
+      await renderAdminSettingsAdmins(ctx, false);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        await ctx.reply(`⚠️ ${error.message}`);
+        await renderAdminSettingsAdminsInput(ctx, 'grant', false);
+        return;
+      }
+      throw error;
+    }
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SETTINGS_ADMINS_REVOKE_CONFIRM, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const access = state.access;
+    const draft = state.settingsAdminsDraft;
+
+    if (
+      !access?.studioId ||
+      !draft ||
+      draft.action !== 'revoke' ||
+      draft.mode !== 'awaiting_confirm' ||
+      !draft.target
+    ) {
+      await renderAdminSettingsAdmins(ctx, true);
+      return;
+    }
+
+    try {
+      const revoked = await revokeStudioAdminRole({
+        studioId: access.studioId,
+        telegramId: draft.target.telegramUserId,
+        revokedByUserId: access.userId,
+      });
+
+      state.settingsAdminsDraft = null;
+      await ctx.reply(
+        `✅ Роль адміністратора успішно видалено.\n\n👤 ${revoked.displayName}\n🆔 ${revoked.telegramUserId}`,
+      );
+      await renderAdminSettingsAdmins(ctx, false);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        await ctx.reply(`⚠️ ${error.message}`);
+        await renderAdminSettingsAdminsInput(ctx, 'revoke', false);
+        return;
+      }
+      throw error;
+    }
   });
 
   scene.action(ADMIN_PANEL_ACTION.RECORDS_MENU_PENDING, async (ctx) => {
