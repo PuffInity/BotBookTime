@@ -75,6 +75,9 @@ export const ADMIN_PANEL_ACTION = {
   SETTINGS_OPEN_ADMINS: 'admin-panel:settings:open-admins',
   SETTINGS_OPEN_STUDIO: 'admin-panel:settings:open-studio',
   SETTINGS_OPEN_NOTIFICATIONS: 'admin-panel:settings:open-notifications',
+  SETTINGS_LANGUAGE_SELECT_PREFIX: 'admin-panel:settings:language:select:',
+  SETTINGS_LANGUAGE_CONFIRM: 'admin-panel:settings:language:confirm',
+  SETTINGS_LANGUAGE_CANCEL: 'admin-panel:settings:language:cancel',
   SETTINGS_STUDIO_EDIT_BLOCK_OPEN_PREFIX: 'admin-panel:settings:studio:edit-block:open:',
   SETTINGS_STUDIO_EDIT_BLOCK_CONFIRM: 'admin-panel:settings:studio:edit-block:confirm',
   SETTINGS_STUDIO_EDIT_BLOCK_CANCEL: 'admin-panel:settings:studio:edit-block:cancel',
@@ -158,6 +161,11 @@ export const ADMIN_PANEL_BUTTON_TEXT = {
   STATS_BACK: '⬅️ До адмін-панелі',
   SETTINGS: '⚙️ Налаштування',
   SETTINGS_LANGUAGE: '🌐 Мова панелі',
+  SETTINGS_LANGUAGE_UK: '🇺🇦 Українська',
+  SETTINGS_LANGUAGE_EN: '🇬🇧 English',
+  SETTINGS_LANGUAGE_CS: '🇨🇿 Čeština',
+  SETTINGS_LANGUAGE_CONFIRM: '✅ Підтвердити',
+  SETTINGS_LANGUAGE_CANCEL: '❌ Скасувати зміну',
   SETTINGS_ADMINS: '👑 Адміністратори',
   SETTINGS_STUDIO: '🏢 Параметри салону',
   SETTINGS_NOTIFICATIONS: '🔔 Системні сповіщення',
@@ -248,6 +256,8 @@ export const ADMIN_PANEL_STATS_MONTHLY_OPEN_ACTION_REGEX = /^admin-panel:stats:m
 export const ADMIN_PANEL_STATS_CLIENTS_OPEN_ACTION_REGEX = /^admin-panel:stats:clients:open:(\d+)$/;
 export const ADMIN_PANEL_SETTINGS_STUDIO_EDIT_BLOCK_OPEN_ACTION_REGEX =
   /^admin-panel:settings:studio:edit-block:open:(about|contacts|booking_rules|cancellation_policy|preparation|comfort|guarantee_service)$/;
+export const ADMIN_PANEL_SETTINGS_LANGUAGE_SELECT_ACTION_REGEX =
+  /^admin-panel:settings:language:select:(uk|en|cs)$/;
 
 export function makeAdminPanelRecordsOpenCardAction(appointmentId: string): string {
   return `${ADMIN_PANEL_ACTION.RECORDS_OPEN_CARD_PREFIX}${appointmentId}`;
@@ -368,4 +378,8 @@ export function makeAdminPanelStatsClientsOpenAction(clientId: string): string {
 
 export function makeAdminPanelSettingsStudioEditBlockOpenAction(blockKey: string): string {
   return `${ADMIN_PANEL_ACTION.SETTINGS_STUDIO_EDIT_BLOCK_OPEN_PREFIX}${blockKey}`;
+}
+
+export function makeAdminPanelSettingsLanguageSelectAction(languageCode: 'uk' | 'en' | 'cs'): string {
+  return `${ADMIN_PANEL_ACTION.SETTINGS_LANGUAGE_SELECT_PREFIX}${languageCode}`;
 }

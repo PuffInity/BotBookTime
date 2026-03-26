@@ -2,6 +2,7 @@
  * @file db-admin-settings.types.ts
  * @summary Типи для DB helper блоку "Налаштування" адмін-панелі.
  */
+import type { LanguageCode } from '../db/dbEnums.type.js';
 
 export type AdminStudioAdminRow = {
   user_id: string;
@@ -68,4 +69,17 @@ export type RevokeStudioAdminRoleInput = {
   studioId: string | number;
   telegramId: string | number;
   revokedByUserId: string | number;
+};
+
+export type AdminPanelLanguageRow = {
+  preferred_language: LanguageCode;
+};
+
+export type GetAdminPanelLanguageInput = {
+  userId: string | number;
+};
+
+export type SetAdminPanelLanguageInput = {
+  userId: string | number;
+  language: LanguageCode;
 };

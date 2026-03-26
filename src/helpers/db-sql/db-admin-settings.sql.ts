@@ -63,3 +63,22 @@ export const SQL_COUNT_STUDIO_ADMINS = `
   WHERE u.studio_id = $1::bigint
     AND u.is_active = TRUE
 `;
+
+export const SQL_GET_ADMIN_PANEL_LANGUAGE_BY_USER_ID = `
+  SELECT
+    u.preferred_language
+  FROM app_users u
+  WHERE u.id = $1::bigint
+    AND u.is_active = TRUE
+  LIMIT 1
+`;
+
+export const SQL_SET_ADMIN_PANEL_LANGUAGE_BY_USER_ID = `
+  UPDATE app_users
+  SET
+    preferred_language = $2::language_code,
+    updated_at = now()
+  WHERE id = $1::bigint
+    AND is_active = TRUE
+  RETURNING preferred_language
+`;

@@ -32,7 +32,7 @@ import type {
   AdminStudioUserLookup,
 } from '../../types/db-helpers/db-admin-settings.types.js';
 import type { AdminStudioProfileSettings } from '../../types/db-helpers/db-admin-studio-settings.types.js';
-import type { ContentBlockKey } from '../../types/db/dbEnums.type.js';
+import type { ContentBlockKey, LanguageCode } from '../../types/db/dbEnums.type.js';
 import type { AdminStudioScheduleData } from '../../types/db-helpers/db-admin-schedule.types.js';
 import type { AdminStudioTemporaryScheduleDayInput } from '../../types/db-helpers/db-admin-schedule.types.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
@@ -46,6 +46,8 @@ import {
   createAdminSettingsAdminsKeyboard,
   createAdminSettingsGrantConfirmKeyboard,
   createAdminSettingsGrantInputKeyboard,
+  createAdminSettingsLanguageConfirmKeyboard,
+  createAdminSettingsLanguageKeyboard,
   createAdminSettingsMenuKeyboard,
   createAdminSettingsRevokeConfirmKeyboard,
   createAdminSettingsRevokeInputKeyboard,
@@ -56,6 +58,8 @@ import {
   formatAdminSettingsAdminsText,
   formatAdminSettingsGrantConfirmText,
   formatAdminSettingsGrantInputText,
+  formatAdminSettingsLanguageConfirmText,
+  formatAdminSettingsLanguageText,
   formatAdminSettingsMenuText,
   formatAdminSettingsRevokeConfirmText,
   formatAdminSettingsRevokeInputText,
@@ -160,6 +164,7 @@ import {
   ADMIN_PANEL_MASTERS_BOOKINGS_OPEN_CARD_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_OPEN_BOOKINGS_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_OPEN_STATS_ACTION_REGEX,
+  ADMIN_PANEL_SETTINGS_LANGUAGE_SELECT_ACTION_REGEX,
   ADMIN_PANEL_SETTINGS_STUDIO_EDIT_BLOCK_OPEN_ACTION_REGEX,
   ADMIN_PANEL_STATS_CLIENTS_OPEN_ACTION_REGEX,
   ADMIN_PANEL_STATS_MASTERS_OPEN_ACTION_REGEX,
@@ -228,9 +233,11 @@ import {
 } from '../../helpers/db/db-admin-stats.helper.js';
 import {
   findAdminStudioUserByTelegramId,
+  getAdminPanelLanguage,
   grantStudioAdminRole,
   listAdminStudioAdmins,
   revokeStudioAdminRole,
+  setAdminPanelLanguage,
 } from '../../helpers/db/db-admin-settings.helper.js';
 import {
   getAdminStudioProfileSettings,
@@ -315,6 +322,11 @@ type AdminSettingsAdminsDraft = {
   target: AdminStudioUserLookup | null;
 };
 
+type AdminSettingsLanguageDraft = {
+  currentLanguage: LanguageCode;
+  nextLanguage: LanguageCode;
+};
+
 type AdminSettingsStudioDraft = {
   mode: 'awaiting_text' | 'awaiting_confirm';
   blockKey: ContentBlockKey;
@@ -360,6 +372,7 @@ type AdminPanelSceneState = {
   statsCurrentSection: AdminStatsSection | null;
   settingsAdmins: AdminStudioAdminMember[] | null;
   settingsAdminsDraft: AdminSettingsAdminsDraft | null;
+  settingsLanguageDraft: AdminSettingsLanguageDraft | null;
   settingsStudioData: AdminStudioProfileSettings | null;
   settingsStudioDraft: AdminSettingsStudioDraft | null;
   settingsCurrentSection: AdminSettingsSection | null;
@@ -421,6 +434,7 @@ function resetStatsState(state: AdminPanelSceneState): void {
 function resetSettingsState(state: AdminPanelSceneState): void {
   state.settingsAdmins = null;
   state.settingsAdminsDraft = null;
+  state.settingsLanguageDraft = null;
   state.settingsStudioData = null;
   state.settingsStudioDraft = null;
   state.settingsCurrentSection = null;
@@ -692,11 +706,6 @@ async function renderScheduleSection(
 
 function getSettingsSectionText(section: Exclude<AdminSettingsSection, 'menu'>): string {
   switch (section) {
-    case 'language':
-      return formatAdminSettingsSectionText(
-        '🌐 Мова панелі',
-        'Тут буде керування мовою адмін-панелі та локалями інтерфейсу.',
-      );
     case 'admins':
       return formatAdminSettingsSectionText(
         '👑 Адміністратори',
@@ -746,6 +755,70 @@ async function renderAdminSettingsSection(
 
   const text = getSettingsSectionText(section);
   const keyboard = createAdminSettingsSectionKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminSettingsLanguage(ctx: MyContext, preferEdit: boolean): Promise<void> {
+  const state = getSceneState(ctx);
+  const userId = state.access?.userId;
+  if (!userId) {
+    throw new ValidationError('Не вдалося визначити користувача адміністратора');
+  }
+
+  const currentLanguage = await getAdminPanelLanguage({ userId });
+  state.settingsCurrentSection = 'language';
+  state.settingsLanguageDraft = null;
+
+  const text = formatAdminSettingsLanguageText(currentLanguage);
+  const keyboard = createAdminSettingsLanguageKeyboard(currentLanguage);
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+function parseSettingsLanguageFromAction(ctx: MyContext): LanguageCode {
+  const callbackData =
+    ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
+  const match = callbackData.match(ADMIN_PANEL_SETTINGS_LANGUAGE_SELECT_ACTION_REGEX);
+  const nextLanguage = match?.[1] as LanguageCode | undefined;
+  if (!nextLanguage) {
+    throw new ValidationError('Некоректна callback-дія вибору мови');
+  }
+  return nextLanguage;
+}
+
+async function renderAdminSettingsLanguageConfirm(
+  ctx: MyContext,
+  draft: AdminSettingsLanguageDraft,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  state.settingsCurrentSection = 'language';
+  state.settingsLanguageDraft = draft;
+
+  const text = formatAdminSettingsLanguageConfirmText(
+    draft.currentLanguage,
+    draft.nextLanguage,
+  );
+  const keyboard = createAdminSettingsLanguageConfirmKeyboard();
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2051,6 +2124,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.statsCurrentSection = null;
       state.settingsAdmins = null;
       state.settingsAdminsDraft = null;
+      state.settingsLanguageDraft = null;
       state.settingsStudioData = null;
       state.settingsStudioDraft = null;
       state.settingsCurrentSection = null;
@@ -2307,6 +2381,26 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         await ctx.reply(
           'ℹ️ Для керування цим розділом використовуйте кнопки під повідомленням.',
         );
+        return;
+      }
+
+      const settingsLanguageDraft = state.settingsLanguageDraft;
+      if (state.settingsCurrentSection === 'language') {
+        if (settingsLanguageDraft) {
+          await ctx.reply(
+            'ℹ️ Для зміни мови використовуйте кнопки під повідомленням.',
+            createAdminSettingsLanguageConfirmKeyboard(),
+          );
+        } else {
+          const userId = state.access?.userId;
+          const currentLanguage = userId
+            ? await getAdminPanelLanguage({ userId })
+            : 'uk';
+          await ctx.reply(
+            'ℹ️ Для вибору мови використовуйте кнопки під повідомленням.',
+            createAdminSettingsLanguageKeyboard(currentLanguage),
+          );
+        }
         return;
       }
 
@@ -3613,16 +3707,19 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const state = getSceneState(ctx);
     state.settingsAdminsDraft = null;
     state.settingsStudioDraft = null;
-    await renderAdminSettingsSection(ctx, 'language', true);
+    state.settingsLanguageDraft = null;
+    await renderAdminSettingsLanguage(ctx, true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.SETTINGS_OPEN_ADMINS, async (ctx) => {
     await ctx.answerCbQuery();
+    getSceneState(ctx).settingsLanguageDraft = null;
     await renderAdminSettingsAdmins(ctx, true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.SETTINGS_OPEN_STUDIO, async (ctx) => {
     await ctx.answerCbQuery();
+    getSceneState(ctx).settingsLanguageDraft = null;
     await renderAdminSettingsStudioProfile(ctx, true);
   });
 
@@ -3631,7 +3728,65 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const state = getSceneState(ctx);
     state.settingsAdminsDraft = null;
     state.settingsStudioDraft = null;
+    state.settingsLanguageDraft = null;
     await renderAdminSettingsSection(ctx, 'notifications', true);
+  });
+
+  scene.action(ADMIN_PANEL_SETTINGS_LANGUAGE_SELECT_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const userId = state.access?.userId;
+    if (!userId) {
+      throw new ValidationError('Не вдалося визначити користувача адміністратора');
+    }
+
+    const nextLanguage = parseSettingsLanguageFromAction(ctx);
+    const currentLanguage = await getAdminPanelLanguage({ userId });
+    if (nextLanguage === currentLanguage) {
+      await renderAdminSettingsLanguage(ctx, true);
+      return;
+    }
+
+    await renderAdminSettingsLanguageConfirm(
+      ctx,
+      { currentLanguage, nextLanguage },
+      true,
+    );
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SETTINGS_LANGUAGE_CANCEL, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    state.settingsLanguageDraft = null;
+    await renderAdminSettingsLanguage(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SETTINGS_LANGUAGE_CONFIRM, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const userId = state.access?.userId;
+    const draft = state.settingsLanguageDraft;
+    if (!userId || !draft) {
+      await renderAdminSettingsLanguage(ctx, true);
+      return;
+    }
+
+    try {
+      await setAdminPanelLanguage({
+        userId,
+        language: draft.nextLanguage,
+      });
+      state.settingsLanguageDraft = null;
+      await ctx.reply('✅ Мову адмін-панелі успішно оновлено.');
+      await renderAdminSettingsLanguage(ctx, false);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        await ctx.reply(`⚠️ ${error.message}`);
+        await renderAdminSettingsLanguage(ctx, false);
+        return;
+      }
+      throw error;
+    }
   });
 
   scene.action(ADMIN_PANEL_ACTION.SETTINGS_BACK_TO_MENU, async (ctx) => {

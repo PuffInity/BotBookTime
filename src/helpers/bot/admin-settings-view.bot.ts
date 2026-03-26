@@ -2,9 +2,11 @@ import { Markup } from 'telegraf';
 import {
   ADMIN_PANEL_ACTION,
   ADMIN_PANEL_BUTTON_TEXT,
+  makeAdminPanelSettingsLanguageSelectAction,
   makeAdminPanelSettingsStudioEditBlockOpenAction,
 } from '../../types/bot-admin-panel.types.js';
 import type { ContentBlockKey } from '../../types/db/dbEnums.type.js';
+import type { LanguageCode } from '../../types/db/dbEnums.type.js';
 import type { AdminStudioAdminMember, AdminStudioUserLookup } from '../../types/db-helpers/db-admin-settings.types.js';
 import type { AdminStudioProfileSettings } from '../../types/db-helpers/db-admin-studio-settings.types.js';
 
@@ -79,6 +81,19 @@ function formatTelegramLogin(username: string | null): string {
   return username ? `@${username}` : '—';
 }
 
+function getLanguageLabel(language: LanguageCode): string {
+  switch (language) {
+    case 'uk':
+      return '🇺🇦 Українська';
+    case 'en':
+      return '🇬🇧 English';
+    case 'cs':
+      return '🇨🇿 Čeština';
+    default:
+      return language;
+  }
+}
+
 /**
  * @summary Форматує екран списку адміністраторів.
  */
@@ -132,6 +147,94 @@ export function createAdminSettingsAdminsKeyboard(): ReturnType<typeof Markup.in
       ),
     ],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SETTINGS_BACK, ADMIN_PANEL_ACTION.SETTINGS_BACK)],
+  ]);
+}
+
+/**
+ * @summary Форматує екран налаштування мови адмін-панелі.
+ */
+export function formatAdminSettingsLanguageText(currentLanguage: LanguageCode): string {
+  return (
+    '🌐 Мова адмін-панелі\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'У цьому розділі можна змінити мову інтерфейсу адмін-панелі.\n' +
+    'Ця зміна не впливає на клієнтів або майстрів.\n\n' +
+    `📋 Поточна мова: ${getLanguageLabel(currentLanguage)}\n\n` +
+    'Оберіть нову мову нижче:'
+  );
+}
+
+/**
+ * @summary Клавіатура вибору мови адмін-панелі.
+ */
+export function createAdminSettingsLanguageKeyboard(
+  currentLanguage: LanguageCode,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const withMark = (label: string, language: LanguageCode): string =>
+    language === currentLanguage ? `✅ ${label}` : label;
+
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(
+        withMark(ADMIN_PANEL_BUTTON_TEXT.SETTINGS_LANGUAGE_UK, 'uk'),
+        makeAdminPanelSettingsLanguageSelectAction('uk'),
+      ),
+    ],
+    [
+      Markup.button.callback(
+        withMark(ADMIN_PANEL_BUTTON_TEXT.SETTINGS_LANGUAGE_EN, 'en'),
+        makeAdminPanelSettingsLanguageSelectAction('en'),
+      ),
+    ],
+    [
+      Markup.button.callback(
+        withMark(ADMIN_PANEL_BUTTON_TEXT.SETTINGS_LANGUAGE_CS, 'cs'),
+        makeAdminPanelSettingsLanguageSelectAction('cs'),
+      ),
+    ],
+    [
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_BACK_TO_MENU,
+        ADMIN_PANEL_ACTION.SETTINGS_BACK_TO_MENU,
+      ),
+    ],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SETTINGS_BACK, ADMIN_PANEL_ACTION.SETTINGS_BACK)],
+  ]);
+}
+
+/**
+ * @summary Форматує підтвердження зміни мови адмін-панелі.
+ */
+export function formatAdminSettingsLanguageConfirmText(
+  currentLanguage: LanguageCode,
+  nextLanguage: LanguageCode,
+): string {
+  return (
+    '⚠️ Підтвердження зміни мови\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `🌐 Було: ${getLanguageLabel(currentLanguage)}\n` +
+    `🌐 Стане: ${getLanguageLabel(nextLanguage)}\n\n` +
+    'Підтвердьте, якщо хочете зберегти цю зміну.'
+  );
+}
+
+/**
+ * @summary Клавіатура підтвердження зміни мови.
+ */
+export function createAdminSettingsLanguageConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_LANGUAGE_CONFIRM,
+        ADMIN_PANEL_ACTION.SETTINGS_LANGUAGE_CONFIRM,
+      ),
+    ],
+    [
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_LANGUAGE_CANCEL,
+        ADMIN_PANEL_ACTION.SETTINGS_LANGUAGE_CANCEL,
+      ),
+    ],
   ]);
 }
 
