@@ -75,6 +75,9 @@ export const ADMIN_PANEL_ACTION = {
   SETTINGS_OPEN_ADMINS: 'admin-panel:settings:open-admins',
   SETTINGS_OPEN_STUDIO: 'admin-panel:settings:open-studio',
   SETTINGS_OPEN_NOTIFICATIONS: 'admin-panel:settings:open-notifications',
+  SETTINGS_NOTIFICATIONS_TOGGLE_PREFIX: 'admin-panel:settings:notifications:toggle:',
+  SETTINGS_NOTIFICATIONS_ALL_ON: 'admin-panel:settings:notifications:all-on',
+  SETTINGS_NOTIFICATIONS_ALL_OFF: 'admin-panel:settings:notifications:all-off',
   SETTINGS_LANGUAGE_SELECT_PREFIX: 'admin-panel:settings:language:select:',
   SETTINGS_LANGUAGE_CONFIRM: 'admin-panel:settings:language:confirm',
   SETTINGS_LANGUAGE_CANCEL: 'admin-panel:settings:language:cancel',
@@ -258,6 +261,8 @@ export const ADMIN_PANEL_SETTINGS_STUDIO_EDIT_BLOCK_OPEN_ACTION_REGEX =
   /^admin-panel:settings:studio:edit-block:open:(about|contacts|booking_rules|cancellation_policy|preparation|comfort|guarantee_service)$/;
 export const ADMIN_PANEL_SETTINGS_LANGUAGE_SELECT_ACTION_REGEX =
   /^admin-panel:settings:language:select:(uk|en|cs)$/;
+export const ADMIN_PANEL_SETTINGS_NOTIFICATIONS_TOGGLE_ACTION_REGEX =
+  /^admin-panel:settings:notifications:toggle:(booking_confirmation|status_change|visit_reminder|promo_news)$/;
 
 export function makeAdminPanelRecordsOpenCardAction(appointmentId: string): string {
   return `${ADMIN_PANEL_ACTION.RECORDS_OPEN_CARD_PREFIX}${appointmentId}`;
@@ -382,4 +387,10 @@ export function makeAdminPanelSettingsStudioEditBlockOpenAction(blockKey: string
 
 export function makeAdminPanelSettingsLanguageSelectAction(languageCode: 'uk' | 'en' | 'cs'): string {
   return `${ADMIN_PANEL_ACTION.SETTINGS_LANGUAGE_SELECT_PREFIX}${languageCode}`;
+}
+
+export function makeAdminPanelSettingsNotificationsToggleAction(
+  notificationType: 'booking_confirmation' | 'status_change' | 'visit_reminder' | 'promo_news',
+): string {
+  return `${ADMIN_PANEL_ACTION.SETTINGS_NOTIFICATIONS_TOGGLE_PREFIX}${notificationType}`;
 }

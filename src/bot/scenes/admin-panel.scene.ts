@@ -32,7 +32,11 @@ import type {
   AdminStudioUserLookup,
 } from '../../types/db-helpers/db-admin-settings.types.js';
 import type { AdminStudioProfileSettings } from '../../types/db-helpers/db-admin-studio-settings.types.js';
-import type { ContentBlockKey, LanguageCode } from '../../types/db/dbEnums.type.js';
+import type { ContentBlockKey, LanguageCode, NotificationType } from '../../types/db/dbEnums.type.js';
+import type {
+  NotificationSettingsState,
+  UserDeliveryProfile,
+} from '../../types/db-helpers/db-notification-settings.types.js';
 import type { AdminStudioScheduleData } from '../../types/db-helpers/db-admin-schedule.types.js';
 import type { AdminStudioTemporaryScheduleDayInput } from '../../types/db-helpers/db-admin-schedule.types.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
@@ -51,6 +55,7 @@ import {
   createAdminSettingsMenuKeyboard,
   createAdminSettingsRevokeConfirmKeyboard,
   createAdminSettingsRevokeInputKeyboard,
+  createAdminSettingsNotificationsKeyboard,
   createAdminSettingsStudioEditConfirmKeyboard,
   createAdminSettingsStudioEditInputKeyboard,
   createAdminSettingsStudioProfileKeyboard,
@@ -61,6 +66,7 @@ import {
   formatAdminSettingsLanguageConfirmText,
   formatAdminSettingsLanguageText,
   formatAdminSettingsMenuText,
+  formatAdminSettingsNotificationsText,
   formatAdminSettingsRevokeConfirmText,
   formatAdminSettingsRevokeInputText,
   formatAdminSettingsStudioEditConfirmText,
@@ -164,6 +170,7 @@ import {
   ADMIN_PANEL_MASTERS_BOOKINGS_OPEN_CARD_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_OPEN_BOOKINGS_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_OPEN_STATS_ACTION_REGEX,
+  ADMIN_PANEL_SETTINGS_NOTIFICATIONS_TOGGLE_ACTION_REGEX,
   ADMIN_PANEL_SETTINGS_LANGUAGE_SELECT_ACTION_REGEX,
   ADMIN_PANEL_SETTINGS_STUDIO_EDIT_BLOCK_OPEN_ACTION_REGEX,
   ADMIN_PANEL_STATS_CLIENTS_OPEN_ACTION_REGEX,
@@ -243,6 +250,12 @@ import {
   getAdminStudioProfileSettings,
   upsertAdminStudioContentBlock,
 } from '../../helpers/db/db-admin-studio-settings.helper.js';
+import {
+  getUserDeliveryProfileById,
+  getUserNotificationSettingsState,
+  setAllUserNotificationSettings,
+  upsertUserNotificationSetting,
+} from '../../helpers/db/db-notification-settings.helper.js';
 import { buildBookingDateOptions, buildBookingTimeOptions } from '../../helpers/bot/booking-view.bot.js';
 import { bookingDateCodeSchema, bookingTimeCodeSchema } from '../../validator/booking-input.schema.js';
 import { dispatchNotification } from '../../helpers/notification/notification-dispatch.helper.js';
@@ -373,6 +386,8 @@ type AdminPanelSceneState = {
   settingsAdmins: AdminStudioAdminMember[] | null;
   settingsAdminsDraft: AdminSettingsAdminsDraft | null;
   settingsLanguageDraft: AdminSettingsLanguageDraft | null;
+  settingsNotificationsState: NotificationSettingsState | null;
+  settingsNotificationsDeliveryProfile: UserDeliveryProfile | null;
   settingsStudioData: AdminStudioProfileSettings | null;
   settingsStudioDraft: AdminSettingsStudioDraft | null;
   settingsCurrentSection: AdminSettingsSection | null;
@@ -435,6 +450,8 @@ function resetSettingsState(state: AdminPanelSceneState): void {
   state.settingsAdmins = null;
   state.settingsAdminsDraft = null;
   state.settingsLanguageDraft = null;
+  state.settingsNotificationsState = null;
+  state.settingsNotificationsDeliveryProfile = null;
   state.settingsStudioData = null;
   state.settingsStudioDraft = null;
   state.settingsCurrentSection = null;
@@ -830,6 +847,51 @@ async function renderAdminSettingsLanguageConfirm(
   }
 
   await ctx.reply(text, keyboard);
+}
+
+async function renderAdminSettingsNotifications(
+  ctx: MyContext,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const userId = state.access?.userId;
+  if (!userId) {
+    throw new ValidationError('Не вдалося визначити користувача адміністратора');
+  }
+
+  const [notificationState, deliveryProfile] = await Promise.all([
+    getUserNotificationSettingsState(userId),
+    getUserDeliveryProfileById(userId),
+  ]);
+
+  state.settingsCurrentSection = 'notifications';
+  state.settingsNotificationsState = notificationState;
+  state.settingsNotificationsDeliveryProfile = deliveryProfile;
+
+  const text = formatAdminSettingsNotificationsText(notificationState, deliveryProfile);
+  const keyboard = createAdminSettingsNotificationsKeyboard(notificationState);
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+function parseSettingsNotificationTypeFromAction(ctx: MyContext): NotificationType {
+  const callbackData =
+    ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
+  const match = callbackData.match(ADMIN_PANEL_SETTINGS_NOTIFICATIONS_TOGGLE_ACTION_REGEX);
+  const notificationType = match?.[1] as NotificationType | undefined;
+  if (!notificationType) {
+    throw new ValidationError('Некоректна callback-дія зміни типу сповіщення');
+  }
+  return notificationType;
 }
 
 async function loadAdminSettingsAdmins(
@@ -2125,6 +2187,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.settingsAdmins = null;
       state.settingsAdminsDraft = null;
       state.settingsLanguageDraft = null;
+      state.settingsNotificationsState = null;
+      state.settingsNotificationsDeliveryProfile = null;
       state.settingsStudioData = null;
       state.settingsStudioDraft = null;
       state.settingsCurrentSection = null;
@@ -2532,6 +2596,20 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         await ctx.reply(
           'ℹ️ Для завершення змін використовуйте кнопки підтвердження під повідомленням.',
           createAdminSettingsStudioEditConfirmKeyboard(),
+        );
+        return;
+      }
+
+      if (state.settingsCurrentSection === 'notifications') {
+        const currentState = state.settingsNotificationsState;
+        if (!currentState) {
+          await renderAdminSettingsNotifications(ctx, false);
+          return;
+        }
+
+        await ctx.reply(
+          'ℹ️ Для керування сповіщеннями використовуйте кнопки під повідомленням.',
+          createAdminSettingsNotificationsKeyboard(currentState),
         );
         return;
       }
@@ -3729,7 +3807,56 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     state.settingsAdminsDraft = null;
     state.settingsStudioDraft = null;
     state.settingsLanguageDraft = null;
-    await renderAdminSettingsSection(ctx, 'notifications', true);
+    await renderAdminSettingsNotifications(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_SETTINGS_NOTIFICATIONS_TOGGLE_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const userId = state.access?.userId;
+    if (!userId) {
+      throw new ValidationError('Не вдалося визначити користувача адміністратора');
+    }
+
+    const notificationType = parseSettingsNotificationTypeFromAction(ctx);
+    const currentState = state.settingsNotificationsState ?? (await getUserNotificationSettingsState(userId));
+    const nextEnabled = !(currentState[notificationType] ?? true);
+
+    await upsertUserNotificationSetting({
+      userId,
+      notificationType,
+      enabled: nextEnabled,
+    });
+
+    await renderAdminSettingsNotifications(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SETTINGS_NOTIFICATIONS_ALL_ON, async (ctx) => {
+    await ctx.answerCbQuery();
+    const userId = getSceneState(ctx).access?.userId;
+    if (!userId) {
+      throw new ValidationError('Не вдалося визначити користувача адміністратора');
+    }
+
+    await setAllUserNotificationSettings({
+      userId,
+      enabled: true,
+    });
+    await renderAdminSettingsNotifications(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SETTINGS_NOTIFICATIONS_ALL_OFF, async (ctx) => {
+    await ctx.answerCbQuery();
+    const userId = getSceneState(ctx).access?.userId;
+    if (!userId) {
+      throw new ValidationError('Не вдалося визначити користувача адміністратора');
+    }
+
+    await setAllUserNotificationSettings({
+      userId,
+      enabled: false,
+    });
+    await renderAdminSettingsNotifications(ctx, true);
   });
 
   scene.action(ADMIN_PANEL_SETTINGS_LANGUAGE_SELECT_ACTION_REGEX, async (ctx) => {

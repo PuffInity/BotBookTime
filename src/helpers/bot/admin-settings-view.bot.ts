@@ -3,12 +3,17 @@ import {
   ADMIN_PANEL_ACTION,
   ADMIN_PANEL_BUTTON_TEXT,
   makeAdminPanelSettingsLanguageSelectAction,
+  makeAdminPanelSettingsNotificationsToggleAction,
   makeAdminPanelSettingsStudioEditBlockOpenAction,
 } from '../../types/bot-admin-panel.types.js';
 import type { ContentBlockKey } from '../../types/db/dbEnums.type.js';
 import type { LanguageCode } from '../../types/db/dbEnums.type.js';
 import type { AdminStudioAdminMember, AdminStudioUserLookup } from '../../types/db-helpers/db-admin-settings.types.js';
 import type { AdminStudioProfileSettings } from '../../types/db-helpers/db-admin-studio-settings.types.js';
+import type {
+  NotificationSettingsState,
+  UserDeliveryProfile,
+} from '../../types/db-helpers/db-notification-settings.types.js';
 
 /**
  * @file admin-settings-view.bot.ts
@@ -580,5 +585,83 @@ export function createAdminSettingsStudioEditConfirmKeyboard(): ReturnType<typeo
         ADMIN_PANEL_ACTION.SETTINGS_STUDIO_EDIT_BLOCK_CANCEL,
       ),
     ],
+  ]);
+}
+
+function getNotificationStatusIcon(enabled: boolean): string {
+  return enabled ? '✅' : '⚪';
+}
+
+function getDeliveryStatusLabel(verifiedAt: Date | null): string {
+  return verifiedAt ? 'підтверджено ✅' : 'не підтверджено ⚪';
+}
+
+/**
+ * @summary Форматує екран системних сповіщень для адміністратора.
+ */
+export function formatAdminSettingsNotificationsText(
+  state: NotificationSettingsState,
+  deliveryProfile: UserDeliveryProfile | null,
+): string {
+  const phone = deliveryProfile?.phoneE164 ?? 'Не вказано';
+  const email = deliveryProfile?.email ?? 'Не вказано';
+
+  return (
+    '🔔 Системні сповіщення\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Керуйте службовими сповіщеннями для вашого адмін-профілю.\n\n' +
+    `${getNotificationStatusIcon(state.booking_confirmation)} Підтвердження запису\n` +
+    `${getNotificationStatusIcon(state.status_change)} Зміни статусу запису\n` +
+    `${getNotificationStatusIcon(state.visit_reminder)} Нагадування\n` +
+    `${getNotificationStatusIcon(state.promo_news)} Акції та новини\n\n` +
+    '📡 Канали доставки\n' +
+    `• Telegram: активний завжди\n` +
+    `• Телефон: ${phone} (${getDeliveryStatusLabel(deliveryProfile?.phoneVerifiedAt ?? null)})\n` +
+    `• Email: ${email} (${getDeliveryStatusLabel(deliveryProfile?.emailVerifiedAt ?? null)})`
+  );
+}
+
+/**
+ * @summary Клавіатура керування системними сповіщеннями.
+ */
+export function createAdminSettingsNotificationsKeyboard(
+  state: NotificationSettingsState,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(
+        `${getNotificationStatusIcon(state.booking_confirmation)} Підтвердження запису`,
+        makeAdminPanelSettingsNotificationsToggleAction('booking_confirmation'),
+      ),
+    ],
+    [
+      Markup.button.callback(
+        `${getNotificationStatusIcon(state.status_change)} Зміни статусу`,
+        makeAdminPanelSettingsNotificationsToggleAction('status_change'),
+      ),
+    ],
+    [
+      Markup.button.callback(
+        `${getNotificationStatusIcon(state.visit_reminder)} Нагадування`,
+        makeAdminPanelSettingsNotificationsToggleAction('visit_reminder'),
+      ),
+    ],
+    [
+      Markup.button.callback(
+        `${getNotificationStatusIcon(state.promo_news)} Акції та новини`,
+        makeAdminPanelSettingsNotificationsToggleAction('promo_news'),
+      ),
+    ],
+    [
+      Markup.button.callback('🔄 Увімкнути всі', ADMIN_PANEL_ACTION.SETTINGS_NOTIFICATIONS_ALL_ON),
+      Markup.button.callback('🔕 Вимкнути всі', ADMIN_PANEL_ACTION.SETTINGS_NOTIFICATIONS_ALL_OFF),
+    ],
+    [
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_BACK_TO_MENU,
+        ADMIN_PANEL_ACTION.SETTINGS_BACK_TO_MENU,
+      ),
+    ],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SETTINGS_BACK, ADMIN_PANEL_ACTION.SETTINGS_BACK)],
   ]);
 }
