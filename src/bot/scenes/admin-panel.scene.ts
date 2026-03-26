@@ -95,14 +95,12 @@ import {
   formatAdminMasterBookingsStubText,
   formatAdminMasterDetailsText,
   formatAdminMastersCatalogText,
-  formatAdminMasterStatsStubText,
 } from '../../helpers/bot/admin-masters-view.bot.js';
 import {
   createAdminServiceDetailsKeyboard,
   createAdminServicesCatalogKeyboard,
   formatAdminServiceDetailsText,
   formatAdminServicesCatalogText,
-  formatAdminServiceStatsStubText,
 } from '../../helpers/bot/admin-services-view.bot.js';
 import {
   createAdminStatsClientDetailsKeyboard,
@@ -263,8 +261,8 @@ type AdminScheduleDeleteDraft = {
   dateTo: string | null;
 };
 
-type AdminMasterSubSection = 'catalog' | 'details' | 'bookings-stub' | 'stats-stub';
-type AdminServiceSubSection = 'catalog' | 'details' | 'stats-stub';
+type AdminMasterSubSection = 'catalog' | 'details' | 'bookings-stub' | 'stats';
+type AdminServiceSubSection = 'catalog' | 'details' | 'stats';
 type AdminStatsSection = 'overview' | 'masters' | 'services' | 'monthly' | 'clients';
 
 type AdminPanelSceneState = {
@@ -2606,31 +2604,39 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(ADMIN_PANEL_MASTERS_OPEN_STATS_ACTION_REGEX, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
+    const studioId = state.access?.studioId;
+    if (!studioId) {
+      throw new ValidationError('Не вдалося визначити студію адміністратора');
+    }
+
     const masterId = parseNumericIdFromAction(
       ctx,
       ADMIN_PANEL_MASTERS_OPEN_STATS_ACTION_REGEX,
       'id майстра',
     );
-    const details = await getMasterCatalogDetailsById({
-      masterId,
-      studioId: state.access?.studioId,
-    });
-    if (!details) {
-      await renderAdminMastersCatalog(ctx, true);
-      return;
-    }
 
-    state.mastersCurrentSection = 'stats-stub';
+    let stats: AdminPanelStatsMasterDetails;
+    try {
+      stats = await getAdminPanelStatsMasterDetails({ studioId, masterId });
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        await ctx.reply(`⚠️ ${error.message}`);
+        await renderAdminMastersCatalog(ctx, false);
+        return;
+      }
+      throw error;
+    }
+    state.mastersCurrentSection = 'stats';
     state.mastersSelectedMasterId = masterId;
 
     try {
       await ctx.editMessageText(
-        formatAdminMasterStatsStubText(details.master.displayName),
+        formatAdminStatsMasterDetailsText(stats),
         createAdminMasterDetailsKeyboard(masterId),
       );
     } catch {
       await ctx.reply(
-        formatAdminMasterStatsStubText(details.master.displayName),
+        formatAdminStatsMasterDetailsText(stats),
         createAdminMasterDetailsKeyboard(masterId),
       );
     }
@@ -2674,31 +2680,39 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(ADMIN_PANEL_SERVICES_OPEN_STATS_ACTION_REGEX, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
+    const studioId = state.access?.studioId;
+    if (!studioId) {
+      throw new ValidationError('Не вдалося визначити студію адміністратора');
+    }
+
     const serviceId = parseNumericIdFromAction(
       ctx,
       ADMIN_PANEL_SERVICES_OPEN_STATS_ACTION_REGEX,
       'id послуги',
     );
-    const details = await getServiceCatalogDetailsById({
-      serviceId,
-      studioId: state.access?.studioId,
-    });
-    if (!details) {
-      await renderAdminServicesCatalog(ctx, true);
-      return;
-    }
 
-    state.servicesCurrentSection = 'stats-stub';
+    let stats: AdminPanelStatsServiceDetails;
+    try {
+      stats = await getAdminPanelStatsServiceDetails({ studioId, serviceId });
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        await ctx.reply(`⚠️ ${error.message}`);
+        await renderAdminServicesCatalog(ctx, false);
+        return;
+      }
+      throw error;
+    }
+    state.servicesCurrentSection = 'stats';
     state.servicesSelectedServiceId = serviceId;
 
     try {
       await ctx.editMessageText(
-        formatAdminServiceStatsStubText(details.service.name),
+        formatAdminStatsServiceDetailsText(stats),
         createAdminServiceDetailsKeyboard(serviceId),
       );
     } catch {
       await ctx.reply(
-        formatAdminServiceStatsStubText(details.service.name),
+        formatAdminStatsServiceDetailsText(stats),
         createAdminServiceDetailsKeyboard(serviceId),
       );
     }
