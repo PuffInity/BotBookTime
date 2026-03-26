@@ -33,11 +33,15 @@ import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
 import {
   createAdminRecordsMenuKeyboard,
   createAdminPanelRootKeyboard,
-  createAdminPanelSectionStubKeyboard,
   formatAdminRecordsMenuText,
   formatAdminPanelRootText,
-  formatAdminPanelSectionStubText,
 } from '../../helpers/bot/admin-panel-view.bot.js';
+import {
+  createAdminSettingsMenuKeyboard,
+  createAdminSettingsSectionKeyboard,
+  formatAdminSettingsMenuText,
+  formatAdminSettingsSectionText,
+} from '../../helpers/bot/admin-settings-view.bot.js';
 import {
   createAdminScheduleDaysOffKeyboard,
   createAdminScheduleDeleteConfirmKeyboard,
@@ -268,6 +272,7 @@ type AdminScheduleDeleteDraft = {
 type AdminMasterSubSection = 'catalog' | 'details' | 'bookings' | 'stats';
 type AdminServiceSubSection = 'catalog' | 'details' | 'stats';
 type AdminStatsSection = 'overview' | 'masters' | 'services' | 'monthly' | 'clients';
+type AdminSettingsSection = 'menu' | 'language' | 'admins' | 'studio' | 'notifications';
 
 type AdminPanelSceneState = {
   access: AdminPanelAccess | null;
@@ -304,6 +309,7 @@ type AdminPanelSceneState = {
   statsSelectedClientId: string | null;
   statsClientDetails: AdminPanelStatsClientDetails | null;
   statsCurrentSection: AdminStatsSection | null;
+  settingsCurrentSection: AdminSettingsSection | null;
 };
 
 function getSceneState(ctx: MyContext): AdminPanelSceneState {
@@ -357,6 +363,10 @@ function resetStatsState(state: AdminPanelSceneState): void {
   state.statsSelectedClientId = null;
   state.statsClientDetails = null;
   state.statsCurrentSection = null;
+}
+
+function resetSettingsState(state: AdminPanelSceneState): void {
+  state.settingsCurrentSection = null;
 }
 
 function getUserText(ctx: MyContext): string | null {
@@ -541,21 +551,6 @@ async function renderAdminRoot(ctx: MyContext, preferEdit: boolean): Promise<voi
   await ctx.reply(text, keyboard);
 }
 
-async function renderStubSection(
-  ctx: MyContext,
-  title: string,
-  blockNumber: number,
-): Promise<void> {
-  const text = formatAdminPanelSectionStubText(title, blockNumber);
-  const keyboard = createAdminPanelSectionStubKeyboard();
-
-  try {
-    await ctx.editMessageText(text, keyboard);
-  } catch {
-    await ctx.reply(text, keyboard);
-  }
-}
-
 async function renderRecordsMenu(ctx: MyContext): Promise<void> {
   const text = formatAdminRecordsMenuText();
   const keyboard = createAdminRecordsMenuKeyboard();
@@ -625,6 +620,75 @@ async function renderScheduleSection(
         : section === 'temporary'
           ? createAdminScheduleTemporaryKeyboard(data)
         : createAdminScheduleSectionKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+function getSettingsSectionText(section: Exclude<AdminSettingsSection, 'menu'>): string {
+  switch (section) {
+    case 'language':
+      return formatAdminSettingsSectionText(
+        '🌐 Мова панелі',
+        'Тут буде керування мовою адмін-панелі та локалями інтерфейсу.',
+      );
+    case 'admins':
+      return formatAdminSettingsSectionText(
+        '👑 Адміністратори',
+        'Тут буде керування доступами адміністраторів, ролями та правами.',
+      );
+    case 'studio':
+      return formatAdminSettingsSectionText(
+        '🏢 Параметри салону',
+        'Тут буде редагування назви, контактів, таймзони та базових параметрів салону.',
+      );
+    case 'notifications':
+      return formatAdminSettingsSectionText(
+        '🔔 Системні сповіщення',
+        'Тут буде налаштування службових сповіщень для команди салону.',
+      );
+    default:
+      return formatAdminSettingsSectionText('⚙️ Налаштування', 'Оберіть підрозділ налаштувань.');
+  }
+}
+
+async function renderAdminSettingsMenu(ctx: MyContext, preferEdit: boolean): Promise<void> {
+  const state = getSceneState(ctx);
+  state.settingsCurrentSection = 'menu';
+
+  const text = formatAdminSettingsMenuText();
+  const keyboard = createAdminSettingsMenuKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminSettingsSection(
+  ctx: MyContext,
+  section: Exclude<AdminSettingsSection, 'menu'>,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  state.settingsCurrentSection = section;
+
+  const text = getSettingsSectionText(section);
+  const keyboard = createAdminSettingsSectionKeyboard();
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1715,6 +1779,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.statsSelectedClientId = null;
       state.statsClientDetails = null;
       state.statsCurrentSection = null;
+      state.settingsCurrentSection = null;
 
       if (!state.access) {
         await ctx.reply(
@@ -1971,6 +2036,13 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         return;
       }
 
+      if (state.settingsCurrentSection) {
+        await ctx.reply(
+          'ℹ️ Для керування розділом налаштувань використовуйте кнопки під повідомленням.',
+        );
+        return;
+      }
+
       await renderAdminRoot(ctx, false);
     },
   );
@@ -1983,6 +2055,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     resetMastersState(state);
     resetServicesState(state);
     resetStatsState(state);
+    resetSettingsState(state);
     state.scheduleCurrentSection = null;
     await renderRecordsMenu(ctx);
   });
@@ -1993,6 +2066,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     resetMastersState(state);
     resetServicesState(state);
     resetStatsState(state);
+    resetSettingsState(state);
     state.scheduleCurrentSection = null;
     state.scheduleData = null;
     resetScheduleDrafts(state);
@@ -2654,6 +2728,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     resetMastersState(state);
     resetServicesState(state);
     resetStatsState(state);
+    resetSettingsState(state);
     await renderAdminMastersCatalog(ctx, true);
   });
 
@@ -2806,6 +2881,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     resetMastersState(state);
     resetServicesState(state);
     resetStatsState(state);
+    resetSettingsState(state);
     await renderAdminServicesCatalog(ctx, true);
   });
 
@@ -2882,6 +2958,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     resetMastersState(state);
     resetServicesState(state);
     resetStatsState(state);
+    resetSettingsState(state);
     await renderAdminStatsOverview(ctx, true);
   });
 
@@ -3116,11 +3193,45 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(ADMIN_PANEL_ACTION.OPEN_SETTINGS, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
+    resetRecordsActionDrafts(state);
     resetScheduleDrafts(state);
     resetMastersState(state);
     resetServicesState(state);
     resetStatsState(state);
-    await renderStubSection(ctx, '⚙️ Налаштування', 6);
+    resetSettingsState(state);
+    await renderAdminSettingsMenu(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SETTINGS_OPEN_LANGUAGE, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderAdminSettingsSection(ctx, 'language', true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SETTINGS_OPEN_ADMINS, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderAdminSettingsSection(ctx, 'admins', true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SETTINGS_OPEN_STUDIO, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderAdminSettingsSection(ctx, 'studio', true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SETTINGS_OPEN_NOTIFICATIONS, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderAdminSettingsSection(ctx, 'notifications', true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SETTINGS_BACK_TO_MENU, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderAdminSettingsMenu(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SETTINGS_BACK, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    resetSettingsState(state);
+    await renderAdminRoot(ctx, true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.RECORDS_MENU_PENDING, async (ctx) => {
@@ -3577,6 +3688,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     resetMastersState(state);
     resetServicesState(state);
     resetStatsState(state);
+    resetSettingsState(state);
     await renderAdminRoot(ctx, true);
   });
 
