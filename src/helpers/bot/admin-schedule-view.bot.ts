@@ -6,6 +6,8 @@ import type {
 import {
   ADMIN_PANEL_ACTION,
   ADMIN_PANEL_BUTTON_TEXT,
+  makeAdminPanelScheduleConfigureDayOffAction,
+  makeAdminPanelScheduleConfigureDayWeekdayAction,
   makeAdminPanelScheduleDayOffDeleteRequestAction,
   makeAdminPanelScheduleHolidayDeleteRequestAction,
   makeAdminPanelScheduleTemporaryDayAction,
@@ -59,8 +61,8 @@ export function formatAdminScheduleMenuText(): string {
   return (
     '🕒 Розклад студії\n' +
     '━━━━━━━━━━━━━━\n\n' +
-    'Блок 2 активний.\n' +
-    'Оберіть підрозділ для перегляду:'
+    'Тут ви можете переглядати й оновлювати робочий графік студії.\n' +
+    'Оберіть потрібний підрозділ:'
   );
 }
 
@@ -70,6 +72,7 @@ export function formatAdminScheduleMenuText(): string {
 export function createAdminScheduleMenuKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_OVERVIEW, ADMIN_PANEL_ACTION.SCHEDULE_OPEN_OVERVIEW)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CONFIGURE_DAY, ADMIN_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY)],
     [
       Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_DAYS_OFF, ADMIN_PANEL_ACTION.SCHEDULE_OPEN_DAYS_OFF),
       Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_HOLIDAYS, ADMIN_PANEL_ACTION.SCHEDULE_OPEN_HOLIDAYS),
@@ -98,6 +101,119 @@ export function formatAdminScheduleOverviewText(data: AdminStudioScheduleData): 
     `🎉 Свята (майбутні): ${data.upcomingHolidays.length}\n` +
     `🕒 Тимчасові зміни: ${data.upcomingTemporaryHours.length}`
   );
+}
+
+/**
+ * @summary Текст екрану налаштування тижневого графіка студії.
+ */
+export function formatAdminScheduleConfigureDayText(data: AdminStudioScheduleData): string {
+  const mapped = new Map(data.weeklyHours.map((item) => [item.weekday, item]));
+  const lines: string[] = [];
+
+  for (let weekday = 1; weekday <= 7; weekday += 1) {
+    const current = mapped.get(weekday);
+    lines.push(
+      formatWeeklyLine(
+        weekday,
+        current?.isOpen ?? false,
+        current?.openTime ?? null,
+        current?.closeTime ?? null,
+      ),
+    );
+  }
+
+  return (
+    '✏️ Налаштування робочого дня\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Оберіть день тижня кнопкою нижче, щоб змінити його графік.\n\n' +
+    `${lines.join('\n')}`
+  );
+}
+
+/**
+ * @summary Клавіатура екрана налаштування тижневого графіка студії.
+ */
+export function createAdminScheduleConfigureDayKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback('Пн', makeAdminPanelScheduleConfigureDayWeekdayAction(1)),
+      Markup.button.callback('Вт', makeAdminPanelScheduleConfigureDayWeekdayAction(2)),
+      Markup.button.callback('Ср', makeAdminPanelScheduleConfigureDayWeekdayAction(3)),
+    ],
+    [
+      Markup.button.callback('Чт', makeAdminPanelScheduleConfigureDayWeekdayAction(4)),
+      Markup.button.callback('Пт', makeAdminPanelScheduleConfigureDayWeekdayAction(5)),
+      Markup.button.callback('Сб', makeAdminPanelScheduleConfigureDayWeekdayAction(6)),
+    ],
+    [Markup.button.callback('Нд', makeAdminPanelScheduleConfigureDayWeekdayAction(7))],
+    [Markup.button.callback('🔄 Оновити', ADMIN_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK, ADMIN_PANEL_ACTION.SCHEDULE_BACK)],
+  ]);
+}
+
+/**
+ * @summary Текст кроку вводу часу початку для обраного дня.
+ */
+export function formatAdminScheduleConfigureDayFromInputText(weekday: number): string {
+  const label = WEEKDAY_LABELS[weekday] ?? `День ${weekday}`;
+  return (
+    '✏️ Налаштування робочого дня\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `📅 День: ${label}\n\n` +
+    'Введіть час початку у форматі HH:MM\n' +
+    'Приклад: 9:00'
+  );
+}
+
+/**
+ * @summary Текст кроку вводу часу завершення для обраного дня.
+ */
+export function formatAdminScheduleConfigureDayToInputText(
+  weekday: number,
+  fromTime: string,
+): string {
+  const label = WEEKDAY_LABELS[weekday] ?? `День ${weekday}`;
+  return (
+    '✏️ Налаштування робочого дня\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `📅 День: ${label}\n` +
+    `⏱ Від: ${fromTime}\n\n` +
+    'Введіть час завершення у форматі HH:MM\n' +
+    'Приклад: 18:00'
+  );
+}
+
+/**
+ * @summary Повідомлення про успішне оновлення тижневого дня.
+ */
+export function formatAdminScheduleConfigureDaySuccessText(
+  weekday: number,
+  isOpen: boolean,
+  openTime: string | null,
+  closeTime: string | null,
+): string {
+  const label = WEEKDAY_LABELS[weekday] ?? `День ${weekday}`;
+  const range = isOpen && openTime && closeTime ? `${openTime} - ${closeTime}` : 'вихідний';
+
+  return (
+    '✅ Робочий день оновлено\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `📅 ${label}: ${range}`
+  );
+}
+
+/**
+ * @summary Клавіатура кроку вводу часу для дня тижня.
+ */
+export function createAdminScheduleConfigureDayInputKeyboard(
+  weekday: number,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('🚫 Зробити вихідним', makeAdminPanelScheduleConfigureDayOffAction(weekday))],
+    [Markup.button.callback('❌ Скасувати дію', ADMIN_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
+  ]);
 }
 
 /**

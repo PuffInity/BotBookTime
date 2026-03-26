@@ -165,6 +165,29 @@ export const SQL_INSERT_STUDIO_TEMPORARY_HOURS = `
   )
 `;
 
+export const SQL_UPSERT_STUDIO_WEEKLY_HOURS = `
+  INSERT INTO studio_weekly_hours (
+    studio_id,
+    weekday,
+    is_open,
+    open_time,
+    close_time
+  )
+  VALUES (
+    $1::bigint,
+    $2::smallint,
+    $3::boolean,
+    $4::time,
+    $5::time
+  )
+  ON CONFLICT (studio_id, weekday)
+  DO UPDATE SET
+    is_open = EXCLUDED.is_open,
+    open_time = EXCLUDED.open_time,
+    close_time = EXCLUDED.close_time
+  RETURNING weekday, is_open, open_time, close_time
+`;
+
 export const SQL_DELETE_STUDIO_TEMPORARY_HOURS_PERIOD = `
   DELETE FROM studio_temporary_hours
   WHERE studio_id = $1::bigint

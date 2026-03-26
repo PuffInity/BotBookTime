@@ -10,6 +10,9 @@ export const ADMIN_PANEL_ACTION = {
   SCHEDULE_OPEN_DAYS_OFF: 'admin-panel:schedule:open-days-off',
   SCHEDULE_OPEN_HOLIDAYS: 'admin-panel:schedule:open-holidays',
   SCHEDULE_OPEN_TEMPORARY: 'admin-panel:schedule:open-temporary',
+  SCHEDULE_CONFIGURE_DAY: 'admin-panel:schedule:configure-day',
+  SCHEDULE_CONFIGURE_DAY_WEEKDAY_PREFIX: 'admin-panel:schedule:configure-day:weekday:',
+  SCHEDULE_CONFIGURE_DAY_OFF_PREFIX: 'admin-panel:schedule:configure-day:off:',
   SCHEDULE_DAY_OFF_ADD_OPEN: 'admin-panel:schedule:day-off:add:open',
   SCHEDULE_DAY_OFF_ADD_CONFIRM: 'admin-panel:schedule:day-off:add:confirm',
   SCHEDULE_DAY_OFF_ADD_CANCEL: 'admin-panel:schedule:day-off:add:cancel',
@@ -134,6 +137,7 @@ export const ADMIN_PANEL_BUTTON_TEXT = {
   SCHEDULE_DAYS_OFF: '📅 Вихідні студії',
   SCHEDULE_HOLIDAYS: '🎉 Святкові дні',
   SCHEDULE_TEMPORARY: '🕒 Тимчасові зміни',
+  SCHEDULE_CONFIGURE_DAY: '✏️ Налаштувати робочий день',
   SCHEDULE_ADD_DAY_OFF: '➕ Додати вихідний',
   SCHEDULE_ADD_HOLIDAY: '➕ Додати свято',
   SCHEDULE_ADD_TEMPORARY: '➕ Додати тимчасовий графік',
@@ -253,6 +257,10 @@ export const ADMIN_PANEL_SCHEDULE_HOLIDAY_DELETE_REQUEST_ACTION_REGEX =
   /^admin-panel:schedule:holiday:delete:request:(\d+)$/;
 export const ADMIN_PANEL_SCHEDULE_HOLIDAY_DELETE_CONFIRM_ACTION_REGEX =
   /^admin-panel:schedule:holiday:delete:confirm:(\d+)$/;
+export const ADMIN_PANEL_SCHEDULE_CONFIGURE_DAY_WEEKDAY_ACTION_REGEX =
+  /^admin-panel:schedule:configure-day:weekday:([1-7])$/;
+export const ADMIN_PANEL_SCHEDULE_CONFIGURE_DAY_OFF_ACTION_REGEX =
+  /^admin-panel:schedule:configure-day:off:([1-7])$/;
 export const ADMIN_PANEL_SCHEDULE_TEMPORARY_DAY_ACTION_REGEX =
   /^admin-panel:schedule:temporary:day:([1-7])$/;
 export const ADMIN_PANEL_SCHEDULE_TEMPORARY_DAY_OFF_ACTION_REGEX =
@@ -337,6 +345,14 @@ export function makeAdminPanelScheduleHolidayDeleteRequestAction(holidayId: stri
 
 export function makeAdminPanelScheduleHolidayDeleteConfirmAction(holidayId: string): string {
   return `${ADMIN_PANEL_ACTION.SCHEDULE_HOLIDAY_DELETE_CONFIRM_PREFIX}${holidayId}`;
+}
+
+export function makeAdminPanelScheduleConfigureDayWeekdayAction(weekday: number): string {
+  return `${ADMIN_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY_WEEKDAY_PREFIX}${weekday}`;
+}
+
+export function makeAdminPanelScheduleConfigureDayOffAction(weekday: number): string {
+  return `${ADMIN_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY_OFF_PREFIX}${weekday}`;
 }
 
 export function makeAdminPanelScheduleTemporaryDayAction(weekday: number): string {

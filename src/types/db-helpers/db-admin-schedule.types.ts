@@ -139,3 +139,18 @@ export type AdminInsertedStudioHolidayRow = {
   holiday_date: Date;
   holiday_name: string;
 };
+
+export type AdminUpsertedStudioWeeklyHoursRow = {
+  weekday: number;
+  is_open: boolean;
+  open_time: string | null;
+  close_time: string | null;
+};
+
+export type UpdateAdminStudioWeeklyDayInput = {
+  studioId: string | number;
+  weekday: number;
+  isOpen: boolean;
+  openTime?: string | null;
+  closeTime?: string | null;
+};

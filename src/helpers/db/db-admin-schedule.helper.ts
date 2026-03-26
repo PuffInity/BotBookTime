@@ -20,6 +20,8 @@ import type {
   DeleteAdminStudioDayOffInput,
   DeleteAdminStudioHolidayInput,
   DeleteAdminStudioTemporarySchedulePeriodInput,
+  AdminUpsertedStudioWeeklyHoursRow,
+  UpdateAdminStudioWeeklyDayInput,
 } from '../../types/db-helpers/db-admin-schedule.types.js';
 import { executeOne, executeVoid, queryMany, queryOne, withTransaction } from '../db.helper.js';
 import { ValidationError, handleError } from '../../utils/error.utils.js';
@@ -39,6 +41,7 @@ import {
   SQL_LIST_STUDIO_UPCOMING_HOLIDAYS_FOR_ADMIN_PANEL,
   SQL_LIST_STUDIO_UPCOMING_TEMPORARY_HOURS_FOR_ADMIN_PANEL,
   SQL_LIST_STUDIO_WEEKLY_HOURS_FOR_ADMIN_PANEL,
+  SQL_UPSERT_STUDIO_WEEKLY_HOURS,
 } from '../db-sql/db-admin-schedule.sql.js';
 
 /**
@@ -73,6 +76,13 @@ function normalizeLimit(limit?: number): number {
 function normalizeOptionalCreatorId(value?: string | number | null): string | null {
   if (value == null) return null;
   return normalizePositiveBigintId(value, 'createdBy');
+}
+
+function normalizeWeekday(weekday: number): number {
+  if (!Number.isInteger(weekday) || weekday < 1 || weekday > 7) {
+    throw new ValidationError('Некоректний день тижня');
+  }
+  return weekday;
 }
 
 function parseSqlDate(dateText: string): Date {
@@ -140,6 +150,16 @@ function normalizeTemporaryNote(value?: string | null): string | null {
   const normalized = value.trim();
   if (normalized.length === 0) return null;
   return normalized.slice(0, 250);
+}
+
+function normalizeOptionalTime(value?: string | null): string | null {
+  if (value == null) return null;
+  const normalized = value.trim();
+  if (normalized.length === 0) return null;
+  if (!isValidTimeHHMM(normalized)) {
+    throw new ValidationError('Час має бути у форматі HH:MM');
+  }
+  return normalized;
 }
 
 function isValidTimeHHMM(value: string): boolean {
@@ -311,6 +331,54 @@ export async function getAdminStudioSchedule(
       action: 'Failed to load admin studio schedule',
       error,
       meta: { studioId, limit },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Оновлює тижневий графік студії для конкретного дня.
+ */
+export async function upsertAdminStudioWeeklyDay(
+  input: UpdateAdminStudioWeeklyDayInput,
+): Promise<AdminStudioWeeklyHoursItem> {
+  const studioId = normalizePositiveBigintId(input.studioId, 'studioId');
+  const weekday = normalizeWeekday(input.weekday);
+  const isOpen = Boolean(input.isOpen);
+  const openTime = normalizeOptionalTime(input.openTime);
+  const closeTime = normalizeOptionalTime(input.closeTime);
+
+  if (isOpen) {
+    if (!openTime || !closeTime) {
+      throw new ValidationError('Для робочого дня потрібно вказати час початку і завершення');
+    }
+    if (timeToMinutes(closeTime) <= timeToMinutes(openTime)) {
+      throw new ValidationError('Час завершення має бути пізніше часу початку');
+    }
+  }
+
+  try {
+    return await withTransaction(async (client) =>
+      executeOne<AdminUpsertedStudioWeeklyHoursRow, AdminStudioWeeklyHoursItem>(
+        SQL_UPSERT_STUDIO_WEEKLY_HOURS,
+        [
+          studioId,
+          weekday,
+          isOpen,
+          isOpen ? openTime : null,
+          isOpen ? closeTime : null,
+        ],
+        mapWeeklyRow,
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-admin-schedule.helper',
+      action: 'Failed to upsert studio weekly day from admin panel',
+      error,
+      meta: { studioId, weekday, isOpen },
     });
     throw error;
   }

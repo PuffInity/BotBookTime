@@ -76,6 +76,8 @@ import {
   getAdminStudioBlockTitle,
 } from '../../helpers/bot/admin-settings-view.bot.js';
 import {
+  createAdminScheduleConfigureDayInputKeyboard,
+  createAdminScheduleConfigureDayKeyboard,
   createAdminScheduleDaysOffKeyboard,
   createAdminScheduleDeleteConfirmKeyboard,
   createAdminScheduleDayOffConfirmKeyboard,
@@ -91,6 +93,10 @@ import {
   createAdminScheduleSectionKeyboard,
   formatAdminScheduleDayOffConfirmText,
   formatAdminScheduleDayOffInputText,
+  formatAdminScheduleConfigureDayFromInputText,
+  formatAdminScheduleConfigureDaySuccessText,
+  formatAdminScheduleConfigureDayText,
+  formatAdminScheduleConfigureDayToInputText,
   formatAdminScheduleDeleteDayOffConfirmText,
   formatAdminScheduleDeleteHolidayConfirmText,
   formatAdminScheduleDeleteTemporaryConfirmText,
@@ -198,6 +204,8 @@ import {
   ADMIN_PANEL_RECORDS_RESCHEDULE_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_RESCHEDULE_DATE_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_RESCHEDULE_TIME_ACTION_REGEX,
+  ADMIN_PANEL_SCHEDULE_CONFIGURE_DAY_OFF_ACTION_REGEX,
+  ADMIN_PANEL_SCHEDULE_CONFIGURE_DAY_WEEKDAY_ACTION_REGEX,
   ADMIN_PANEL_SCHEDULE_DAY_OFF_DELETE_CONFIRM_ACTION_REGEX,
   ADMIN_PANEL_SCHEDULE_DAY_OFF_DELETE_REQUEST_ACTION_REGEX,
   ADMIN_PANEL_SCHEDULE_HOLIDAY_DELETE_CONFIRM_ACTION_REGEX,
@@ -227,6 +235,7 @@ import {
   deleteAdminStudioHoliday,
   deleteAdminStudioTemporarySchedulePeriod,
   getAdminStudioSchedule,
+  upsertAdminStudioWeeklyDay,
 } from '../../helpers/db/db-admin-schedule.helper.js';
 import {
   getMasterOwnProfile,
@@ -314,7 +323,7 @@ type AdminChangeMasterDraft = {
   candidates: MasterBookingOption[];
 };
 
-type AdminScheduleSection = 'overview' | 'days-off' | 'holidays' | 'temporary';
+type AdminScheduleSection = 'overview' | 'configure-day' | 'days-off' | 'holidays' | 'temporary';
 
 type AdminScheduleDayOffDraft = {
   mode: 'awaiting_date' | 'awaiting_confirm';
@@ -350,6 +359,12 @@ type AdminScheduleDeleteDraft = {
   id: string | null;
   dateFrom: string | null;
   dateTo: string | null;
+};
+
+type AdminScheduleConfigureDayDraft = {
+  mode: 'awaiting_from' | 'awaiting_to';
+  weekday: number | null;
+  fromTime: string | null;
 };
 
 type AdminMasterSubSection = 'catalog' | 'details' | 'bookings' | 'stats' | 'edit';
@@ -396,6 +411,7 @@ type AdminPanelSceneState = {
   scheduleDayOffDraft: AdminScheduleDayOffDraft | null;
   scheduleHolidayDraft: AdminScheduleHolidayDraft | null;
   scheduleTemporaryDraft: AdminScheduleTemporaryDraft | null;
+  scheduleConfigureDayDraft: AdminScheduleConfigureDayDraft | null;
   scheduleDeleteDraft: AdminScheduleDeleteDraft | null;
   mastersCatalog: MasterCatalogItem[] | null;
   mastersSelectedMasterId: string | null;
@@ -443,6 +459,7 @@ function resetScheduleDrafts(state: AdminPanelSceneState): void {
   state.scheduleDayOffDraft = null;
   state.scheduleHolidayDraft = null;
   state.scheduleTemporaryDraft = null;
+  state.scheduleConfigureDayDraft = null;
   state.scheduleDeleteDraft = null;
 }
 
@@ -717,6 +734,8 @@ function formatScheduleSectionText(
   switch (section) {
     case 'overview':
       return formatAdminScheduleOverviewText(data);
+    case 'configure-day':
+      return formatAdminScheduleConfigureDayText(data);
     case 'days-off':
       return formatAdminScheduleDaysOffText(data);
     case 'holidays':
@@ -739,7 +758,9 @@ async function renderScheduleSection(
 
   const text = formatScheduleSectionText(section, data);
   const keyboard =
-    section === 'days-off'
+    section === 'configure-day'
+      ? createAdminScheduleConfigureDayKeyboard()
+      : section === 'days-off'
       ? createAdminScheduleDaysOffKeyboard(data)
       : section === 'holidays'
         ? createAdminScheduleHolidaysKeyboard(data)
@@ -2019,6 +2040,19 @@ function parseNumericIdFromAction(ctx: MyContext, regex: RegExp, fieldLabel: str
   return id;
 }
 
+function parseWeekdayFromAction(ctx: MyContext, regex: RegExp): number {
+  const callbackData =
+    ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
+  const match = callbackData.match(regex);
+  const weekday = match?.[1] ? Number(match[1]) : Number.NaN;
+
+  if (!Number.isInteger(weekday) || weekday < 1 || weekday > 7) {
+    throw new ValidationError('Некоректний день тижня');
+  }
+
+  return weekday;
+}
+
 function parseMonthCodeFromAction(ctx: MyContext, regex: RegExp): string {
   const callbackData =
     ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
@@ -2407,6 +2441,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.scheduleDayOffDraft = null;
       state.scheduleHolidayDraft = null;
       state.scheduleTemporaryDraft = null;
+      state.scheduleConfigureDayDraft = null;
       state.scheduleDeleteDraft = null;
       state.mastersCatalog = null;
       state.mastersSelectedMasterId = null;
@@ -2688,6 +2723,89 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         return;
       }
 
+      const configureDayDraft = state.scheduleConfigureDayDraft;
+      if (configureDayDraft?.mode === 'awaiting_from') {
+        try {
+          const weekday = configureDayDraft.weekday;
+          if (!weekday) {
+            throw new ValidationError('Спочатку оберіть день тижня кнопкою');
+          }
+
+          const fromTime = parseTimeInput(text);
+          state.scheduleConfigureDayDraft = {
+            ...configureDayDraft,
+            mode: 'awaiting_to',
+            weekday,
+            fromTime,
+          };
+
+          await ctx.reply(
+            formatAdminScheduleConfigureDayToInputText(weekday, fromTime),
+            createAdminScheduleConfigureDayInputKeyboard(weekday),
+          );
+        } catch (error) {
+          const err =
+            error instanceof ValidationError
+              ? error
+              : new ValidationError('Виникла помилка при перевірці часу початку');
+
+          await ctx.reply(
+            `⚠️ ${err.message}\n\nВведіть коректний час у форматі HH:MM.`,
+            createAdminScheduleConfigureDayInputKeyboard(configureDayDraft.weekday ?? 1),
+          );
+        }
+        return;
+      }
+
+      if (configureDayDraft?.mode === 'awaiting_to') {
+        const access = state.access;
+        try {
+          const weekday = configureDayDraft.weekday;
+          const fromTime = configureDayDraft.fromTime;
+          if (!weekday || !fromTime) {
+            throw new ValidationError('Спочатку оберіть день і задайте час початку');
+          }
+          if (!access?.studioId) {
+            throw new ValidationError('Не вдалося визначити студію адміністратора');
+          }
+
+          const toTime = parseTimeInput(text);
+          if (timeToMinutes(toTime) <= timeToMinutes(fromTime)) {
+            throw new ValidationError('Час завершення має бути пізніше часу початку');
+          }
+
+          const updated = await upsertAdminStudioWeeklyDay({
+            studioId: access.studioId,
+            weekday,
+            isOpen: true,
+            openTime: fromTime,
+            closeTime: toTime,
+          });
+
+          state.scheduleConfigureDayDraft = null;
+          await ctx.reply(
+            formatAdminScheduleConfigureDaySuccessText(
+              updated.weekday,
+              updated.isOpen,
+              updated.openTime,
+              updated.closeTime,
+            ),
+          );
+          await renderScheduleSection(ctx, 'configure-day', false);
+        } catch (error) {
+          const err =
+            error instanceof ValidationError
+              ? error
+              : new ValidationError('Виникла помилка при перевірці часу завершення');
+
+          await ctx.reply(
+            `⚠️ ${err.message}\n\nВведіть коректний час у форматі HH:MM.`,
+            createAdminScheduleConfigureDayInputKeyboard(configureDayDraft.weekday ?? 1),
+          );
+        }
+        return;
+      }
+
       const mastersEditDraft = state.mastersEditDraft;
       if (mastersEditDraft?.mode === 'awaiting_value') {
         try {
@@ -2942,6 +3060,12 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     await renderScheduleSection(ctx, 'overview', true);
   });
 
+  scene.action(ADMIN_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY, async (ctx) => {
+    await ctx.answerCbQuery();
+    resetScheduleDrafts(getSceneState(ctx));
+    await renderScheduleSection(ctx, 'configure-day', true);
+  });
+
   scene.action(ADMIN_PANEL_ACTION.SCHEDULE_OPEN_DAYS_OFF, async (ctx) => {
     await ctx.answerCbQuery();
     resetScheduleDrafts(getSceneState(ctx));
@@ -2983,6 +3107,69 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     await renderAdminRoot(ctx, true);
   });
 
+  scene.action(ADMIN_PANEL_SCHEDULE_CONFIGURE_DAY_WEEKDAY_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const access = state.access;
+    if (!access?.studioId) {
+      throw new ValidationError('Не вдалося визначити студію адміністратора');
+    }
+
+    const weekday = parseWeekdayFromAction(ctx, ADMIN_PANEL_SCHEDULE_CONFIGURE_DAY_WEEKDAY_ACTION_REGEX);
+    state.scheduleCurrentSection = 'configure-day';
+    state.scheduleConfigureDayDraft = {
+      mode: 'awaiting_from',
+      weekday,
+      fromTime: null,
+    };
+    state.scheduleDayOffDraft = null;
+    state.scheduleHolidayDraft = null;
+    state.scheduleTemporaryDraft = null;
+    state.scheduleDeleteDraft = null;
+
+    try {
+      await ctx.editMessageText(
+        formatAdminScheduleConfigureDayFromInputText(weekday),
+        createAdminScheduleConfigureDayInputKeyboard(weekday),
+      );
+    } catch {
+      await ctx.reply(
+        formatAdminScheduleConfigureDayFromInputText(weekday),
+        createAdminScheduleConfigureDayInputKeyboard(weekday),
+      );
+    }
+  });
+
+  scene.action(ADMIN_PANEL_SCHEDULE_CONFIGURE_DAY_OFF_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const access = state.access;
+    if (!access?.studioId) {
+      throw new ValidationError('Не вдалося визначити студію адміністратора');
+    }
+
+    const weekday = parseWeekdayFromAction(ctx, ADMIN_PANEL_SCHEDULE_CONFIGURE_DAY_OFF_ACTION_REGEX);
+
+    const updated = await upsertAdminStudioWeeklyDay({
+      studioId: access.studioId,
+      weekday,
+      isOpen: false,
+      openTime: null,
+      closeTime: null,
+    });
+
+    state.scheduleConfigureDayDraft = null;
+    await ctx.reply(
+      formatAdminScheduleConfigureDaySuccessText(
+        updated.weekday,
+        updated.isOpen,
+        updated.openTime,
+        updated.closeTime,
+      ),
+    );
+    await renderScheduleSection(ctx, 'configure-day', false);
+  });
+
   scene.action(ADMIN_PANEL_ACTION.SCHEDULE_DAY_OFF_ADD_OPEN, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
@@ -2992,6 +3179,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       offDate: null,
       offDateLabel: null,
     };
+    state.scheduleConfigureDayDraft = null;
     state.scheduleHolidayDraft = null;
     state.scheduleDeleteDraft = null;
 
@@ -3085,6 +3273,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       dateFrom: null,
       dateTo: null,
     };
+    state.scheduleConfigureDayDraft = null;
     state.scheduleDayOffDraft = null;
     state.scheduleHolidayDraft = null;
 
@@ -3141,6 +3330,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       holidayDateLabel: null,
       holidayName: null,
     };
+    state.scheduleConfigureDayDraft = null;
     state.scheduleDayOffDraft = null;
     state.scheduleDeleteDraft = null;
 
@@ -3243,6 +3433,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       dateFrom: null,
       dateTo: null,
     };
+    state.scheduleConfigureDayDraft = null;
     state.scheduleDayOffDraft = null;
     state.scheduleHolidayDraft = null;
 
@@ -3316,6 +3507,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       selectedWeekday: null,
       pendingFromTime: null,
     };
+    state.scheduleConfigureDayDraft = null;
     state.scheduleDayOffDraft = null;
     state.scheduleHolidayDraft = null;
     state.scheduleDeleteDraft = null;
@@ -3518,6 +3710,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       dateFrom: dateFromSql,
       dateTo: dateToSql,
     };
+    state.scheduleConfigureDayDraft = null;
     state.scheduleTemporaryDraft = null;
     state.scheduleDayOffDraft = null;
     state.scheduleHolidayDraft = null;
