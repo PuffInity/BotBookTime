@@ -205,3 +205,89 @@ export type AdminPanelStatsServiceDetails = {
   avgCheckMonth: number;
   topMasters: AdminPanelStatsServiceTopMasterItem[];
 };
+
+export type AdminPanelStatsMonthlyFeedRow = {
+  month_code: string;
+  currency_code: string;
+  gross_month: string;
+  salon_month: string;
+  completed_procedures_month: number;
+  total_count: number;
+};
+
+export type AdminPanelStatsMonthlyFeedItem = {
+  monthCode: string;
+  currencyCode: string;
+  grossMonth: number;
+  salonMonth: number;
+  completedProceduresMonth: number;
+};
+
+export type AdminPanelStatsMonthlyFeedPage = {
+  limit: number;
+  offset: number;
+  total: number;
+  currencyCode: string;
+  items: AdminPanelStatsMonthlyFeedItem[];
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
+};
+
+export type ListAdminPanelStatsMonthlyFeedInput = {
+  studioId: string | number;
+  limit?: number;
+  offset?: number;
+};
+
+export type GetAdminPanelStatsMonthlyReportDetailsInput = {
+  studioId: string | number;
+  monthCode: string;
+};
+
+export type AdminPanelStatsMonthlyReportDetailsRow = {
+  month_code: string;
+  currency_code: string;
+  gross_month: string;
+  salon_month: string;
+  master_earnings_month: string;
+  completed_procedures_month: number;
+  clients_count_month: number;
+  avg_check_month: string;
+};
+
+export type AdminPanelStatsMonthlyTopServiceRow = {
+  service_id: string;
+  service_name: string;
+  gross_amount: string;
+};
+
+export type AdminPanelStatsMonthlyTopMasterRow = {
+  master_id: string;
+  display_name: string;
+  gross_amount: string;
+};
+
+export type AdminPanelStatsMonthlyTopServiceItem = {
+  serviceId: string;
+  serviceName: string;
+  grossAmount: number;
+};
+
+export type AdminPanelStatsMonthlyTopMasterItem = {
+  masterId: string;
+  displayName: string;
+  grossAmount: number;
+};
+
+export type AdminPanelStatsMonthlyReportDetails = {
+  monthCode: string;
+  currencyCode: string;
+  grossMonth: number;
+  salonMonth: number;
+  masterEarningsMonth: number;
+  completedProceduresMonth: number;
+  clientsCountMonth: number;
+  avgCheckMonth: number;
+  topServices: AdminPanelStatsMonthlyTopServiceItem[];
+  topMasters: AdminPanelStatsMonthlyTopMasterItem[];
+};

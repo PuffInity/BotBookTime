@@ -3,11 +3,14 @@ import {
   ADMIN_PANEL_ACTION,
   ADMIN_PANEL_BUTTON_TEXT,
   makeAdminPanelStatsMastersOpenAction,
+  makeAdminPanelStatsMonthlyOpenAction,
   makeAdminPanelStatsServicesOpenAction,
 } from '../../types/bot-admin-panel.types.js';
 import type {
   AdminPanelStatsMasterDetails,
   AdminPanelStatsMastersFeedPage,
+  AdminPanelStatsMonthlyFeedPage,
+  AdminPanelStatsMonthlyReportDetails,
   AdminPanelStatsOverview,
   AdminPanelStatsServiceDetails,
   AdminPanelStatsServicesFeedPage,
@@ -32,6 +35,26 @@ function formatDate(value: Date | null): string {
     month: '2-digit',
     year: 'numeric',
   }).format(value);
+}
+
+function formatMonthCode(monthCode: string): string {
+  const match = monthCode.match(/^(\d{4})(\d{2})$/);
+  if (!match) return monthCode;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12) {
+    return monthCode;
+  }
+
+  const date = new Date(year, month - 1, 1);
+  const monthLabel = new Intl.DateTimeFormat('uk-UA', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'Europe/Prague',
+  }).format(date);
+
+  return monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
 }
 
 const NUMBER_BADGES = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
@@ -308,6 +331,122 @@ export function formatAdminStatsServiceDetailsText(
 export function createAdminStatsServiceDetailsKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_SERVICES_BACK_TO_LIST, ADMIN_PANEL_ACTION.STATS_SERVICES_BACK_TO_LIST)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK_TO_OVERVIEW, ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK, ADMIN_PANEL_ACTION.STATS_BACK)],
+  ]);
+}
+
+/**
+ * @summary Текст списку місячних звітів.
+ */
+export function formatAdminStatsMonthlyListText(page: AdminPanelStatsMonthlyFeedPage): string {
+  if (page.items.length === 0) {
+    return (
+      '📅 Місячні звіти\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Поки що немає завершених даних по місяцях.'
+    );
+  }
+
+  const lines = page.items.map((item, index) => {
+    const number = getNumberBadge(index + page.offset);
+    return (
+      `${number} 📅 ${formatMonthCode(item.monthCode)}\n` +
+      `💰 Глобальний дохід: ${formatMoney(item.grossMonth, item.currencyCode)}\n` +
+      `🏢 Дохід салону: ${formatMoney(item.salonMonth, item.currencyCode)}\n` +
+      `📋 Кількість процедур: ${item.completedProceduresMonth}`
+    );
+  });
+
+  const currentPage = Math.floor(page.offset / page.limit) + 1;
+  const pagesTotal = Math.max(1, Math.ceil(page.total / page.limit));
+
+  return (
+    '📅 Місячні звіти\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    lines.join('\n\n') +
+    `\n\n📄 Сторінка ${currentPage} з ${pagesTotal}`
+  );
+}
+
+/**
+ * @summary Клавіатура списку місячних звітів.
+ */
+export function createAdminStatsMonthlyListKeyboard(
+  page: AdminPanelStatsMonthlyFeedPage,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const monthButtons = page.items.map((item, index) => [
+    Markup.button.callback(
+      `${getNumberBadge(index + page.offset)} ${formatMonthCode(item.monthCode)}`,
+      makeAdminPanelStatsMonthlyOpenAction(item.monthCode),
+    ),
+  ]);
+
+  const pagingRow = [];
+  if (page.hasPrevPage) {
+    pagingRow.push(
+      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_PREV_PAGE, ADMIN_PANEL_ACTION.STATS_MONTHLY_PREV_PAGE),
+    );
+  }
+  if (page.hasNextPage) {
+    pagingRow.push(
+      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_NEXT_PAGE, ADMIN_PANEL_ACTION.STATS_MONTHLY_NEXT_PAGE),
+    );
+  }
+
+  return Markup.inlineKeyboard([
+    ...monthButtons,
+    ...(pagingRow.length > 0 ? [pagingRow] : []),
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK_TO_OVERVIEW, ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK, ADMIN_PANEL_ACTION.STATS_BACK)],
+  ]);
+}
+
+/**
+ * @summary Текст деталізованого місячного фінансового звіту.
+ */
+export function formatAdminStatsMonthlyReportDetailsText(
+  details: AdminPanelStatsMonthlyReportDetails,
+): string {
+  const topServices =
+    details.topServices.length > 0
+      ? details.topServices
+          .map((item, index) => `${getNumberBadge(index)} ${item.serviceName} — ${formatMoney(item.grossAmount, details.currencyCode)}`)
+          .join('\n')
+      : 'Немає даних';
+
+  const topMasters =
+    details.topMasters.length > 0
+      ? details.topMasters
+          .map((item, index) => `${getNumberBadge(index)} ${item.displayName} — ${formatMoney(item.grossAmount, details.currencyCode)}`)
+          .join('\n')
+      : 'Немає даних';
+
+  return (
+    '📊 Фінансовий звіт\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `📅 Період: ${formatMonthCode(details.monthCode)}\n\n` +
+    '💰 Основні фінансові показники\n' +
+    `💰 Глобальний дохід: ${formatMoney(details.grossMonth, details.currencyCode)}\n` +
+    `🏢 Дохід салону (15%): ${formatMoney(details.salonMonth, details.currencyCode)}\n` +
+    `💸 Заробіток майстрів: ${formatMoney(details.masterEarningsMonth, details.currencyCode)}\n\n` +
+    '📈 Додаткові показники\n' +
+    `📋 Кількість процедур: ${details.completedProceduresMonth}\n` +
+    `👥 Кількість клієнтів: ${details.clientsCountMonth}\n` +
+    `💳 Середній чек: ${formatMoney(details.avgCheckMonth, details.currencyCode)}\n\n` +
+    '💼 Найприбутковіші послуги\n' +
+    `${topServices}\n\n` +
+    '👩‍🎨 Найприбутковіші майстри\n' +
+    `${topMasters}`
+  );
+}
+
+/**
+ * @summary Клавіатура деталізованого місячного фінансового звіту.
+ */
+export function createAdminStatsMonthlyReportDetailsKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_MONTHLY_BACK_TO_LIST, ADMIN_PANEL_ACTION.STATS_MONTHLY_BACK_TO_LIST)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK_TO_OVERVIEW, ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK, ADMIN_PANEL_ACTION.STATS_BACK)],
   ]);

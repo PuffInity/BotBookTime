@@ -290,6 +290,174 @@ export const SQL_LIST_ADMIN_PANEL_STATS_SERVICE_TOP_MASTERS = `
   LIMIT $3
 `;
 
+export const SQL_LIST_ADMIN_PANEL_STATS_MONTHLY_FEED = `
+  WITH context AS (
+    SELECT
+      st.id AS studio_id,
+      st.timezone AS timezone,
+      st.currency_code AS currency_code
+    FROM studios st
+    WHERE st.id = $1::bigint
+    LIMIT 1
+  ),
+  completed AS (
+    SELECT
+      to_char(date_trunc('month', a.start_at AT TIME ZONE ctx.timezone), 'YYYYMM') AS month_code,
+      COALESCE(af.amount_total, a.price_amount)::numeric AS gross_amount,
+      COALESCE(
+        af.salon_share_amount,
+        COALESCE(af.amount_total, a.price_amount)::numeric * 0.15
+      )::numeric AS salon_amount
+    FROM appointments a
+    INNER JOIN context ctx
+      ON ctx.studio_id = a.studio_id
+    LEFT JOIN appointment_financials af
+      ON af.appointment_id = a.id
+    WHERE a.studio_id = $1::bigint
+      AND a.deleted_at IS NULL
+      AND a.status = 'completed'
+  ),
+  grouped AS (
+    SELECT
+      c.month_code,
+      (SELECT currency_code FROM context) AS currency_code,
+      COALESCE(SUM(c.gross_amount), 0)::numeric(12,2) AS gross_month,
+      COALESCE(SUM(c.salon_amount), 0)::numeric(12,2) AS salon_month,
+      COUNT(*)::int AS completed_procedures_month
+    FROM completed c
+    GROUP BY c.month_code
+  )
+  SELECT
+    g.*,
+    COUNT(*) OVER()::int AS total_count
+  FROM grouped g
+  ORDER BY g.month_code DESC
+  LIMIT $2
+  OFFSET $3
+`;
+
+export const SQL_GET_ADMIN_PANEL_STATS_MONTHLY_REPORT_DETAILS = `
+  WITH context AS (
+    SELECT
+      st.id AS studio_id,
+      st.timezone AS timezone,
+      st.currency_code AS currency_code,
+      to_date($2 || '01', 'YYYYMMDD')::date AS month_start,
+      (to_date($2 || '01', 'YYYYMMDD') + interval '1 month')::date AS next_month_start
+    FROM studios st
+    WHERE st.id = $1::bigint
+    LIMIT 1
+  ),
+  completed AS (
+    SELECT
+      a.client_id,
+      COALESCE(af.amount_total, a.price_amount)::numeric AS gross_amount,
+      COALESCE(
+        af.salon_share_amount,
+        COALESCE(af.amount_total, a.price_amount)::numeric * 0.15
+      )::numeric AS salon_amount
+    FROM appointments a
+    INNER JOIN context ctx
+      ON ctx.studio_id = a.studio_id
+    LEFT JOIN appointment_financials af
+      ON af.appointment_id = a.id
+    WHERE a.studio_id = $1::bigint
+      AND a.deleted_at IS NULL
+      AND a.status = 'completed'
+      AND (a.start_at AT TIME ZONE ctx.timezone)::date >= ctx.month_start
+      AND (a.start_at AT TIME ZONE ctx.timezone)::date < ctx.next_month_start
+  )
+  SELECT
+    $2::text AS month_code,
+    ctx.currency_code,
+    COALESCE(SUM(c.gross_amount), 0)::numeric(12,2) AS gross_month,
+    COALESCE(SUM(c.salon_amount), 0)::numeric(12,2) AS salon_month,
+    COALESCE(SUM(c.gross_amount - c.salon_amount), 0)::numeric(12,2) AS master_earnings_month,
+    COALESCE(COUNT(*), 0)::int AS completed_procedures_month,
+    COALESCE(COUNT(DISTINCT c.client_id), 0)::int AS clients_count_month,
+    COALESCE(AVG(c.gross_amount), 0)::numeric(12,2) AS avg_check_month
+  FROM context ctx
+  LEFT JOIN completed c
+    ON TRUE
+  GROUP BY ctx.currency_code
+`;
+
+export const SQL_LIST_ADMIN_PANEL_STATS_MONTHLY_TOP_SERVICES = `
+  WITH context AS (
+    SELECT
+      st.id AS studio_id,
+      st.timezone AS timezone,
+      to_date($2 || '01', 'YYYYMMDD')::date AS month_start,
+      (to_date($2 || '01', 'YYYYMMDD') + interval '1 month')::date AS next_month_start
+    FROM studios st
+    WHERE st.id = $1::bigint
+    LIMIT 1
+  ),
+  scoped AS (
+    SELECT
+      a.service_id,
+      COALESCE(af.amount_total, a.price_amount)::numeric AS gross_amount
+    FROM appointments a
+    INNER JOIN context ctx
+      ON ctx.studio_id = a.studio_id
+    LEFT JOIN appointment_financials af
+      ON af.appointment_id = a.id
+    WHERE a.studio_id = $1::bigint
+      AND a.deleted_at IS NULL
+      AND a.status = 'completed'
+      AND (a.start_at AT TIME ZONE ctx.timezone)::date >= ctx.month_start
+      AND (a.start_at AT TIME ZONE ctx.timezone)::date < ctx.next_month_start
+  )
+  SELECT
+    s.id AS service_id,
+    s.name AS service_name,
+    COALESCE(SUM(sc.gross_amount), 0)::numeric(12,2) AS gross_amount
+  FROM scoped sc
+  INNER JOIN services s
+    ON s.id = sc.service_id
+  GROUP BY s.id, s.name
+  ORDER BY gross_amount DESC, s.name ASC
+  LIMIT $3
+`;
+
+export const SQL_LIST_ADMIN_PANEL_STATS_MONTHLY_TOP_MASTERS = `
+  WITH context AS (
+    SELECT
+      st.id AS studio_id,
+      st.timezone AS timezone,
+      to_date($2 || '01', 'YYYYMMDD')::date AS month_start,
+      (to_date($2 || '01', 'YYYYMMDD') + interval '1 month')::date AS next_month_start
+    FROM studios st
+    WHERE st.id = $1::bigint
+    LIMIT 1
+  ),
+  scoped AS (
+    SELECT
+      a.master_id,
+      COALESCE(af.amount_total, a.price_amount)::numeric AS gross_amount
+    FROM appointments a
+    INNER JOIN context ctx
+      ON ctx.studio_id = a.studio_id
+    LEFT JOIN appointment_financials af
+      ON af.appointment_id = a.id
+    WHERE a.studio_id = $1::bigint
+      AND a.deleted_at IS NULL
+      AND a.status = 'completed'
+      AND (a.start_at AT TIME ZONE ctx.timezone)::date >= ctx.month_start
+      AND (a.start_at AT TIME ZONE ctx.timezone)::date < ctx.next_month_start
+  )
+  SELECT
+    m.user_id AS master_id,
+    m.display_name,
+    COALESCE(SUM(sc.gross_amount), 0)::numeric(12,2) AS gross_amount
+  FROM scoped sc
+  INNER JOIN masters m
+    ON m.user_id = sc.master_id
+  GROUP BY m.user_id, m.display_name
+  ORDER BY gross_amount DESC, m.display_name ASC
+  LIMIT $3
+`;
+
 export const SQL_GET_STUDIO_CURRENCY_CODE = `
   SELECT
     st.currency_code

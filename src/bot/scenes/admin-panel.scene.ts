@@ -20,6 +20,8 @@ import type { AdminPanelStatsOverview } from '../../types/db-helpers/db-admin-st
 import type {
   AdminPanelStatsMasterDetails,
   AdminPanelStatsMastersFeedPage,
+  AdminPanelStatsMonthlyFeedPage,
+  AdminPanelStatsMonthlyReportDetails,
   AdminPanelStatsServiceDetails,
   AdminPanelStatsServicesFeedPage,
 } from '../../types/db-helpers/db-admin-stats.types.js';
@@ -101,12 +103,16 @@ import {
   formatAdminServiceStatsStubText,
 } from '../../helpers/bot/admin-services-view.bot.js';
 import {
+  createAdminStatsMonthlyListKeyboard,
+  createAdminStatsMonthlyReportDetailsKeyboard,
   createAdminStatsServiceDetailsKeyboard,
   createAdminStatsServicesListKeyboard,
   createAdminStatsMasterDetailsKeyboard,
   createAdminStatsMastersListKeyboard,
   createAdminStatsOverviewKeyboard,
   createAdminStatsSectionStubKeyboard,
+  formatAdminStatsMonthlyListText,
+  formatAdminStatsMonthlyReportDetailsText,
   formatAdminStatsServiceDetailsText,
   formatAdminStatsServicesListText,
   formatAdminStatsMasterDetailsText,
@@ -120,6 +126,7 @@ import {
   ADMIN_PANEL_MASTERS_OPEN_BOOKINGS_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_OPEN_STATS_ACTION_REGEX,
   ADMIN_PANEL_STATS_MASTERS_OPEN_ACTION_REGEX,
+  ADMIN_PANEL_STATS_MONTHLY_OPEN_ACTION_REGEX,
   ADMIN_PANEL_STATS_SERVICES_OPEN_ACTION_REGEX,
   ADMIN_PANEL_SERVICES_OPEN_ACTION_REGEX,
   ADMIN_PANEL_SERVICES_OPEN_STATS_ACTION_REGEX,
@@ -173,8 +180,10 @@ import {
 } from '../../helpers/db/db-services.helper.js';
 import { getAdminPanelStatsOverview } from '../../helpers/db/db-admin-stats.helper.js';
 import {
+  getAdminPanelStatsMonthlyReportDetails,
   getAdminPanelStatsMasterDetails,
   getAdminPanelStatsServiceDetails,
+  listAdminPanelStatsMonthlyFeed,
   listAdminPanelStatsMastersFeed,
   listAdminPanelStatsServicesFeed,
 } from '../../helpers/db/db-admin-stats.helper.js';
@@ -275,6 +284,9 @@ type AdminPanelSceneState = {
   statsServicesFeed: AdminPanelStatsServicesFeedPage | null;
   statsSelectedServiceId: string | null;
   statsServiceDetails: AdminPanelStatsServiceDetails | null;
+  statsMonthlyFeed: AdminPanelStatsMonthlyFeedPage | null;
+  statsSelectedMonthCode: string | null;
+  statsMonthlyReportDetails: AdminPanelStatsMonthlyReportDetails | null;
   statsCurrentSection: AdminStatsSection | null;
 };
 
@@ -314,6 +326,9 @@ function resetStatsState(state: AdminPanelSceneState): void {
   state.statsServicesFeed = null;
   state.statsSelectedServiceId = null;
   state.statsServiceDetails = null;
+  state.statsMonthlyFeed = null;
+  state.statsSelectedMonthCode = null;
+  state.statsMonthlyReportDetails = null;
   state.statsCurrentSection = null;
 }
 
@@ -784,6 +799,11 @@ async function renderAdminStatsMastersList(
   state.statsMastersFeed = feed;
   state.statsSelectedMasterId = null;
   state.statsMasterDetails = null;
+  state.statsSelectedServiceId = null;
+  state.statsServiceDetails = null;
+  state.statsMonthlyFeed = null;
+  state.statsSelectedMonthCode = null;
+  state.statsMonthlyReportDetails = null;
 
   const text = formatAdminStatsMastersListText(feed);
   const keyboard = createAdminStatsMastersListKeyboard(feed);
@@ -815,6 +835,11 @@ async function renderAdminStatsMasterDetails(
   state.statsCurrentSection = 'masters';
   state.statsSelectedMasterId = masterId;
   state.statsMasterDetails = details;
+  state.statsSelectedServiceId = null;
+  state.statsServiceDetails = null;
+  state.statsMonthlyFeed = null;
+  state.statsSelectedMonthCode = null;
+  state.statsMonthlyReportDetails = null;
 
   const text = formatAdminStatsMasterDetailsText(details);
   const keyboard = createAdminStatsMasterDetailsKeyboard();
@@ -851,6 +876,11 @@ async function renderAdminStatsServicesList(
   state.statsServicesFeed = feed;
   state.statsSelectedServiceId = null;
   state.statsServiceDetails = null;
+  state.statsSelectedMasterId = null;
+  state.statsMasterDetails = null;
+  state.statsMonthlyFeed = null;
+  state.statsSelectedMonthCode = null;
+  state.statsMonthlyReportDetails = null;
 
   const text = formatAdminStatsServicesListText(feed);
   const keyboard = createAdminStatsServicesListKeyboard(feed);
@@ -882,9 +912,89 @@ async function renderAdminStatsServiceDetails(
   state.statsCurrentSection = 'services';
   state.statsSelectedServiceId = serviceId;
   state.statsServiceDetails = details;
+  state.statsSelectedMasterId = null;
+  state.statsMasterDetails = null;
+  state.statsMonthlyFeed = null;
+  state.statsSelectedMonthCode = null;
+  state.statsMonthlyReportDetails = null;
 
   const text = formatAdminStatsServiceDetailsText(details);
   const keyboard = createAdminStatsServiceDetailsKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminStatsMonthlyList(
+  ctx: MyContext,
+  offset: number,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const studioId = state.access?.studioId;
+  if (!studioId) {
+    throw new ValidationError('Не вдалося визначити студію адміністратора');
+  }
+
+  const feed = await listAdminPanelStatsMonthlyFeed({
+    studioId,
+    limit: 5,
+    offset,
+  });
+  state.statsCurrentSection = 'monthly';
+  state.statsSelectedMasterId = null;
+  state.statsMasterDetails = null;
+  state.statsSelectedServiceId = null;
+  state.statsServiceDetails = null;
+  state.statsMonthlyFeed = feed;
+  state.statsSelectedMonthCode = null;
+  state.statsMonthlyReportDetails = null;
+
+  const text = formatAdminStatsMonthlyListText(feed);
+  const keyboard = createAdminStatsMonthlyListKeyboard(feed);
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminStatsMonthlyReportDetails(
+  ctx: MyContext,
+  monthCode: string,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const studioId = state.access?.studioId;
+  if (!studioId) {
+    throw new ValidationError('Не вдалося визначити студію адміністратора');
+  }
+
+  const details = await getAdminPanelStatsMonthlyReportDetails({ studioId, monthCode });
+  state.statsCurrentSection = 'monthly';
+  state.statsSelectedMonthCode = monthCode;
+  state.statsMonthlyReportDetails = details;
+  state.statsSelectedMasterId = null;
+  state.statsMasterDetails = null;
+  state.statsSelectedServiceId = null;
+  state.statsServiceDetails = null;
+
+  const text = formatAdminStatsMonthlyReportDetailsText(details);
+  const keyboard = createAdminStatsMonthlyReportDetailsKeyboard();
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -975,6 +1085,19 @@ function parseNumericIdFromAction(ctx: MyContext, regex: RegExp, fieldLabel: str
     throw new ValidationError(`Некоректний ${fieldLabel}`);
   }
   return id;
+}
+
+function parseMonthCodeFromAction(ctx: MyContext, regex: RegExp): string {
+  const callbackData =
+    ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
+  const match = callbackData.match(regex);
+  const monthCode = match?.[1]?.trim() ?? '';
+  const monthMatch = monthCode.match(/^(\d{4})(\d{2})$/);
+  const month = monthMatch?.[2] ? Number(monthMatch[2]) : NaN;
+  if (!monthMatch || !Number.isFinite(month) || month < 1 || month > 12) {
+    throw new ValidationError('Некоректний код місячного звіту');
+  }
+  return monthCode;
 }
 
 async function resolveAdminRecordById(
@@ -1366,6 +1489,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.statsServicesFeed = null;
       state.statsSelectedServiceId = null;
       state.statsServiceDetails = null;
+      state.statsMonthlyFeed = null;
+      state.statsSelectedMonthCode = null;
+      state.statsMonthlyReportDetails = null;
       state.statsCurrentSection = null;
 
       if (!state.access) {
@@ -2590,7 +2716,53 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
   scene.action(ADMIN_PANEL_ACTION.STATS_OPEN_MONTHLY, async (ctx) => {
     await ctx.answerCbQuery();
-    await renderAdminStatsSectionStub(ctx, 'monthly', '📅 Місячні звіти');
+    await renderAdminStatsMonthlyList(ctx, 0, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.STATS_MONTHLY_PREV_PAGE, async (ctx) => {
+    await ctx.answerCbQuery();
+    const feed = getSceneState(ctx).statsMonthlyFeed;
+    if (!feed || !feed.hasPrevPage) {
+      return;
+    }
+
+    const nextOffset = Math.max(0, feed.offset - feed.limit);
+    await renderAdminStatsMonthlyList(ctx, nextOffset, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.STATS_MONTHLY_NEXT_PAGE, async (ctx) => {
+    await ctx.answerCbQuery();
+    const feed = getSceneState(ctx).statsMonthlyFeed;
+    if (!feed || !feed.hasNextPage) {
+      return;
+    }
+
+    const nextOffset = feed.offset + feed.limit;
+    await renderAdminStatsMonthlyList(ctx, nextOffset, true);
+  });
+
+  scene.action(ADMIN_PANEL_STATS_MONTHLY_OPEN_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const monthCode = parseMonthCodeFromAction(ctx, ADMIN_PANEL_STATS_MONTHLY_OPEN_ACTION_REGEX);
+
+    try {
+      await renderAdminStatsMonthlyReportDetails(ctx, monthCode, true);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        await ctx.reply(`⚠️ ${error.message}`);
+        const fallbackOffset = state.statsMonthlyFeed?.offset ?? 0;
+        await renderAdminStatsMonthlyList(ctx, fallbackOffset, false);
+        return;
+      }
+      throw error;
+    }
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.STATS_MONTHLY_BACK_TO_LIST, async (ctx) => {
+    await ctx.answerCbQuery();
+    const feed = getSceneState(ctx).statsMonthlyFeed;
+    await renderAdminStatsMonthlyList(ctx, feed?.offset ?? 0, true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.STATS_OPEN_CLIENTS, async (ctx) => {

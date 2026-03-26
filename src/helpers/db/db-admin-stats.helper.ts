@@ -3,6 +3,15 @@ import type {
   AdminPanelStatsMasterFeedItem,
   AdminPanelStatsMasterFeedRow,
   AdminPanelStatsMastersFeedPage,
+  AdminPanelStatsMonthlyFeedItem,
+  AdminPanelStatsMonthlyFeedRow,
+  AdminPanelStatsMonthlyFeedPage,
+  AdminPanelStatsMonthlyReportDetails,
+  AdminPanelStatsMonthlyReportDetailsRow,
+  AdminPanelStatsMonthlyTopMasterItem,
+  AdminPanelStatsMonthlyTopMasterRow,
+  AdminPanelStatsMonthlyTopServiceItem,
+  AdminPanelStatsMonthlyTopServiceRow,
   AdminPanelStatsOverview,
   AdminPanelStatsOverviewRow,
   AdminPanelStatsServiceDetails,
@@ -12,15 +21,21 @@ import type {
   AdminPanelStatsServiceTopMasterItem,
   AdminPanelStatsServiceTopMasterRow,
   AdminPanelStatsServicesFeedPage,
+  GetAdminPanelStatsMonthlyReportDetailsInput,
   GetAdminPanelStatsServiceDetailsInput,
   GetAdminPanelStatsMasterDetailsInput,
+  ListAdminPanelStatsMonthlyFeedInput,
   ListAdminPanelStatsMastersFeedInput,
   ListAdminPanelStatsServicesFeedInput,
 } from '../../types/db-helpers/db-admin-stats.types.js';
 import { queryMany, queryOne, withTransaction } from '../db.helper.js';
 import {
+  SQL_GET_ADMIN_PANEL_STATS_MONTHLY_REPORT_DETAILS,
   SQL_GET_ADMIN_PANEL_STATS_SERVICE_DETAILS,
   SQL_GET_ADMIN_PANEL_STATS_OVERVIEW,
+  SQL_LIST_ADMIN_PANEL_STATS_MONTHLY_FEED,
+  SQL_LIST_ADMIN_PANEL_STATS_MONTHLY_TOP_MASTERS,
+  SQL_LIST_ADMIN_PANEL_STATS_MONTHLY_TOP_SERVICES,
   SQL_LIST_ADMIN_PANEL_STATS_SERVICE_TOP_MASTERS,
   SQL_LIST_ADMIN_PANEL_STATS_SERVICES_FEED,
   SQL_GET_STUDIO_CURRENCY_CODE,
@@ -65,6 +80,21 @@ function normalizeServiceId(value: string | number): string {
   if (!/^\d+$/.test(normalized) || normalized === '0') {
     throw new ValidationError('Некоректний serviceId', { serviceId: value });
   }
+  return normalized;
+}
+
+function normalizeMonthCode(value: string): string {
+  const normalized = String(value).trim();
+  const match = normalized.match(/^(\d{4})(\d{2})$/);
+  if (!match) {
+    throw new ValidationError('Некоректний monthCode', { monthCode: value });
+  }
+
+  const month = Number(match[2]);
+  if (month < 1 || month > 12) {
+    throw new ValidationError('Некоректний monthCode', { monthCode: value });
+  }
+
   return normalized;
 }
 
@@ -133,6 +163,36 @@ function mapServiceTopMasterRow(
     masterId: row.master_id,
     displayName: row.display_name,
     completedCount: row.completed_count,
+  };
+}
+
+function mapMonthlyFeedRow(row: AdminPanelStatsMonthlyFeedRow): AdminPanelStatsMonthlyFeedItem {
+  return {
+    monthCode: row.month_code,
+    currencyCode: row.currency_code,
+    grossMonth: toNumber(row.gross_month),
+    salonMonth: toNumber(row.salon_month),
+    completedProceduresMonth: row.completed_procedures_month,
+  };
+}
+
+function mapMonthlyTopServiceRow(
+  row: AdminPanelStatsMonthlyTopServiceRow,
+): AdminPanelStatsMonthlyTopServiceItem {
+  return {
+    serviceId: row.service_id,
+    serviceName: row.service_name,
+    grossAmount: toNumber(row.gross_amount),
+  };
+}
+
+function mapMonthlyTopMasterRow(
+  row: AdminPanelStatsMonthlyTopMasterRow,
+): AdminPanelStatsMonthlyTopMasterItem {
+  return {
+    masterId: row.master_id,
+    displayName: row.display_name,
+    grossAmount: toNumber(row.gross_amount),
   };
 }
 
@@ -416,6 +476,131 @@ export async function getAdminPanelStatsServiceDetails(
       action: 'Failed to get admin panel service stats details',
       error,
       meta: { studioId, serviceId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Повертає сторінку місячних фінансових звітів студії.
+ */
+export async function listAdminPanelStatsMonthlyFeed(
+  input: ListAdminPanelStatsMonthlyFeedInput,
+): Promise<AdminPanelStatsMonthlyFeedPage> {
+  const studioId = normalizeStudioId(input.studioId);
+  const limit = normalizeLimit(input.limit);
+  const offset = normalizeOffset(input.offset);
+
+  try {
+    return await withTransaction(async (client) => {
+      const rows = await queryMany<AdminPanelStatsMonthlyFeedRow, AdminPanelStatsMonthlyFeedRow>(
+        SQL_LIST_ADMIN_PANEL_STATS_MONTHLY_FEED,
+        [studioId, limit, offset],
+        (row) => row,
+        client,
+      );
+
+      const total = rows.length > 0 ? rows[0].total_count : 0;
+      const items = rows.map(mapMonthlyFeedRow);
+      const currencyCode =
+        rows[0]?.currency_code ??
+        (await queryOne<{ currency_code: string }, string>(
+          SQL_GET_STUDIO_CURRENCY_CODE,
+          [studioId],
+          (row) => row.currency_code,
+          client,
+        )) ??
+        'CZK';
+
+      return {
+        limit,
+        offset,
+        total,
+        currencyCode,
+        items,
+        hasPrevPage: offset > 0,
+        hasNextPage: offset + items.length < total,
+      };
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-admin-stats.helper',
+      action: 'Failed to list admin panel monthly stats feed',
+      error,
+      meta: { studioId, limit, offset },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Повертає детальний фінансовий звіт по вибраному місяцю.
+ */
+export async function getAdminPanelStatsMonthlyReportDetails(
+  input: GetAdminPanelStatsMonthlyReportDetailsInput,
+): Promise<AdminPanelStatsMonthlyReportDetails> {
+  const studioId = normalizeStudioId(input.studioId);
+  const monthCode = normalizeMonthCode(input.monthCode);
+
+  try {
+    return await withTransaction(async (client) => {
+      const summary = await queryOne<
+        AdminPanelStatsMonthlyReportDetailsRow,
+        AdminPanelStatsMonthlyReportDetails
+      >(
+        SQL_GET_ADMIN_PANEL_STATS_MONTHLY_REPORT_DETAILS,
+        [studioId, monthCode],
+        (row) => ({
+          monthCode: row.month_code,
+          currencyCode: row.currency_code,
+          grossMonth: toNumber(row.gross_month),
+          salonMonth: toNumber(row.salon_month),
+          masterEarningsMonth: toNumber(row.master_earnings_month),
+          completedProceduresMonth: row.completed_procedures_month,
+          clientsCountMonth: row.clients_count_month,
+          avgCheckMonth: toNumber(row.avg_check_month),
+          topServices: [],
+          topMasters: [],
+        }),
+        client,
+      );
+
+      if (!summary) {
+        throw new ValidationError('Не вдалося сформувати звіт за обраний місяць', {
+          studioId,
+          monthCode,
+        });
+      }
+
+      const [topServices, topMasters] = await Promise.all([
+        queryMany<AdminPanelStatsMonthlyTopServiceRow, AdminPanelStatsMonthlyTopServiceItem>(
+          SQL_LIST_ADMIN_PANEL_STATS_MONTHLY_TOP_SERVICES,
+          [studioId, monthCode, 3],
+          mapMonthlyTopServiceRow,
+          client,
+        ),
+        queryMany<AdminPanelStatsMonthlyTopMasterRow, AdminPanelStatsMonthlyTopMasterItem>(
+          SQL_LIST_ADMIN_PANEL_STATS_MONTHLY_TOP_MASTERS,
+          [studioId, monthCode, 3],
+          mapMonthlyTopMasterRow,
+          client,
+        ),
+      ]);
+
+      return {
+        ...summary,
+        topServices,
+        topMasters,
+      };
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-admin-stats.helper',
+      action: 'Failed to get admin panel monthly report details',
+      error,
+      meta: { studioId, monthCode },
     });
     throw error;
   }

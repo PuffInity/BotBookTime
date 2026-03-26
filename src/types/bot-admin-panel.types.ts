@@ -54,6 +54,10 @@ export const ADMIN_PANEL_ACTION = {
   STATS_SERVICES_NEXT_PAGE: 'admin-panel:stats:services:next-page',
   STATS_SERVICES_BACK_TO_LIST: 'admin-panel:stats:services:back-to-list',
   STATS_OPEN_MONTHLY: 'admin-panel:stats:open-monthly',
+  STATS_MONTHLY_OPEN_PREFIX: 'admin-panel:stats:monthly:open:',
+  STATS_MONTHLY_PREV_PAGE: 'admin-panel:stats:monthly:prev-page',
+  STATS_MONTHLY_NEXT_PAGE: 'admin-panel:stats:monthly:next-page',
+  STATS_MONTHLY_BACK_TO_LIST: 'admin-panel:stats:monthly:back-to-list',
   STATS_OPEN_CLIENTS: 'admin-panel:stats:open-clients',
   STATS_BACK_TO_OVERVIEW: 'admin-panel:stats:back-to-overview',
   STATS_BACK: 'admin-panel:stats:back',
@@ -118,6 +122,7 @@ export const ADMIN_PANEL_BUTTON_TEXT = {
   STATS_MASTERS: '👩‍🎨 Майстри',
   STATS_MASTERS_BACK_TO_LIST: '⬅️ До списку майстрів',
   STATS_SERVICES_BACK_TO_LIST: '⬅️ До списку послуг',
+  STATS_MONTHLY_BACK_TO_LIST: '⬅️ До списку звітів',
   STATS_PREV_PAGE: '⬅️ Попередня',
   STATS_NEXT_PAGE: '➡️ Наступна',
   STATS_SERVICES: '💼 Послуги',
@@ -191,6 +196,7 @@ export const ADMIN_PANEL_SERVICES_OPEN_ACTION_REGEX = /^admin-panel:services:ope
 export const ADMIN_PANEL_SERVICES_OPEN_STATS_ACTION_REGEX = /^admin-panel:services:open-stats:(\d+)$/;
 export const ADMIN_PANEL_STATS_MASTERS_OPEN_ACTION_REGEX = /^admin-panel:stats:masters:open:(\d+)$/;
 export const ADMIN_PANEL_STATS_SERVICES_OPEN_ACTION_REGEX = /^admin-panel:stats:services:open:(\d+)$/;
+export const ADMIN_PANEL_STATS_MONTHLY_OPEN_ACTION_REGEX = /^admin-panel:stats:monthly:open:(\d{6})$/;
 
 export function makeAdminPanelRecordsOpenCardAction(appointmentId: string): string {
   return `${ADMIN_PANEL_ACTION.RECORDS_OPEN_CARD_PREFIX}${appointmentId}`;
@@ -295,4 +301,8 @@ export function makeAdminPanelStatsMastersOpenAction(masterId: string): string {
 
 export function makeAdminPanelStatsServicesOpenAction(serviceId: string): string {
   return `${ADMIN_PANEL_ACTION.STATS_SERVICES_OPEN_PREFIX}${serviceId}`;
+}
+
+export function makeAdminPanelStatsMonthlyOpenAction(monthCode: string): string {
+  return `${ADMIN_PANEL_ACTION.STATS_MONTHLY_OPEN_PREFIX}${monthCode}`;
 }
