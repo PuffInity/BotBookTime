@@ -75,6 +75,9 @@ export const ADMIN_PANEL_ACTION = {
   SETTINGS_OPEN_ADMINS: 'admin-panel:settings:open-admins',
   SETTINGS_OPEN_STUDIO: 'admin-panel:settings:open-studio',
   SETTINGS_OPEN_NOTIFICATIONS: 'admin-panel:settings:open-notifications',
+  SETTINGS_STUDIO_EDIT_BLOCK_OPEN_PREFIX: 'admin-panel:settings:studio:edit-block:open:',
+  SETTINGS_STUDIO_EDIT_BLOCK_CONFIRM: 'admin-panel:settings:studio:edit-block:confirm',
+  SETTINGS_STUDIO_EDIT_BLOCK_CANCEL: 'admin-panel:settings:studio:edit-block:cancel',
   SETTINGS_ADMINS_GRANT_OPEN: 'admin-panel:settings:admins:grant:open',
   SETTINGS_ADMINS_GRANT_CONFIRM: 'admin-panel:settings:admins:grant:confirm',
   SETTINGS_ADMINS_GRANT_CANCEL: 'admin-panel:settings:admins:grant:cancel',
@@ -158,6 +161,15 @@ export const ADMIN_PANEL_BUTTON_TEXT = {
   SETTINGS_ADMINS: '👑 Адміністратори',
   SETTINGS_STUDIO: '🏢 Параметри салону',
   SETTINGS_NOTIFICATIONS: '🔔 Системні сповіщення',
+  SETTINGS_STUDIO_EDIT_ABOUT: 'ℹ️ Інформація про студію',
+  SETTINGS_STUDIO_EDIT_CONTACTS: '📞 Контакти',
+  SETTINGS_STUDIO_EDIT_BOOKING_RULES: '📅 Правила запису',
+  SETTINGS_STUDIO_EDIT_CANCELLATION: '🔄 Скасування та перенесення',
+  SETTINGS_STUDIO_EDIT_PREPARATION: '✨ Підготовка до процедури',
+  SETTINGS_STUDIO_EDIT_COMFORT: '☕ Комфорт під час візиту',
+  SETTINGS_STUDIO_EDIT_GUARANTEE: '🛠 Гарантія та сервіс',
+  SETTINGS_STUDIO_CONFIRM: '✅ Зберегти зміни',
+  SETTINGS_STUDIO_CANCEL: '❌ Скасувати редагування',
   SETTINGS_ADMINS_GRANT: '➕ Надати роль адміністратора',
   SETTINGS_ADMINS_REVOKE: '🚫 Видалити адміністратора',
   SETTINGS_ADMINS_CONFIRM_GRANT: '✅ Надати роль',
@@ -234,6 +246,8 @@ export const ADMIN_PANEL_STATS_MASTERS_OPEN_ACTION_REGEX = /^admin-panel:stats:m
 export const ADMIN_PANEL_STATS_SERVICES_OPEN_ACTION_REGEX = /^admin-panel:stats:services:open:(\d+)$/;
 export const ADMIN_PANEL_STATS_MONTHLY_OPEN_ACTION_REGEX = /^admin-panel:stats:monthly:open:(\d{6})$/;
 export const ADMIN_PANEL_STATS_CLIENTS_OPEN_ACTION_REGEX = /^admin-panel:stats:clients:open:(\d+)$/;
+export const ADMIN_PANEL_SETTINGS_STUDIO_EDIT_BLOCK_OPEN_ACTION_REGEX =
+  /^admin-panel:settings:studio:edit-block:open:(about|contacts|booking_rules|cancellation_policy|preparation|comfort|guarantee_service)$/;
 
 export function makeAdminPanelRecordsOpenCardAction(appointmentId: string): string {
   return `${ADMIN_PANEL_ACTION.RECORDS_OPEN_CARD_PREFIX}${appointmentId}`;
@@ -350,4 +364,8 @@ export function makeAdminPanelStatsMonthlyOpenAction(monthCode: string): string 
 
 export function makeAdminPanelStatsClientsOpenAction(clientId: string): string {
   return `${ADMIN_PANEL_ACTION.STATS_CLIENTS_OPEN_PREFIX}${clientId}`;
+}
+
+export function makeAdminPanelSettingsStudioEditBlockOpenAction(blockKey: string): string {
+  return `${ADMIN_PANEL_ACTION.SETTINGS_STUDIO_EDIT_BLOCK_OPEN_PREFIX}${blockKey}`;
 }

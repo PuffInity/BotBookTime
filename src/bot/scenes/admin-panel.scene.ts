@@ -31,6 +31,8 @@ import type {
   AdminStudioAdminMember,
   AdminStudioUserLookup,
 } from '../../types/db-helpers/db-admin-settings.types.js';
+import type { AdminStudioProfileSettings } from '../../types/db-helpers/db-admin-studio-settings.types.js';
+import type { ContentBlockKey } from '../../types/db/dbEnums.type.js';
 import type { AdminStudioScheduleData } from '../../types/db-helpers/db-admin-schedule.types.js';
 import type { AdminStudioTemporaryScheduleDayInput } from '../../types/db-helpers/db-admin-schedule.types.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
@@ -47,6 +49,9 @@ import {
   createAdminSettingsMenuKeyboard,
   createAdminSettingsRevokeConfirmKeyboard,
   createAdminSettingsRevokeInputKeyboard,
+  createAdminSettingsStudioEditConfirmKeyboard,
+  createAdminSettingsStudioEditInputKeyboard,
+  createAdminSettingsStudioProfileKeyboard,
   createAdminSettingsSectionKeyboard,
   formatAdminSettingsAdminsText,
   formatAdminSettingsGrantConfirmText,
@@ -54,7 +59,11 @@ import {
   formatAdminSettingsMenuText,
   formatAdminSettingsRevokeConfirmText,
   formatAdminSettingsRevokeInputText,
+  formatAdminSettingsStudioEditConfirmText,
+  formatAdminSettingsStudioEditPromptText,
+  formatAdminSettingsStudioProfileText,
   formatAdminSettingsSectionText,
+  getAdminStudioBlockTitle,
 } from '../../helpers/bot/admin-settings-view.bot.js';
 import {
   createAdminScheduleDaysOffKeyboard,
@@ -151,6 +160,7 @@ import {
   ADMIN_PANEL_MASTERS_BOOKINGS_OPEN_CARD_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_OPEN_BOOKINGS_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_OPEN_STATS_ACTION_REGEX,
+  ADMIN_PANEL_SETTINGS_STUDIO_EDIT_BLOCK_OPEN_ACTION_REGEX,
   ADMIN_PANEL_STATS_CLIENTS_OPEN_ACTION_REGEX,
   ADMIN_PANEL_STATS_MASTERS_OPEN_ACTION_REGEX,
   ADMIN_PANEL_STATS_MONTHLY_OPEN_ACTION_REGEX,
@@ -222,6 +232,10 @@ import {
   listAdminStudioAdmins,
   revokeStudioAdminRole,
 } from '../../helpers/db/db-admin-settings.helper.js';
+import {
+  getAdminStudioProfileSettings,
+  upsertAdminStudioContentBlock,
+} from '../../helpers/db/db-admin-studio-settings.helper.js';
 import { buildBookingDateOptions, buildBookingTimeOptions } from '../../helpers/bot/booking-view.bot.js';
 import { bookingDateCodeSchema, bookingTimeCodeSchema } from '../../validator/booking-input.schema.js';
 import { dispatchNotification } from '../../helpers/notification/notification-dispatch.helper.js';
@@ -301,6 +315,14 @@ type AdminSettingsAdminsDraft = {
   target: AdminStudioUserLookup | null;
 };
 
+type AdminSettingsStudioDraft = {
+  mode: 'awaiting_text' | 'awaiting_confirm';
+  blockKey: ContentBlockKey;
+  blockTitle: string;
+  currentContent: string;
+  draftContent: string | null;
+};
+
 type AdminPanelSceneState = {
   access: AdminPanelAccess | null;
   recordsFeed: AdminBookingsFeedPage | null;
@@ -338,6 +360,8 @@ type AdminPanelSceneState = {
   statsCurrentSection: AdminStatsSection | null;
   settingsAdmins: AdminStudioAdminMember[] | null;
   settingsAdminsDraft: AdminSettingsAdminsDraft | null;
+  settingsStudioData: AdminStudioProfileSettings | null;
+  settingsStudioDraft: AdminSettingsStudioDraft | null;
   settingsCurrentSection: AdminSettingsSection | null;
 };
 
@@ -397,6 +421,8 @@ function resetStatsState(state: AdminPanelSceneState): void {
 function resetSettingsState(state: AdminPanelSceneState): void {
   state.settingsAdmins = null;
   state.settingsAdminsDraft = null;
+  state.settingsStudioData = null;
+  state.settingsStudioDraft = null;
   state.settingsCurrentSection = null;
 }
 
@@ -817,6 +843,122 @@ async function renderAdminSettingsAdminsConfirm(
     draft.action === 'grant'
       ? createAdminSettingsGrantConfirmKeyboard()
       : createAdminSettingsRevokeConfirmKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function loadAdminStudioSettings(
+  state: AdminPanelSceneState,
+): Promise<AdminStudioProfileSettings> {
+  const studioId = state.access?.studioId;
+  if (!studioId) {
+    throw new ValidationError('Не вдалося визначити студію адміністратора');
+  }
+
+  const data = await getAdminStudioProfileSettings({
+    studioId,
+    language: 'uk',
+  });
+  state.settingsStudioData = data;
+  return data;
+}
+
+async function renderAdminSettingsStudioProfile(
+  ctx: MyContext,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const data = await loadAdminStudioSettings(state);
+  state.settingsCurrentSection = 'studio';
+  state.settingsStudioDraft = null;
+
+  const text = formatAdminSettingsStudioProfileText(data);
+  const keyboard = createAdminSettingsStudioProfileKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+function parseStudioBlockKeyFromAction(ctx: MyContext): ContentBlockKey {
+  const callbackData =
+    ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
+  const match = callbackData.match(ADMIN_PANEL_SETTINGS_STUDIO_EDIT_BLOCK_OPEN_ACTION_REGEX);
+  const blockKey = match?.[1] as ContentBlockKey | undefined;
+  if (!blockKey) {
+    throw new ValidationError('Некоректна callback-дія редагування блоку');
+  }
+  return blockKey;
+}
+
+function normalizeStudioContentDraftInput(text: string): string {
+  const normalized = text.trim().replace(/\r/g, '');
+  if (normalized.length < 10) {
+    throw new ValidationError('Текст занадто короткий (мінімум 10 символів)');
+  }
+  if (normalized.length > 4000) {
+    throw new ValidationError('Текст занадто довгий (максимум 4000 символів)');
+  }
+  return normalized;
+}
+
+async function renderAdminSettingsStudioEditPrompt(
+  ctx: MyContext,
+  blockKey: ContentBlockKey,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const data = state.settingsStudioData ?? (await loadAdminStudioSettings(state));
+  const blockTitle = getAdminStudioBlockTitle(blockKey);
+  const currentContent = data.contentBlocks[blockKey] ?? '';
+
+  state.settingsCurrentSection = 'studio';
+  state.settingsStudioDraft = {
+    mode: 'awaiting_text',
+    blockKey,
+    blockTitle,
+    currentContent,
+    draftContent: null,
+  };
+
+  const text = formatAdminSettingsStudioEditPromptText(blockTitle, currentContent);
+  const keyboard = createAdminSettingsStudioEditInputKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminSettingsStudioEditConfirm(
+  ctx: MyContext,
+  draft: AdminSettingsStudioDraft,
+  preferEdit: boolean,
+): Promise<void> {
+  const text = formatAdminSettingsStudioEditConfirmText(draft.blockTitle, draft.draftContent ?? '');
+  const keyboard = createAdminSettingsStudioEditConfirmKeyboard();
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1909,6 +2051,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.statsCurrentSection = null;
       state.settingsAdmins = null;
       state.settingsAdminsDraft = null;
+      state.settingsStudioData = null;
+      state.settingsStudioDraft = null;
       state.settingsCurrentSection = null;
 
       if (!state.access) {
@@ -2257,6 +2401,43 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           settingsDraft.action === 'grant'
             ? createAdminSettingsGrantConfirmKeyboard()
             : createAdminSettingsRevokeConfirmKeyboard(),
+        );
+        return;
+      }
+
+      const studioDraft = state.settingsStudioDraft;
+      if (
+        state.settingsCurrentSection === 'studio' &&
+        studioDraft &&
+        studioDraft.mode === 'awaiting_text'
+      ) {
+        try {
+          const draftContent = normalizeStudioContentDraftInput(text);
+          studioDraft.mode = 'awaiting_confirm';
+          studioDraft.draftContent = draftContent;
+          await renderAdminSettingsStudioEditConfirm(ctx, studioDraft, false);
+        } catch (error) {
+          const err =
+            error instanceof ValidationError
+              ? error
+              : new ValidationError('Помилка перевірки тексту для оновлення');
+
+          await ctx.reply(
+            `⚠️ ${err.message}`,
+            createAdminSettingsStudioEditInputKeyboard(),
+          );
+        }
+        return;
+      }
+
+      if (
+        state.settingsCurrentSection === 'studio' &&
+        studioDraft &&
+        studioDraft.mode === 'awaiting_confirm'
+      ) {
+        await ctx.reply(
+          'ℹ️ Для завершення змін використовуйте кнопки підтвердження під повідомленням.',
+          createAdminSettingsStudioEditConfirmKeyboard(),
         );
         return;
       }
@@ -3429,6 +3610,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
   scene.action(ADMIN_PANEL_ACTION.SETTINGS_OPEN_LANGUAGE, async (ctx) => {
     await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    state.settingsAdminsDraft = null;
+    state.settingsStudioDraft = null;
     await renderAdminSettingsSection(ctx, 'language', true);
   });
 
@@ -3439,11 +3623,14 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
   scene.action(ADMIN_PANEL_ACTION.SETTINGS_OPEN_STUDIO, async (ctx) => {
     await ctx.answerCbQuery();
-    await renderAdminSettingsSection(ctx, 'studio', true);
+    await renderAdminSettingsStudioProfile(ctx, true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.SETTINGS_OPEN_NOTIFICATIONS, async (ctx) => {
     await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    state.settingsAdminsDraft = null;
+    state.settingsStudioDraft = null;
     await renderAdminSettingsSection(ctx, 'notifications', true);
   });
 
@@ -3458,6 +3645,56 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const state = getSceneState(ctx);
     resetSettingsState(state);
     await renderAdminRoot(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_SETTINGS_STUDIO_EDIT_BLOCK_OPEN_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const blockKey = parseStudioBlockKeyFromAction(ctx);
+    await renderAdminSettingsStudioEditPrompt(ctx, blockKey, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SETTINGS_STUDIO_EDIT_BLOCK_CANCEL, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    state.settingsStudioDraft = null;
+    await renderAdminSettingsStudioProfile(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SETTINGS_STUDIO_EDIT_BLOCK_CONFIRM, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const access = state.access;
+    const draft = state.settingsStudioDraft;
+
+    if (
+      !access?.studioId ||
+      !draft ||
+      draft.mode !== 'awaiting_confirm' ||
+      !draft.draftContent
+    ) {
+      await renderAdminSettingsStudioProfile(ctx, true);
+      return;
+    }
+
+    try {
+      await upsertAdminStudioContentBlock({
+        studioId: access.studioId,
+        blockKey: draft.blockKey,
+        content: draft.draftContent,
+        updatedBy: access.userId,
+        language: 'uk',
+      });
+      state.settingsStudioDraft = null;
+      await ctx.reply(`✅ Блок "${draft.blockTitle}" успішно оновлено.`);
+      await renderAdminSettingsStudioProfile(ctx, false);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        await ctx.reply(`⚠️ ${error.message}`);
+        await renderAdminSettingsStudioEditPrompt(ctx, draft.blockKey, false);
+        return;
+      }
+      throw error;
+    }
   });
 
   scene.action(ADMIN_PANEL_ACTION.SETTINGS_ADMINS_GRANT_OPEN, async (ctx) => {
