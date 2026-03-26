@@ -89,6 +89,11 @@ function normalizeFutureDate(value: Date, fieldName: string): Date {
   return value;
 }
 
+function normalizeOptionalMasterId(masterId?: string | number | null): string | null {
+  if (masterId == null) return null;
+  return normalizePositiveBigintId(masterId, 'masterId');
+}
+
 function normalizeBookingsCategory(category: AdminBookingsCategory): AdminBookingsCategory {
   if (
     category === 'pending' ||
@@ -136,6 +141,7 @@ export async function listAdminBookingsFeed(
 ): Promise<AdminBookingsFeedPage> {
   const studioId = normalizePositiveBigintId(input.studioId, 'studioId');
   const category = normalizeBookingsCategory(input.category);
+  const masterId = normalizeOptionalMasterId(input.masterId);
   const limit = normalizeFeedLimit(input.limit);
   const offset = normalizeOffset(input.offset);
 
@@ -143,7 +149,7 @@ export async function listAdminBookingsFeed(
     const rows = await withTransaction(async (client) =>
       queryMany<AdminBookingFeedRow, AdminBookingFeedRow>(
         SQL_LIST_ADMIN_BOOKINGS_FEED,
-        [studioId, category, limit, offset],
+        [studioId, category, limit, offset, masterId],
         (row) => row,
         client,
       ),
@@ -167,7 +173,7 @@ export async function listAdminBookingsFeed(
       scope: 'db-admin-bookings.helper',
       action: 'Failed to list admin bookings feed',
       error,
-      meta: { studioId, category, limit, offset },
+      meta: { studioId, category, masterId, limit, offset },
     });
     throw error;
   }

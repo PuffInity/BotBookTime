@@ -2,10 +2,12 @@ import { Markup } from 'telegraf';
 import {
   ADMIN_PANEL_ACTION,
   ADMIN_PANEL_BUTTON_TEXT,
+  makeAdminPanelMastersBookingsOpenCardAction,
   makeAdminPanelMastersOpenAction,
   makeAdminPanelMastersOpenBookingsAction,
   makeAdminPanelMastersOpenStatsAction,
 } from '../../types/bot-admin-panel.types.js';
+import type { AdminBookingItem, AdminBookingsFeedPage } from '../../types/db-helpers/db-admin-bookings.types.js';
 import type {
   MasterCatalogDetails,
   MasterCatalogItem,
@@ -53,6 +55,39 @@ function formatWorkingRange(item: MasterWeeklyScheduleItem): string {
 
 function formatSpecializationLine(item: MasterSpecializationItem): string {
   return `• ${item.serviceName} — ${item.durationMinutes} хв • ${formatPrice(item.priceAmount, item.currencyCode)}`;
+}
+
+function formatBookingStatusLabel(status: AdminBookingItem['status']): string {
+  switch (status) {
+    case 'pending':
+      return '🟡 Очікує підтвердження';
+    case 'confirmed':
+      return '🟢 Підтверджено';
+    case 'completed':
+      return '⚪ Завершено';
+    case 'canceled':
+      return '🔴 Скасовано';
+    case 'transferred':
+      return '🟣 Перенесено';
+    default:
+      return status;
+  }
+}
+
+function formatClientDisplayName(item: AdminBookingItem): string {
+  if (item.attendeeName && item.attendeeName.trim().length > 0) {
+    return item.attendeeName;
+  }
+
+  const fullName = `${item.clientFirstName}${item.clientLastName ? ` ${item.clientLastName}` : ''}`.trim();
+  return fullName || 'Клієнт';
+}
+
+function formatDateTimeRange(startAt: Date, endAt: Date): string {
+  const date = startAt.toLocaleDateString('uk-UA');
+  const startTime = startAt.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+  const endTime = endAt.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+  return `${date} • ${startTime}–${endTime}`;
 }
 
 function formatMasterCatalogLine(master: MasterCatalogItem, index: number): string {
@@ -172,16 +207,136 @@ export function createAdminMasterDetailsKeyboard(
 }
 
 /**
- * @summary Stub-текст для підблоку "Записи майстра".
+ * @summary Текст списку записів конкретного майстра.
  */
-export function formatAdminMasterBookingsStubText(masterName: string): string {
+export function formatAdminMasterBookingsFeedText(
+  masterName: string,
+  page: AdminBookingsFeedPage,
+): string {
+  if (page.items.length === 0) {
+    return (
+      '📅 Записи майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      `👩‍🎨 Майстер: ${masterName}\n\n` +
+      '📭 У майстра поки немає записів.'
+    );
+  }
+
+  const lines = page.items.map((item, index) => {
+    return (
+      `${getNumberBadge(index + page.offset)}\n\n` +
+      `👤 ${formatClientDisplayName(item)}\n` +
+      `💼 ${item.serviceName}\n` +
+      `🕒 ${formatDateTimeRange(item.startAt, item.endAt)}\n` +
+      `💰 ${formatPrice(item.priceAmount, item.currencyCode)}\n` +
+      `${formatBookingStatusLabel(item.status)}`
+    );
+  });
+
+  const pageNumber = Math.floor(page.offset / page.limit) + 1;
+  const totalPages = Math.max(1, Math.ceil(page.total / page.limit));
+
   return (
     '📅 Записи майстра\n' +
     '━━━━━━━━━━━━━━\n\n' +
     `👩‍🎨 Майстер: ${masterName}\n\n` +
-    '⚠️ Розділ тимчасово недоступний.\n' +
-    'На наступному кроці тут буде список записів майстра з фільтрами та карткою запису.'
+    `${lines.join('\n\n⸻\n\n')}\n\n` +
+    `📄 Сторінка ${pageNumber} з ${totalPages}`
   );
+}
+
+/**
+ * @summary Клавіатура списку записів майстра.
+ */
+export function createAdminMasterBookingsFeedKeyboard(
+  page: AdminBookingsFeedPage,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const numberButtons = page.items.map((item, index) =>
+    Markup.button.callback(
+      `${index + 1}`,
+      makeAdminPanelMastersBookingsOpenCardAction(item.appointmentId),
+    ),
+  );
+
+  const numberRows: ReturnType<typeof Markup.button.callback>[][] = [];
+  for (let i = 0; i < numberButtons.length; i += 3) {
+    numberRows.push(numberButtons.slice(i, i + 3));
+  }
+
+  const paginationRow: ReturnType<typeof Markup.button.callback>[] = [];
+  if (page.hasPrevPage) {
+    paginationRow.push(
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.RECORDS_PREV_PAGE,
+        ADMIN_PANEL_ACTION.MASTERS_BOOKINGS_PREV_PAGE,
+      ),
+    );
+  }
+  if (page.hasNextPage) {
+    paginationRow.push(
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.RECORDS_NEXT_PAGE,
+        ADMIN_PANEL_ACTION.MASTERS_BOOKINGS_NEXT_PAGE,
+      ),
+    );
+  }
+
+  return Markup.inlineKeyboard([
+    ...numberRows,
+    ...(paginationRow.length > 0 ? [paginationRow] : []),
+    [
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.MASTERS_BOOKINGS_BACK_TO_MASTER,
+        ADMIN_PANEL_ACTION.MASTERS_BOOKINGS_BACK_TO_MASTER,
+      ),
+    ],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK_TO_LIST, ADMIN_PANEL_ACTION.MASTERS_BACK_TO_LIST)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK, ADMIN_PANEL_ACTION.MASTERS_BACK)],
+  ]);
+}
+
+/**
+ * @summary Текст детальної картки запису в контексті конкретного майстра.
+ */
+export function formatAdminMasterBookingCardText(item: AdminBookingItem): string {
+  const comment = item.clientComment?.trim();
+  const commentBlock = comment ? `\n\n📝 Коментар клієнта:\n${comment}` : '';
+
+  return (
+    '📄 Картка запису\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
+    `📱 Телефон: ${item.attendeePhoneE164 ?? 'Не вказано'}\n` +
+    `✉️ Email: ${item.attendeeEmail ?? 'Не вказано'}\n\n` +
+    `💼 Послуга: ${item.serviceName}\n` +
+    `👩‍🎨 Майстер: ${item.masterName}\n` +
+    `🕒 Час: ${formatDateTimeRange(item.startAt, item.endAt)}\n` +
+    `💰 Ціна: ${formatPrice(item.priceAmount, item.currencyCode)}\n` +
+    `📌 Статус: ${formatBookingStatusLabel(item.status)}` +
+    commentBlock
+  );
+}
+
+/**
+ * @summary Клавіатура картки запису майстра (read-only).
+ */
+export function createAdminMasterBookingCardKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_LIST,
+        ADMIN_PANEL_ACTION.MASTERS_BOOKINGS_BACK_TO_LIST,
+      ),
+    ],
+    [
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.MASTERS_BOOKINGS_BACK_TO_MASTER,
+        ADMIN_PANEL_ACTION.MASTERS_BOOKINGS_BACK_TO_MASTER,
+      ),
+    ],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK_TO_LIST, ADMIN_PANEL_ACTION.MASTERS_BACK_TO_LIST)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK, ADMIN_PANEL_ACTION.MASTERS_BACK)],
+  ]);
 }
 
 /**

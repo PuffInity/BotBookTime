@@ -90,9 +90,12 @@ import {
   formatAdminRescheduleTimeStepText,
 } from '../../helpers/bot/admin-bookings-view.bot.js';
 import {
+  createAdminMasterBookingCardKeyboard,
+  createAdminMasterBookingsFeedKeyboard,
   createAdminMasterDetailsKeyboard,
   createAdminMastersCatalogKeyboard,
-  formatAdminMasterBookingsStubText,
+  formatAdminMasterBookingCardText,
+  formatAdminMasterBookingsFeedText,
   formatAdminMasterDetailsText,
   formatAdminMastersCatalogText,
 } from '../../helpers/bot/admin-masters-view.bot.js';
@@ -127,6 +130,7 @@ import {
 import {
   ADMIN_PANEL_ACTION,
   ADMIN_PANEL_MASTERS_OPEN_ACTION_REGEX,
+  ADMIN_PANEL_MASTERS_BOOKINGS_OPEN_CARD_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_OPEN_BOOKINGS_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_OPEN_STATS_ACTION_REGEX,
   ADMIN_PANEL_STATS_CLIENTS_OPEN_ACTION_REGEX,
@@ -261,7 +265,7 @@ type AdminScheduleDeleteDraft = {
   dateTo: string | null;
 };
 
-type AdminMasterSubSection = 'catalog' | 'details' | 'bookings-stub' | 'stats';
+type AdminMasterSubSection = 'catalog' | 'details' | 'bookings' | 'stats';
 type AdminServiceSubSection = 'catalog' | 'details' | 'stats';
 type AdminStatsSection = 'overview' | 'masters' | 'services' | 'monthly' | 'clients';
 
@@ -280,6 +284,8 @@ type AdminPanelSceneState = {
   scheduleDeleteDraft: AdminScheduleDeleteDraft | null;
   mastersCatalog: MasterCatalogItem[] | null;
   mastersSelectedMasterId: string | null;
+  mastersBookingsFeed: AdminBookingsFeedPage | null;
+  mastersBookingsOpenedAppointmentId: string | null;
   mastersCurrentSection: AdminMasterSubSection | null;
   servicesCatalog: ServicesCatalogItem[] | null;
   servicesSelectedServiceId: string | null;
@@ -319,6 +325,8 @@ function resetScheduleDrafts(state: AdminPanelSceneState): void {
 function resetMastersState(state: AdminPanelSceneState): void {
   state.mastersCatalog = null;
   state.mastersSelectedMasterId = null;
+  state.mastersBookingsFeed = null;
+  state.mastersBookingsOpenedAppointmentId = null;
   state.mastersCurrentSection = null;
 }
 
@@ -646,6 +654,8 @@ async function renderAdminMastersCatalog(ctx: MyContext, preferEdit: boolean): P
   const masters = await loadAdminMastersCatalog(state);
   state.mastersCurrentSection = 'catalog';
   state.mastersSelectedMasterId = null;
+  state.mastersBookingsFeed = null;
+  state.mastersBookingsOpenedAppointmentId = null;
 
   const text = formatAdminMastersCatalogText(masters);
   const keyboard = createAdminMastersCatalogKeyboard(masters);
@@ -682,9 +692,98 @@ async function renderAdminMasterDetails(
 
   state.mastersCurrentSection = 'details';
   state.mastersSelectedMasterId = masterId;
+  state.mastersBookingsFeed = null;
+  state.mastersBookingsOpenedAppointmentId = null;
 
   const text = formatAdminMasterDetailsText(details);
   const keyboard = createAdminMasterDetailsKeyboard(masterId);
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminMasterBookingsList(
+  ctx: MyContext,
+  masterId: string,
+  offset: number,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const studioId = state.access?.studioId;
+  if (!studioId) {
+    throw new ValidationError('Не вдалося визначити студію адміністратора');
+  }
+
+  const details = await getMasterCatalogDetailsById({ masterId, studioId });
+  if (!details) {
+    await ctx.reply('⚠️ Майстра не знайдено або профіль вже неактивний.');
+    await renderAdminMastersCatalog(ctx, false);
+    return;
+  }
+
+  const feed = await listAdminBookingsFeed({
+    studioId,
+    category: 'all',
+    masterId,
+    limit: 5,
+    offset,
+  });
+
+  state.mastersCurrentSection = 'bookings';
+  state.mastersSelectedMasterId = masterId;
+  state.mastersBookingsFeed = feed;
+  state.mastersBookingsOpenedAppointmentId = null;
+
+  const text = formatAdminMasterBookingsFeedText(details.master.displayName, feed);
+  const keyboard = createAdminMasterBookingsFeedKeyboard(feed);
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminMasterBookingCard(
+  ctx: MyContext,
+  masterId: string,
+  appointmentId: string,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const studioId = state.access?.studioId;
+  if (!studioId) {
+    throw new ValidationError('Не вдалося визначити студію адміністратора');
+  }
+
+  const fromFeed =
+    state.mastersBookingsFeed?.items.find((item) => item.appointmentId === appointmentId) ?? null;
+  const booking = fromFeed ?? (await getAdminBookingCardById({ studioId, appointmentId }));
+  if (!booking || booking.masterId !== masterId) {
+    await ctx.reply('⚠️ Запис не знайдено в контексті цього майстра.');
+    await renderAdminMasterBookingsList(ctx, masterId, state.mastersBookingsFeed?.offset ?? 0, false);
+    return;
+  }
+
+  state.mastersCurrentSection = 'bookings';
+  state.mastersSelectedMasterId = masterId;
+  state.mastersBookingsOpenedAppointmentId = appointmentId;
+
+  const text = formatAdminMasterBookingCardText(booking);
+  const keyboard = createAdminMasterBookingCardKeyboard();
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1596,6 +1695,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.scheduleDeleteDraft = null;
       state.mastersCatalog = null;
       state.mastersSelectedMasterId = null;
+      state.mastersBookingsFeed = null;
+      state.mastersBookingsOpenedAppointmentId = null;
       state.mastersCurrentSection = null;
       state.servicesCatalog = null;
       state.servicesSelectedServiceId = null;
@@ -2570,35 +2671,78 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
   scene.action(ADMIN_PANEL_MASTERS_OPEN_BOOKINGS_ACTION_REGEX, async (ctx) => {
     await ctx.answerCbQuery();
-    const state = getSceneState(ctx);
     const masterId = parseNumericIdFromAction(
       ctx,
       ADMIN_PANEL_MASTERS_OPEN_BOOKINGS_ACTION_REGEX,
       'id майстра',
     );
-    const details = await getMasterCatalogDetailsById({
-      masterId,
-      studioId: state.access?.studioId,
-    });
-    if (!details) {
+    await renderAdminMasterBookingsList(ctx, masterId, 0, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_BOOKINGS_PREV_PAGE, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const feed = state.mastersBookingsFeed;
+    const masterId = state.mastersSelectedMasterId;
+    if (!feed || !masterId || !feed.hasPrevPage) {
+      return;
+    }
+
+    const nextOffset = Math.max(0, feed.offset - feed.limit);
+    await renderAdminMasterBookingsList(ctx, masterId, nextOffset, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_BOOKINGS_NEXT_PAGE, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const feed = state.mastersBookingsFeed;
+    const masterId = state.mastersSelectedMasterId;
+    if (!feed || !masterId || !feed.hasNextPage) {
+      return;
+    }
+
+    const nextOffset = feed.offset + feed.limit;
+    await renderAdminMasterBookingsList(ctx, masterId, nextOffset, true);
+  });
+
+  scene.action(ADMIN_PANEL_MASTERS_BOOKINGS_OPEN_CARD_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const masterId = state.mastersSelectedMasterId;
+    if (!masterId) {
       await renderAdminMastersCatalog(ctx, true);
       return;
     }
 
-    state.mastersCurrentSection = 'bookings-stub';
-    state.mastersSelectedMasterId = masterId;
+    const appointmentId = parseNumericIdFromAction(
+      ctx,
+      ADMIN_PANEL_MASTERS_BOOKINGS_OPEN_CARD_ACTION_REGEX,
+      'id запису',
+    );
+    await renderAdminMasterBookingCard(ctx, masterId, appointmentId, true);
+  });
 
-    try {
-      await ctx.editMessageText(
-        formatAdminMasterBookingsStubText(details.master.displayName),
-        createAdminMasterDetailsKeyboard(masterId),
-      );
-    } catch {
-      await ctx.reply(
-        formatAdminMasterBookingsStubText(details.master.displayName),
-        createAdminMasterDetailsKeyboard(masterId),
-      );
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_BOOKINGS_BACK_TO_LIST, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const masterId = state.mastersSelectedMasterId;
+    if (!masterId) {
+      await renderAdminMastersCatalog(ctx, true);
+      return;
     }
+
+    const offset = state.mastersBookingsFeed?.offset ?? 0;
+    await renderAdminMasterBookingsList(ctx, masterId, offset, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_BOOKINGS_BACK_TO_MASTER, async (ctx) => {
+    await ctx.answerCbQuery();
+    const masterId = getSceneState(ctx).mastersSelectedMasterId;
+    if (!masterId) {
+      await renderAdminMastersCatalog(ctx, true);
+      return;
+    }
+    await renderAdminMasterDetails(ctx, masterId, true);
   });
 
   scene.action(ADMIN_PANEL_MASTERS_OPEN_STATS_ACTION_REGEX, async (ctx) => {

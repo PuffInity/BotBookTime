@@ -244,6 +244,7 @@ export const SQL_LIST_ADMIN_BOOKINGS_FEED = `
     ON true
   WHERE a.studio_id = $1::bigint
     AND a.deleted_at IS NULL
+    AND ($5::bigint IS NULL OR a.master_id = $5::bigint)
     AND (
       ($2::text = 'pending'
         AND a.status = 'pending')

@@ -35,6 +35,11 @@ export const ADMIN_PANEL_ACTION = {
   MASTERS_OPEN_PREFIX: 'admin-panel:masters:open:',
   MASTERS_OPEN_BOOKINGS_PREFIX: 'admin-panel:masters:open-bookings:',
   MASTERS_OPEN_STATS_PREFIX: 'admin-panel:masters:open-stats:',
+  MASTERS_BOOKINGS_OPEN_CARD_PREFIX: 'admin-panel:masters:bookings:open-card:',
+  MASTERS_BOOKINGS_PREV_PAGE: 'admin-panel:masters:bookings:prev-page',
+  MASTERS_BOOKINGS_NEXT_PAGE: 'admin-panel:masters:bookings:next-page',
+  MASTERS_BOOKINGS_BACK_TO_LIST: 'admin-panel:masters:bookings:back-to-list',
+  MASTERS_BOOKINGS_BACK_TO_MASTER: 'admin-panel:masters:bookings:back-to-master',
   MASTERS_BACK_TO_LIST: 'admin-panel:masters:back-to-list',
   MASTERS_BACK: 'admin-panel:masters:back',
   OPEN_SERVICES: 'admin-panel:open-services',
@@ -116,6 +121,7 @@ export const ADMIN_PANEL_BUTTON_TEXT = {
   MASTERS: '👩‍🎨 Майстри',
   MASTERS_OPEN_BOOKINGS: '📅 Записи майстра',
   MASTERS_OPEN_STATS: '📊 Статистика майстра',
+  MASTERS_BOOKINGS_BACK_TO_MASTER: '⬅️ До профілю майстра',
   MASTERS_BACK_TO_LIST: '⬅️ До списку майстрів',
   MASTERS_BACK: '⬅️ До адмін-панелі',
   SERVICES: '💼 Послуги',
@@ -197,6 +203,8 @@ export const ADMIN_PANEL_MASTERS_OPEN_ACTION_REGEX = /^admin-panel:masters:open:
 export const ADMIN_PANEL_MASTERS_OPEN_BOOKINGS_ACTION_REGEX =
   /^admin-panel:masters:open-bookings:(\d+)$/;
 export const ADMIN_PANEL_MASTERS_OPEN_STATS_ACTION_REGEX = /^admin-panel:masters:open-stats:(\d+)$/;
+export const ADMIN_PANEL_MASTERS_BOOKINGS_OPEN_CARD_ACTION_REGEX =
+  /^admin-panel:masters:bookings:open-card:(\d+)$/;
 export const ADMIN_PANEL_SERVICES_OPEN_ACTION_REGEX = /^admin-panel:services:open:(\d+)$/;
 export const ADMIN_PANEL_SERVICES_OPEN_STATS_ACTION_REGEX = /^admin-panel:services:open-stats:(\d+)$/;
 export const ADMIN_PANEL_STATS_MASTERS_OPEN_ACTION_REGEX = /^admin-panel:stats:masters:open:(\d+)$/;
@@ -291,6 +299,10 @@ export function makeAdminPanelMastersOpenBookingsAction(masterId: string): strin
 
 export function makeAdminPanelMastersOpenStatsAction(masterId: string): string {
   return `${ADMIN_PANEL_ACTION.MASTERS_OPEN_STATS_PREFIX}${masterId}`;
+}
+
+export function makeAdminPanelMastersBookingsOpenCardAction(appointmentId: string): string {
+  return `${ADMIN_PANEL_ACTION.MASTERS_BOOKINGS_OPEN_CARD_PREFIX}${appointmentId}`;
 }
 
 export function makeAdminPanelServicesOpenAction(serviceId: string): string {

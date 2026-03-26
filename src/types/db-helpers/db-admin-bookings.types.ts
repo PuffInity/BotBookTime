@@ -58,6 +58,7 @@ export type AdminBookingItem = {
 export type ListAdminBookingsFeedInput = {
   studioId: string | number;
   category: AdminBookingsCategory;
+  masterId?: string | number | null;
   limit?: number;
   offset?: number;
 };
