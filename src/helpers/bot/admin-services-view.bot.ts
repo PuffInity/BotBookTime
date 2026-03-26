@@ -155,11 +155,16 @@ function formatOptionalText(value: string | null): string {
 /**
  * @summary Текст меню редагування послуги.
  */
-export function formatAdminServiceEditMenuText(serviceName: string, resultDescription: string | null): string {
+export function formatAdminServiceEditMenuText(
+  serviceName: string,
+  description: string | null,
+  resultDescription: string | null,
+): string {
   return (
     '✏️ Редагування послуги\n' +
     '━━━━━━━━━━━━━━\n\n' +
     `💼 Послуга: ${serviceName}\n\n` +
+    `📝 Поточний опис:\n${formatOptionalText(description)}\n\n` +
     `🎯 Поточний результат:\n${formatOptionalText(resultDescription)}\n\n` +
     'Оберіть, що потрібно змінити:'
   );
@@ -170,11 +175,29 @@ export function formatAdminServiceEditMenuText(serviceName: string, resultDescri
  */
 export function createAdminServiceEditMenuKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_DESCRIPTION, ADMIN_PANEL_ACTION.SERVICES_EDIT_DESCRIPTION_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_RESULT, ADMIN_PANEL_ACTION.SERVICES_EDIT_RESULT_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_BACK, ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK_TO_LIST, ADMIN_PANEL_ACTION.SERVICES_BACK_TO_LIST)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK, ADMIN_PANEL_ACTION.SERVICES_BACK)],
   ]);
+}
+
+/**
+ * @summary Текст кроку вводу нового опису послуги.
+ */
+export function formatAdminServiceEditDescriptionInputText(
+  serviceName: string,
+  currentDescription: string | null,
+): string {
+  return (
+    '✏️ Оновлення опису послуги\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n\n` +
+    `📝 Поточний опис:\n${formatOptionalText(currentDescription)}\n\n` +
+    'Надішліть новий опис одним повідомленням.\n' +
+    'Мінімум 10 символів, максимум 1600 символів.'
+  );
 }
 
 /**
@@ -213,6 +236,22 @@ export function formatAdminServiceEditResultConfirmText(serviceName: string, nex
     '━━━━━━━━━━━━━━\n\n' +
     `💼 Послуга: ${serviceName}\n\n` +
     `🎯 Новий результат:\n${nextResultDescription}\n\n` +
+    'Підтвердьте збереження змін.'
+  );
+}
+
+/**
+ * @summary Текст підтвердження оновлення опису послуги.
+ */
+export function formatAdminServiceEditDescriptionConfirmText(
+  serviceName: string,
+  nextDescription: string,
+): string {
+  return (
+    '✅ Підтвердження оновлення\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n\n` +
+    `📝 Новий опис:\n${nextDescription}\n\n` +
     'Підтвердьте збереження змін.'
   );
 }

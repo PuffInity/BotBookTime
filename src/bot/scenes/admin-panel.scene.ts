@@ -156,6 +156,8 @@ import {
   createAdminServiceEditMenuKeyboard,
   createAdminServiceDetailsKeyboard,
   createAdminServicesCatalogKeyboard,
+  formatAdminServiceEditDescriptionConfirmText,
+  formatAdminServiceEditDescriptionInputText,
   formatAdminServiceEditMenuText,
   formatAdminServiceEditResultConfirmText,
   formatAdminServiceEditResultInputText,
@@ -261,6 +263,7 @@ import {
 } from '../../helpers/db/db-masters.helper.js';
 import {
   getAdminEditableServiceById,
+  updateAdminServiceDescription,
   updateAdminServiceResultDescription,
 } from '../../helpers/db/db-admin-services.helper.js';
 import {
@@ -390,7 +393,10 @@ type AdminServiceSubSection = 'catalog' | 'details' | 'stats' | 'edit';
 type AdminServiceEditDraft = {
   serviceId: string;
   serviceName: string;
+  field: 'description' | 'result_description';
   mode: 'awaiting_text' | 'awaiting_confirm';
+  currentDescription: string | null;
+  currentResultDescription: string | null;
   currentValue: string | null;
   value: string | null;
 };
@@ -599,6 +605,17 @@ function normalizeServiceResultDescriptionInput(value: string): string {
   }
   if (normalized.length > 1200) {
     throw new ValidationError('Результат послуги занадто довгий (максимум 1200 символів)');
+  }
+  return normalized;
+}
+
+function normalizeServiceDescriptionInput(value: string): string {
+  const normalized = value.trim().replace(/\s+/g, ' ');
+  if (normalized.length < 10) {
+    throw new ValidationError('Опис послуги має містити щонайменше 10 символів');
+  }
+  if (normalized.length > 1600) {
+    throw new ValidationError('Опис послуги занадто довгий (максимум 1600 символів)');
   }
   return normalized;
 }
@@ -1659,16 +1676,28 @@ async function renderAdminServiceEditMenu(
     state.servicesEditDraft = {
       serviceId: service.id,
       serviceName: service.name,
+      field: 'result_description',
       mode: 'awaiting_text',
+      currentDescription: service.description,
+      currentResultDescription: service.resultDescription,
       currentValue: service.resultDescription,
       value: null,
     };
   } else {
     state.servicesEditDraft.serviceName = service.name;
-    state.servicesEditDraft.currentValue = service.resultDescription;
+    state.servicesEditDraft.currentDescription = service.description;
+    state.servicesEditDraft.currentResultDescription = service.resultDescription;
+    state.servicesEditDraft.currentValue =
+      state.servicesEditDraft.field === 'description'
+        ? service.description
+        : service.resultDescription;
   }
 
-  const text = formatAdminServiceEditMenuText(service.name, service.resultDescription);
+  const text = formatAdminServiceEditMenuText(
+    service.name,
+    service.description,
+    service.resultDescription,
+  );
   const keyboard = createAdminServiceEditMenuKeyboard();
 
   if (preferEdit && ctx.updateType === 'callback_query') {
@@ -2892,19 +2921,34 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       const servicesEditDraft = state.servicesEditDraft;
       if (servicesEditDraft?.mode === 'awaiting_text') {
         try {
-          const nextValue = normalizeServiceResultDescriptionInput(text);
+          const nextValue =
+            servicesEditDraft.field === 'description'
+              ? normalizeServiceDescriptionInput(text)
+              : normalizeServiceResultDescriptionInput(text);
           servicesEditDraft.mode = 'awaiting_confirm';
           servicesEditDraft.value = nextValue;
 
           await ctx.reply(
-            formatAdminServiceEditResultConfirmText(servicesEditDraft.serviceName, nextValue),
+            servicesEditDraft.field === 'description'
+              ? formatAdminServiceEditDescriptionConfirmText(
+                  servicesEditDraft.serviceName,
+                  nextValue,
+                )
+              : formatAdminServiceEditResultConfirmText(
+                  servicesEditDraft.serviceName,
+                  nextValue,
+                ),
             createAdminServiceEditConfirmKeyboard(),
           );
         } catch (error) {
           const err =
             error instanceof ValidationError
               ? error
-              : new ValidationError('Виникла помилка перевірки тексту результату');
+              : new ValidationError(
+                  servicesEditDraft.field === 'description'
+                    ? 'Виникла помилка перевірки опису послуги'
+                    : 'Виникла помилка перевірки тексту результату',
+                );
 
           await ctx.reply(
             `⚠️ ${err.message}`,
@@ -4177,10 +4221,36 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
+    draft.field = 'result_description';
     draft.mode = 'awaiting_text';
+    draft.currentValue = draft.currentResultDescription;
     draft.value = null;
     await ctx.reply(
-      formatAdminServiceEditResultInputText(draft.serviceName, draft.currentValue),
+      formatAdminServiceEditResultInputText(draft.serviceName, draft.currentResultDescription),
+      createAdminServiceEditInputKeyboard(),
+    );
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SERVICES_EDIT_DESCRIPTION_OPEN, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.servicesEditDraft;
+    if (!draft) {
+      const fallbackServiceId = state.servicesSelectedServiceId;
+      if (!fallbackServiceId) {
+        await renderAdminServicesCatalog(ctx, true);
+        return;
+      }
+      await renderAdminServiceEditMenu(ctx, fallbackServiceId, true);
+      return;
+    }
+
+    draft.field = 'description';
+    draft.mode = 'awaiting_text';
+    draft.currentValue = draft.currentDescription;
+    draft.value = null;
+    await ctx.reply(
+      formatAdminServiceEditDescriptionInputText(draft.serviceName, draft.currentDescription),
       createAdminServiceEditInputKeyboard(),
     );
   });
@@ -4229,15 +4299,24 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     try {
-      const updated = await updateAdminServiceResultDescription({
-        studioId,
-        serviceId: draft.serviceId,
-        resultDescription: draft.value,
-      });
+      const updated =
+        draft.field === 'description'
+          ? await updateAdminServiceDescription({
+              studioId,
+              serviceId: draft.serviceId,
+              description: draft.value,
+            })
+          : await updateAdminServiceResultDescription({
+              studioId,
+              serviceId: draft.serviceId,
+              resultDescription: draft.value,
+            });
       state.servicesEditDraft = null;
 
       await ctx.reply(
-        `✅ Результат послуги "${updated.name}" успішно оновлено.`,
+        draft.field === 'description'
+          ? `✅ Опис послуги "${updated.name}" успішно оновлено.`
+          : `✅ Результат послуги "${updated.name}" успішно оновлено.`,
       );
       await renderAdminServiceDetails(ctx, updated.id, false);
     } catch (error) {

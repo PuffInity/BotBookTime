@@ -2,6 +2,7 @@ import type {
   AdminEditableService,
   AdminEditableServiceRow,
   GetAdminEditableServiceInput,
+  UpdateAdminServiceDescriptionInput,
   UpdateAdminServiceResultDescriptionInput,
 } from '../../types/db-helpers/db-admin-services.types.js';
 import { executeOne, queryOne, withTransaction } from '../db.helper.js';
@@ -9,6 +10,7 @@ import { ValidationError, handleError } from '../../utils/error.utils.js';
 import { loggerDb } from '../../utils/logger/loggers-list.js';
 import {
   SQL_GET_ADMIN_EDITABLE_SERVICE_BY_ID,
+  SQL_UPDATE_ADMIN_SERVICE_DESCRIPTION,
   SQL_UPDATE_ADMIN_SERVICE_RESULT_DESCRIPTION,
 } from '../db-sql/db-admin-services.sql.js';
 
@@ -41,11 +43,28 @@ function normalizeServiceResultDescription(value: string | null): string | null 
   return normalized;
 }
 
+function normalizeServiceDescription(value: string | null): string | null {
+  if (value == null) {
+    throw new ValidationError('Опис послуги не може бути порожнім');
+  }
+
+  const normalized = value.trim().replace(/\s+/g, ' ');
+  if (normalized.length < 10) {
+    throw new ValidationError('Опис послуги має містити щонайменше 10 символів');
+  }
+  if (normalized.length > 1600) {
+    throw new ValidationError('Опис послуги занадто довгий (максимум 1600 символів)');
+  }
+
+  return normalized;
+}
+
 function mapAdminEditableServiceRow(row: AdminEditableServiceRow): AdminEditableService {
   return {
     id: row.id,
     studioId: row.studio_id,
     name: row.name,
+    description: row.description,
     resultDescription: row.result_description,
   };
 }
@@ -104,6 +123,37 @@ export async function updateAdminServiceResultDescription(
       logger: loggerDb,
       scope: 'db-admin-services.helper',
       action: 'Failed to update service result description from admin panel',
+      error,
+      meta: { studioId, serviceId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Оновлює поле "опис послуги" з адмін-панелі.
+ */
+export async function updateAdminServiceDescription(
+  input: UpdateAdminServiceDescriptionInput,
+): Promise<AdminEditableService> {
+  const studioId = normalizePositiveBigintId(input.studioId, 'studioId');
+  const serviceId = normalizePositiveBigintId(input.serviceId, 'serviceId');
+  const description = normalizeServiceDescription(input.description);
+
+  try {
+    return await withTransaction(async (client) =>
+      executeOne<AdminEditableServiceRow, AdminEditableService>(
+        SQL_UPDATE_ADMIN_SERVICE_DESCRIPTION,
+        [serviceId, studioId, description],
+        mapAdminEditableServiceRow,
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-admin-services.helper',
+      action: 'Failed to update service description from admin panel',
       error,
       meta: { studioId, serviceId },
     });

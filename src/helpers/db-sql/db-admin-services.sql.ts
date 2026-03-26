@@ -8,6 +8,7 @@ export const SQL_GET_ADMIN_EDITABLE_SERVICE_BY_ID = `
     s.id,
     s.studio_id,
     s.name,
+    s.description,
     s.result_description
   FROM services s
   WHERE s.id = $1::bigint
@@ -22,5 +23,15 @@ export const SQL_UPDATE_ADMIN_SERVICE_RESULT_DESCRIPTION = `
     updated_at = NOW()
   WHERE id = $1::bigint
     AND studio_id = $2::bigint
-  RETURNING id, studio_id, name, result_description
+  RETURNING id, studio_id, name, description, result_description
+`;
+
+export const SQL_UPDATE_ADMIN_SERVICE_DESCRIPTION = `
+  UPDATE services
+  SET
+    description = $3,
+    updated_at = NOW()
+  WHERE id = $1::bigint
+    AND studio_id = $2::bigint
+  RETURNING id, studio_id, name, description, result_description
 `;
