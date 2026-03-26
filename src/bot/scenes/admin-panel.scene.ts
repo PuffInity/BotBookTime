@@ -151,8 +151,14 @@ import {
   formatAdminMastersCatalogText,
 } from '../../helpers/bot/admin-masters-view.bot.js';
 import {
+  createAdminServiceEditConfirmKeyboard,
+  createAdminServiceEditInputKeyboard,
+  createAdminServiceEditMenuKeyboard,
   createAdminServiceDetailsKeyboard,
   createAdminServicesCatalogKeyboard,
+  formatAdminServiceEditMenuText,
+  formatAdminServiceEditResultConfirmText,
+  formatAdminServiceEditResultInputText,
   formatAdminServiceDetailsText,
   formatAdminServicesCatalogText,
 } from '../../helpers/bot/admin-services-view.bot.js';
@@ -194,6 +200,7 @@ import {
   ADMIN_PANEL_STATS_MONTHLY_OPEN_ACTION_REGEX,
   ADMIN_PANEL_STATS_SERVICES_OPEN_ACTION_REGEX,
   ADMIN_PANEL_SERVICES_OPEN_ACTION_REGEX,
+  ADMIN_PANEL_SERVICES_EDIT_OPEN_ACTION_REGEX,
   ADMIN_PANEL_SERVICES_OPEN_STATS_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_CANCEL_REQUEST_ACTION_REGEX,
@@ -252,6 +259,10 @@ import {
   listActiveMastersByService,
   listActiveMastersCatalog,
 } from '../../helpers/db/db-masters.helper.js';
+import {
+  getAdminEditableServiceById,
+  updateAdminServiceResultDescription,
+} from '../../helpers/db/db-admin-services.helper.js';
 import {
   getServiceCatalogDetailsById,
   listActiveServicesCatalog,
@@ -375,7 +386,14 @@ type AdminMasterEditDraft = {
   currentValue: string;
   value: string | null;
 };
-type AdminServiceSubSection = 'catalog' | 'details' | 'stats';
+type AdminServiceSubSection = 'catalog' | 'details' | 'stats' | 'edit';
+type AdminServiceEditDraft = {
+  serviceId: string;
+  serviceName: string;
+  mode: 'awaiting_text' | 'awaiting_confirm';
+  currentValue: string | null;
+  value: string | null;
+};
 type AdminStatsSection = 'overview' | 'masters' | 'services' | 'monthly' | 'clients';
 type AdminSettingsSection = 'menu' | 'language' | 'admins' | 'studio' | 'notifications';
 type AdminSettingsAdminsAction = 'grant' | 'revoke';
@@ -422,6 +440,7 @@ type AdminPanelSceneState = {
   servicesCatalog: ServicesCatalogItem[] | null;
   servicesSelectedServiceId: string | null;
   servicesCurrentSection: AdminServiceSubSection | null;
+  servicesEditDraft: AdminServiceEditDraft | null;
   statsOverview: AdminPanelStatsOverview | null;
   statsMastersFeed: AdminPanelStatsMastersFeedPage | null;
   statsSelectedMasterId: string | null;
@@ -476,6 +495,7 @@ function resetServicesState(state: AdminPanelSceneState): void {
   state.servicesCatalog = null;
   state.servicesSelectedServiceId = null;
   state.servicesCurrentSection = null;
+  state.servicesEditDraft = null;
 }
 
 function resetStatsState(state: AdminPanelSceneState): void {
@@ -568,6 +588,17 @@ function normalizeHolidayName(value: string): string {
   }
   if (normalized.length > 120) {
     throw new ValidationError('Назва свята занадто довга (максимум 120 символів)');
+  }
+  return normalized;
+}
+
+function normalizeServiceResultDescriptionInput(value: string): string {
+  const normalized = value.trim().replace(/\s+/g, ' ');
+  if (normalized.length < 10) {
+    throw new ValidationError('Результат послуги має містити щонайменше 10 символів');
+  }
+  if (normalized.length > 1200) {
+    throw new ValidationError('Результат послуги занадто довгий (максимум 1200 символів)');
   }
   return normalized;
 }
@@ -1549,6 +1580,7 @@ async function renderAdminServicesCatalog(ctx: MyContext, preferEdit: boolean): 
   const services = await loadAdminServicesCatalog(state);
   state.servicesCurrentSection = 'catalog';
   state.servicesSelectedServiceId = null;
+  state.servicesEditDraft = null;
 
   const text = formatAdminServicesCatalogText(services);
   const keyboard = createAdminServicesCatalogKeyboard(services);
@@ -1585,9 +1617,59 @@ async function renderAdminServiceDetails(
 
   state.servicesCurrentSection = 'details';
   state.servicesSelectedServiceId = serviceId;
+  state.servicesEditDraft = null;
 
   const text = formatAdminServiceDetailsText(details);
   const keyboard = createAdminServiceDetailsKeyboard(serviceId);
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminServiceEditMenu(
+  ctx: MyContext,
+  serviceId: string,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const studioId = state.access?.studioId;
+  if (!studioId) {
+    throw new ValidationError('Не вдалося визначити студію адміністратора');
+  }
+
+  const service = await getAdminEditableServiceById({ studioId, serviceId });
+  if (!service) {
+    await ctx.reply('⚠️ Послугу для редагування не знайдено.');
+    await renderAdminServicesCatalog(ctx, false);
+    return;
+  }
+
+  state.servicesCurrentSection = 'edit';
+  state.servicesSelectedServiceId = service.id;
+
+  if (!state.servicesEditDraft || state.servicesEditDraft.serviceId !== service.id) {
+    state.servicesEditDraft = {
+      serviceId: service.id,
+      serviceName: service.name,
+      mode: 'awaiting_text',
+      currentValue: service.resultDescription,
+      value: null,
+    };
+  } else {
+    state.servicesEditDraft.serviceName = service.name;
+    state.servicesEditDraft.currentValue = service.resultDescription;
+  }
+
+  const text = formatAdminServiceEditMenuText(service.name, service.resultDescription);
+  const keyboard = createAdminServiceEditMenuKeyboard();
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2452,6 +2534,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.servicesCatalog = null;
       state.servicesSelectedServiceId = null;
       state.servicesCurrentSection = null;
+      state.servicesEditDraft = null;
       state.statsOverview = null;
       state.statsMastersFeed = null;
       state.statsSelectedMasterId = null;
@@ -2806,6 +2889,39 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         return;
       }
 
+      const servicesEditDraft = state.servicesEditDraft;
+      if (servicesEditDraft?.mode === 'awaiting_text') {
+        try {
+          const nextValue = normalizeServiceResultDescriptionInput(text);
+          servicesEditDraft.mode = 'awaiting_confirm';
+          servicesEditDraft.value = nextValue;
+
+          await ctx.reply(
+            formatAdminServiceEditResultConfirmText(servicesEditDraft.serviceName, nextValue),
+            createAdminServiceEditConfirmKeyboard(),
+          );
+        } catch (error) {
+          const err =
+            error instanceof ValidationError
+              ? error
+              : new ValidationError('Виникла помилка перевірки тексту результату');
+
+          await ctx.reply(
+            `⚠️ ${err.message}`,
+            createAdminServiceEditInputKeyboard(),
+          );
+        }
+        return;
+      }
+
+      if (servicesEditDraft?.mode === 'awaiting_confirm') {
+        await ctx.reply(
+          'ℹ️ Для завершення змін використовуйте кнопки підтвердження під повідомленням.',
+          createAdminServiceEditConfirmKeyboard(),
+        );
+        return;
+      }
+
       const mastersEditDraft = state.mastersEditDraft;
       if (mastersEditDraft?.mode === 'awaiting_value') {
         try {
@@ -2840,6 +2956,14 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         await ctx.reply(
           'ℹ️ Для редагування профілю майстра використовуйте кнопки під повідомленням.',
           createAdminMasterEditMenuKeyboard(state.mastersSelectedMasterId),
+        );
+        return;
+      }
+
+      if (state.servicesCurrentSection === 'edit' && state.servicesSelectedServiceId) {
+        await ctx.reply(
+          'ℹ️ Для редагування послуги використовуйте кнопки під повідомленням.',
+          createAdminServiceEditMenuKeyboard(),
         );
         return;
       }
@@ -4026,6 +4150,113 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     state.servicesSelectedServiceId = serviceId;
   });
 
+  scene.action(ADMIN_PANEL_SERVICES_EDIT_OPEN_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const serviceId = parseNumericIdFromAction(
+      ctx,
+      ADMIN_PANEL_SERVICES_EDIT_OPEN_ACTION_REGEX,
+      'id послуги',
+    );
+
+    await renderAdminServiceEditMenu(ctx, serviceId, true);
+    state.servicesSelectedServiceId = serviceId;
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SERVICES_EDIT_RESULT_OPEN, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.servicesEditDraft;
+    if (!draft) {
+      const fallbackServiceId = state.servicesSelectedServiceId;
+      if (!fallbackServiceId) {
+        await renderAdminServicesCatalog(ctx, true);
+        return;
+      }
+      await renderAdminServiceEditMenu(ctx, fallbackServiceId, true);
+      return;
+    }
+
+    draft.mode = 'awaiting_text';
+    draft.value = null;
+    await ctx.reply(
+      formatAdminServiceEditResultInputText(draft.serviceName, draft.currentValue),
+      createAdminServiceEditInputKeyboard(),
+    );
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SERVICES_EDIT_CANCEL, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const serviceId = state.servicesEditDraft?.serviceId ?? state.servicesSelectedServiceId;
+    state.servicesEditDraft = null;
+
+    if (!serviceId) {
+      await renderAdminServicesCatalog(ctx, true);
+      return;
+    }
+    await renderAdminServiceEditMenu(ctx, serviceId, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const serviceId = state.servicesEditDraft?.serviceId ?? state.servicesSelectedServiceId;
+    state.servicesEditDraft = null;
+
+    if (!serviceId) {
+      await renderAdminServicesCatalog(ctx, true);
+      return;
+    }
+    await renderAdminServiceDetails(ctx, serviceId, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SERVICES_EDIT_CONFIRM, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.servicesEditDraft;
+    const studioId = state.access?.studioId;
+
+    if (!studioId || !draft || draft.mode !== 'awaiting_confirm' || !draft.value) {
+      const fallbackServiceId = draft?.serviceId ?? state.servicesSelectedServiceId;
+      state.servicesEditDraft = null;
+      if (!fallbackServiceId) {
+        await renderAdminServicesCatalog(ctx, true);
+        return;
+      }
+      await renderAdminServiceEditMenu(ctx, fallbackServiceId, true);
+      return;
+    }
+
+    try {
+      const updated = await updateAdminServiceResultDescription({
+        studioId,
+        serviceId: draft.serviceId,
+        resultDescription: draft.value,
+      });
+      state.servicesEditDraft = null;
+
+      await ctx.reply(
+        `✅ Результат послуги "${updated.name}" успішно оновлено.`,
+      );
+      await renderAdminServiceDetails(ctx, updated.id, false);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        await ctx.reply(
+          `⚠️ ${error.message}`,
+          createAdminServiceEditInputKeyboard(),
+        );
+        state.servicesEditDraft = {
+          ...draft,
+          mode: 'awaiting_text',
+          value: null,
+        };
+        return;
+      }
+      throw error;
+    }
+  });
+
   scene.action(ADMIN_PANEL_SERVICES_OPEN_STATS_ACTION_REGEX, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
@@ -4053,6 +4284,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
     state.servicesCurrentSection = 'stats';
     state.servicesSelectedServiceId = serviceId;
+    state.servicesEditDraft = null;
 
     try {
       await ctx.editMessageText(

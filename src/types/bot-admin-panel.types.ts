@@ -53,6 +53,11 @@ export const ADMIN_PANEL_ACTION = {
   OPEN_SERVICES: 'admin-panel:open-services',
   SERVICES_OPEN_PREFIX: 'admin-panel:services:open:',
   SERVICES_OPEN_STATS_PREFIX: 'admin-panel:services:open-stats:',
+  SERVICES_EDIT_OPEN_PREFIX: 'admin-panel:services:edit:open:',
+  SERVICES_EDIT_RESULT_OPEN: 'admin-panel:services:edit:result:open',
+  SERVICES_EDIT_CONFIRM: 'admin-panel:services:edit:confirm',
+  SERVICES_EDIT_CANCEL: 'admin-panel:services:edit:cancel',
+  SERVICES_EDIT_BACK: 'admin-panel:services:edit:back',
   SERVICES_BACK_TO_LIST: 'admin-panel:services:back-to-list',
   SERVICES_BACK: 'admin-panel:services:back',
   OPEN_STATS: 'admin-panel:open-stats',
@@ -167,6 +172,11 @@ export const ADMIN_PANEL_BUTTON_TEXT = {
   MASTERS_BACK: '⬅️ До адмін-панелі',
   SERVICES: '💼 Послуги',
   SERVICES_OPEN_STATS: '📊 Статистика послуги',
+  SERVICES_EDIT_OPEN: '✏️ Редагувати послугу',
+  SERVICES_EDIT_RESULT: '🎯 Змінити результат',
+  SERVICES_EDIT_CONFIRM: '✅ Зберегти',
+  SERVICES_EDIT_CANCEL: '❌ Скасувати',
+  SERVICES_EDIT_BACK: '⬅️ До картки послуги',
   SERVICES_BACK_TO_LIST: '⬅️ До списку послуг',
   SERVICES_BACK: '⬅️ До адмін-панелі',
   STATS: '📊 Статистика',
@@ -281,6 +291,7 @@ export const ADMIN_PANEL_MASTERS_BOOKINGS_OPEN_CARD_ACTION_REGEX =
   /^admin-panel:masters:bookings:open-card:(\d+)$/;
 export const ADMIN_PANEL_SERVICES_OPEN_ACTION_REGEX = /^admin-panel:services:open:(\d+)$/;
 export const ADMIN_PANEL_SERVICES_OPEN_STATS_ACTION_REGEX = /^admin-panel:services:open-stats:(\d+)$/;
+export const ADMIN_PANEL_SERVICES_EDIT_OPEN_ACTION_REGEX = /^admin-panel:services:edit:open:(\d+)$/;
 export const ADMIN_PANEL_STATS_MASTERS_OPEN_ACTION_REGEX = /^admin-panel:stats:masters:open:(\d+)$/;
 export const ADMIN_PANEL_STATS_SERVICES_OPEN_ACTION_REGEX = /^admin-panel:stats:services:open:(\d+)$/;
 export const ADMIN_PANEL_STATS_MONTHLY_OPEN_ACTION_REGEX = /^admin-panel:stats:monthly:open:(\d{6})$/;
@@ -417,6 +428,10 @@ export function makeAdminPanelServicesOpenAction(serviceId: string): string {
 
 export function makeAdminPanelServicesOpenStatsAction(serviceId: string): string {
   return `${ADMIN_PANEL_ACTION.SERVICES_OPEN_STATS_PREFIX}${serviceId}`;
+}
+
+export function makeAdminPanelServicesEditOpenAction(serviceId: string): string {
+  return `${ADMIN_PANEL_ACTION.SERVICES_EDIT_OPEN_PREFIX}${serviceId}`;
 }
 
 export function makeAdminPanelStatsMastersOpenAction(masterId: string): string {

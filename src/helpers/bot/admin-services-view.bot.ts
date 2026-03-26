@@ -2,6 +2,7 @@ import { Markup } from 'telegraf';
 import {
   ADMIN_PANEL_ACTION,
   ADMIN_PANEL_BUTTON_TEXT,
+  makeAdminPanelServicesEditOpenAction,
   makeAdminPanelServicesOpenAction,
   makeAdminPanelServicesOpenStatsAction,
 } from '../../types/bot-admin-panel.types.js';
@@ -131,12 +132,99 @@ export function createAdminServiceDetailsKeyboard(
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_OPEN,
+        makeAdminPanelServicesEditOpenAction(serviceId),
+      ),
+    ],
+    [
+      Markup.button.callback(
         ADMIN_PANEL_BUTTON_TEXT.SERVICES_OPEN_STATS,
         makeAdminPanelServicesOpenStatsAction(serviceId),
       ),
     ],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK_TO_LIST, ADMIN_PANEL_ACTION.SERVICES_BACK_TO_LIST)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK, ADMIN_PANEL_ACTION.SERVICES_BACK)],
+  ]);
+}
+
+function formatOptionalText(value: string | null): string {
+  const normalized = value?.trim();
+  return normalized ? normalized : 'Не вказано';
+}
+
+/**
+ * @summary Текст меню редагування послуги.
+ */
+export function formatAdminServiceEditMenuText(serviceName: string, resultDescription: string | null): string {
+  return (
+    '✏️ Редагування послуги\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n\n` +
+    `🎯 Поточний результат:\n${formatOptionalText(resultDescription)}\n\n` +
+    'Оберіть, що потрібно змінити:'
+  );
+}
+
+/**
+ * @summary Клавіатура меню редагування послуги.
+ */
+export function createAdminServiceEditMenuKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_RESULT, ADMIN_PANEL_ACTION.SERVICES_EDIT_RESULT_OPEN)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_BACK, ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK_TO_LIST, ADMIN_PANEL_ACTION.SERVICES_BACK_TO_LIST)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK, ADMIN_PANEL_ACTION.SERVICES_BACK)],
+  ]);
+}
+
+/**
+ * @summary Текст кроку вводу нового результату послуги.
+ */
+export function formatAdminServiceEditResultInputText(
+  serviceName: string,
+  currentResultDescription: string | null,
+): string {
+  return (
+    '✏️ Оновлення результату послуги\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n\n` +
+    `🎯 Поточний результат:\n${formatOptionalText(currentResultDescription)}\n\n` +
+    'Надішліть новий текст результату одним повідомленням.\n' +
+    'Мінімум 10 символів, максимум 1200 символів.'
+  );
+}
+
+/**
+ * @summary Клавіатура кроку вводу нового результату.
+ */
+export function createAdminServiceEditInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_CANCEL, ADMIN_PANEL_ACTION.SERVICES_EDIT_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_BACK, ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
+  ]);
+}
+
+/**
+ * @summary Текст підтвердження оновлення результату послуги.
+ */
+export function formatAdminServiceEditResultConfirmText(serviceName: string, nextResultDescription: string): string {
+  return (
+    '✅ Підтвердження оновлення\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n\n` +
+    `🎯 Новий результат:\n${nextResultDescription}\n\n` +
+    'Підтвердьте збереження змін.'
+  );
+}
+
+/**
+ * @summary Клавіатура підтвердження оновлення результату послуги.
+ */
+export function createAdminServiceEditConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_CONFIRM, ADMIN_PANEL_ACTION.SERVICES_EDIT_CONFIRM)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_CANCEL, ADMIN_PANEL_ACTION.SERVICES_EDIT_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_BACK, ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
   ]);
 }
 
