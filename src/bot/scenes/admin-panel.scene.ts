@@ -12,6 +12,10 @@ import type {
   MasterCatalogDetails,
   MasterCatalogItem,
 } from '../../types/db-helpers/db-masters.types.js';
+import type {
+  ServicesCatalogDetails,
+  ServicesCatalogItem,
+} from '../../types/db-helpers/db-services.types.js';
 import type { AdminStudioScheduleData } from '../../types/db-helpers/db-admin-schedule.types.js';
 import type { AdminStudioTemporaryScheduleDayInput } from '../../types/db-helpers/db-admin-schedule.types.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
@@ -83,10 +87,19 @@ import {
   formatAdminMasterStatsStubText,
 } from '../../helpers/bot/admin-masters-view.bot.js';
 import {
+  createAdminServiceDetailsKeyboard,
+  createAdminServicesCatalogKeyboard,
+  formatAdminServiceDetailsText,
+  formatAdminServicesCatalogText,
+  formatAdminServiceStatsStubText,
+} from '../../helpers/bot/admin-services-view.bot.js';
+import {
   ADMIN_PANEL_ACTION,
   ADMIN_PANEL_MASTERS_OPEN_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_OPEN_BOOKINGS_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_OPEN_STATS_ACTION_REGEX,
+  ADMIN_PANEL_SERVICES_OPEN_ACTION_REGEX,
+  ADMIN_PANEL_SERVICES_OPEN_STATS_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_CANCEL_REQUEST_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_CHANGE_MASTER_ACTION_REGEX,
@@ -131,6 +144,10 @@ import {
   listActiveMastersByService,
   listActiveMastersCatalog,
 } from '../../helpers/db/db-masters.helper.js';
+import {
+  getServiceCatalogDetailsById,
+  listActiveServicesCatalog,
+} from '../../helpers/db/db-services.helper.js';
 import { buildBookingDateOptions, buildBookingTimeOptions } from '../../helpers/bot/booking-view.bot.js';
 import { bookingDateCodeSchema, bookingTimeCodeSchema } from '../../validator/booking-input.schema.js';
 import { dispatchNotification } from '../../helpers/notification/notification-dispatch.helper.js';
@@ -199,6 +216,7 @@ type AdminScheduleDeleteDraft = {
 };
 
 type AdminMasterSubSection = 'catalog' | 'details' | 'bookings-stub' | 'stats-stub';
+type AdminServiceSubSection = 'catalog' | 'details' | 'stats-stub';
 
 type AdminPanelSceneState = {
   access: AdminPanelAccess | null;
@@ -216,6 +234,9 @@ type AdminPanelSceneState = {
   mastersCatalog: MasterCatalogItem[] | null;
   mastersSelectedMasterId: string | null;
   mastersCurrentSection: AdminMasterSubSection | null;
+  servicesCatalog: ServicesCatalogItem[] | null;
+  servicesSelectedServiceId: string | null;
+  servicesCurrentSection: AdminServiceSubSection | null;
 };
 
 function getSceneState(ctx: MyContext): AdminPanelSceneState {
@@ -238,6 +259,12 @@ function resetMastersState(state: AdminPanelSceneState): void {
   state.mastersCatalog = null;
   state.mastersSelectedMasterId = null;
   state.mastersCurrentSection = null;
+}
+
+function resetServicesState(state: AdminPanelSceneState): void {
+  state.servicesCatalog = null;
+  state.servicesSelectedServiceId = null;
+  state.servicesCurrentSection = null;
 }
 
 function getUserText(ctx: MyContext): string | null {
@@ -574,6 +601,74 @@ async function renderAdminMasterDetails(
 
   const text = formatAdminMasterDetailsText(details);
   const keyboard = createAdminMasterDetailsKeyboard(masterId);
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function loadAdminServicesCatalog(state: AdminPanelSceneState): Promise<ServicesCatalogItem[]> {
+  const studioId = state.access?.studioId;
+  if (!studioId) {
+    throw new ValidationError('Не вдалося визначити студію адміністратора');
+  }
+
+  const services = await listActiveServicesCatalog({ studioId, limit: 50 });
+  state.servicesCatalog = services;
+  return services;
+}
+
+async function renderAdminServicesCatalog(ctx: MyContext, preferEdit: boolean): Promise<void> {
+  const state = getSceneState(ctx);
+  const services = await loadAdminServicesCatalog(state);
+  state.servicesCurrentSection = 'catalog';
+  state.servicesSelectedServiceId = null;
+
+  const text = formatAdminServicesCatalogText(services);
+  const keyboard = createAdminServicesCatalogKeyboard(services);
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminServiceDetails(
+  ctx: MyContext,
+  serviceId: string,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const studioId = state.access?.studioId;
+  if (!studioId) {
+    throw new ValidationError('Не вдалося визначити студію адміністратора');
+  }
+
+  const details = await getServiceCatalogDetailsById({ serviceId, studioId });
+  if (!details) {
+    await ctx.reply('⚠️ Послугу не знайдено або вона неактивна.');
+    await renderAdminServicesCatalog(ctx, false);
+    return;
+  }
+
+  state.servicesCurrentSection = 'details';
+  state.servicesSelectedServiceId = serviceId;
+
+  const text = formatAdminServiceDetailsText(details);
+  const keyboard = createAdminServiceDetailsKeyboard(serviceId);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1024,6 +1119,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.mastersCatalog = null;
       state.mastersSelectedMasterId = null;
       state.mastersCurrentSection = null;
+      state.servicesCatalog = null;
+      state.servicesSelectedServiceId = null;
+      state.servicesCurrentSection = null;
 
       if (!state.access) {
         await ctx.reply(
@@ -1290,6 +1388,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     resetRecordsActionDrafts(state);
     resetScheduleDrafts(state);
     resetMastersState(state);
+    resetServicesState(state);
     state.scheduleCurrentSection = null;
     await renderRecordsMenu(ctx);
   });
@@ -1298,6 +1397,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
     resetMastersState(state);
+    resetServicesState(state);
     state.scheduleCurrentSection = null;
     state.scheduleData = null;
     resetScheduleDrafts(state);
@@ -1957,6 +2057,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     resetRecordsActionDrafts(state);
     resetScheduleDrafts(state);
     resetMastersState(state);
+    resetServicesState(state);
     await renderAdminMastersCatalog(ctx, true);
   });
 
@@ -2053,9 +2154,68 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(ADMIN_PANEL_ACTION.OPEN_SERVICES, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
+    resetRecordsActionDrafts(state);
     resetScheduleDrafts(state);
     resetMastersState(state);
-    await renderStubSection(ctx, '💼 Послуги', 4);
+    resetServicesState(state);
+    await renderAdminServicesCatalog(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_SERVICES_OPEN_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const serviceId = parseNumericIdFromAction(
+      ctx,
+      ADMIN_PANEL_SERVICES_OPEN_ACTION_REGEX,
+      'id послуги',
+    );
+    await renderAdminServiceDetails(ctx, serviceId, true);
+    state.servicesSelectedServiceId = serviceId;
+  });
+
+  scene.action(ADMIN_PANEL_SERVICES_OPEN_STATS_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const serviceId = parseNumericIdFromAction(
+      ctx,
+      ADMIN_PANEL_SERVICES_OPEN_STATS_ACTION_REGEX,
+      'id послуги',
+    );
+    const details = await getServiceCatalogDetailsById({
+      serviceId,
+      studioId: state.access?.studioId,
+    });
+    if (!details) {
+      await renderAdminServicesCatalog(ctx, true);
+      return;
+    }
+
+    state.servicesCurrentSection = 'stats-stub';
+    state.servicesSelectedServiceId = serviceId;
+
+    try {
+      await ctx.editMessageText(
+        formatAdminServiceStatsStubText(details.service.name),
+        createAdminServiceDetailsKeyboard(serviceId),
+      );
+    } catch {
+      await ctx.reply(
+        formatAdminServiceStatsStubText(details.service.name),
+        createAdminServiceDetailsKeyboard(serviceId),
+      );
+    }
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SERVICES_BACK_TO_LIST, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderAdminServicesCatalog(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SERVICES_BACK, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    resetServicesState(state);
+    await renderAdminRoot(ctx, true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.OPEN_STATS, async (ctx) => {
@@ -2063,6 +2223,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const state = getSceneState(ctx);
     resetScheduleDrafts(state);
     resetMastersState(state);
+    resetServicesState(state);
     await renderStubSection(ctx, '📊 Статистика', 5);
   });
 
@@ -2071,6 +2232,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const state = getSceneState(ctx);
     resetScheduleDrafts(state);
     resetMastersState(state);
+    resetServicesState(state);
     await renderStubSection(ctx, '⚙️ Налаштування', 6);
   });
 
@@ -2522,6 +2684,11 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
   scene.action(ADMIN_PANEL_ACTION.BACK_TO_ROOT, async (ctx) => {
     await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    resetRecordsActionDrafts(state);
+    resetScheduleDrafts(state);
+    resetMastersState(state);
+    resetServicesState(state);
     await renderAdminRoot(ctx, true);
   });
 

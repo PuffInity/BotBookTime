@@ -4,7 +4,7 @@ import { ADMIN_PANEL_ACTION, ADMIN_PANEL_BUTTON_TEXT } from '../../types/bot-adm
 
 /**
  * @file admin-panel-view.bot.ts
- * @summary UI/helper-и для skeleton адмін-панелі.
+ * @summary UI/helper-и для адмін-панелі.
  */
 
 function getAdminDisplayName(access: AdminPanelAccess): string {
@@ -21,15 +21,7 @@ export function formatAdminPanelRootText(access: AdminPanelAccess): string {
     '🛡 Адмін-панель\n' +
     '━━━━━━━━━━━━━━\n\n' +
     `Вітаю, ${adminName}.\n\n` +
-    'Зараз це стартовий skeleton адмін-панелі.\n' +
-    'Ми реалізуємо кожну кнопку окремим блоком (1 кнопка = 1 блок).\n\n' +
-    '🧭 Порядок блоків:\n' +
-    '1) 📅 Записи\n' +
-    '2) 🕒 Розклад\n' +
-    '3) 👩‍🎨 Майстри\n' +
-    '4) 💼 Послуги\n' +
-    '5) 📊 Статистика\n' +
-    '6) ⚙️ Налаштування\n\n' +
+    'Керуйте записами, розкладом, майстрами та налаштуваннями салону в одному місці.\n\n' +
     'Оберіть розділ нижче.'
   );
 }
@@ -58,14 +50,12 @@ export function createAdminPanelRootKeyboard(): ReturnType<typeof Markup.inlineK
 /**
  * @summary Текст заглушки розділу адмін-панелі.
  */
-export function formatAdminPanelSectionStubText(title: string, blockNumber: number): string {
+export function formatAdminPanelSectionStubText(title: string, _blockNumber: number): string {
   return (
     `${title}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `🧱 Блок ${blockNumber}\n` +
-    'Статус: заглушка (ще не реалізовано)\n\n' +
-    'Цей розділ буде підключено в окремому етапі за нашим планом.\n' +
-    'Зараз кнопка залишена для наочної навігації.'
+    '⚠️ Цей розділ тимчасово недоступний.\n\n' +
+    'Модуль ще в розробці. Після запуску тут буде повний функціонал.'
   );
 }
 
@@ -86,7 +76,6 @@ export function formatAdminRecordsMenuText(): string {
   return (
     '📅 Записи\n' +
     '━━━━━━━━━━━━━━\n\n' +
-    'Блок 1 активний.\n' +
     'Оберіть категорію для перегляду записів:'
   );
 }
@@ -120,10 +109,8 @@ export function formatAdminRecordsCategoryStubText(
   return (
     `${title}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    '📦 Підблок блоку 1\n' +
     `Код категорії: ${categoryCode}\n\n` +
-    'Поточний етап:\n' +
-    'ми зафіксували навігацію та структуру.\n\n' +
-    'На наступному кроці тут буде реальна видача з БД (списки, пагінація, картка запису).'
+    '⚠️ Ця категорія тимчасово недоступна.\n' +
+    'Після підключення тут буде відображатися список записів із БД.'
   );
 }
