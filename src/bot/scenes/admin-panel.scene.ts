@@ -127,10 +127,18 @@ import {
   formatAdminRescheduleTimeStepText,
 } from '../../helpers/bot/admin-bookings-view.bot.js';
 import {
+  type AdminMasterEditableField,
+  createAdminMasterEditConfirmKeyboard,
+  createAdminMasterEditInputKeyboard,
+  createAdminMasterEditMenuKeyboard,
   createAdminMasterBookingCardKeyboard,
   createAdminMasterBookingsFeedKeyboard,
   createAdminMasterDetailsKeyboard,
   createAdminMastersCatalogKeyboard,
+  formatAdminMasterEditConfirmText,
+  formatAdminMasterEditInputText,
+  formatAdminMasterEditMenuText,
+  formatAdminMasterEditSuccessText,
   formatAdminMasterBookingCardText,
   formatAdminMasterBookingsFeedText,
   formatAdminMasterDetailsText,
@@ -168,6 +176,8 @@ import {
   ADMIN_PANEL_ACTION,
   ADMIN_PANEL_MASTERS_OPEN_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_BOOKINGS_OPEN_CARD_ACTION_REGEX,
+  ADMIN_PANEL_MASTERS_EDIT_FIELD_ACTION_REGEX,
+  ADMIN_PANEL_MASTERS_EDIT_OPEN_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_OPEN_BOOKINGS_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_OPEN_STATS_ACTION_REGEX,
   ADMIN_PANEL_SETTINGS_NOTIFICATIONS_TOGGLE_ACTION_REGEX,
@@ -219,6 +229,16 @@ import {
   getAdminStudioSchedule,
 } from '../../helpers/db/db-admin-schedule.helper.js';
 import {
+  getMasterOwnProfile,
+  updateMasterOwnProfileBio,
+  updateMasterOwnProfileDisplayName,
+  updateMasterOwnProfileEmail,
+  updateMasterOwnProfileMaterials,
+  updateMasterOwnProfilePhone,
+  updateMasterOwnProfileProceduresDoneTotal,
+  updateMasterOwnProfileStartedOn,
+} from '../../helpers/db/db-master-profile.helper.js';
+import {
   getMasterCatalogDetailsById,
   listActiveMastersByService,
   listActiveMastersCatalog,
@@ -261,6 +281,15 @@ import { bookingDateCodeSchema, bookingTimeCodeSchema } from '../../validator/bo
 import { dispatchNotification } from '../../helpers/notification/notification-dispatch.helper.js';
 import { ValidationError, handleError } from '../../utils/error.utils.js';
 import { loggerNotification } from '../../utils/logger/loggers-list.js';
+import {
+  normalizeMasterBio,
+  normalizeMasterContactEmail,
+  normalizeMasterContactPhone,
+  normalizeMasterDisplayName,
+  normalizeMasterMaterialsInfo,
+  normalizeMasterProceduresDoneTotal,
+  normalizeMasterStartedOn,
+} from '../../utils/db/db-master-profile.js';
 
 /**
  * @file admin-panel.scene.ts
@@ -323,7 +352,14 @@ type AdminScheduleDeleteDraft = {
   dateTo: string | null;
 };
 
-type AdminMasterSubSection = 'catalog' | 'details' | 'bookings' | 'stats';
+type AdminMasterSubSection = 'catalog' | 'details' | 'bookings' | 'stats' | 'edit';
+type AdminMasterEditDraft = {
+  masterId: string;
+  field: AdminMasterEditableField;
+  mode: 'awaiting_value' | 'awaiting_confirm';
+  currentValue: string;
+  value: string | null;
+};
 type AdminServiceSubSection = 'catalog' | 'details' | 'stats';
 type AdminStatsSection = 'overview' | 'masters' | 'services' | 'monthly' | 'clients';
 type AdminSettingsSection = 'menu' | 'language' | 'admins' | 'studio' | 'notifications';
@@ -366,6 +402,7 @@ type AdminPanelSceneState = {
   mastersBookingsFeed: AdminBookingsFeedPage | null;
   mastersBookingsOpenedAppointmentId: string | null;
   mastersCurrentSection: AdminMasterSubSection | null;
+  mastersEditDraft: AdminMasterEditDraft | null;
   servicesCatalog: ServicesCatalogItem[] | null;
   servicesSelectedServiceId: string | null;
   servicesCurrentSection: AdminServiceSubSection | null;
@@ -415,6 +452,7 @@ function resetMastersState(state: AdminPanelSceneState): void {
   state.mastersBookingsFeed = null;
   state.mastersBookingsOpenedAppointmentId = null;
   state.mastersCurrentSection = null;
+  state.mastersEditDraft = null;
 }
 
 function resetServicesState(state: AdminPanelSceneState): void {
@@ -1166,6 +1204,214 @@ async function renderAdminMasterDetails(
 
   const text = formatAdminMasterDetailsText(details);
   const keyboard = createAdminMasterDetailsKeyboard(masterId);
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function ensureAdminMasterEditableAccess(
+  state: AdminPanelSceneState,
+  masterId: string,
+): Promise<MasterCatalogDetails> {
+  const studioId = state.access?.studioId;
+  if (!studioId) {
+    throw new ValidationError('Не вдалося визначити студію адміністратора');
+  }
+
+  const details = await getMasterCatalogDetailsById({ masterId, studioId });
+  if (!details) {
+    throw new ValidationError('Майстра не знайдено або профіль вже неактивний');
+  }
+
+  return details;
+}
+
+function formatAdminMasterDateForText(value: Date | null): string {
+  return value ? formatDateLabel(value) : 'Не вказано';
+}
+
+async function resolveAdminMasterEditableCurrentValue(
+  masterId: string,
+  field: AdminMasterEditableField,
+): Promise<string> {
+  const profile = await getMasterOwnProfile(masterId);
+
+  switch (field) {
+    case 'display_name':
+      return profile.displayName;
+    case 'bio':
+      return profile.bio?.trim() ? profile.bio.trim() : 'Не вказано';
+    case 'materials':
+      return profile.materialsInfo?.trim() ? profile.materialsInfo.trim() : 'Не вказано';
+    case 'phone':
+      return profile.contactPhoneE164 ?? 'Не вказано';
+    case 'email':
+      return profile.contactEmail ?? 'Не вказано';
+    case 'started_on':
+      return formatAdminMasterDateForText(profile.startedOn);
+    case 'procedures_done_total':
+      return String(profile.proceduresDoneTotal);
+    default:
+      throw new ValidationError('Некоректне поле профілю майстра');
+  }
+}
+
+function normalizeAdminMasterFieldValue(
+  field: AdminMasterEditableField,
+  value: string,
+): string {
+  switch (field) {
+    case 'display_name':
+      return normalizeMasterDisplayName(value);
+    case 'bio':
+      return normalizeMasterBio(value);
+    case 'materials':
+      return normalizeMasterMaterialsInfo(value);
+    case 'phone':
+      return normalizeMasterContactPhone(value);
+    case 'email':
+      return normalizeMasterContactEmail(value);
+    case 'procedures_done_total':
+      return String(normalizeMasterProceduresDoneTotal(value));
+    case 'started_on': {
+      const normalized = normalizeMasterStartedOn(value);
+      const [year, month, day] = normalized.split('-');
+      return `${day}.${month}.${year}`;
+    }
+    default:
+      throw new ValidationError('Некоректне поле профілю майстра');
+  }
+}
+
+async function persistAdminMasterFieldValue(
+  masterId: string,
+  field: AdminMasterEditableField,
+  value: string,
+): Promise<void> {
+  switch (field) {
+    case 'display_name':
+      await updateMasterOwnProfileDisplayName({ masterId, displayName: value });
+      return;
+    case 'bio':
+      await updateMasterOwnProfileBio({ masterId, bio: value });
+      return;
+    case 'materials':
+      await updateMasterOwnProfileMaterials({ masterId, materialsInfo: value });
+      return;
+    case 'phone':
+      await updateMasterOwnProfilePhone({ masterId, contactPhoneE164: value });
+      return;
+    case 'email':
+      await updateMasterOwnProfileEmail({ masterId, contactEmail: value });
+      return;
+    case 'procedures_done_total':
+      await updateMasterOwnProfileProceduresDoneTotal({
+        masterId,
+        proceduresDoneTotal: value,
+      });
+      return;
+    case 'started_on':
+      await updateMasterOwnProfileStartedOn({ masterId, startedOn: value });
+      return;
+    default:
+      throw new ValidationError('Некоректне поле профілю майстра');
+  }
+}
+
+function parseAdminMasterEditFieldAction(ctx: MyContext): {
+  masterId: string;
+  field: AdminMasterEditableField;
+} {
+  const callbackData =
+    ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
+  const match = callbackData.match(ADMIN_PANEL_MASTERS_EDIT_FIELD_ACTION_REGEX);
+
+  const masterId = match?.[1] ?? '';
+  const field = match?.[2] as AdminMasterEditableField | undefined;
+  if (!masterId || !field) {
+    throw new ValidationError('Некоректна callback-дія редагування майстра');
+  }
+
+  return { masterId, field };
+}
+
+async function renderAdminMasterEditMenu(
+  ctx: MyContext,
+  masterId: string,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const details = await ensureAdminMasterEditableAccess(state, masterId);
+  state.mastersCurrentSection = 'edit';
+  state.mastersSelectedMasterId = masterId;
+  state.mastersEditDraft = null;
+
+  const text = formatAdminMasterEditMenuText(details.master.displayName);
+  const keyboard = createAdminMasterEditMenuKeyboard(masterId);
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminMasterEditInput(
+  ctx: MyContext,
+  masterId: string,
+  field: AdminMasterEditableField,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  await ensureAdminMasterEditableAccess(state, masterId);
+  const currentValue = await resolveAdminMasterEditableCurrentValue(masterId, field);
+
+  state.mastersCurrentSection = 'edit';
+  state.mastersSelectedMasterId = masterId;
+  state.mastersEditDraft = {
+    masterId,
+    field,
+    mode: 'awaiting_value',
+    currentValue,
+    value: null,
+  };
+
+  const text = formatAdminMasterEditInputText(field, currentValue);
+  const keyboard = createAdminMasterEditInputKeyboard(masterId);
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminMasterEditConfirm(
+  ctx: MyContext,
+  draft: AdminMasterEditDraft,
+  preferEdit: boolean,
+): Promise<void> {
+  const nextValue = draft.value ?? draft.currentValue;
+  const text = formatAdminMasterEditConfirmText(draft.field, draft.currentValue, nextValue);
+  const keyboard = createAdminMasterEditConfirmKeyboard(draft.masterId);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2167,6 +2413,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.mastersBookingsFeed = null;
       state.mastersBookingsOpenedAppointmentId = null;
       state.mastersCurrentSection = null;
+      state.mastersEditDraft = null;
       state.servicesCatalog = null;
       state.servicesSelectedServiceId = null;
       state.servicesCurrentSection = null;
@@ -2437,6 +2684,44 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       if (temporaryDraft?.mode === 'awaiting_confirm' || temporaryDraft?.mode === 'configuring_days') {
         await ctx.reply(
           '⚠️ Для завершення дії використовуйте кнопки під повідомленням.',
+        );
+        return;
+      }
+
+      const mastersEditDraft = state.mastersEditDraft;
+      if (mastersEditDraft?.mode === 'awaiting_value') {
+        try {
+          const normalizedValue = normalizeAdminMasterFieldValue(mastersEditDraft.field, text);
+          mastersEditDraft.mode = 'awaiting_confirm';
+          mastersEditDraft.value = normalizedValue;
+
+          await renderAdminMasterEditConfirm(ctx, mastersEditDraft, false);
+        } catch (error) {
+          const err =
+            error instanceof ValidationError
+              ? error
+              : new ValidationError('Виникла помилка перевірки значення');
+
+          await ctx.reply(
+            `⚠️ ${err.message}`,
+            createAdminMasterEditInputKeyboard(mastersEditDraft.masterId),
+          );
+        }
+        return;
+      }
+
+      if (mastersEditDraft?.mode === 'awaiting_confirm') {
+        await ctx.reply(
+          'ℹ️ Для завершення редагування використовуйте кнопки підтвердження під повідомленням.',
+          createAdminMasterEditConfirmKeyboard(mastersEditDraft.masterId),
+        );
+        return;
+      }
+
+      if (state.mastersCurrentSection === 'edit' && state.mastersSelectedMasterId) {
+        await ctx.reply(
+          'ℹ️ Для редагування профілю майстра використовуйте кнопки під повідомленням.',
+          createAdminMasterEditMenuKeyboard(state.mastersSelectedMasterId),
         );
         return;
       }
@@ -3439,8 +3724,81 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
   });
 
+  scene.action(ADMIN_PANEL_MASTERS_EDIT_OPEN_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const masterId = parseNumericIdFromAction(
+      ctx,
+      ADMIN_PANEL_MASTERS_EDIT_OPEN_ACTION_REGEX,
+      'id майстра',
+    );
+    await renderAdminMasterEditMenu(ctx, masterId, true);
+  });
+
+  scene.action(ADMIN_PANEL_MASTERS_EDIT_FIELD_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const { masterId, field } = parseAdminMasterEditFieldAction(ctx);
+    await renderAdminMasterEditInput(ctx, masterId, field, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_EDIT_CANCEL, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const masterId = state.mastersEditDraft?.masterId ?? state.mastersSelectedMasterId;
+    state.mastersEditDraft = null;
+    if (!masterId) {
+      await renderAdminMastersCatalog(ctx, true);
+      return;
+    }
+    await renderAdminMasterEditMenu(ctx, masterId, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_EDIT_BACK, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const masterId = state.mastersSelectedMasterId;
+    state.mastersEditDraft = null;
+    if (!masterId) {
+      await renderAdminMastersCatalog(ctx, true);
+      return;
+    }
+    await renderAdminMasterDetails(ctx, masterId, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_EDIT_CONFIRM, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.mastersEditDraft;
+
+    if (!draft || draft.mode !== 'awaiting_confirm' || !draft.value) {
+      const fallbackMasterId = draft?.masterId ?? state.mastersSelectedMasterId;
+      if (!fallbackMasterId) {
+        await renderAdminMastersCatalog(ctx, true);
+        return;
+      }
+      await renderAdminMasterEditMenu(ctx, fallbackMasterId, true);
+      return;
+    }
+
+    try {
+      await ensureAdminMasterEditableAccess(state, draft.masterId);
+      await persistAdminMasterFieldValue(draft.masterId, draft.field, draft.value);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        await ctx.reply(`⚠️ ${error.message}`);
+        await renderAdminMasterEditInput(ctx, draft.masterId, draft.field, false);
+        return;
+      }
+      throw error;
+    }
+
+    state.mastersEditDraft = null;
+    await ctx.reply(formatAdminMasterEditSuccessText(draft.field, draft.value));
+    await renderAdminMasterEditMenu(ctx, draft.masterId, false);
+  });
+
   scene.action(ADMIN_PANEL_ACTION.MASTERS_BACK_TO_LIST, async (ctx) => {
     await ctx.answerCbQuery();
+    getSceneState(ctx).mastersEditDraft = null;
     await renderAdminMastersCatalog(ctx, true);
   });
 

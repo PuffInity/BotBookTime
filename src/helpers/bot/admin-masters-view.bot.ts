@@ -3,6 +3,8 @@ import {
   ADMIN_PANEL_ACTION,
   ADMIN_PANEL_BUTTON_TEXT,
   makeAdminPanelMastersBookingsOpenCardAction,
+  makeAdminPanelMastersEditFieldAction,
+  makeAdminPanelMastersEditOpenAction,
   makeAdminPanelMastersOpenAction,
   makeAdminPanelMastersOpenBookingsAction,
   makeAdminPanelMastersOpenStatsAction,
@@ -201,6 +203,12 @@ export function createAdminMasterDetailsKeyboard(
         makeAdminPanelMastersOpenStatsAction(masterId),
       ),
     ],
+    [
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_OPEN,
+        makeAdminPanelMastersEditOpenAction(masterId),
+      ),
+    ],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK_TO_LIST, ADMIN_PANEL_ACTION.MASTERS_BACK_TO_LIST)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK, ADMIN_PANEL_ACTION.MASTERS_BACK)],
   ]);
@@ -349,5 +357,182 @@ export function formatAdminMasterStatsStubText(masterName: string): string {
     `👩‍🎨 Майстер: ${masterName}\n\n` +
     '⚠️ Розділ тимчасово недоступний.\n' +
     'На наступному кроці тут будуть показники продуктивності, завантаженості та фінансів майстра.'
+  );
+}
+
+export type AdminMasterEditableField =
+  | 'display_name'
+  | 'bio'
+  | 'materials'
+  | 'phone'
+  | 'email'
+  | 'started_on'
+  | 'procedures_done_total';
+
+function getEditableFieldLabel(field: AdminMasterEditableField): string {
+  switch (field) {
+    case 'display_name':
+      return 'Імʼя майстра';
+    case 'bio':
+      return 'Опис майстра';
+    case 'materials':
+      return 'Додаткова інформація';
+    case 'phone':
+      return 'Телефон майстра';
+    case 'email':
+      return 'Email майстра';
+    case 'started_on':
+      return 'Дата початку роботи';
+    case 'procedures_done_total':
+      return 'Кількість процедур';
+    default:
+      return 'Поле профілю';
+  }
+}
+
+/**
+ * @summary Форматує екран меню редагування профілю майстра.
+ */
+export function formatAdminMasterEditMenuText(masterName: string): string {
+  return (
+    '✏️ Редагування профілю майстра\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `👩‍🎨 Майстер: ${masterName}\n\n` +
+    'Оберіть поле, яке потрібно оновити:'
+  );
+}
+
+/**
+ * @summary Клавіатура меню редагування профілю майстра.
+ */
+export function createAdminMasterEditMenuKeyboard(
+  masterId: string,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_DISPLAY_NAME,
+        makeAdminPanelMastersEditFieldAction(masterId, 'display_name'),
+      ),
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_BIO,
+        makeAdminPanelMastersEditFieldAction(masterId, 'bio'),
+      ),
+    ],
+    [
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_MATERIALS,
+        makeAdminPanelMastersEditFieldAction(masterId, 'materials'),
+      ),
+    ],
+    [
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_PHONE,
+        makeAdminPanelMastersEditFieldAction(masterId, 'phone'),
+      ),
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_EMAIL,
+        makeAdminPanelMastersEditFieldAction(masterId, 'email'),
+      ),
+    ],
+    [
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_STARTED_ON,
+        makeAdminPanelMastersEditFieldAction(masterId, 'started_on'),
+      ),
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_PROCEDURES,
+        makeAdminPanelMastersEditFieldAction(masterId, 'procedures_done_total'),
+      ),
+    ],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_BACK, ADMIN_PANEL_ACTION.MASTERS_EDIT_BACK)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK, ADMIN_PANEL_ACTION.MASTERS_BACK)],
+  ]);
+}
+
+/**
+ * @summary Форматує екран вводу нового значення для поля майстра.
+ */
+export function formatAdminMasterEditInputText(
+  field: AdminMasterEditableField,
+  currentValue: string,
+): string {
+  const label = getEditableFieldLabel(field);
+  const hint =
+    field === 'phone'
+      ? '\n\nФормат: +420123456789'
+      : field === 'email'
+        ? '\n\nФормат: name@example.com'
+        : field === 'started_on'
+          ? '\n\nФормат: ДД.ММ.РРРР'
+          : field === 'procedures_done_total'
+            ? '\n\nВкажіть ціле число від 0 до 100000'
+            : '';
+
+  return (
+    '✏️ Редагування поля\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `Поле: ${label}\n\n` +
+    `Поточне значення:\n${currentValue}\n\n` +
+    'Введіть нове значення повідомленням.' +
+    hint
+  );
+}
+
+/**
+ * @summary Клавіатура для кроку вводу нового значення.
+ */
+export function createAdminMasterEditInputKeyboard(
+  masterId: string,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_CANCEL, ADMIN_PANEL_ACTION.MASTERS_EDIT_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_BACK, makeAdminPanelMastersEditOpenAction(masterId))],
+  ]);
+}
+
+/**
+ * @summary Форматує підтвердження перед збереженням поля майстра.
+ */
+export function formatAdminMasterEditConfirmText(
+  field: AdminMasterEditableField,
+  previousValue: string,
+  nextValue: string,
+): string {
+  const label = getEditableFieldLabel(field);
+  return (
+    '⚠️ Підтвердження змін\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `Поле: ${label}\n\n` +
+    `Було:\n${previousValue}\n\n` +
+    `Стане:\n${nextValue}\n\n` +
+    'Підтвердіть збереження.'
+  );
+}
+
+/**
+ * @summary Клавіатура підтвердження перед збереженням.
+ */
+export function createAdminMasterEditConfirmKeyboard(
+  masterId: string,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_CONFIRM, ADMIN_PANEL_ACTION.MASTERS_EDIT_CONFIRM)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_CANCEL, ADMIN_PANEL_ACTION.MASTERS_EDIT_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_BACK, makeAdminPanelMastersEditOpenAction(masterId))],
+  ]);
+}
+
+/**
+ * @summary Форматує текст успішного оновлення поля профілю майстра.
+ */
+export function formatAdminMasterEditSuccessText(
+  field: AdminMasterEditableField,
+  value: string,
+): string {
+  return (
+    '✅ Профіль майстра оновлено\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `${getEditableFieldLabel(field)}:\n${value}`
   );
 }

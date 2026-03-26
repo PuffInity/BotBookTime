@@ -35,6 +35,11 @@ export const ADMIN_PANEL_ACTION = {
   MASTERS_OPEN_PREFIX: 'admin-panel:masters:open:',
   MASTERS_OPEN_BOOKINGS_PREFIX: 'admin-panel:masters:open-bookings:',
   MASTERS_OPEN_STATS_PREFIX: 'admin-panel:masters:open-stats:',
+  MASTERS_EDIT_OPEN_PREFIX: 'admin-panel:masters:edit:open:',
+  MASTERS_EDIT_FIELD_PREFIX: 'admin-panel:masters:edit:field:',
+  MASTERS_EDIT_CONFIRM: 'admin-panel:masters:edit:confirm',
+  MASTERS_EDIT_CANCEL: 'admin-panel:masters:edit:cancel',
+  MASTERS_EDIT_BACK: 'admin-panel:masters:edit:back',
   MASTERS_BOOKINGS_OPEN_CARD_PREFIX: 'admin-panel:masters:bookings:open-card:',
   MASTERS_BOOKINGS_PREV_PAGE: 'admin-panel:masters:bookings:prev-page',
   MASTERS_BOOKINGS_NEXT_PAGE: 'admin-panel:masters:bookings:next-page',
@@ -142,6 +147,17 @@ export const ADMIN_PANEL_BUTTON_TEXT = {
   MASTERS: '👩‍🎨 Майстри',
   MASTERS_OPEN_BOOKINGS: '📅 Записи майстра',
   MASTERS_OPEN_STATS: '📊 Статистика майстра',
+  MASTERS_EDIT_OPEN: '✏️ Редагувати майстра',
+  MASTERS_EDIT_DISPLAY_NAME: '✏️ Імʼя майстра',
+  MASTERS_EDIT_BIO: '📝 Опис майстра',
+  MASTERS_EDIT_PHONE: '📞 Телефон майстра',
+  MASTERS_EDIT_EMAIL: '✉️ Email майстра',
+  MASTERS_EDIT_MATERIALS: '🧴 Додаткова інформація',
+  MASTERS_EDIT_STARTED_ON: '📅 Дата початку роботи',
+  MASTERS_EDIT_PROCEDURES: '📊 Кількість процедур',
+  MASTERS_EDIT_CONFIRM: '✅ Зберегти зміни',
+  MASTERS_EDIT_CANCEL: '❌ Скасувати редагування',
+  MASTERS_EDIT_BACK: '⬅️ До профілю майстра',
   MASTERS_BOOKINGS_BACK_TO_MASTER: '⬅️ До профілю майстра',
   MASTERS_BACK_TO_LIST: '⬅️ До списку майстрів',
   MASTERS_BACK: '⬅️ До адмін-панелі',
@@ -249,6 +265,10 @@ export const ADMIN_PANEL_MASTERS_OPEN_ACTION_REGEX = /^admin-panel:masters:open:
 export const ADMIN_PANEL_MASTERS_OPEN_BOOKINGS_ACTION_REGEX =
   /^admin-panel:masters:open-bookings:(\d+)$/;
 export const ADMIN_PANEL_MASTERS_OPEN_STATS_ACTION_REGEX = /^admin-panel:masters:open-stats:(\d+)$/;
+export const ADMIN_PANEL_MASTERS_EDIT_OPEN_ACTION_REGEX =
+  /^admin-panel:masters:edit:open:(\d+)$/;
+export const ADMIN_PANEL_MASTERS_EDIT_FIELD_ACTION_REGEX =
+  /^admin-panel:masters:edit:field:(\d+):(display_name|bio|materials|phone|email|started_on|procedures_done_total)$/;
 export const ADMIN_PANEL_MASTERS_BOOKINGS_OPEN_CARD_ACTION_REGEX =
   /^admin-panel:masters:bookings:open-card:(\d+)$/;
 export const ADMIN_PANEL_SERVICES_OPEN_ACTION_REGEX = /^admin-panel:services:open:(\d+)$/;
@@ -351,6 +371,24 @@ export function makeAdminPanelMastersOpenBookingsAction(masterId: string): strin
 
 export function makeAdminPanelMastersOpenStatsAction(masterId: string): string {
   return `${ADMIN_PANEL_ACTION.MASTERS_OPEN_STATS_PREFIX}${masterId}`;
+}
+
+export function makeAdminPanelMastersEditOpenAction(masterId: string): string {
+  return `${ADMIN_PANEL_ACTION.MASTERS_EDIT_OPEN_PREFIX}${masterId}`;
+}
+
+export function makeAdminPanelMastersEditFieldAction(
+  masterId: string,
+  field:
+    | 'display_name'
+    | 'bio'
+    | 'materials'
+    | 'phone'
+    | 'email'
+    | 'started_on'
+    | 'procedures_done_total',
+): string {
+  return `${ADMIN_PANEL_ACTION.MASTERS_EDIT_FIELD_PREFIX}${masterId}:${field}`;
 }
 
 export function makeAdminPanelMastersBookingsOpenCardAction(appointmentId: string): string {
