@@ -1,4 +1,9 @@
 import type {
+  AdminPanelStatsClientDetails,
+  AdminPanelStatsClientDetailsRow,
+  AdminPanelStatsClientFeedItem,
+  AdminPanelStatsClientFeedRow,
+  AdminPanelStatsClientsFeedPage,
   AdminPanelStatsMasterDetails,
   AdminPanelStatsMasterFeedItem,
   AdminPanelStatsMasterFeedRow,
@@ -22,17 +27,21 @@ import type {
   AdminPanelStatsServiceTopMasterRow,
   AdminPanelStatsServicesFeedPage,
   GetAdminPanelStatsMonthlyReportDetailsInput,
+  GetAdminPanelStatsClientDetailsInput,
   GetAdminPanelStatsServiceDetailsInput,
   GetAdminPanelStatsMasterDetailsInput,
+  ListAdminPanelStatsClientsFeedInput,
   ListAdminPanelStatsMonthlyFeedInput,
   ListAdminPanelStatsMastersFeedInput,
   ListAdminPanelStatsServicesFeedInput,
 } from '../../types/db-helpers/db-admin-stats.types.js';
 import { queryMany, queryOne, withTransaction } from '../db.helper.js';
 import {
+  SQL_GET_ADMIN_PANEL_STATS_CLIENT_DETAILS,
   SQL_GET_ADMIN_PANEL_STATS_MONTHLY_REPORT_DETAILS,
   SQL_GET_ADMIN_PANEL_STATS_SERVICE_DETAILS,
   SQL_GET_ADMIN_PANEL_STATS_OVERVIEW,
+  SQL_LIST_ADMIN_PANEL_STATS_CLIENTS_FEED,
   SQL_LIST_ADMIN_PANEL_STATS_MONTHLY_FEED,
   SQL_LIST_ADMIN_PANEL_STATS_MONTHLY_TOP_MASTERS,
   SQL_LIST_ADMIN_PANEL_STATS_MONTHLY_TOP_SERVICES,
@@ -79,6 +88,14 @@ function normalizeServiceId(value: string | number): string {
   const normalized = String(value).trim();
   if (!/^\d+$/.test(normalized) || normalized === '0') {
     throw new ValidationError('Некоректний serviceId', { serviceId: value });
+  }
+  return normalized;
+}
+
+function normalizeClientId(value: string | number): string {
+  const normalized = String(value).trim();
+  if (!/^\d+$/.test(normalized) || normalized === '0') {
+    throw new ValidationError('Некоректний clientId', { clientId: value });
   }
   return normalized;
 }
@@ -153,6 +170,21 @@ function mapServiceFeedRow(row: AdminPanelStatsServiceFeedRow): AdminPanelStatsS
     grossMonth: toNumber(row.gross_month),
     salonMonth: toNumber(row.salon_month),
     avgCheckMonth: toNumber(row.avg_check_month),
+  };
+}
+
+function mapClientFeedRow(row: AdminPanelStatsClientFeedRow): AdminPanelStatsClientFeedItem {
+  const firstName = row.first_name.trim();
+  const lastName = row.last_name?.trim() ?? '';
+  const fullName = `${firstName}${lastName ? ` ${lastName}` : ''}`.trim();
+
+  return {
+    clientId: row.client_id,
+    fullName: fullName || `ID ${row.client_id}`,
+    currencyCode: row.currency_code,
+    spentTotal: toNumber(row.spent_total),
+    proceduresTotal: row.procedures_total,
+    avgCheck: toNumber(row.avg_check),
   };
 }
 
@@ -601,6 +633,123 @@ export async function getAdminPanelStatsMonthlyReportDetails(
       action: 'Failed to get admin panel monthly report details',
       error,
       meta: { studioId, monthCode },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Повертає сторінку фінансової статистики клієнтів студії.
+ */
+export async function listAdminPanelStatsClientsFeed(
+  input: ListAdminPanelStatsClientsFeedInput,
+): Promise<AdminPanelStatsClientsFeedPage> {
+  const studioId = normalizeStudioId(input.studioId);
+  const limit = normalizeLimit(input.limit);
+  const offset = normalizeOffset(input.offset);
+
+  try {
+    return await withTransaction(async (client) => {
+      const rows = await queryMany<AdminPanelStatsClientFeedRow, AdminPanelStatsClientFeedRow>(
+        SQL_LIST_ADMIN_PANEL_STATS_CLIENTS_FEED,
+        [studioId, limit, offset],
+        (row) => row,
+        client,
+      );
+
+      const total = rows.length > 0 ? rows[0].total_count : 0;
+      const items = rows.map(mapClientFeedRow);
+      const currencyCode =
+        rows[0]?.currency_code ??
+        (await queryOne<{ currency_code: string }, string>(
+          SQL_GET_STUDIO_CURRENCY_CODE,
+          [studioId],
+          (row) => row.currency_code,
+          client,
+        )) ??
+        'CZK';
+
+      return {
+        limit,
+        offset,
+        total,
+        currencyCode,
+        items,
+        hasPrevPage: offset > 0,
+        hasNextPage: offset + items.length < total,
+      };
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-admin-stats.helper',
+      action: 'Failed to list admin panel clients stats feed',
+      error,
+      meta: { studioId, limit, offset },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Повертає деталізовану фінансову статистику конкретного клієнта.
+ */
+export async function getAdminPanelStatsClientDetails(
+  input: GetAdminPanelStatsClientDetailsInput,
+): Promise<AdminPanelStatsClientDetails> {
+  const studioId = normalizeStudioId(input.studioId);
+  const clientId = normalizeClientId(input.clientId);
+
+  try {
+    return await withTransaction(async (dbClient) => {
+      const details = await queryOne<AdminPanelStatsClientDetailsRow, AdminPanelStatsClientDetails>(
+        SQL_GET_ADMIN_PANEL_STATS_CLIENT_DETAILS,
+        [studioId, clientId],
+        (row) => {
+          const firstName = row.first_name.trim();
+          const lastName = row.last_name?.trim() ?? '';
+          const fullName = `${firstName}${lastName ? ` ${lastName}` : ''}`.trim();
+
+          return {
+            clientId: row.client_id,
+            fullName: fullName || `ID ${row.client_id}`,
+            currencyCode: row.currency_code,
+            spentMonth: toNumber(row.spent_month),
+            spent3m: toNumber(row.spent_3m),
+            spent6m: toNumber(row.spent_6m),
+            spentYear: toNumber(row.spent_year),
+            spentTotal: toNumber(row.spent_total),
+            salonMonth: toNumber(row.salon_month),
+            salon3m: toNumber(row.salon_3m),
+            salon6m: toNumber(row.salon_6m),
+            salonYear: toNumber(row.salon_year),
+            salonTotal: toNumber(row.salon_total),
+            avgCheck: toNumber(row.avg_check),
+            proceduresTotal: row.procedures_total,
+            lastVisitAt: row.last_visit_at ? new Date(row.last_visit_at) : null,
+            mostExpensiveServiceName: row.most_expensive_service_name,
+            mostExpensiveServiceAmount: toNumber(row.most_expensive_service_amount),
+          };
+        },
+        dbClient,
+      );
+
+      if (!details) {
+        throw new ValidationError('Клієнта не знайдено у цій студії', {
+          studioId,
+          clientId,
+        });
+      }
+
+      return details;
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-admin-stats.helper',
+      action: 'Failed to get admin panel client stats details',
+      error,
+      meta: { studioId, clientId },
     });
     throw error;
   }

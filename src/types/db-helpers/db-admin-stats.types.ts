@@ -291,3 +291,87 @@ export type AdminPanelStatsMonthlyReportDetails = {
   topServices: AdminPanelStatsMonthlyTopServiceItem[];
   topMasters: AdminPanelStatsMonthlyTopMasterItem[];
 };
+
+export type AdminPanelStatsClientFeedRow = {
+  client_id: string;
+  first_name: string;
+  last_name: string | null;
+  currency_code: string;
+  spent_total: string;
+  procedures_total: number;
+  avg_check: string;
+  total_count: number;
+};
+
+export type AdminPanelStatsClientFeedItem = {
+  clientId: string;
+  fullName: string;
+  currencyCode: string;
+  spentTotal: number;
+  proceduresTotal: number;
+  avgCheck: number;
+};
+
+export type AdminPanelStatsClientsFeedPage = {
+  limit: number;
+  offset: number;
+  total: number;
+  currencyCode: string;
+  items: AdminPanelStatsClientFeedItem[];
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
+};
+
+export type ListAdminPanelStatsClientsFeedInput = {
+  studioId: string | number;
+  limit?: number;
+  offset?: number;
+};
+
+export type GetAdminPanelStatsClientDetailsInput = {
+  studioId: string | number;
+  clientId: string | number;
+};
+
+export type AdminPanelStatsClientDetailsRow = {
+  client_id: string;
+  first_name: string;
+  last_name: string | null;
+  currency_code: string;
+  spent_month: string;
+  spent_3m: string;
+  spent_6m: string;
+  spent_year: string;
+  spent_total: string;
+  salon_month: string;
+  salon_3m: string;
+  salon_6m: string;
+  salon_year: string;
+  salon_total: string;
+  avg_check: string;
+  procedures_total: number;
+  last_visit_at: Date | null;
+  most_expensive_service_name: string | null;
+  most_expensive_service_amount: string;
+};
+
+export type AdminPanelStatsClientDetails = {
+  clientId: string;
+  fullName: string;
+  currencyCode: string;
+  spentMonth: number;
+  spent3m: number;
+  spent6m: number;
+  spentYear: number;
+  spentTotal: number;
+  salonMonth: number;
+  salon3m: number;
+  salon6m: number;
+  salonYear: number;
+  salonTotal: number;
+  avgCheck: number;
+  proceduresTotal: number;
+  lastVisitAt: Date | null;
+  mostExpensiveServiceName: string | null;
+  mostExpensiveServiceAmount: number;
+};

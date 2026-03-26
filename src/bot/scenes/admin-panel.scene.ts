@@ -18,6 +18,8 @@ import type {
 } from '../../types/db-helpers/db-services.types.js';
 import type { AdminPanelStatsOverview } from '../../types/db-helpers/db-admin-stats.types.js';
 import type {
+  AdminPanelStatsClientDetails,
+  AdminPanelStatsClientsFeedPage,
   AdminPanelStatsMasterDetails,
   AdminPanelStatsMastersFeedPage,
   AdminPanelStatsMonthlyFeedPage,
@@ -103,6 +105,8 @@ import {
   formatAdminServiceStatsStubText,
 } from '../../helpers/bot/admin-services-view.bot.js';
 import {
+  createAdminStatsClientDetailsKeyboard,
+  createAdminStatsClientsListKeyboard,
   createAdminStatsMonthlyListKeyboard,
   createAdminStatsMonthlyReportDetailsKeyboard,
   createAdminStatsServiceDetailsKeyboard,
@@ -111,6 +115,8 @@ import {
   createAdminStatsMastersListKeyboard,
   createAdminStatsOverviewKeyboard,
   createAdminStatsSectionStubKeyboard,
+  formatAdminStatsClientDetailsText,
+  formatAdminStatsClientsListText,
   formatAdminStatsMonthlyListText,
   formatAdminStatsMonthlyReportDetailsText,
   formatAdminStatsServiceDetailsText,
@@ -125,6 +131,7 @@ import {
   ADMIN_PANEL_MASTERS_OPEN_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_OPEN_BOOKINGS_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_OPEN_STATS_ACTION_REGEX,
+  ADMIN_PANEL_STATS_CLIENTS_OPEN_ACTION_REGEX,
   ADMIN_PANEL_STATS_MASTERS_OPEN_ACTION_REGEX,
   ADMIN_PANEL_STATS_MONTHLY_OPEN_ACTION_REGEX,
   ADMIN_PANEL_STATS_SERVICES_OPEN_ACTION_REGEX,
@@ -180,9 +187,11 @@ import {
 } from '../../helpers/db/db-services.helper.js';
 import { getAdminPanelStatsOverview } from '../../helpers/db/db-admin-stats.helper.js';
 import {
+  getAdminPanelStatsClientDetails,
   getAdminPanelStatsMonthlyReportDetails,
   getAdminPanelStatsMasterDetails,
   getAdminPanelStatsServiceDetails,
+  listAdminPanelStatsClientsFeed,
   listAdminPanelStatsMonthlyFeed,
   listAdminPanelStatsMastersFeed,
   listAdminPanelStatsServicesFeed,
@@ -287,6 +296,9 @@ type AdminPanelSceneState = {
   statsMonthlyFeed: AdminPanelStatsMonthlyFeedPage | null;
   statsSelectedMonthCode: string | null;
   statsMonthlyReportDetails: AdminPanelStatsMonthlyReportDetails | null;
+  statsClientsFeed: AdminPanelStatsClientsFeedPage | null;
+  statsSelectedClientId: string | null;
+  statsClientDetails: AdminPanelStatsClientDetails | null;
   statsCurrentSection: AdminStatsSection | null;
 };
 
@@ -329,6 +341,15 @@ function resetStatsState(state: AdminPanelSceneState): void {
   state.statsMonthlyFeed = null;
   state.statsSelectedMonthCode = null;
   state.statsMonthlyReportDetails = null;
+  state.statsClientsFeed = null;
+  state.statsSelectedClientId = null;
+  state.statsClientDetails = null;
+  state.statsMonthlyFeed = null;
+  state.statsSelectedMonthCode = null;
+  state.statsMonthlyReportDetails = null;
+  state.statsClientsFeed = null;
+  state.statsSelectedClientId = null;
+  state.statsClientDetails = null;
   state.statsCurrentSection = null;
 }
 
@@ -804,6 +825,9 @@ async function renderAdminStatsMastersList(
   state.statsMonthlyFeed = null;
   state.statsSelectedMonthCode = null;
   state.statsMonthlyReportDetails = null;
+  state.statsClientsFeed = null;
+  state.statsSelectedClientId = null;
+  state.statsClientDetails = null;
 
   const text = formatAdminStatsMastersListText(feed);
   const keyboard = createAdminStatsMastersListKeyboard(feed);
@@ -840,6 +864,9 @@ async function renderAdminStatsMasterDetails(
   state.statsMonthlyFeed = null;
   state.statsSelectedMonthCode = null;
   state.statsMonthlyReportDetails = null;
+  state.statsClientsFeed = null;
+  state.statsSelectedClientId = null;
+  state.statsClientDetails = null;
 
   const text = formatAdminStatsMasterDetailsText(details);
   const keyboard = createAdminStatsMasterDetailsKeyboard();
@@ -881,6 +908,9 @@ async function renderAdminStatsServicesList(
   state.statsMonthlyFeed = null;
   state.statsSelectedMonthCode = null;
   state.statsMonthlyReportDetails = null;
+  state.statsClientsFeed = null;
+  state.statsSelectedClientId = null;
+  state.statsClientDetails = null;
 
   const text = formatAdminStatsServicesListText(feed);
   const keyboard = createAdminStatsServicesListKeyboard(feed);
@@ -917,6 +947,9 @@ async function renderAdminStatsServiceDetails(
   state.statsMonthlyFeed = null;
   state.statsSelectedMonthCode = null;
   state.statsMonthlyReportDetails = null;
+  state.statsClientsFeed = null;
+  state.statsSelectedClientId = null;
+  state.statsClientDetails = null;
 
   const text = formatAdminStatsServiceDetailsText(details);
   const keyboard = createAdminStatsServiceDetailsKeyboard();
@@ -957,6 +990,9 @@ async function renderAdminStatsMonthlyList(
   state.statsMonthlyFeed = feed;
   state.statsSelectedMonthCode = null;
   state.statsMonthlyReportDetails = null;
+  state.statsClientsFeed = null;
+  state.statsSelectedClientId = null;
+  state.statsClientDetails = null;
 
   const text = formatAdminStatsMonthlyListText(feed);
   const keyboard = createAdminStatsMonthlyListKeyboard(feed);
@@ -992,9 +1028,93 @@ async function renderAdminStatsMonthlyReportDetails(
   state.statsMasterDetails = null;
   state.statsSelectedServiceId = null;
   state.statsServiceDetails = null;
+  state.statsClientsFeed = null;
+  state.statsSelectedClientId = null;
+  state.statsClientDetails = null;
 
   const text = formatAdminStatsMonthlyReportDetailsText(details);
   const keyboard = createAdminStatsMonthlyReportDetailsKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminStatsClientsList(
+  ctx: MyContext,
+  offset: number,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const studioId = state.access?.studioId;
+  if (!studioId) {
+    throw new ValidationError('Не вдалося визначити студію адміністратора');
+  }
+
+  const feed = await listAdminPanelStatsClientsFeed({
+    studioId,
+    limit: 5,
+    offset,
+  });
+  state.statsCurrentSection = 'clients';
+  state.statsClientsFeed = feed;
+  state.statsSelectedClientId = null;
+  state.statsClientDetails = null;
+  state.statsSelectedMasterId = null;
+  state.statsMasterDetails = null;
+  state.statsSelectedServiceId = null;
+  state.statsServiceDetails = null;
+  state.statsMonthlyFeed = null;
+  state.statsSelectedMonthCode = null;
+  state.statsMonthlyReportDetails = null;
+
+  const text = formatAdminStatsClientsListText(feed);
+  const keyboard = createAdminStatsClientsListKeyboard(feed);
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminStatsClientDetails(
+  ctx: MyContext,
+  clientId: string,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const studioId = state.access?.studioId;
+  if (!studioId) {
+    throw new ValidationError('Не вдалося визначити студію адміністратора');
+  }
+
+  const details = await getAdminPanelStatsClientDetails({ studioId, clientId });
+  state.statsCurrentSection = 'clients';
+  state.statsSelectedClientId = clientId;
+  state.statsClientDetails = details;
+  state.statsSelectedMasterId = null;
+  state.statsMasterDetails = null;
+  state.statsSelectedServiceId = null;
+  state.statsServiceDetails = null;
+  state.statsMonthlyFeed = null;
+  state.statsSelectedMonthCode = null;
+  state.statsMonthlyReportDetails = null;
+
+  const text = formatAdminStatsClientDetailsText(details);
+  const keyboard = createAdminStatsClientDetailsKeyboard();
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1492,6 +1612,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.statsMonthlyFeed = null;
       state.statsSelectedMonthCode = null;
       state.statsMonthlyReportDetails = null;
+      state.statsClientsFeed = null;
+      state.statsSelectedClientId = null;
+      state.statsClientDetails = null;
       state.statsCurrentSection = null;
 
       if (!state.access) {
@@ -2767,7 +2890,57 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
   scene.action(ADMIN_PANEL_ACTION.STATS_OPEN_CLIENTS, async (ctx) => {
     await ctx.answerCbQuery();
-    await renderAdminStatsSectionStub(ctx, 'clients', '👥 Статистика клієнтів');
+    await renderAdminStatsClientsList(ctx, 0, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.STATS_CLIENTS_PREV_PAGE, async (ctx) => {
+    await ctx.answerCbQuery();
+    const feed = getSceneState(ctx).statsClientsFeed;
+    if (!feed || !feed.hasPrevPage) {
+      return;
+    }
+
+    const nextOffset = Math.max(0, feed.offset - feed.limit);
+    await renderAdminStatsClientsList(ctx, nextOffset, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.STATS_CLIENTS_NEXT_PAGE, async (ctx) => {
+    await ctx.answerCbQuery();
+    const feed = getSceneState(ctx).statsClientsFeed;
+    if (!feed || !feed.hasNextPage) {
+      return;
+    }
+
+    const nextOffset = feed.offset + feed.limit;
+    await renderAdminStatsClientsList(ctx, nextOffset, true);
+  });
+
+  scene.action(ADMIN_PANEL_STATS_CLIENTS_OPEN_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const clientId = parseNumericIdFromAction(
+      ctx,
+      ADMIN_PANEL_STATS_CLIENTS_OPEN_ACTION_REGEX,
+      'id клієнта',
+    );
+
+    try {
+      await renderAdminStatsClientDetails(ctx, clientId, true);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        await ctx.reply(`⚠️ ${error.message}`);
+        const fallbackOffset = state.statsClientsFeed?.offset ?? 0;
+        await renderAdminStatsClientsList(ctx, fallbackOffset, false);
+        return;
+      }
+      throw error;
+    }
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.STATS_CLIENTS_BACK_TO_LIST, async (ctx) => {
+    await ctx.answerCbQuery();
+    const feed = getSceneState(ctx).statsClientsFeed;
+    await renderAdminStatsClientsList(ctx, feed?.offset ?? 0, true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW, async (ctx) => {

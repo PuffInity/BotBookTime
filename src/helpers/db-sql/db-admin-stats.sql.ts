@@ -458,6 +458,141 @@ export const SQL_LIST_ADMIN_PANEL_STATS_MONTHLY_TOP_MASTERS = `
   LIMIT $3
 `;
 
+export const SQL_LIST_ADMIN_PANEL_STATS_CLIENTS_FEED = `
+  WITH context AS (
+    SELECT
+      st.id AS studio_id,
+      st.currency_code AS currency_code
+    FROM studios st
+    WHERE st.id = $1::bigint
+    LIMIT 1
+  ),
+  completed AS (
+    SELECT
+      a.client_id,
+      COALESCE(af.amount_total, a.price_amount)::numeric AS gross_amount
+    FROM appointments a
+    INNER JOIN context ctx
+      ON ctx.studio_id = a.studio_id
+    LEFT JOIN appointment_financials af
+      ON af.appointment_id = a.id
+    WHERE a.studio_id = $1::bigint
+      AND a.deleted_at IS NULL
+      AND a.status = 'completed'
+  ),
+  grouped AS (
+    SELECT
+      u.id AS client_id,
+      u.first_name,
+      u.last_name,
+      (SELECT currency_code FROM context) AS currency_code,
+      COALESCE(SUM(c.gross_amount), 0)::numeric(12,2) AS spent_total,
+      COALESCE(COUNT(c.client_id), 0)::int AS procedures_total,
+      COALESCE(AVG(c.gross_amount), 0)::numeric(12,2) AS avg_check
+    FROM completed c
+    INNER JOIN app_users u
+      ON u.id = c.client_id
+    GROUP BY u.id, u.first_name, u.last_name
+  )
+  SELECT
+    g.*,
+    COUNT(*) OVER()::int AS total_count
+  FROM grouped g
+  ORDER BY g.spent_total DESC, g.procedures_total DESC, g.client_id DESC
+  LIMIT $2
+  OFFSET $3
+`;
+
+export const SQL_GET_ADMIN_PANEL_STATS_CLIENT_DETAILS = `
+  WITH context AS (
+    SELECT
+      st.id AS studio_id,
+      st.timezone AS timezone,
+      st.currency_code AS currency_code,
+      date_trunc('month', now() AT TIME ZONE st.timezone)::date AS month_start,
+      (date_trunc('month', now() AT TIME ZONE st.timezone) - interval '2 month')::date AS month_start_3m,
+      (date_trunc('month', now() AT TIME ZONE st.timezone) - interval '5 month')::date AS month_start_6m,
+      (date_trunc('month', now() AT TIME ZONE st.timezone) - interval '11 month')::date AS month_start_year,
+      (date_trunc('month', now() AT TIME ZONE st.timezone) + interval '1 month')::date AS next_month_start
+    FROM studios st
+    WHERE st.id = $1::bigint
+    LIMIT 1
+  ),
+  client_scope AS (
+    SELECT
+      u.id AS client_id,
+      u.first_name,
+      u.last_name
+    FROM app_users u
+    WHERE u.id = $2::bigint
+      AND EXISTS (
+        SELECT 1
+        FROM appointments a
+        WHERE a.studio_id = $1::bigint
+          AND a.client_id = u.id
+          AND a.deleted_at IS NULL
+      )
+    LIMIT 1
+  ),
+  completed AS (
+    SELECT
+      a.service_id,
+      (a.start_at AT TIME ZONE ctx.timezone)::date AS local_date,
+      a.start_at AS start_at_utc,
+      COALESCE(af.amount_total, a.price_amount)::numeric AS gross_amount,
+      COALESCE(
+        af.salon_share_amount,
+        COALESCE(af.amount_total, a.price_amount)::numeric * 0.15
+      )::numeric AS salon_amount
+    FROM appointments a
+    INNER JOIN context ctx
+      ON ctx.studio_id = a.studio_id
+    INNER JOIN client_scope cs
+      ON cs.client_id = a.client_id
+    LEFT JOIN appointment_financials af
+      ON af.appointment_id = a.id
+    WHERE a.studio_id = $1::bigint
+      AND a.client_id = $2::bigint
+      AND a.deleted_at IS NULL
+      AND a.status = 'completed'
+  ),
+  expensive AS (
+    SELECT
+      s.name AS most_expensive_service_name,
+      c.gross_amount AS most_expensive_service_amount
+    FROM completed c
+    INNER JOIN services s
+      ON s.id = c.service_id
+    ORDER BY c.gross_amount DESC, s.name ASC
+    LIMIT 1
+  )
+  SELECT
+    cs.client_id,
+    cs.first_name,
+    cs.last_name,
+    ctx.currency_code,
+    COALESCE(SUM(c.gross_amount) FILTER (WHERE c.local_date >= ctx.month_start), 0)::numeric(12,2) AS spent_month,
+    COALESCE(SUM(c.gross_amount) FILTER (WHERE c.local_date >= ctx.month_start_3m), 0)::numeric(12,2) AS spent_3m,
+    COALESCE(SUM(c.gross_amount) FILTER (WHERE c.local_date >= ctx.month_start_6m), 0)::numeric(12,2) AS spent_6m,
+    COALESCE(SUM(c.gross_amount) FILTER (WHERE c.local_date >= ctx.month_start_year), 0)::numeric(12,2) AS spent_year,
+    COALESCE(SUM(c.gross_amount), 0)::numeric(12,2) AS spent_total,
+    COALESCE(SUM(c.salon_amount) FILTER (WHERE c.local_date >= ctx.month_start), 0)::numeric(12,2) AS salon_month,
+    COALESCE(SUM(c.salon_amount) FILTER (WHERE c.local_date >= ctx.month_start_3m), 0)::numeric(12,2) AS salon_3m,
+    COALESCE(SUM(c.salon_amount) FILTER (WHERE c.local_date >= ctx.month_start_6m), 0)::numeric(12,2) AS salon_6m,
+    COALESCE(SUM(c.salon_amount) FILTER (WHERE c.local_date >= ctx.month_start_year), 0)::numeric(12,2) AS salon_year,
+    COALESCE(SUM(c.salon_amount), 0)::numeric(12,2) AS salon_total,
+    COALESCE(AVG(c.gross_amount), 0)::numeric(12,2) AS avg_check,
+    COALESCE(COUNT(c.service_id), 0)::int AS procedures_total,
+    MAX(c.start_at_utc) AS last_visit_at,
+    (SELECT e.most_expensive_service_name FROM expensive e) AS most_expensive_service_name,
+    COALESCE((SELECT e.most_expensive_service_amount FROM expensive e), 0)::numeric(12,2) AS most_expensive_service_amount
+  FROM client_scope cs
+  CROSS JOIN context ctx
+  LEFT JOIN completed c
+    ON TRUE
+  GROUP BY cs.client_id, cs.first_name, cs.last_name, ctx.currency_code
+`;
+
 export const SQL_GET_STUDIO_CURRENCY_CODE = `
   SELECT
     st.currency_code

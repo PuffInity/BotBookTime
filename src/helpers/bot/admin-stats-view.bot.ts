@@ -2,11 +2,14 @@ import { Markup } from 'telegraf';
 import {
   ADMIN_PANEL_ACTION,
   ADMIN_PANEL_BUTTON_TEXT,
+  makeAdminPanelStatsClientsOpenAction,
   makeAdminPanelStatsMastersOpenAction,
   makeAdminPanelStatsMonthlyOpenAction,
   makeAdminPanelStatsServicesOpenAction,
 } from '../../types/bot-admin-panel.types.js';
 import type {
+  AdminPanelStatsClientDetails,
+  AdminPanelStatsClientsFeedPage,
   AdminPanelStatsMasterDetails,
   AdminPanelStatsMastersFeedPage,
   AdminPanelStatsMonthlyFeedPage,
@@ -447,6 +450,115 @@ export function formatAdminStatsMonthlyReportDetailsText(
 export function createAdminStatsMonthlyReportDetailsKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_MONTHLY_BACK_TO_LIST, ADMIN_PANEL_ACTION.STATS_MONTHLY_BACK_TO_LIST)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK_TO_OVERVIEW, ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK, ADMIN_PANEL_ACTION.STATS_BACK)],
+  ]);
+}
+
+/**
+ * @summary Текст списку фінансової статистики клієнтів.
+ */
+export function formatAdminStatsClientsListText(page: AdminPanelStatsClientsFeedPage): string {
+  if (page.items.length === 0) {
+    return (
+      '👥 Статистика клієнтів\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Поки що немає завершених оплат по клієнтах.'
+    );
+  }
+
+  const lines = page.items.map((item, index) => {
+    const number = getNumberBadge(index + page.offset);
+    return (
+      `${number} 👤 ${item.fullName}\n` +
+      `💰 Витрачено: ${formatMoney(item.spentTotal, item.currencyCode)}\n` +
+      `📋 Кількість процедур: ${item.proceduresTotal}\n` +
+      `💳 Середній чек: ${formatMoney(item.avgCheck, item.currencyCode)}`
+    );
+  });
+
+  const currentPage = Math.floor(page.offset / page.limit) + 1;
+  const pagesTotal = Math.max(1, Math.ceil(page.total / page.limit));
+
+  return (
+    '👥 Статистика клієнтів\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    lines.join('\n\n') +
+    `\n\n📄 Сторінка ${currentPage} з ${pagesTotal}`
+  );
+}
+
+/**
+ * @summary Клавіатура списку фінансової статистики клієнтів.
+ */
+export function createAdminStatsClientsListKeyboard(
+  page: AdminPanelStatsClientsFeedPage,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const clientButtons = page.items.map((item, index) => [
+    Markup.button.callback(
+      `${getNumberBadge(index + page.offset)} ${item.fullName}`,
+      makeAdminPanelStatsClientsOpenAction(item.clientId),
+    ),
+  ]);
+
+  const pagingRow = [];
+  if (page.hasPrevPage) {
+    pagingRow.push(
+      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_PREV_PAGE, ADMIN_PANEL_ACTION.STATS_CLIENTS_PREV_PAGE),
+    );
+  }
+  if (page.hasNextPage) {
+    pagingRow.push(
+      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_NEXT_PAGE, ADMIN_PANEL_ACTION.STATS_CLIENTS_NEXT_PAGE),
+    );
+  }
+
+  return Markup.inlineKeyboard([
+    ...clientButtons,
+    ...(pagingRow.length > 0 ? [pagingRow] : []),
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK_TO_OVERVIEW, ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK, ADMIN_PANEL_ACTION.STATS_BACK)],
+  ]);
+}
+
+/**
+ * @summary Текст деталізованої фінансової статистики клієнта.
+ */
+export function formatAdminStatsClientDetailsText(
+  details: AdminPanelStatsClientDetails,
+): string {
+  return (
+    '👤 Деталі статистики клієнта\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `👤 Клієнт: ${details.fullName}\n` +
+    `🪪 ID: ${details.clientId}\n\n` +
+    '💰 Витрати клієнта\n' +
+    `📅 За місяць: ${formatMoney(details.spentMonth, details.currencyCode)}\n` +
+    `📅 За 3 місяці: ${formatMoney(details.spent3m, details.currencyCode)}\n` +
+    `📅 За пів року: ${formatMoney(details.spent6m, details.currencyCode)}\n` +
+    `📅 За рік: ${formatMoney(details.spentYear, details.currencyCode)}\n` +
+    `📌 За весь час: ${formatMoney(details.spentTotal, details.currencyCode)}\n\n` +
+    '🏢 Дохід салону від клієнта (15%)\n' +
+    `📅 За місяць: ${formatMoney(details.salonMonth, details.currencyCode)}\n` +
+    `📅 За 3 місяці: ${formatMoney(details.salon3m, details.currencyCode)}\n` +
+    `📅 За пів року: ${formatMoney(details.salon6m, details.currencyCode)}\n` +
+    `📅 За рік: ${formatMoney(details.salonYear, details.currencyCode)}\n` +
+    `📌 За весь час: ${formatMoney(details.salonTotal, details.currencyCode)}\n\n` +
+    '📊 Додаткові показники\n' +
+    `💳 Середній чек: ${formatMoney(details.avgCheck, details.currencyCode)}\n` +
+    `📋 Кількість процедур: ${details.proceduresTotal}\n` +
+    `💎 Найдорожча процедура: ${details.mostExpensiveServiceName ?? '—'}\n` +
+    `💰 Сума: ${formatMoney(details.mostExpensiveServiceAmount, details.currencyCode)}\n` +
+    `🕒 Останній візит: ${formatDate(details.lastVisitAt)}`
+  );
+}
+
+/**
+ * @summary Клавіатура деталізованої фінансової статистики клієнта.
+ */
+export function createAdminStatsClientDetailsKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_CLIENTS_BACK_TO_LIST, ADMIN_PANEL_ACTION.STATS_CLIENTS_BACK_TO_LIST)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK_TO_OVERVIEW, ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK, ADMIN_PANEL_ACTION.STATS_BACK)],
   ]);
