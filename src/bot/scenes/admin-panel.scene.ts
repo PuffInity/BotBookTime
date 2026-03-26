@@ -17,6 +17,12 @@ import type {
   ServicesCatalogItem,
 } from '../../types/db-helpers/db-services.types.js';
 import type { AdminPanelStatsOverview } from '../../types/db-helpers/db-admin-stats.types.js';
+import type {
+  AdminPanelStatsMasterDetails,
+  AdminPanelStatsMastersFeedPage,
+  AdminPanelStatsServiceDetails,
+  AdminPanelStatsServicesFeedPage,
+} from '../../types/db-helpers/db-admin-stats.types.js';
 import type { AdminStudioScheduleData } from '../../types/db-helpers/db-admin-schedule.types.js';
 import type { AdminStudioTemporaryScheduleDayInput } from '../../types/db-helpers/db-admin-schedule.types.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
@@ -95,8 +101,16 @@ import {
   formatAdminServiceStatsStubText,
 } from '../../helpers/bot/admin-services-view.bot.js';
 import {
+  createAdminStatsServiceDetailsKeyboard,
+  createAdminStatsServicesListKeyboard,
+  createAdminStatsMasterDetailsKeyboard,
+  createAdminStatsMastersListKeyboard,
   createAdminStatsOverviewKeyboard,
   createAdminStatsSectionStubKeyboard,
+  formatAdminStatsServiceDetailsText,
+  formatAdminStatsServicesListText,
+  formatAdminStatsMasterDetailsText,
+  formatAdminStatsMastersListText,
   formatAdminStatsOverviewText,
   formatAdminStatsSectionStubText,
 } from '../../helpers/bot/admin-stats-view.bot.js';
@@ -105,6 +119,8 @@ import {
   ADMIN_PANEL_MASTERS_OPEN_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_OPEN_BOOKINGS_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_OPEN_STATS_ACTION_REGEX,
+  ADMIN_PANEL_STATS_MASTERS_OPEN_ACTION_REGEX,
+  ADMIN_PANEL_STATS_SERVICES_OPEN_ACTION_REGEX,
   ADMIN_PANEL_SERVICES_OPEN_ACTION_REGEX,
   ADMIN_PANEL_SERVICES_OPEN_STATS_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_ACTION_REGEX,
@@ -156,6 +172,12 @@ import {
   listActiveServicesCatalog,
 } from '../../helpers/db/db-services.helper.js';
 import { getAdminPanelStatsOverview } from '../../helpers/db/db-admin-stats.helper.js';
+import {
+  getAdminPanelStatsMasterDetails,
+  getAdminPanelStatsServiceDetails,
+  listAdminPanelStatsMastersFeed,
+  listAdminPanelStatsServicesFeed,
+} from '../../helpers/db/db-admin-stats.helper.js';
 import { buildBookingDateOptions, buildBookingTimeOptions } from '../../helpers/bot/booking-view.bot.js';
 import { bookingDateCodeSchema, bookingTimeCodeSchema } from '../../validator/booking-input.schema.js';
 import { dispatchNotification } from '../../helpers/notification/notification-dispatch.helper.js';
@@ -164,10 +186,10 @@ import { loggerNotification } from '../../utils/logger/loggers-list.js';
 
 /**
  * @file admin-panel.scene.ts
- * @summary Skeleton адмін-панелі:
+ * @summary Сцена адмін-панелі:
  * - перевірка доступу
  * - кореневе меню розділів
- * - заглушки для неготових блоків
+ * - обробка підрозділів адмін-функціоналу
  */
 
 export const ADMIN_PANEL_SCENE_ID = 'admin-panel-scene';
@@ -247,6 +269,12 @@ type AdminPanelSceneState = {
   servicesSelectedServiceId: string | null;
   servicesCurrentSection: AdminServiceSubSection | null;
   statsOverview: AdminPanelStatsOverview | null;
+  statsMastersFeed: AdminPanelStatsMastersFeedPage | null;
+  statsSelectedMasterId: string | null;
+  statsMasterDetails: AdminPanelStatsMasterDetails | null;
+  statsServicesFeed: AdminPanelStatsServicesFeedPage | null;
+  statsSelectedServiceId: string | null;
+  statsServiceDetails: AdminPanelStatsServiceDetails | null;
   statsCurrentSection: AdminStatsSection | null;
 };
 
@@ -280,6 +308,12 @@ function resetServicesState(state: AdminPanelSceneState): void {
 
 function resetStatsState(state: AdminPanelSceneState): void {
   state.statsOverview = null;
+  state.statsMastersFeed = null;
+  state.statsSelectedMasterId = null;
+  state.statsMasterDetails = null;
+  state.statsServicesFeed = null;
+  state.statsSelectedServiceId = null;
+  state.statsServiceDetails = null;
   state.statsCurrentSection = null;
 }
 
@@ -708,9 +742,149 @@ async function renderAdminStatsOverview(ctx: MyContext, preferEdit: boolean): Pr
   const overview = await getAdminPanelStatsOverview(studioId);
   state.statsOverview = overview;
   state.statsCurrentSection = 'overview';
+  state.statsMastersFeed = null;
+  state.statsSelectedMasterId = null;
+  state.statsMasterDetails = null;
+  state.statsServicesFeed = null;
+  state.statsSelectedServiceId = null;
+  state.statsServiceDetails = null;
 
   const text = formatAdminStatsOverviewText(overview);
   const keyboard = createAdminStatsOverviewKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminStatsMastersList(
+  ctx: MyContext,
+  offset: number,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const studioId = state.access?.studioId;
+  if (!studioId) {
+    throw new ValidationError('Не вдалося визначити студію адміністратора');
+  }
+
+  const feed = await listAdminPanelStatsMastersFeed({
+    studioId,
+    limit: 5,
+    offset,
+  });
+  state.statsCurrentSection = 'masters';
+  state.statsMastersFeed = feed;
+  state.statsSelectedMasterId = null;
+  state.statsMasterDetails = null;
+
+  const text = formatAdminStatsMastersListText(feed);
+  const keyboard = createAdminStatsMastersListKeyboard(feed);
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminStatsMasterDetails(
+  ctx: MyContext,
+  masterId: string,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const studioId = state.access?.studioId;
+  if (!studioId) {
+    throw new ValidationError('Не вдалося визначити студію адміністратора');
+  }
+
+  const details = await getAdminPanelStatsMasterDetails({ studioId, masterId });
+  state.statsCurrentSection = 'masters';
+  state.statsSelectedMasterId = masterId;
+  state.statsMasterDetails = details;
+
+  const text = formatAdminStatsMasterDetailsText(details);
+  const keyboard = createAdminStatsMasterDetailsKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminStatsServicesList(
+  ctx: MyContext,
+  offset: number,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const studioId = state.access?.studioId;
+  if (!studioId) {
+    throw new ValidationError('Не вдалося визначити студію адміністратора');
+  }
+
+  const feed = await listAdminPanelStatsServicesFeed({
+    studioId,
+    limit: 5,
+    offset,
+  });
+  state.statsCurrentSection = 'services';
+  state.statsServicesFeed = feed;
+  state.statsSelectedServiceId = null;
+  state.statsServiceDetails = null;
+
+  const text = formatAdminStatsServicesListText(feed);
+  const keyboard = createAdminStatsServicesListKeyboard(feed);
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminStatsServiceDetails(
+  ctx: MyContext,
+  serviceId: string,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const studioId = state.access?.studioId;
+  if (!studioId) {
+    throw new ValidationError('Не вдалося визначити студію адміністратора');
+  }
+
+  const details = await getAdminPanelStatsServiceDetails({ studioId, serviceId });
+  state.statsCurrentSection = 'services';
+  state.statsSelectedServiceId = serviceId;
+  state.statsServiceDetails = details;
+
+  const text = formatAdminStatsServiceDetailsText(details);
+  const keyboard = createAdminStatsServiceDetailsKeyboard();
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1186,6 +1360,12 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.servicesSelectedServiceId = null;
       state.servicesCurrentSection = null;
       state.statsOverview = null;
+      state.statsMastersFeed = null;
+      state.statsSelectedMasterId = null;
+      state.statsMasterDetails = null;
+      state.statsServicesFeed = null;
+      state.statsSelectedServiceId = null;
+      state.statsServiceDetails = null;
       state.statsCurrentSection = null;
 
       if (!state.access) {
@@ -2300,12 +2480,112 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
   scene.action(ADMIN_PANEL_ACTION.STATS_OPEN_MASTERS, async (ctx) => {
     await ctx.answerCbQuery();
-    await renderAdminStatsSectionStub(ctx, 'masters', '👩‍🎨 Статистика майстрів');
+    await renderAdminStatsMastersList(ctx, 0, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.STATS_MASTERS_PREV_PAGE, async (ctx) => {
+    await ctx.answerCbQuery();
+    const feed = getSceneState(ctx).statsMastersFeed;
+    if (!feed || !feed.hasPrevPage) {
+      return;
+    }
+
+    const nextOffset = Math.max(0, feed.offset - feed.limit);
+    await renderAdminStatsMastersList(ctx, nextOffset, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.STATS_MASTERS_NEXT_PAGE, async (ctx) => {
+    await ctx.answerCbQuery();
+    const feed = getSceneState(ctx).statsMastersFeed;
+    if (!feed || !feed.hasNextPage) {
+      return;
+    }
+
+    const nextOffset = feed.offset + feed.limit;
+    await renderAdminStatsMastersList(ctx, nextOffset, true);
+  });
+
+  scene.action(ADMIN_PANEL_STATS_MASTERS_OPEN_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const masterId = parseNumericIdFromAction(
+      ctx,
+      ADMIN_PANEL_STATS_MASTERS_OPEN_ACTION_REGEX,
+      'id майстра',
+    );
+
+    try {
+      await renderAdminStatsMasterDetails(ctx, masterId, true);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        await ctx.reply(`⚠️ ${error.message}`);
+        const fallbackOffset = state.statsMastersFeed?.offset ?? 0;
+        await renderAdminStatsMastersList(ctx, fallbackOffset, false);
+        return;
+      }
+      throw error;
+    }
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.STATS_MASTERS_BACK_TO_LIST, async (ctx) => {
+    await ctx.answerCbQuery();
+    const feed = getSceneState(ctx).statsMastersFeed;
+    await renderAdminStatsMastersList(ctx, feed?.offset ?? 0, true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.STATS_OPEN_SERVICES, async (ctx) => {
     await ctx.answerCbQuery();
-    await renderAdminStatsSectionStub(ctx, 'services', '💼 Статистика послуг');
+    await renderAdminStatsServicesList(ctx, 0, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.STATS_SERVICES_PREV_PAGE, async (ctx) => {
+    await ctx.answerCbQuery();
+    const feed = getSceneState(ctx).statsServicesFeed;
+    if (!feed || !feed.hasPrevPage) {
+      return;
+    }
+
+    const nextOffset = Math.max(0, feed.offset - feed.limit);
+    await renderAdminStatsServicesList(ctx, nextOffset, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.STATS_SERVICES_NEXT_PAGE, async (ctx) => {
+    await ctx.answerCbQuery();
+    const feed = getSceneState(ctx).statsServicesFeed;
+    if (!feed || !feed.hasNextPage) {
+      return;
+    }
+
+    const nextOffset = feed.offset + feed.limit;
+    await renderAdminStatsServicesList(ctx, nextOffset, true);
+  });
+
+  scene.action(ADMIN_PANEL_STATS_SERVICES_OPEN_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const serviceId = parseNumericIdFromAction(
+      ctx,
+      ADMIN_PANEL_STATS_SERVICES_OPEN_ACTION_REGEX,
+      'id послуги',
+    );
+
+    try {
+      await renderAdminStatsServiceDetails(ctx, serviceId, true);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        await ctx.reply(`⚠️ ${error.message}`);
+        const fallbackOffset = state.statsServicesFeed?.offset ?? 0;
+        await renderAdminStatsServicesList(ctx, fallbackOffset, false);
+        return;
+      }
+      throw error;
+    }
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.STATS_SERVICES_BACK_TO_LIST, async (ctx) => {
+    await ctx.answerCbQuery();
+    const feed = getSceneState(ctx).statsServicesFeed;
+    await renderAdminStatsServicesList(ctx, feed?.offset ?? 0, true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.STATS_OPEN_MONTHLY, async (ctx) => {
