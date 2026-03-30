@@ -48,28 +48,6 @@ export function createAdminPanelRootKeyboard(): ReturnType<typeof Markup.inlineK
 }
 
 /**
- * @summary Текст заглушки розділу адмін-панелі.
- */
-export function formatAdminPanelSectionStubText(title: string, _blockNumber: number): string {
-  return (
-    `${title}\n` +
-    '━━━━━━━━━━━━━━\n\n' +
-    '⚠️ Цей розділ тимчасово недоступний.\n\n' +
-    'Модуль ще в розробці. Після запуску тут буде повний функціонал.'
-  );
-}
-
-/**
- * @summary Клавіатура заглушки розділу адмін-панелі.
- */
-export function createAdminPanelSectionStubKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
-  return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.BACK_TO_ROOT, ADMIN_PANEL_ACTION.BACK_TO_ROOT)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.HOME, ADMIN_PANEL_ACTION.HOME)],
-  ]);
-}
-
-/**
  * @summary Текст меню блоку "Записи" в адмін-панелі.
  */
 export function formatAdminRecordsMenuText(): string {
@@ -97,20 +75,4 @@ export function createAdminRecordsMenuKeyboard(): ReturnType<typeof Markup.inlin
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK, ADMIN_PANEL_ACTION.RECORDS_BACK)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.HOME, ADMIN_PANEL_ACTION.HOME)],
   ]);
-}
-
-/**
- * @summary Текст заглушки підкатегорії блоку "Записи".
- */
-export function formatAdminRecordsCategoryStubText(
-  title: string,
-  categoryCode: string,
-): string {
-  return (
-    `${title}\n` +
-    '━━━━━━━━━━━━━━\n\n' +
-    `Код категорії: ${categoryCode}\n\n` +
-    '⚠️ Ця категорія тимчасово недоступна.\n' +
-    'Після підключення тут буде відображатися список записів із БД.'
-  );
 }

@@ -59,7 +59,6 @@ import {
   createAdminSettingsStudioEditConfirmKeyboard,
   createAdminSettingsStudioEditInputKeyboard,
   createAdminSettingsStudioProfileKeyboard,
-  createAdminSettingsSectionKeyboard,
   formatAdminSettingsAdminsText,
   formatAdminSettingsGrantConfirmText,
   formatAdminSettingsGrantInputText,
@@ -72,7 +71,6 @@ import {
   formatAdminSettingsStudioEditConfirmText,
   formatAdminSettingsStudioEditPromptText,
   formatAdminSettingsStudioProfileText,
-  formatAdminSettingsSectionText,
   getAdminStudioBlockTitle,
 } from '../../helpers/bot/admin-settings-view.bot.js';
 import {
@@ -178,7 +176,6 @@ import {
   createAdminStatsMasterDetailsKeyboard,
   createAdminStatsMastersListKeyboard,
   createAdminStatsOverviewKeyboard,
-  createAdminStatsSectionStubKeyboard,
   formatAdminStatsClientDetailsText,
   formatAdminStatsClientsListText,
   formatAdminStatsMonthlyListText,
@@ -188,7 +185,6 @@ import {
   formatAdminStatsMasterDetailsText,
   formatAdminStatsMastersListText,
   formatAdminStatsOverviewText,
-  formatAdminStatsSectionStubText,
 } from '../../helpers/bot/admin-stats-view.bot.js';
 import {
   ADMIN_PANEL_ACTION,
@@ -873,57 +869,12 @@ async function renderScheduleSection(
   await ctx.reply(text, keyboard);
 }
 
-function getSettingsSectionText(section: Exclude<AdminSettingsSection, 'menu'>): string {
-  switch (section) {
-    case 'admins':
-      return formatAdminSettingsSectionText(
-        '👑 Адміністратори',
-        'Тут буде керування доступами адміністраторів, ролями та правами.',
-      );
-    case 'studio':
-      return formatAdminSettingsSectionText(
-        '🏢 Параметри салону',
-        'Тут буде редагування назви, контактів, таймзони та базових параметрів салону.',
-      );
-    case 'notifications':
-      return formatAdminSettingsSectionText(
-        '🔔 Системні сповіщення',
-        'Тут буде налаштування службових сповіщень для команди салону.',
-      );
-    default:
-      return formatAdminSettingsSectionText('⚙️ Налаштування', 'Оберіть підрозділ налаштувань.');
-  }
-}
-
 async function renderAdminSettingsMenu(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   state.settingsCurrentSection = 'menu';
 
   const text = formatAdminSettingsMenuText();
   const keyboard = createAdminSettingsMenuKeyboard();
-
-  if (preferEdit && ctx.updateType === 'callback_query') {
-    try {
-      await ctx.editMessageText(text, keyboard);
-      return;
-    } catch {
-      // fallthrough
-    }
-  }
-
-  await ctx.reply(text, keyboard);
-}
-
-async function renderAdminSettingsSection(
-  ctx: MyContext,
-  section: Exclude<AdminSettingsSection, 'menu'>,
-  preferEdit: boolean,
-): Promise<void> {
-  const state = getSceneState(ctx);
-  state.settingsCurrentSection = section;
-
-  const text = getSettingsSectionText(section);
-  const keyboard = createAdminSettingsSectionKeyboard();
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2128,27 +2079,6 @@ async function renderAdminStatsClientDetails(
   }
 
   await ctx.reply(text, keyboard);
-}
-
-async function renderAdminStatsSectionStub(
-  ctx: MyContext,
-  section: Exclude<AdminStatsSection, 'overview'>,
-  title: string,
-): Promise<void> {
-  const state = getSceneState(ctx);
-  state.statsCurrentSection = section;
-
-  try {
-    await ctx.editMessageText(
-      formatAdminStatsSectionStubText(title),
-      createAdminStatsSectionStubKeyboard(),
-    );
-  } catch {
-    await ctx.reply(
-      formatAdminStatsSectionStubText(title),
-      createAdminStatsSectionStubKeyboard(),
-    );
-  }
 }
 
 async function renderRecordsCategoryStub(
