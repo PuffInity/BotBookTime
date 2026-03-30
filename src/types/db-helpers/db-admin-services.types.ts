@@ -36,6 +36,12 @@ export type UpdateAdminServiceResultDescriptionInput = {
   resultDescription: string | null;
 };
 
+export type UpdateAdminServiceNameInput = {
+  studioId: string | number;
+  serviceId: string | number;
+  name: string;
+};
+
 export type UpdateAdminServiceDescriptionInput = {
   studioId: string | number;
   serviceId: string | number;

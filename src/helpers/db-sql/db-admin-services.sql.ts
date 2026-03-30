@@ -29,6 +29,16 @@ export const SQL_UPDATE_ADMIN_SERVICE_RESULT_DESCRIPTION = `
   RETURNING id, studio_id, name, duration_minutes, base_price, currency_code, description, result_description
 `;
 
+export const SQL_UPDATE_ADMIN_SERVICE_NAME = `
+  UPDATE services
+  SET
+    name = $3,
+    updated_at = NOW()
+  WHERE id = $1::bigint
+    AND studio_id = $2::bigint
+  RETURNING id, studio_id, name, duration_minutes, base_price, currency_code, description, result_description
+`;
+
 export const SQL_UPDATE_ADMIN_SERVICE_DESCRIPTION = `
   UPDATE services
   SET

@@ -5,6 +5,7 @@ import type {
   UpdateAdminServiceBasePriceInput,
   UpdateAdminServiceDescriptionInput,
   UpdateAdminServiceDurationInput,
+  UpdateAdminServiceNameInput,
   UpdateAdminServiceResultDescriptionInput,
 } from '../../types/db-helpers/db-admin-services.types.js';
 import { executeOne, queryOne, withTransaction } from '../db.helper.js';
@@ -15,6 +16,7 @@ import {
   SQL_UPDATE_ADMIN_SERVICE_BASE_PRICE,
   SQL_UPDATE_ADMIN_SERVICE_DESCRIPTION,
   SQL_UPDATE_ADMIN_SERVICE_DURATION,
+  SQL_UPDATE_ADMIN_SERVICE_NAME,
   SQL_UPDATE_ADMIN_SERVICE_RESULT_DESCRIPTION,
 } from '../db-sql/db-admin-services.sql.js';
 
@@ -60,6 +62,17 @@ function normalizeServiceDescription(value: string | null): string | null {
     throw new ValidationError('Опис послуги занадто довгий (максимум 1600 символів)');
   }
 
+  return normalized;
+}
+
+function normalizeServiceName(value: string): string {
+  const normalized = value.trim().replace(/\s+/g, ' ');
+  if (normalized.length < 2) {
+    throw new ValidationError('Назва послуги має містити щонайменше 2 символи');
+  }
+  if (normalized.length > 120) {
+    throw new ValidationError('Назва послуги занадто довга (максимум 120 символів)');
+  }
   return normalized;
 }
 
@@ -158,6 +171,37 @@ export async function updateAdminServiceResultDescription(
       logger: loggerDb,
       scope: 'db-admin-services.helper',
       action: 'Failed to update service result description from admin panel',
+      error,
+      meta: { studioId, serviceId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Оновлює поле "назва послуги" з адмін-панелі.
+ */
+export async function updateAdminServiceName(
+  input: UpdateAdminServiceNameInput,
+): Promise<AdminEditableService> {
+  const studioId = normalizePositiveBigintId(input.studioId, 'studioId');
+  const serviceId = normalizePositiveBigintId(input.serviceId, 'serviceId');
+  const name = normalizeServiceName(input.name);
+
+  try {
+    return await withTransaction(async (client) =>
+      executeOne<AdminEditableServiceRow, AdminEditableService>(
+        SQL_UPDATE_ADMIN_SERVICE_NAME,
+        [serviceId, studioId, name],
+        mapAdminEditableServiceRow,
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-admin-services.helper',
+      action: 'Failed to update service name from admin panel',
       error,
       meta: { studioId, serviceId },
     });

@@ -158,6 +158,8 @@ import {
   formatAdminServiceEditDescriptionInputText,
   formatAdminServiceEditDurationConfirmText,
   formatAdminServiceEditDurationInputText,
+  formatAdminServiceEditNameConfirmText,
+  formatAdminServiceEditNameInputText,
   formatAdminServiceEditMenuText,
   formatAdminServiceEditPriceConfirmText,
   formatAdminServiceEditPriceInputText,
@@ -264,6 +266,7 @@ import {
 import {
   getAdminEditableServiceById,
   updateAdminServiceBasePrice,
+  updateAdminServiceName,
   updateAdminServiceDuration,
   updateAdminServiceDescription,
   updateAdminServiceResultDescription,
@@ -395,7 +398,7 @@ type AdminServiceSubSection = 'catalog' | 'details' | 'stats' | 'edit';
 type AdminServiceEditDraft = {
   serviceId: string;
   serviceName: string;
-  field: 'duration_minutes' | 'base_price' | 'description' | 'result_description';
+  field: 'name' | 'duration_minutes' | 'base_price' | 'description' | 'result_description';
   mode: 'awaiting_text' | 'awaiting_confirm';
   currentDurationMinutes: number;
   currentBasePrice: string;
@@ -599,6 +602,17 @@ function normalizeHolidayName(value: string): string {
   }
   if (normalized.length > 120) {
     throw new ValidationError('Назва свята занадто довга (максимум 120 символів)');
+  }
+  return normalized;
+}
+
+function normalizeServiceNameInput(value: string): string {
+  const normalized = value.trim().replace(/\s+/g, ' ');
+  if (normalized.length < 2) {
+    throw new ValidationError('Назва послуги має містити щонайменше 2 символи');
+  }
+  if (normalized.length > 120) {
+    throw new ValidationError('Назва послуги занадто довга (максимум 120 символів)');
   }
   return normalized;
 }
@@ -1672,14 +1686,14 @@ async function renderAdminServiceEditMenu(
     state.servicesEditDraft = {
       serviceId: service.id,
       serviceName: service.name,
-      field: 'result_description',
+      field: 'name',
       mode: 'awaiting_text',
       currentDurationMinutes: service.durationMinutes,
       currentBasePrice: service.basePrice,
       currentCurrencyCode: service.currencyCode,
       currentDescription: service.description,
       currentResultDescription: service.resultDescription,
-      currentValue: service.resultDescription,
+      currentValue: service.name,
       value: null,
     };
   } else {
@@ -1690,7 +1704,9 @@ async function renderAdminServiceEditMenu(
     state.servicesEditDraft.currentDescription = service.description;
     state.servicesEditDraft.currentResultDescription = service.resultDescription;
     state.servicesEditDraft.currentValue =
-      state.servicesEditDraft.field === 'duration_minutes'
+      state.servicesEditDraft.field === 'name'
+        ? service.name
+        : state.servicesEditDraft.field === 'duration_minutes'
         ? String(service.durationMinutes)
         : state.servicesEditDraft.field === 'base_price'
         ? service.basePrice
@@ -2909,7 +2925,18 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       const servicesEditDraft = state.servicesEditDraft;
       if (servicesEditDraft?.mode === 'awaiting_text') {
         try {
-          if (servicesEditDraft.field === 'duration_minutes') {
+          if (servicesEditDraft.field === 'name') {
+            const nextName = normalizeServiceNameInput(text);
+            servicesEditDraft.mode = 'awaiting_confirm';
+            servicesEditDraft.value = nextName;
+            await ctx.reply(
+              formatAdminServiceEditNameConfirmText(
+                servicesEditDraft.serviceName,
+                nextName,
+              ),
+              createAdminServiceEditConfirmKeyboard(),
+            );
+          } else if (servicesEditDraft.field === 'duration_minutes') {
             const nextDuration = normalizeServiceDurationInput(text);
             servicesEditDraft.mode = 'awaiting_confirm';
             servicesEditDraft.value = nextDuration;
@@ -2960,7 +2987,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
             error instanceof ValidationError
               ? error
               : new ValidationError(
-                  servicesEditDraft.field === 'duration_minutes'
+                  servicesEditDraft.field === 'name'
+                    ? 'Виникла помилка перевірки назви послуги'
+                    : servicesEditDraft.field === 'duration_minutes'
                     ? 'Виникла помилка перевірки тривалості послуги'
                     : servicesEditDraft.field === 'base_price'
                     ? 'Виникла помилка перевірки ціни послуги'
@@ -4250,6 +4279,30 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     );
   });
 
+  scene.action(ADMIN_PANEL_ACTION.SERVICES_EDIT_NAME_OPEN, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.servicesEditDraft;
+    if (!draft) {
+      const fallbackServiceId = state.servicesSelectedServiceId;
+      if (!fallbackServiceId) {
+        await renderAdminServicesCatalog(ctx, true);
+        return;
+      }
+      await renderAdminServiceEditMenu(ctx, fallbackServiceId, true);
+      return;
+    }
+
+    draft.field = 'name';
+    draft.mode = 'awaiting_text';
+    draft.currentValue = draft.serviceName;
+    draft.value = null;
+    await ctx.reply(
+      formatAdminServiceEditNameInputText(draft.serviceName),
+      createAdminServiceEditInputKeyboard(),
+    );
+  });
+
   scene.action(ADMIN_PANEL_ACTION.SERVICES_EDIT_DURATION_OPEN, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
@@ -4374,7 +4427,13 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     try {
       const updated =
-        draft.field === 'duration_minutes'
+        draft.field === 'name'
+          ? await updateAdminServiceName({
+              studioId,
+              serviceId: draft.serviceId,
+              name: String(draft.value),
+            })
+        : draft.field === 'duration_minutes'
           ? await updateAdminServiceDuration({
               studioId,
               serviceId: draft.serviceId,
@@ -4403,7 +4462,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.servicesEditDraft = null;
 
       await ctx.reply(
-        draft.field === 'duration_minutes'
+        draft.field === 'name'
+          ? `✅ Назву послуги "${updated.name}" успішно оновлено.`
+        : draft.field === 'duration_minutes'
           ? `✅ Тривалість послуги "${updated.name}" успішно оновлено.`
           : draft.field === 'base_price'
           ? `✅ Ціну послуги "${updated.name}" успішно оновлено.`

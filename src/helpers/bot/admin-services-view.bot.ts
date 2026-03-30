@@ -180,6 +180,7 @@ export function formatAdminServiceEditMenuText(
  */
 export function createAdminServiceEditMenuKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_NAME, ADMIN_PANEL_ACTION.SERVICES_EDIT_NAME_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_DURATION, ADMIN_PANEL_ACTION.SERVICES_EDIT_DURATION_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_PRICE, ADMIN_PANEL_ACTION.SERVICES_EDIT_PRICE_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_DESCRIPTION, ADMIN_PANEL_ACTION.SERVICES_EDIT_DESCRIPTION_OPEN)],
@@ -188,6 +189,21 @@ export function createAdminServiceEditMenuKeyboard(): ReturnType<typeof Markup.i
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK_TO_LIST, ADMIN_PANEL_ACTION.SERVICES_BACK_TO_LIST)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK, ADMIN_PANEL_ACTION.SERVICES_BACK)],
   ]);
+}
+
+/**
+ * @summary Текст кроку вводу нової назви послуги.
+ */
+export function formatAdminServiceEditNameInputText(
+  serviceName: string,
+): string {
+  return (
+    '✏️ Оновлення назви послуги\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Поточна назва: ${serviceName}\n\n` +
+    'Надішліть нову назву одним повідомленням.\n' +
+    'Мінімум 2 символи, максимум 120 символів.'
+  );
 }
 
 /**
@@ -327,6 +343,22 @@ export function formatAdminServiceEditPriceConfirmText(
     '━━━━━━━━━━━━━━\n\n' +
     `💼 Послуга: ${serviceName}\n\n` +
     `💰 Нова ціна: ${formatPrice(nextBasePrice, currencyCode)}\n\n` +
+    'Підтвердьте збереження змін.'
+  );
+}
+
+/**
+ * @summary Текст підтвердження оновлення назви послуги.
+ */
+export function formatAdminServiceEditNameConfirmText(
+  serviceName: string,
+  nextServiceName: string,
+): string {
+  return (
+    '✅ Підтвердження оновлення\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n\n` +
+    `🪪 Нова назва: ${nextServiceName}\n\n` +
     'Підтвердьте збереження змін.'
   );
 }
