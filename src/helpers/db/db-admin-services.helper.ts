@@ -4,6 +4,7 @@ import type {
   GetAdminEditableServiceInput,
   UpdateAdminServiceBasePriceInput,
   UpdateAdminServiceDescriptionInput,
+  UpdateAdminServiceDurationInput,
   UpdateAdminServiceResultDescriptionInput,
 } from '../../types/db-helpers/db-admin-services.types.js';
 import { executeOne, queryOne, withTransaction } from '../db.helper.js';
@@ -13,6 +14,7 @@ import {
   SQL_GET_ADMIN_EDITABLE_SERVICE_BY_ID,
   SQL_UPDATE_ADMIN_SERVICE_BASE_PRICE,
   SQL_UPDATE_ADMIN_SERVICE_DESCRIPTION,
+  SQL_UPDATE_ADMIN_SERVICE_DURATION,
   SQL_UPDATE_ADMIN_SERVICE_RESULT_DESCRIPTION,
 } from '../db-sql/db-admin-services.sql.js';
 
@@ -78,11 +80,23 @@ function normalizeServiceBasePrice(value: string): string {
   return amount.toFixed(2);
 }
 
+function normalizeServiceDurationMinutes(value: number): number {
+  if (!Number.isFinite(value)) {
+    throw new ValidationError('Тривалість послуги має бути числом');
+  }
+  const normalized = Math.trunc(value);
+  if (normalized < 5 || normalized > 720) {
+    throw new ValidationError('Тривалість послуги має бути в діапазоні 5..720 хв');
+  }
+  return normalized;
+}
+
 function mapAdminEditableServiceRow(row: AdminEditableServiceRow): AdminEditableService {
   return {
     id: row.id,
     studioId: row.studio_id,
     name: row.name,
+    durationMinutes: row.duration_minutes,
     basePrice: row.base_price,
     currencyCode: row.currency_code,
     description: row.description,
@@ -208,6 +222,37 @@ export async function updateAdminServiceBasePrice(
       action: 'Failed to update service base price from admin panel',
       error,
       meta: { studioId, serviceId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Оновлює поле "тривалість послуги" з адмін-панелі.
+ */
+export async function updateAdminServiceDuration(
+  input: UpdateAdminServiceDurationInput,
+): Promise<AdminEditableService> {
+  const studioId = normalizePositiveBigintId(input.studioId, 'studioId');
+  const serviceId = normalizePositiveBigintId(input.serviceId, 'serviceId');
+  const durationMinutes = normalizeServiceDurationMinutes(input.durationMinutes);
+
+  try {
+    return await withTransaction(async (client) =>
+      executeOne<AdminEditableServiceRow, AdminEditableService>(
+        SQL_UPDATE_ADMIN_SERVICE_DURATION,
+        [serviceId, studioId, durationMinutes],
+        mapAdminEditableServiceRow,
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-admin-services.helper',
+      action: 'Failed to update service duration from admin panel',
+      error,
+      meta: { studioId, serviceId, durationMinutes },
     });
     throw error;
   }

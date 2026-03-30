@@ -157,6 +157,7 @@ function formatOptionalText(value: string | null): string {
  */
 export function formatAdminServiceEditMenuText(
   serviceName: string,
+  durationMinutes: number,
   basePrice: string,
   currencyCode: string,
   description: string | null,
@@ -166,6 +167,7 @@ export function formatAdminServiceEditMenuText(
     '✏️ Редагування послуги\n' +
     '━━━━━━━━━━━━━━\n\n' +
     `💼 Послуга: ${serviceName}\n\n` +
+    `⏱ Поточна тривалість: ${durationMinutes} хв\n\n` +
     `💰 Поточна ціна: ${formatPrice(basePrice, currencyCode)}\n\n` +
     `📝 Поточний опис:\n${formatOptionalText(description)}\n\n` +
     `🎯 Поточний результат:\n${formatOptionalText(resultDescription)}\n\n` +
@@ -178,6 +180,7 @@ export function formatAdminServiceEditMenuText(
  */
 export function createAdminServiceEditMenuKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_DURATION, ADMIN_PANEL_ACTION.SERVICES_EDIT_DURATION_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_PRICE, ADMIN_PANEL_ACTION.SERVICES_EDIT_PRICE_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_DESCRIPTION, ADMIN_PANEL_ACTION.SERVICES_EDIT_DESCRIPTION_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_RESULT, ADMIN_PANEL_ACTION.SERVICES_EDIT_RESULT_OPEN)],
@@ -185,6 +188,23 @@ export function createAdminServiceEditMenuKeyboard(): ReturnType<typeof Markup.i
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK_TO_LIST, ADMIN_PANEL_ACTION.SERVICES_BACK_TO_LIST)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK, ADMIN_PANEL_ACTION.SERVICES_BACK)],
   ]);
+}
+
+/**
+ * @summary Текст кроку вводу нової тривалості послуги.
+ */
+export function formatAdminServiceEditDurationInputText(
+  serviceName: string,
+  currentDurationMinutes: number,
+): string {
+  return (
+    '✏️ Оновлення тривалості послуги\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n\n` +
+    `⏱ Поточна тривалість: ${currentDurationMinutes} хв\n\n` +
+    'Надішліть нову тривалість у хвилинах.\n' +
+    'Діапазон: 5..720'
+  );
 }
 
 /**
@@ -274,6 +294,22 @@ export function formatAdminServiceEditDescriptionConfirmText(
     '━━━━━━━━━━━━━━\n\n' +
     `💼 Послуга: ${serviceName}\n\n` +
     `📝 Новий опис:\n${nextDescription}\n\n` +
+    'Підтвердьте збереження змін.'
+  );
+}
+
+/**
+ * @summary Текст підтвердження оновлення тривалості послуги.
+ */
+export function formatAdminServiceEditDurationConfirmText(
+  serviceName: string,
+  nextDurationMinutes: number,
+): string {
+  return (
+    '✅ Підтвердження оновлення\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n\n` +
+    `⏱ Нова тривалість: ${nextDurationMinutes} хв\n\n` +
     'Підтвердьте збереження змін.'
   );
 }

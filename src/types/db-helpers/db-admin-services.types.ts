@@ -7,6 +7,7 @@ export type AdminEditableServiceRow = {
   id: string;
   studio_id: string;
   name: string;
+  duration_minutes: number;
   base_price: string;
   currency_code: string;
   description: string | null;
@@ -17,6 +18,7 @@ export type AdminEditableService = {
   id: string;
   studioId: string;
   name: string;
+  durationMinutes: number;
   basePrice: string;
   currencyCode: string;
   description: string | null;
@@ -44,4 +46,10 @@ export type UpdateAdminServiceBasePriceInput = {
   studioId: string | number;
   serviceId: string | number;
   basePrice: string;
+};
+
+export type UpdateAdminServiceDurationInput = {
+  studioId: string | number;
+  serviceId: string | number;
+  durationMinutes: number;
 };

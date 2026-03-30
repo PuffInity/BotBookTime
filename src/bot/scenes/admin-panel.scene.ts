@@ -158,6 +158,8 @@ import {
   createAdminServicesCatalogKeyboard,
   formatAdminServiceEditDescriptionConfirmText,
   formatAdminServiceEditDescriptionInputText,
+  formatAdminServiceEditDurationConfirmText,
+  formatAdminServiceEditDurationInputText,
   formatAdminServiceEditMenuText,
   formatAdminServiceEditPriceConfirmText,
   formatAdminServiceEditPriceInputText,
@@ -266,6 +268,7 @@ import {
 import {
   getAdminEditableServiceById,
   updateAdminServiceBasePrice,
+  updateAdminServiceDuration,
   updateAdminServiceDescription,
   updateAdminServiceResultDescription,
 } from '../../helpers/db/db-admin-services.helper.js';
@@ -396,14 +399,15 @@ type AdminServiceSubSection = 'catalog' | 'details' | 'stats' | 'edit';
 type AdminServiceEditDraft = {
   serviceId: string;
   serviceName: string;
-  field: 'base_price' | 'description' | 'result_description';
+  field: 'duration_minutes' | 'base_price' | 'description' | 'result_description';
   mode: 'awaiting_text' | 'awaiting_confirm';
+  currentDurationMinutes: number;
   currentBasePrice: string;
   currentCurrencyCode: string;
   currentDescription: string | null;
   currentResultDescription: string | null;
-  currentValue: string | null;
-  value: string | null;
+  currentValue: string | number | null;
+  value: string | number | null;
 };
 type AdminStatsSection = 'overview' | 'masters' | 'services' | 'monthly' | 'clients';
 type AdminSettingsSection = 'menu' | 'language' | 'admins' | 'studio' | 'notifications';
@@ -640,6 +644,25 @@ function normalizeServiceBasePriceInput(value: string): string {
   }
 
   return amount.toFixed(2);
+}
+
+function normalizeServiceDurationInput(value: string): number {
+  const normalized = value.trim();
+  if (!/^\d+$/.test(normalized)) {
+    throw new ValidationError('Тривалість має бути цілим числом у хвилинах');
+  }
+
+  const minutes = Number(normalized);
+  if (!Number.isFinite(minutes)) {
+    throw new ValidationError('Тривалість має бути числом');
+  }
+
+  const duration = Math.trunc(minutes);
+  if (duration < 5 || duration > 720) {
+    throw new ValidationError('Тривалість послуги має бути в діапазоні 5..720 хв');
+  }
+
+  return duration;
 }
 
 const MIN_TEMPORARY_SCHEDULE_DAYS = 7;
@@ -1700,6 +1723,7 @@ async function renderAdminServiceEditMenu(
       serviceName: service.name,
       field: 'result_description',
       mode: 'awaiting_text',
+      currentDurationMinutes: service.durationMinutes,
       currentBasePrice: service.basePrice,
       currentCurrencyCode: service.currencyCode,
       currentDescription: service.description,
@@ -1709,12 +1733,15 @@ async function renderAdminServiceEditMenu(
     };
   } else {
     state.servicesEditDraft.serviceName = service.name;
+    state.servicesEditDraft.currentDurationMinutes = service.durationMinutes;
     state.servicesEditDraft.currentBasePrice = service.basePrice;
     state.servicesEditDraft.currentCurrencyCode = service.currencyCode;
     state.servicesEditDraft.currentDescription = service.description;
     state.servicesEditDraft.currentResultDescription = service.resultDescription;
     state.servicesEditDraft.currentValue =
-      state.servicesEditDraft.field === 'base_price'
+      state.servicesEditDraft.field === 'duration_minutes'
+        ? String(service.durationMinutes)
+        : state.servicesEditDraft.field === 'base_price'
         ? service.basePrice
         : state.servicesEditDraft.field === 'description'
           ? service.description
@@ -1723,6 +1750,7 @@ async function renderAdminServiceEditMenu(
 
   const text = formatAdminServiceEditMenuText(
     service.name,
+    service.durationMinutes,
     service.basePrice,
     service.currencyCode,
     service.description,
@@ -2951,39 +2979,60 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       const servicesEditDraft = state.servicesEditDraft;
       if (servicesEditDraft?.mode === 'awaiting_text') {
         try {
-          const nextValue =
-            servicesEditDraft.field === 'base_price'
-              ? normalizeServiceBasePriceInput(text)
-              : servicesEditDraft.field === 'description'
-              ? normalizeServiceDescriptionInput(text)
-              : normalizeServiceResultDescriptionInput(text);
-          servicesEditDraft.mode = 'awaiting_confirm';
-          servicesEditDraft.value = nextValue;
-
-          await ctx.reply(
-            servicesEditDraft.field === 'base_price'
-              ? formatAdminServiceEditPriceConfirmText(
-                  servicesEditDraft.serviceName,
-                  nextValue,
-                  servicesEditDraft.currentCurrencyCode,
-                )
-              : servicesEditDraft.field === 'description'
-              ? formatAdminServiceEditDescriptionConfirmText(
-                  servicesEditDraft.serviceName,
-                  nextValue,
-                )
-              : formatAdminServiceEditResultConfirmText(
-                  servicesEditDraft.serviceName,
-                  nextValue,
-                ),
-            createAdminServiceEditConfirmKeyboard(),
-          );
+          if (servicesEditDraft.field === 'duration_minutes') {
+            const nextDuration = normalizeServiceDurationInput(text);
+            servicesEditDraft.mode = 'awaiting_confirm';
+            servicesEditDraft.value = nextDuration;
+            await ctx.reply(
+              formatAdminServiceEditDurationConfirmText(
+                servicesEditDraft.serviceName,
+                nextDuration,
+              ),
+              createAdminServiceEditConfirmKeyboard(),
+            );
+          } else if (servicesEditDraft.field === 'base_price') {
+            const nextPrice = normalizeServiceBasePriceInput(text);
+            servicesEditDraft.mode = 'awaiting_confirm';
+            servicesEditDraft.value = nextPrice;
+            await ctx.reply(
+              formatAdminServiceEditPriceConfirmText(
+                servicesEditDraft.serviceName,
+                nextPrice,
+                servicesEditDraft.currentCurrencyCode,
+              ),
+              createAdminServiceEditConfirmKeyboard(),
+            );
+          } else if (servicesEditDraft.field === 'description') {
+            const nextDescription = normalizeServiceDescriptionInput(text);
+            servicesEditDraft.mode = 'awaiting_confirm';
+            servicesEditDraft.value = nextDescription;
+            await ctx.reply(
+              formatAdminServiceEditDescriptionConfirmText(
+                servicesEditDraft.serviceName,
+                nextDescription,
+              ),
+              createAdminServiceEditConfirmKeyboard(),
+            );
+          } else {
+            const nextResult = normalizeServiceResultDescriptionInput(text);
+            servicesEditDraft.mode = 'awaiting_confirm';
+            servicesEditDraft.value = nextResult;
+            await ctx.reply(
+              formatAdminServiceEditResultConfirmText(
+                servicesEditDraft.serviceName,
+                nextResult,
+              ),
+              createAdminServiceEditConfirmKeyboard(),
+            );
+          }
         } catch (error) {
           const err =
             error instanceof ValidationError
               ? error
               : new ValidationError(
-                  servicesEditDraft.field === 'base_price'
+                  servicesEditDraft.field === 'duration_minutes'
+                    ? 'Виникла помилка перевірки тривалості послуги'
+                    : servicesEditDraft.field === 'base_price'
                     ? 'Виникла помилка перевірки ціни послуги'
                     : servicesEditDraft.field === 'description'
                     ? 'Виникла помилка перевірки опису послуги'
@@ -4271,6 +4320,33 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     );
   });
 
+  scene.action(ADMIN_PANEL_ACTION.SERVICES_EDIT_DURATION_OPEN, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.servicesEditDraft;
+    if (!draft) {
+      const fallbackServiceId = state.servicesSelectedServiceId;
+      if (!fallbackServiceId) {
+        await renderAdminServicesCatalog(ctx, true);
+        return;
+      }
+      await renderAdminServiceEditMenu(ctx, fallbackServiceId, true);
+      return;
+    }
+
+    draft.field = 'duration_minutes';
+    draft.mode = 'awaiting_text';
+    draft.currentValue = String(draft.currentDurationMinutes);
+    draft.value = null;
+    await ctx.reply(
+      formatAdminServiceEditDurationInputText(
+        draft.serviceName,
+        draft.currentDurationMinutes,
+      ),
+      createAdminServiceEditInputKeyboard(),
+    );
+  });
+
   scene.action(ADMIN_PANEL_ACTION.SERVICES_EDIT_PRICE_OPEN, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
@@ -4368,27 +4444,38 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     try {
       const updated =
-        draft.field === 'base_price'
+        draft.field === 'duration_minutes'
+          ? await updateAdminServiceDuration({
+              studioId,
+              serviceId: draft.serviceId,
+              durationMinutes:
+                typeof draft.value === 'number'
+                  ? draft.value
+                  : normalizeServiceDurationInput(String(draft.value)),
+            })
+          : draft.field === 'base_price'
           ? await updateAdminServiceBasePrice({
               studioId,
               serviceId: draft.serviceId,
-              basePrice: draft.value,
+              basePrice: String(draft.value),
             })
           : draft.field === 'description'
           ? await updateAdminServiceDescription({
               studioId,
               serviceId: draft.serviceId,
-              description: draft.value,
+              description: String(draft.value),
             })
           : await updateAdminServiceResultDescription({
               studioId,
               serviceId: draft.serviceId,
-              resultDescription: draft.value,
+              resultDescription: String(draft.value),
             });
       state.servicesEditDraft = null;
 
       await ctx.reply(
-        draft.field === 'base_price'
+        draft.field === 'duration_minutes'
+          ? `✅ Тривалість послуги "${updated.name}" успішно оновлено.`
+          : draft.field === 'base_price'
           ? `✅ Ціну послуги "${updated.name}" успішно оновлено.`
           : draft.field === 'description'
           ? `✅ Опис послуги "${updated.name}" успішно оновлено.`
