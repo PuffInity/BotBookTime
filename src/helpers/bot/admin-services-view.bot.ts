@@ -157,6 +157,8 @@ function formatOptionalText(value: string | null): string {
  */
 export function formatAdminServiceEditMenuText(
   serviceName: string,
+  basePrice: string,
+  currencyCode: string,
   description: string | null,
   resultDescription: string | null,
 ): string {
@@ -164,6 +166,7 @@ export function formatAdminServiceEditMenuText(
     '✏️ Редагування послуги\n' +
     '━━━━━━━━━━━━━━\n\n' +
     `💼 Послуга: ${serviceName}\n\n` +
+    `💰 Поточна ціна: ${formatPrice(basePrice, currencyCode)}\n\n` +
     `📝 Поточний опис:\n${formatOptionalText(description)}\n\n` +
     `🎯 Поточний результат:\n${formatOptionalText(resultDescription)}\n\n` +
     'Оберіть, що потрібно змінити:'
@@ -175,12 +178,31 @@ export function formatAdminServiceEditMenuText(
  */
 export function createAdminServiceEditMenuKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_PRICE, ADMIN_PANEL_ACTION.SERVICES_EDIT_PRICE_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_DESCRIPTION, ADMIN_PANEL_ACTION.SERVICES_EDIT_DESCRIPTION_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_RESULT, ADMIN_PANEL_ACTION.SERVICES_EDIT_RESULT_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_BACK, ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK_TO_LIST, ADMIN_PANEL_ACTION.SERVICES_BACK_TO_LIST)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK, ADMIN_PANEL_ACTION.SERVICES_BACK)],
   ]);
+}
+
+/**
+ * @summary Текст кроку вводу нової ціни послуги.
+ */
+export function formatAdminServiceEditPriceInputText(
+  serviceName: string,
+  currentBasePrice: string,
+  currencyCode: string,
+): string {
+  return (
+    '✏️ Оновлення ціни послуги\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n\n` +
+    `💰 Поточна ціна: ${formatPrice(currentBasePrice, currencyCode)}\n\n` +
+    'Надішліть нову ціну одним повідомленням.\n' +
+    'Формат: 750 або 750.50'
+  );
 }
 
 /**
@@ -252,6 +274,23 @@ export function formatAdminServiceEditDescriptionConfirmText(
     '━━━━━━━━━━━━━━\n\n' +
     `💼 Послуга: ${serviceName}\n\n` +
     `📝 Новий опис:\n${nextDescription}\n\n` +
+    'Підтвердьте збереження змін.'
+  );
+}
+
+/**
+ * @summary Текст підтвердження оновлення ціни послуги.
+ */
+export function formatAdminServiceEditPriceConfirmText(
+  serviceName: string,
+  nextBasePrice: string,
+  currencyCode: string,
+): string {
+  return (
+    '✅ Підтвердження оновлення\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n\n` +
+    `💰 Нова ціна: ${formatPrice(nextBasePrice, currencyCode)}\n\n` +
     'Підтвердьте збереження змін.'
   );
 }

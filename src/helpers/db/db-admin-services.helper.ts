@@ -2,6 +2,7 @@ import type {
   AdminEditableService,
   AdminEditableServiceRow,
   GetAdminEditableServiceInput,
+  UpdateAdminServiceBasePriceInput,
   UpdateAdminServiceDescriptionInput,
   UpdateAdminServiceResultDescriptionInput,
 } from '../../types/db-helpers/db-admin-services.types.js';
@@ -10,6 +11,7 @@ import { ValidationError, handleError } from '../../utils/error.utils.js';
 import { loggerDb } from '../../utils/logger/loggers-list.js';
 import {
   SQL_GET_ADMIN_EDITABLE_SERVICE_BY_ID,
+  SQL_UPDATE_ADMIN_SERVICE_BASE_PRICE,
   SQL_UPDATE_ADMIN_SERVICE_DESCRIPTION,
   SQL_UPDATE_ADMIN_SERVICE_RESULT_DESCRIPTION,
 } from '../db-sql/db-admin-services.sql.js';
@@ -59,11 +61,30 @@ function normalizeServiceDescription(value: string | null): string | null {
   return normalized;
 }
 
+function normalizeServiceBasePrice(value: string): string {
+  const normalized = value.trim().replace(',', '.');
+  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) {
+    throw new ValidationError('Ціна має бути числом у форматі 750 або 750.50');
+  }
+
+  const amount = Number(normalized);
+  if (!Number.isFinite(amount) || amount < 0) {
+    throw new ValidationError('Ціна не може бути відʼємною');
+  }
+  if (amount > 99_999_999.99) {
+    throw new ValidationError('Ціна занадто велика');
+  }
+
+  return amount.toFixed(2);
+}
+
 function mapAdminEditableServiceRow(row: AdminEditableServiceRow): AdminEditableService {
   return {
     id: row.id,
     studioId: row.studio_id,
     name: row.name,
+    basePrice: row.base_price,
+    currencyCode: row.currency_code,
     description: row.description,
     resultDescription: row.result_description,
   };
@@ -154,6 +175,37 @@ export async function updateAdminServiceDescription(
       logger: loggerDb,
       scope: 'db-admin-services.helper',
       action: 'Failed to update service description from admin panel',
+      error,
+      meta: { studioId, serviceId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Оновлює поле "ціна послуги" з адмін-панелі.
+ */
+export async function updateAdminServiceBasePrice(
+  input: UpdateAdminServiceBasePriceInput,
+): Promise<AdminEditableService> {
+  const studioId = normalizePositiveBigintId(input.studioId, 'studioId');
+  const serviceId = normalizePositiveBigintId(input.serviceId, 'serviceId');
+  const basePrice = normalizeServiceBasePrice(input.basePrice);
+
+  try {
+    return await withTransaction(async (client) =>
+      executeOne<AdminEditableServiceRow, AdminEditableService>(
+        SQL_UPDATE_ADMIN_SERVICE_BASE_PRICE,
+        [serviceId, studioId, basePrice],
+        mapAdminEditableServiceRow,
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-admin-services.helper',
+      action: 'Failed to update service base price from admin panel',
       error,
       meta: { studioId, serviceId },
     });
