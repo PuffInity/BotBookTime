@@ -40,6 +40,12 @@ export const ADMIN_PANEL_ACTION = {
   MASTERS_OPEN_STATS_PREFIX: 'admin-panel:masters:open-stats:',
   MASTERS_EDIT_OPEN_PREFIX: 'admin-panel:masters:edit:open:',
   MASTERS_EDIT_FIELD_PREFIX: 'admin-panel:masters:edit:field:',
+  MASTERS_EDIT_SERVICES_OPEN: 'admin-panel:masters:edit:services:open',
+  MASTERS_EDIT_SERVICES_ADD_OPEN: 'admin-panel:masters:edit:services:add:open',
+  MASTERS_EDIT_SERVICES_REMOVE_OPEN: 'admin-panel:masters:edit:services:remove:open',
+  MASTERS_EDIT_SERVICES_ADD_PICK_PREFIX: 'admin-panel:masters:edit:services:add:pick:',
+  MASTERS_EDIT_SERVICES_REMOVE_PICK_PREFIX: 'admin-panel:masters:edit:services:remove:pick:',
+  MASTERS_EDIT_SERVICES_BACK: 'admin-panel:masters:edit:services:back',
   MASTERS_EDIT_CONFIRM: 'admin-panel:masters:edit:confirm',
   MASTERS_EDIT_CANCEL: 'admin-panel:masters:edit:cancel',
   MASTERS_EDIT_BACK: 'admin-panel:masters:edit:back',
@@ -187,6 +193,10 @@ export const ADMIN_PANEL_BUTTON_TEXT = {
   MASTERS_EDIT_OPEN: '✏️ Редагувати майстра',
   MASTERS_EDIT_DISPLAY_NAME: '✏️ Імʼя майстра',
   MASTERS_EDIT_BIO: '📝 Опис майстра',
+  MASTERS_EDIT_SERVICES: '💼 Змінити послуги',
+  MASTERS_EDIT_SERVICES_ADD: '➕ Додати послугу',
+  MASTERS_EDIT_SERVICES_REMOVE: '➖ Видалити послугу',
+  MASTERS_EDIT_SERVICES_BACK: '⬅️ До редагування майстра',
   MASTERS_EDIT_PHONE: '📞 Телефон майстра',
   MASTERS_EDIT_EMAIL: '✉️ Email майстра',
   MASTERS_EDIT_MATERIALS: '🧴 Додаткова інформація',
@@ -350,6 +360,10 @@ export const ADMIN_PANEL_MASTERS_EDIT_OPEN_ACTION_REGEX =
   /^admin-panel:masters:edit:open:(\d+)$/;
 export const ADMIN_PANEL_MASTERS_EDIT_FIELD_ACTION_REGEX =
   /^admin-panel:masters:edit:field:(\d+):(display_name|bio|materials|phone|email|started_on|procedures_done_total)$/;
+export const ADMIN_PANEL_MASTERS_EDIT_SERVICES_ADD_PICK_ACTION_REGEX =
+  /^admin-panel:masters:edit:services:add:pick:(\d+)$/;
+export const ADMIN_PANEL_MASTERS_EDIT_SERVICES_REMOVE_PICK_ACTION_REGEX =
+  /^admin-panel:masters:edit:services:remove:pick:(\d+)$/;
 export const ADMIN_PANEL_MASTERS_BOOKINGS_OPEN_CARD_ACTION_REGEX =
   /^admin-panel:masters:bookings:open-card:(\d+)$/;
 export const ADMIN_PANEL_SERVICES_OPEN_ACTION_REGEX = /^admin-panel:services:open:(\d+)$/;
@@ -507,6 +521,14 @@ export function makeAdminPanelMastersEditFieldAction(
     | 'procedures_done_total',
 ): string {
   return `${ADMIN_PANEL_ACTION.MASTERS_EDIT_FIELD_PREFIX}${masterId}:${field}`;
+}
+
+export function makeAdminPanelMastersEditServicesAddPickAction(serviceId: string): string {
+  return `${ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_ADD_PICK_PREFIX}${serviceId}`;
+}
+
+export function makeAdminPanelMastersEditServicesRemovePickAction(serviceId: string): string {
+  return `${ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_REMOVE_PICK_PREFIX}${serviceId}`;
 }
 
 export function makeAdminPanelMastersBookingsOpenCardAction(appointmentId: string): string {

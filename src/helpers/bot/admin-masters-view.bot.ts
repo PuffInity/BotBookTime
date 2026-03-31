@@ -4,6 +4,8 @@ import {
   ADMIN_PANEL_BUTTON_TEXT,
   makeAdminPanelMastersBookingsOpenCardAction,
   makeAdminPanelMastersEditFieldAction,
+  makeAdminPanelMastersEditServicesAddPickAction,
+  makeAdminPanelMastersEditServicesRemovePickAction,
   makeAdminPanelMastersEditOpenAction,
   makeAdminPanelMastersOpenAction,
   makeAdminPanelMastersOpenBookingsAction,
@@ -16,6 +18,7 @@ import type {
   MasterSpecializationItem,
   MasterWeeklyScheduleItem,
 } from '../../types/db-helpers/db-masters.types.js';
+import type { MasterOwnProfileServiceManageItem } from '../../types/db-helpers/db-master-profile.types.js';
 
 /**
  * @file admin-masters-view.bot.ts
@@ -427,6 +430,12 @@ export function createAdminMasterEditMenuKeyboard(
     ],
     [
       Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_SERVICES,
+        ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_OPEN,
+      ),
+    ],
+    [
+      Markup.button.callback(
         ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_PHONE,
         makeAdminPanelMastersEditFieldAction(masterId, 'phone'),
       ),
@@ -447,6 +456,153 @@ export function createAdminMasterEditMenuKeyboard(
     ],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_BACK, ADMIN_PANEL_ACTION.MASTERS_EDIT_BACK)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK, ADMIN_PANEL_ACTION.MASTERS_BACK)],
+  ]);
+}
+
+/**
+ * @summary Форматує головний екран керування послугами майстра.
+ */
+export function formatAdminMasterEditServicesMenuText(
+  masterName: string,
+  services: MasterOwnProfileServiceManageItem[],
+): string {
+  const list =
+    services.length === 0
+      ? '• У майстра ще немає активних послуг.'
+      : services
+          .filter((item) => item.isActive)
+          .map((item, index) => {
+            return (
+              `${getNumberBadge(index)} ${item.serviceName}\n` +
+              `⏱ ${item.durationMinutes} хв • 💰 ${formatPrice(item.priceAmount, item.currencyCode)}`
+            );
+          })
+          .join('\n\n');
+
+  return (
+    '💼 Керування послугами майстра\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `👩‍🎨 Майстер: ${masterName}\n\n` +
+    '📋 Активні послуги:\n' +
+    `${list || '• У майстра ще немає активних послуг.'}\n\n` +
+    'Оберіть дію нижче.'
+  );
+}
+
+/**
+ * @summary Клавіатура меню керування послугами майстра.
+ */
+export function createAdminMasterEditServicesMenuKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_SERVICES_ADD, ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_ADD_OPEN)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_SERVICES_REMOVE, ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_REMOVE_OPEN)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_SERVICES_BACK, ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_BACK)],
+  ]);
+}
+
+/**
+ * @summary Форматує список кандидатів на додавання послуги майстру.
+ */
+export function formatAdminMasterEditServicesAddCandidatesText(
+  masterName: string,
+  candidates: MasterOwnProfileServiceManageItem[],
+): string {
+  if (candidates.length === 0) {
+    return (
+      '➕ Додати послугу майстру\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      `👩‍🎨 Майстер: ${masterName}\n\n` +
+      '✅ Усі доступні послуги вже призначені майстру.'
+    );
+  }
+
+  const list = candidates
+    .map((item, index) => {
+      return (
+        `${getNumberBadge(index)} ${item.serviceName}\n` +
+        `⏱ ${item.durationMinutes} хв • 💰 ${formatPrice(item.priceAmount, item.currencyCode)}`
+      );
+    })
+    .join('\n\n');
+
+  return (
+    '➕ Додати послугу майстру\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `👩‍🎨 Майстер: ${masterName}\n\n` +
+    'Оберіть послугу для додавання:\n\n' +
+    list
+  );
+}
+
+/**
+ * @summary Клавіатура списку кандидатів на додавання.
+ */
+export function createAdminMasterEditServicesAddCandidatesKeyboard(
+  candidates: MasterOwnProfileServiceManageItem[],
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const rows = candidates.map((item, index) => [
+    Markup.button.callback(
+      `${getNumberBadge(index)} ${item.serviceName}`,
+      makeAdminPanelMastersEditServicesAddPickAction(item.serviceId),
+    ),
+  ]);
+
+  return Markup.inlineKeyboard([
+    ...rows,
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_SERVICES_BACK, ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_BACK)],
+  ]);
+}
+
+/**
+ * @summary Форматує список кандидатів на видалення послуги у майстра.
+ */
+export function formatAdminMasterEditServicesRemoveCandidatesText(
+  masterName: string,
+  candidates: MasterOwnProfileServiceManageItem[],
+): string {
+  if (candidates.length === 0) {
+    return (
+      '➖ Видалити послугу майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      `👩‍🎨 Майстер: ${masterName}\n\n` +
+      '📭 Немає активних послуг для вимкнення.'
+    );
+  }
+
+  const list = candidates
+    .map((item, index) => {
+      return (
+        `${getNumberBadge(index)} ${item.serviceName}\n` +
+        `⏱ ${item.durationMinutes} хв • 💰 ${formatPrice(item.priceAmount, item.currencyCode)}`
+      );
+    })
+    .join('\n\n');
+
+  return (
+    '➖ Видалити послугу майстра\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `👩‍🎨 Майстер: ${masterName}\n\n` +
+    'Оберіть послугу для вимкнення:\n\n' +
+    list
+  );
+}
+
+/**
+ * @summary Клавіатура списку кандидатів на видалення.
+ */
+export function createAdminMasterEditServicesRemoveCandidatesKeyboard(
+  candidates: MasterOwnProfileServiceManageItem[],
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const rows = candidates.map((item, index) => [
+    Markup.button.callback(
+      `${getNumberBadge(index)} ${item.serviceName}`,
+      makeAdminPanelMastersEditServicesRemovePickAction(item.serviceId),
+    ),
+  ]);
+
+  return Markup.inlineKeyboard([
+    ...rows,
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_SERVICES_BACK, ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_BACK)],
   ]);
 }
 

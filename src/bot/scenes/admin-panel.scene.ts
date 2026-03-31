@@ -12,6 +12,7 @@ import type {
   MasterCatalogDetails,
   MasterCatalogItem,
 } from '../../types/db-helpers/db-masters.types.js';
+import type { MasterOwnProfileServiceManageItem } from '../../types/db-helpers/db-master-profile.types.js';
 import type {
   ServicesCatalogDetails,
   ServicesCatalogItem,
@@ -144,6 +145,9 @@ import {
   createAdminMasterEditConfirmKeyboard,
   createAdminMasterEditInputKeyboard,
   createAdminMasterEditMenuKeyboard,
+  createAdminMasterEditServicesAddCandidatesKeyboard,
+  createAdminMasterEditServicesMenuKeyboard,
+  createAdminMasterEditServicesRemoveCandidatesKeyboard,
   createAdminMasterBookingCardKeyboard,
   createAdminMasterBookingsFeedKeyboard,
   createAdminMasterDetailsKeyboard,
@@ -151,6 +155,9 @@ import {
   formatAdminMasterEditConfirmText,
   formatAdminMasterEditInputText,
   formatAdminMasterEditMenuText,
+  formatAdminMasterEditServicesAddCandidatesText,
+  formatAdminMasterEditServicesMenuText,
+  formatAdminMasterEditServicesRemoveCandidatesText,
   formatAdminMasterEditSuccessText,
   formatAdminMasterBookingCardText,
   formatAdminMasterBookingsFeedText,
@@ -234,6 +241,8 @@ import {
   ADMIN_PANEL_MASTERS_OPEN_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_BOOKINGS_OPEN_CARD_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_EDIT_FIELD_ACTION_REGEX,
+  ADMIN_PANEL_MASTERS_EDIT_SERVICES_ADD_PICK_ACTION_REGEX,
+  ADMIN_PANEL_MASTERS_EDIT_SERVICES_REMOVE_PICK_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_EDIT_OPEN_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_OPEN_BOOKINGS_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_OPEN_STATS_ACTION_REGEX,
@@ -300,7 +309,12 @@ import {
   upsertAdminStudioWeeklyDay,
 } from '../../helpers/db/db-admin-schedule.helper.js';
 import {
+  addMasterOwnService,
   getMasterOwnProfile,
+  listMasterOwnServicesAddCandidates,
+  listMasterOwnServicesManage,
+  listMasterOwnServicesRemoveCandidates,
+  removeMasterOwnService,
   updateMasterOwnProfileBio,
   updateMasterOwnProfileDisplayName,
   updateMasterOwnProfileEmail,
@@ -443,13 +457,19 @@ type AdminScheduleConfigureDayDraft = {
   fromTime: string | null;
 };
 
-type AdminMasterSubSection = 'catalog' | 'details' | 'bookings' | 'stats' | 'edit';
+type AdminMasterSubSection = 'catalog' | 'details' | 'bookings' | 'stats' | 'edit' | 'edit-services';
 type AdminMasterEditDraft = {
   masterId: string;
   field: AdminMasterEditableField;
   mode: 'awaiting_value' | 'awaiting_confirm';
   currentValue: string;
   value: string | null;
+};
+type AdminMasterServicesDraft = {
+  masterId: string;
+  masterName: string;
+  mode: 'menu' | 'add_candidates' | 'remove_candidates';
+  items: MasterOwnProfileServiceManageItem[];
 };
 type AdminServiceSubSection = 'catalog' | 'details' | 'stats' | 'edit' | 'create';
 
@@ -576,6 +596,7 @@ type AdminPanelSceneState = {
   mastersBookingsOpenedAppointmentId: string | null;
   mastersCurrentSection: AdminMasterSubSection | null;
   mastersEditDraft: AdminMasterEditDraft | null;
+  mastersServicesDraft: AdminMasterServicesDraft | null;
   servicesCatalog: ServicesCatalogItem[] | null;
   servicesSelectedServiceId: string | null;
   servicesCurrentSection: AdminServiceSubSection | null;
@@ -629,6 +650,7 @@ function resetMastersState(state: AdminPanelSceneState): void {
   state.mastersBookingsOpenedAppointmentId = null;
   state.mastersCurrentSection = null;
   state.mastersEditDraft = null;
+  state.mastersServicesDraft = null;
 }
 
 function resetServicesState(state: AdminPanelSceneState): void {
@@ -1421,6 +1443,8 @@ async function renderAdminMastersCatalog(ctx: MyContext, preferEdit: boolean): P
   state.mastersSelectedMasterId = null;
   state.mastersBookingsFeed = null;
   state.mastersBookingsOpenedAppointmentId = null;
+  state.mastersEditDraft = null;
+  state.mastersServicesDraft = null;
 
   const text = formatAdminMastersCatalogText(masters);
   const keyboard = createAdminMastersCatalogKeyboard(masters);
@@ -1459,6 +1483,8 @@ async function renderAdminMasterDetails(
   state.mastersSelectedMasterId = masterId;
   state.mastersBookingsFeed = null;
   state.mastersBookingsOpenedAppointmentId = null;
+  state.mastersEditDraft = null;
+  state.mastersServicesDraft = null;
 
   const text = formatAdminMasterDetailsText(details);
   const keyboard = createAdminMasterDetailsKeyboard(masterId);
@@ -1611,6 +1637,7 @@ async function renderAdminMasterEditMenu(
   state.mastersCurrentSection = 'edit';
   state.mastersSelectedMasterId = masterId;
   state.mastersEditDraft = null;
+  state.mastersServicesDraft = null;
 
   const text = formatAdminMasterEditMenuText(details.master.displayName);
   const keyboard = createAdminMasterEditMenuKeyboard(masterId);
@@ -1646,6 +1673,7 @@ async function renderAdminMasterEditInput(
     currentValue,
     value: null,
   };
+  state.mastersServicesDraft = null;
 
   const text = formatAdminMasterEditInputText(field, currentValue);
   const keyboard = createAdminMasterEditInputKeyboard(masterId);
@@ -1670,6 +1698,114 @@ async function renderAdminMasterEditConfirm(
   const nextValue = draft.value ?? draft.currentValue;
   const text = formatAdminMasterEditConfirmText(draft.field, draft.currentValue, nextValue);
   const keyboard = createAdminMasterEditConfirmKeyboard(draft.masterId);
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminMasterEditServicesMenu(
+  ctx: MyContext,
+  masterId: string,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const details = await ensureAdminMasterEditableAccess(state, masterId);
+  const items = await listMasterOwnServicesManage(masterId);
+
+  state.mastersCurrentSection = 'edit-services';
+  state.mastersSelectedMasterId = masterId;
+  state.mastersEditDraft = null;
+  state.mastersServicesDraft = {
+    masterId,
+    masterName: details.master.displayName,
+    mode: 'menu',
+    items,
+  };
+
+  const text = formatAdminMasterEditServicesMenuText(details.master.displayName, items);
+  const keyboard = createAdminMasterEditServicesMenuKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminMasterEditServicesAddCandidates(
+  ctx: MyContext,
+  masterId: string,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const details = await ensureAdminMasterEditableAccess(state, masterId);
+  const candidates = await listMasterOwnServicesAddCandidates(masterId);
+
+  state.mastersCurrentSection = 'edit-services';
+  state.mastersSelectedMasterId = masterId;
+  state.mastersEditDraft = null;
+  state.mastersServicesDraft = {
+    masterId,
+    masterName: details.master.displayName,
+    mode: 'add_candidates',
+    items: candidates,
+  };
+
+  const text = formatAdminMasterEditServicesAddCandidatesText(
+    details.master.displayName,
+    candidates,
+  );
+  const keyboard = createAdminMasterEditServicesAddCandidatesKeyboard(candidates);
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminMasterEditServicesRemoveCandidates(
+  ctx: MyContext,
+  masterId: string,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const details = await ensureAdminMasterEditableAccess(state, masterId);
+  const candidates = await listMasterOwnServicesRemoveCandidates(masterId);
+
+  state.mastersCurrentSection = 'edit-services';
+  state.mastersSelectedMasterId = masterId;
+  state.mastersEditDraft = null;
+  state.mastersServicesDraft = {
+    masterId,
+    masterName: details.master.displayName,
+    mode: 'remove_candidates',
+    items: candidates,
+  };
+
+  const text = formatAdminMasterEditServicesRemoveCandidatesText(
+    details.master.displayName,
+    candidates,
+  );
+  const keyboard = createAdminMasterEditServicesRemoveCandidatesKeyboard(candidates);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1714,6 +1850,8 @@ async function renderAdminMasterBookingsList(
   state.mastersSelectedMasterId = masterId;
   state.mastersBookingsFeed = feed;
   state.mastersBookingsOpenedAppointmentId = null;
+  state.mastersEditDraft = null;
+  state.mastersServicesDraft = null;
 
   const text = formatAdminMasterBookingsFeedText(details.master.displayName, feed);
   const keyboard = createAdminMasterBookingsFeedKeyboard(feed);
@@ -1754,6 +1892,8 @@ async function renderAdminMasterBookingCard(
   state.mastersCurrentSection = 'bookings';
   state.mastersSelectedMasterId = masterId;
   state.mastersBookingsOpenedAppointmentId = appointmentId;
+  state.mastersEditDraft = null;
+  state.mastersServicesDraft = null;
 
   const text = formatAdminMasterBookingCardText(booking);
   const keyboard = createAdminMasterBookingCardKeyboard();
@@ -2954,6 +3094,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.mastersBookingsOpenedAppointmentId = null;
       state.mastersCurrentSection = null;
       state.mastersEditDraft = null;
+      state.mastersServicesDraft = null;
       state.servicesCatalog = null;
       state.servicesSelectedServiceId = null;
       state.servicesCurrentSection = null;
@@ -3719,6 +3860,23 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         await ctx.reply(
           'ℹ️ Для редагування профілю майстра використовуйте кнопки під повідомленням.',
           createAdminMasterEditMenuKeyboard(state.mastersSelectedMasterId),
+        );
+        return;
+      }
+
+      if (state.mastersCurrentSection === 'edit-services' && state.mastersSelectedMasterId) {
+        const mode = state.mastersServicesDraft?.mode ?? 'menu';
+        const items = state.mastersServicesDraft?.items ?? [];
+        const keyboard =
+          mode === 'add_candidates'
+            ? createAdminMasterEditServicesAddCandidatesKeyboard(items)
+            : mode === 'remove_candidates'
+            ? createAdminMasterEditServicesRemoveCandidatesKeyboard(items)
+            : createAdminMasterEditServicesMenuKeyboard();
+
+        await ctx.reply(
+          'ℹ️ Для керування послугами майстра використовуйте кнопки під повідомленням.',
+          keyboard,
         );
         return;
       }
@@ -4798,6 +4956,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
     state.mastersCurrentSection = 'stats';
     state.mastersSelectedMasterId = masterId;
+    state.mastersEditDraft = null;
+    state.mastersServicesDraft = null;
 
     try {
       await ctx.editMessageText(
@@ -4826,6 +4986,109 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     await ctx.answerCbQuery();
     const { masterId, field } = parseAdminMasterEditFieldAction(ctx);
     await renderAdminMasterEditInput(ctx, masterId, field, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_OPEN, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const masterId = state.mastersSelectedMasterId;
+    if (!masterId) {
+      await renderAdminMastersCatalog(ctx, true);
+      return;
+    }
+    await renderAdminMasterEditServicesMenu(ctx, masterId, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_ADD_OPEN, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const masterId = state.mastersSelectedMasterId;
+    if (!masterId) {
+      await renderAdminMastersCatalog(ctx, true);
+      return;
+    }
+    await renderAdminMasterEditServicesAddCandidates(ctx, masterId, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_REMOVE_OPEN, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const masterId = state.mastersSelectedMasterId;
+    if (!masterId) {
+      await renderAdminMastersCatalog(ctx, true);
+      return;
+    }
+    await renderAdminMasterEditServicesRemoveCandidates(ctx, masterId, true);
+  });
+
+  scene.action(ADMIN_PANEL_MASTERS_EDIT_SERVICES_ADD_PICK_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const masterId = state.mastersSelectedMasterId;
+    if (!masterId) {
+      await renderAdminMastersCatalog(ctx, true);
+      return;
+    }
+
+    const serviceId = parseNumericIdFromAction(
+      ctx,
+      ADMIN_PANEL_MASTERS_EDIT_SERVICES_ADD_PICK_ACTION_REGEX,
+      'id послуги',
+    );
+
+    try {
+      const added = await addMasterOwnService({ masterId, serviceId });
+      await ctx.reply(`✅ Послугу "${added.serviceName}" додано майстру.`);
+      await renderAdminMasterEditServicesAddCandidates(ctx, masterId, false);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        await ctx.reply(`⚠️ ${error.message}`);
+        await renderAdminMasterEditServicesAddCandidates(ctx, masterId, false);
+        return;
+      }
+      throw error;
+    }
+  });
+
+  scene.action(ADMIN_PANEL_MASTERS_EDIT_SERVICES_REMOVE_PICK_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const masterId = state.mastersSelectedMasterId;
+    if (!masterId) {
+      await renderAdminMastersCatalog(ctx, true);
+      return;
+    }
+
+    const serviceId = parseNumericIdFromAction(
+      ctx,
+      ADMIN_PANEL_MASTERS_EDIT_SERVICES_REMOVE_PICK_ACTION_REGEX,
+      'id послуги',
+    );
+
+    try {
+      const removed = await removeMasterOwnService({ masterId, serviceId });
+      await ctx.reply(`✅ Послугу "${removed.serviceName}" вимкнено у майстра.`);
+      await renderAdminMasterEditServicesRemoveCandidates(ctx, masterId, false);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        await ctx.reply(`⚠️ ${error.message}`);
+        await renderAdminMasterEditServicesRemoveCandidates(ctx, masterId, false);
+        return;
+      }
+      throw error;
+    }
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_BACK, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const masterId = state.mastersSelectedMasterId;
+    state.mastersServicesDraft = null;
+    if (!masterId) {
+      await renderAdminMastersCatalog(ctx, true);
+      return;
+    }
+    await renderAdminMasterEditMenu(ctx, masterId, true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.MASTERS_EDIT_CANCEL, async (ctx) => {
