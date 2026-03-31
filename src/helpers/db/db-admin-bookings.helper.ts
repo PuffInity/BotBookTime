@@ -6,8 +6,11 @@ import type {
   AdminBookingsFeedPage,
   BookingConflictRow,
   CancelAdminBookingInput,
+  ClearCanceledAdminBookingsInput,
   ConfirmAdminPendingBookingInput,
+  DeletedCountRow,
   GetAdminBookingCardByIdInput,
+  HardDeleteAdminBookingInput,
   InsertedAppointmentIdRow,
   ListAdminBookingsFeedInput,
   MasterScheduleAvailabilityRow,
@@ -22,8 +25,10 @@ import {
   SQL_CANCEL_ADMIN_BOOKING,
   SQL_CHECK_APPOINTMENT_CONFLICT_EXCLUDING_ID,
   SQL_CONFIRM_ADMIN_PENDING_BOOKING,
+  SQL_CLEAR_CANCELED_ADMIN_BOOKINGS,
   SQL_GET_ADMIN_BOOKING_FOR_RESCHEDULE,
   SQL_GET_ADMIN_BOOKING_CARD_BY_ID,
+  SQL_HARD_DELETE_ADMIN_BOOKING,
   SQL_INSERT_APPOINTMENT_TRANSFER_LINK,
   SQL_INSERT_RESCHEDULED_APPOINTMENT,
   SQL_LIST_ADMIN_BOOKINGS_FEED,
@@ -285,6 +290,67 @@ export async function cancelAdminBooking(
       action: 'Failed to cancel admin booking',
       error,
       meta: { studioId, actorUserId, appointmentId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Видаляє запис назавжди (hard-delete) для скасованого/завершеного/перенесеного статусу.
+ */
+export async function hardDeleteAdminBooking(input: HardDeleteAdminBookingInput): Promise<boolean> {
+  const studioId = normalizePositiveBigintId(input.studioId, 'studioId');
+  const appointmentId = normalizePositiveBigintId(input.appointmentId, 'appointmentId');
+
+  try {
+    const deleted = await withTransaction(async (client) =>
+      executeOne<{ id: string }, { id: string }>(
+        SQL_HARD_DELETE_ADMIN_BOOKING,
+        [appointmentId, studioId],
+        (row) => ({ id: row.id }),
+        client,
+      ),
+    );
+
+    return Boolean(deleted);
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-admin-bookings.helper',
+      action: 'Failed to hard delete admin booking',
+      error,
+      meta: { studioId, appointmentId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Очищає всі скасовані записи студії (hard-delete).
+ */
+export async function clearCanceledAdminBookings(
+  input: ClearCanceledAdminBookingsInput,
+): Promise<number> {
+  const studioId = normalizePositiveBigintId(input.studioId, 'studioId');
+
+  try {
+    return await withTransaction(async (client) => {
+      const row = await queryOne<DeletedCountRow, number>(
+        SQL_CLEAR_CANCELED_ADMIN_BOOKINGS,
+        [studioId],
+        (result) => result.deleted_count,
+        client,
+      );
+
+      return row ?? 0;
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-admin-bookings.helper',
+      action: 'Failed to clear canceled admin bookings',
+      error,
+      meta: { studioId },
     });
     throw error;
   }

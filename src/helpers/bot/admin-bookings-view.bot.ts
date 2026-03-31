@@ -14,6 +14,8 @@ import {
   makeAdminPanelRecordsChangeMasterSelectAction,
   makeAdminPanelRecordsConfirmAction,
   makeAdminPanelRecordsContactClientAction,
+  makeAdminPanelRecordsHardDeleteConfirmAction,
+  makeAdminPanelRecordsHardDeleteRequestAction,
   makeAdminPanelRecordsNextPendingAction,
   makeAdminPanelRecordsOpenCardAction,
   makeAdminPanelRecordsRescheduleAction,
@@ -202,6 +204,9 @@ export function createAdminBookingsFeedKeyboard(
   return Markup.inlineKeyboard([
     ...numberRows,
     ...(paginationRow.length > 0 ? [paginationRow] : []),
+    ...(page.category === 'canceled' && page.total > 0
+      ? [[Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CLEAR_CANCELED, ADMIN_PANEL_ACTION.RECORDS_CLEAR_CANCELED_REQUEST)]]
+      : []),
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_MENU, ADMIN_PANEL_ACTION.OPEN_RECORDS)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK, ADMIN_PANEL_ACTION.RECORDS_BACK)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.HOME, ADMIN_PANEL_ACTION.HOME)],
@@ -216,11 +221,11 @@ export function formatAdminBookingDetailsCardText(item: AdminBookingItem): strin
   const commentBlock = comment ? `\n\n📝 Коментар клієнта:\n${comment}` : '';
   let stateHint = '';
   if (item.status === 'canceled') {
-    stateHint = '\n\n⚠️ Цей запис уже скасований.\nДоступний лише перегляд інформації.';
+    stateHint = '\n\n⚠️ Цей запис уже скасований.\nДоступний перегляд або видалення назавжди.';
   } else if (item.status === 'completed') {
-    stateHint = '\n\n⚠️ Цей запис уже завершений.\nДоступний лише перегляд інформації.';
+    stateHint = '\n\n⚠️ Цей запис уже завершений.\nДоступний перегляд або видалення назавжди.';
   } else if (item.status === 'transferred') {
-    stateHint = '\n\n⚠️ Цей запис позначено як перенесений.\nДоступний лише перегляд інформації.';
+    stateHint = '\n\n⚠️ Цей запис позначено як перенесений.\nДоступний перегляд або видалення назавжди.';
   } else if (item.status === 'pending') {
     stateHint = '\n\nℹ️ Доступні дії: підтвердити, скасувати, перенести, змінити майстра.';
   } else if (item.status === 'confirmed') {
@@ -315,12 +320,80 @@ export function createAdminBookingDetailsCardKeyboard(
     ]);
   }
 
+  if (item.status === 'canceled' || item.status === 'completed' || item.status === 'transferred') {
+    actionRows.push([
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.RECORDS_HARD_DELETE,
+        makeAdminPanelRecordsHardDeleteRequestAction(item.appointmentId),
+      ),
+    ]);
+  }
+
   return Markup.inlineKeyboard([
     ...actionRows,
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_LIST, ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_MENU, ADMIN_PANEL_ACTION.OPEN_RECORDS)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK, ADMIN_PANEL_ACTION.RECORDS_BACK)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.HOME, ADMIN_PANEL_ACTION.HOME)],
+  ]);
+}
+
+/**
+ * @summary Текст підтвердження hard-delete запису.
+ */
+export function formatAdminHardDeleteBookingConfirmText(item: AdminBookingItem): string {
+  return (
+    '⚠️ Підтвердження видалення запису\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Ви впевнені, що хочете видалити цей запис назавжди?\n\n' +
+    `👤 ${formatClientDisplayName(item)}\n` +
+    `💼 ${item.serviceName}\n` +
+    `👩‍🎨 ${item.masterName}\n` +
+    `🕒 ${formatDateTimeRange(item.startAt, item.endAt)}\n` +
+    `📌 ${formatBookingStatusLabel(item.status)}\n\n` +
+    'Після видалення запис буде безповоротно стертий із системи.'
+  );
+}
+
+/**
+ * @summary Клавіатура підтвердження hard-delete.
+ */
+export function createAdminHardDeleteBookingConfirmKeyboard(
+  item: AdminBookingItem,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.RECORDS_HARD_DELETE_CONFIRM,
+        makeAdminPanelRecordsHardDeleteConfirmAction(item.appointmentId),
+      ),
+    ],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CANCEL_ACTION, ADMIN_PANEL_ACTION.RECORDS_HARD_DELETE_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_LIST, ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
+  ]);
+}
+
+/**
+ * @summary Текст підтвердження очищення списку скасованих записів.
+ */
+export function formatAdminClearCanceledBookingsConfirmText(total: number): string {
+  return (
+    '⚠️ Підтвердження очищення скасованих записів\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `Ви дійсно хочете очистити список скасованих записів?\n` +
+    `До видалення: ${total}\n\n` +
+    'Після підтвердження всі скасовані записи буде видалено назавжди.'
+  );
+}
+
+/**
+ * @summary Клавіатура підтвердження очищення скасованих записів.
+ */
+export function createAdminClearCanceledBookingsConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CLEAR_CANCELED_CONFIRM, ADMIN_PANEL_ACTION.RECORDS_CLEAR_CANCELED_CONFIRM)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CANCEL_ACTION, ADMIN_PANEL_ACTION.RECORDS_CLEAR_CANCELED_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_MENU, ADMIN_PANEL_ACTION.OPEN_RECORDS)],
   ]);
 }
 

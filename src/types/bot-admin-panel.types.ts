@@ -126,6 +126,12 @@ export const ADMIN_PANEL_ACTION = {
   RECORDS_CONFIRM_PREFIX: 'admin-panel:records:confirm:',
   RECORDS_CANCEL_REQUEST_PREFIX: 'admin-panel:records:cancel:request:',
   RECORDS_CANCEL_CONFIRM_PREFIX: 'admin-panel:records:cancel:confirm:',
+  RECORDS_HARD_DELETE_REQUEST_PREFIX: 'admin-panel:records:hard-delete:request:',
+  RECORDS_HARD_DELETE_CONFIRM_PREFIX: 'admin-panel:records:hard-delete:confirm:',
+  RECORDS_HARD_DELETE_CANCEL: 'admin-panel:records:hard-delete:cancel',
+  RECORDS_CLEAR_CANCELED_REQUEST: 'admin-panel:records:clear-canceled:request',
+  RECORDS_CLEAR_CANCELED_CONFIRM: 'admin-panel:records:clear-canceled:confirm',
+  RECORDS_CLEAR_CANCELED_CANCEL: 'admin-panel:records:clear-canceled:cancel',
   RECORDS_RESCHEDULE_PREFIX: 'admin-panel:records:reschedule:',
   RECORDS_RESCHEDULE_DATE_PREFIX: 'admin-panel:records:reschedule:date:',
   RECORDS_RESCHEDULE_TIME_PREFIX: 'admin-panel:records:reschedule:time:',
@@ -248,6 +254,10 @@ export const ADMIN_PANEL_BUTTON_TEXT = {
   RECORDS_CANCELED: '❌ Скасовані',
   RECORDS_CONFIRM: '✅ Підтвердити',
   RECORDS_CANCEL: '❌ Скасувати',
+  RECORDS_HARD_DELETE: '🗑 Видалити назавжди',
+  RECORDS_HARD_DELETE_CONFIRM: '🗑 Так, видалити запис',
+  RECORDS_CLEAR_CANCELED: '🗑 Очистити список скасованих',
+  RECORDS_CLEAR_CANCELED_CONFIRM: '🗑 Так, очистити список',
   RECORDS_RESCHEDULE: '🔄 Перенести',
   RECORDS_CHANGE_MASTER: '👩‍🎨 Змінити майстра',
   RECORDS_CONTACT_CLIENT: '📞 Зв’язатися з клієнтом',
@@ -276,6 +286,10 @@ export const ADMIN_PANEL_RECORDS_CANCEL_REQUEST_ACTION_REGEX =
   /^admin-panel:records:cancel:request:(\d+)$/;
 export const ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_ACTION_REGEX =
   /^admin-panel:records:cancel:confirm:(\d+)$/;
+export const ADMIN_PANEL_RECORDS_HARD_DELETE_REQUEST_ACTION_REGEX =
+  /^admin-panel:records:hard-delete:request:(\d+)$/;
+export const ADMIN_PANEL_RECORDS_HARD_DELETE_CONFIRM_ACTION_REGEX =
+  /^admin-panel:records:hard-delete:confirm:(\d+)$/;
 export const ADMIN_PANEL_RECORDS_RESCHEDULE_ACTION_REGEX =
   /^admin-panel:records:reschedule:(\d+)$/;
 export const ADMIN_PANEL_RECORDS_RESCHEDULE_DATE_ACTION_REGEX =
@@ -356,6 +370,14 @@ export function makeAdminPanelRecordsCancelRequestAction(appointmentId: string):
 
 export function makeAdminPanelRecordsCancelConfirmAction(appointmentId: string): string {
   return `${ADMIN_PANEL_ACTION.RECORDS_CANCEL_CONFIRM_PREFIX}${appointmentId}`;
+}
+
+export function makeAdminPanelRecordsHardDeleteRequestAction(appointmentId: string): string {
+  return `${ADMIN_PANEL_ACTION.RECORDS_HARD_DELETE_REQUEST_PREFIX}${appointmentId}`;
+}
+
+export function makeAdminPanelRecordsHardDeleteConfirmAction(appointmentId: string): string {
+  return `${ADMIN_PANEL_ACTION.RECORDS_HARD_DELETE_CONFIRM_PREFIX}${appointmentId}`;
 }
 
 export function makeAdminPanelRecordsRescheduleAction(appointmentId: string): string {

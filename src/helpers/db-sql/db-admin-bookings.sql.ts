@@ -81,6 +81,27 @@ export const SQL_CANCEL_ADMIN_BOOKING = `
   LIMIT 1
 `;
 
+export const SQL_HARD_DELETE_ADMIN_BOOKING = `
+  DELETE FROM appointments a
+  WHERE a.id = $1::bigint
+    AND a.studio_id = $2::bigint
+    AND a.deleted_at IS NULL
+    AND a.status IN ('canceled', 'completed', 'transferred')
+  RETURNING a.id
+`;
+
+export const SQL_CLEAR_CANCELED_ADMIN_BOOKINGS = `
+  WITH deleted AS (
+    DELETE FROM appointments a
+    WHERE a.studio_id = $1::bigint
+      AND a.deleted_at IS NULL
+      AND a.status = 'canceled'
+    RETURNING 1
+  )
+  SELECT COUNT(*)::int AS deleted_count
+  FROM deleted
+`;
+
 export const SQL_GET_ADMIN_BOOKING_FOR_RESCHEDULE = `
   SELECT
     ${ADMIN_BOOKING_SELECT_COLUMNS},

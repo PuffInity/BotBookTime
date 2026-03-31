@@ -91,6 +91,15 @@ export type CancelAdminBookingInput = {
   cancelReason?: string | null;
 };
 
+export type HardDeleteAdminBookingInput = {
+  studioId: string | number;
+  appointmentId: string | number;
+};
+
+export type ClearCanceledAdminBookingsInput = {
+  studioId: string | number;
+};
+
 export type RescheduleAdminBookingInput = {
   studioId: string | number;
   actorUserId: string | number;
@@ -117,6 +126,10 @@ export type InsertedAppointmentIdRow = {
 
 export type BookingConflictRow = {
   has_conflict: boolean;
+};
+
+export type DeletedCountRow = {
+  deleted_count: number;
 };
 
 export type MasterScheduleAvailabilityRow = {

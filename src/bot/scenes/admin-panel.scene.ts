@@ -114,22 +114,26 @@ import {
 } from '../../helpers/bot/admin-schedule-view.bot.js';
 import {
   createAdminBookingClientProfileKeyboard,
+  createAdminClearCanceledBookingsConfirmKeyboard,
   createAdminBookingContactClientKeyboard,
   createAdminCancelBookingConfirmKeyboard,
   createAdminChangeMasterConfirmKeyboard,
   createAdminChangeMasterSelectKeyboard,
   createAdminBookingDetailsCardKeyboard,
+  createAdminHardDeleteBookingConfirmKeyboard,
   createAdminBookingMasterProfileKeyboard,
   createAdminBookingsFeedKeyboard,
   createAdminRescheduleConfirmKeyboard,
   createAdminRescheduleDateKeyboard,
   createAdminRescheduleTimeKeyboard,
   formatAdminBookingClientProfileText,
+  formatAdminClearCanceledBookingsConfirmText,
   formatAdminBookingContactClientText,
   formatAdminCancelBookingConfirmText,
   formatAdminChangeMasterConfirmText,
   formatAdminChangeMasterStepText,
   formatAdminBookingDetailsCardText,
+  formatAdminHardDeleteBookingConfirmText,
   formatAdminBookingsFeedText,
   formatAdminRescheduleConfirmText,
   formatAdminRescheduleDateStepText,
@@ -230,6 +234,8 @@ import {
   ADMIN_PANEL_RECORDS_CONTACT_CLIENT_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_CHANGE_MASTER_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_CHANGE_MASTER_SELECT_ACTION_REGEX,
+  ADMIN_PANEL_RECORDS_HARD_DELETE_CONFIRM_ACTION_REGEX,
+  ADMIN_PANEL_RECORDS_HARD_DELETE_REQUEST_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_CONFIRM_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_NEXT_PENDING_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_OPEN_CARD_ACTION_REGEX,
@@ -255,8 +261,10 @@ import {
 import { getAdminPanelAccessByTelegramId } from '../../helpers/db/db-admin-panel.helper.js';
 import {
   cancelAdminBooking,
+  clearCanceledAdminBookings,
   confirmAdminPendingBooking,
   getAdminBookingCardById,
+  hardDeleteAdminBooking,
   listAdminBookingsFeed,
   reassignAdminBookingMaster,
   rescheduleAdminBooking,
@@ -2431,6 +2439,56 @@ async function renderAdminCancelBookingConfirm(ctx: MyContext, item: AdminBookin
     await ctx.editMessageText(text, keyboard);
   } catch {
     await ctx.reply(text, keyboard);
+  }
+}
+
+async function renderAdminHardDeleteBookingConfirm(
+  ctx: MyContext,
+  item: AdminBookingItem,
+): Promise<void> {
+  const text = formatAdminHardDeleteBookingConfirmText(item);
+  const keyboard = createAdminHardDeleteBookingConfirmKeyboard(item);
+
+  try {
+    await ctx.editMessageText(text, keyboard);
+  } catch {
+    await ctx.reply(text, keyboard);
+  }
+}
+
+async function renderAdminClearCanceledConfirm(
+  ctx: MyContext,
+  total: number,
+  preferEdit: boolean,
+): Promise<void> {
+  const text = formatAdminClearCanceledBookingsConfirmText(total);
+  const keyboard = createAdminClearCanceledBookingsConfirmKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderRecordsCategoryWithOffsetFallback(
+  ctx: MyContext,
+  category: AdminBookingsCategory,
+  offset: number,
+  preferEdit: boolean,
+): Promise<void> {
+  await renderRecordsCategoryStub(ctx, category, offset, preferEdit);
+  const feed = getSceneState(ctx).recordsFeed;
+  if (!feed) return;
+
+  if (feed.items.length === 0 && feed.offset > 0) {
+    const prevOffset = Math.max(0, feed.offset - feed.limit);
+    await renderRecordsCategoryStub(ctx, category, prevOffset, preferEdit);
   }
 }
 
@@ -5939,6 +5997,146 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     await renderAdminCancelBookingConfirm(ctx, item);
+  });
+
+  scene.action(ADMIN_PANEL_RECORDS_HARD_DELETE_REQUEST_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const appointmentId = parseAppointmentIdFromAction(
+      ctx,
+      ADMIN_PANEL_RECORDS_HARD_DELETE_REQUEST_ACTION_REGEX,
+    );
+    const item = await resolveAdminRecordById(state, appointmentId);
+    if (!item) {
+      await renderRecordsFallback(ctx, true);
+      return;
+    }
+
+    if (item.status !== 'canceled' && item.status !== 'completed' && item.status !== 'transferred') {
+      await ctx.reply('⚠️ Цей запис ще активний. Hard-delete доступний лише для неактивних записів.');
+      await renderAdminBookingCard(ctx, item);
+      return;
+    }
+
+    await renderAdminHardDeleteBookingConfirm(ctx, item);
+  });
+
+  scene.action(ADMIN_PANEL_RECORDS_HARD_DELETE_CONFIRM_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const access = state.access;
+    if (!access?.studioId) {
+      await renderRecordsFallback(ctx, true);
+      return;
+    }
+
+    const appointmentId = parseAppointmentIdFromAction(
+      ctx,
+      ADMIN_PANEL_RECORDS_HARD_DELETE_CONFIRM_ACTION_REGEX,
+    );
+    const target = await resolveAdminRecordById(state, appointmentId);
+    if (!target) {
+      await ctx.reply('ℹ️ Запис уже відсутній у системі.');
+      await renderRecordsFallback(ctx, true);
+      return;
+    }
+
+    if (target.status !== 'canceled' && target.status !== 'completed' && target.status !== 'transferred') {
+      await ctx.reply('⚠️ Цей запис ще активний. Hard-delete скасовано.');
+      await renderAdminBookingCard(ctx, target);
+      return;
+    }
+
+    const deleted = await hardDeleteAdminBooking({
+      studioId: access.studioId,
+      appointmentId,
+    });
+
+    if (!deleted) {
+      await ctx.reply('ℹ️ Запис не видалено. Можливо, він уже був видалений або змінений.');
+      await renderRecordsFallback(ctx, true);
+      return;
+    }
+
+    resetRecordsActionDrafts(state);
+    state.recordsOpenedAppointmentId = null;
+    await ctx.reply('✅ Запис видалено назавжди.');
+
+    if (state.recordsFeed) {
+      await renderRecordsCategoryWithOffsetFallback(
+        ctx,
+        state.recordsFeed.category,
+        state.recordsFeed.offset,
+        true,
+      );
+      return;
+    }
+
+    await renderRecordsMenu(ctx);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.RECORDS_HARD_DELETE_CANCEL, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const appointmentId = state.recordsOpenedAppointmentId;
+    if (!appointmentId) {
+      await renderRecordsFallback(ctx, true);
+      return;
+    }
+    const item = await resolveAdminRecordById(state, appointmentId);
+    if (!item) {
+      await renderRecordsFallback(ctx, true);
+      return;
+    }
+    await ctx.reply('↩️ Дію скасовано.\n\nЖодних змін не внесено.');
+    await renderAdminBookingCard(ctx, item);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.RECORDS_CLEAR_CANCELED_REQUEST, async (ctx) => {
+    await ctx.answerCbQuery();
+    const feed = getSceneState(ctx).recordsFeed;
+    if (!feed || feed.category !== 'canceled') {
+      await renderRecordsFallback(ctx, true);
+      return;
+    }
+
+    if (feed.total <= 0) {
+      await ctx.reply('ℹ️ Список скасованих записів уже порожній.');
+      await renderRecordsCategoryStub(ctx, 'canceled', 0, true);
+      return;
+    }
+
+    await renderAdminClearCanceledConfirm(ctx, feed.total, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.RECORDS_CLEAR_CANCELED_CONFIRM, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const access = state.access;
+    if (!access?.studioId) {
+      await renderRecordsFallback(ctx, true);
+      return;
+    }
+
+    const deletedCount = await clearCanceledAdminBookings({
+      studioId: access.studioId,
+    });
+
+    resetRecordsActionDrafts(state);
+    state.recordsOpenedAppointmentId = null;
+    await ctx.reply(`✅ Скасовані записи очищено. Видалено: ${deletedCount}.`);
+    await renderRecordsCategoryWithOffsetFallback(ctx, 'canceled', 0, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.RECORDS_CLEAR_CANCELED_CANCEL, async (ctx) => {
+    await ctx.answerCbQuery();
+    const feed = getSceneState(ctx).recordsFeed;
+    await ctx.reply('↩️ Дію скасовано.\n\nЖодних змін не внесено.');
+    if (feed?.category === 'canceled') {
+      await renderRecordsCategoryStub(ctx, 'canceled', feed.offset, true);
+      return;
+    }
+    await renderRecordsFallback(ctx, true);
   });
 
   scene.action(ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_ACTION_REGEX, async (ctx) => {
