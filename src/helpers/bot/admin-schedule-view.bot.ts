@@ -36,8 +36,15 @@ const TEMPORARY_WEEKDAY_ROWS = [
   [7],
 ];
 
-function formatDate(date: Date): string {
-  return date.toLocaleDateString('uk-UA');
+function toSafeDate(value: Date | string): Date | null {
+  const parsed = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function formatDate(date: Date | string): string {
+  const parsed = toSafeDate(date);
+  if (!parsed) return 'невідома дата';
+  return parsed.toLocaleDateString('uk-UA');
 }
 
 function formatWeeklyLine(weekday: number, isOpen: boolean, openTime: string | null, closeTime: string | null): string {
@@ -47,10 +54,13 @@ function formatWeeklyLine(weekday: number, isOpen: boolean, openTime: string | n
   return `• ${day}: ${openTime}–${closeTime}`;
 }
 
-function dateToCode(date: Date): string {
-  const year = String(date.getFullYear());
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+function dateToCode(date: Date | string): string | null {
+  const parsed = toSafeDate(date);
+  if (!parsed) return null;
+
+  const year = String(parsed.getFullYear());
+  const month = String(parsed.getMonth() + 1).padStart(2, '0');
+  const day = String(parsed.getDate()).padStart(2, '0');
   return `${year}${month}${day}`;
 }
 
@@ -458,7 +468,7 @@ export function createAdminScheduleHolidayConfirmKeyboard(): ReturnType<typeof M
 /**
  * @summary Текст підтвердження видалення вихідного дня.
  */
-export function formatAdminScheduleDeleteDayOffConfirmText(date: Date): string {
+export function formatAdminScheduleDeleteDayOffConfirmText(date: Date | string): string {
   return (
     '⚠️ Видалення вихідного дня\n' +
     '━━━━━━━━━━━━━━\n\n' +
@@ -470,7 +480,7 @@ export function formatAdminScheduleDeleteDayOffConfirmText(date: Date): string {
  * @summary Текст підтвердження видалення свята.
  */
 export function formatAdminScheduleDeleteHolidayConfirmText(
-  date: Date,
+  date: Date | string,
   holidayName: string,
 ): string {
   return (
@@ -504,13 +514,22 @@ function extractTemporaryPeriods(data: AdminStudioScheduleData): TemporaryPeriod
   const unique = new Map<string, TemporaryPeriod>();
 
   for (const item of data.upcomingTemporaryHours) {
-    const key = `${dateToCode(item.dateFrom)}:${dateToCode(item.dateTo)}`;
+    const dateFrom = toSafeDate(item.dateFrom);
+    const dateTo = toSafeDate(item.dateTo);
+    const dateFromCode = dateToCode(item.dateFrom);
+    const dateToCodeValue = dateToCode(item.dateTo);
+
+    if (!dateFrom || !dateTo || !dateFromCode || !dateToCodeValue) {
+      continue;
+    }
+
+    const key = `${dateFromCode}:${dateToCodeValue}`;
     if (!unique.has(key)) {
       unique.set(key, {
-        dateFrom: item.dateFrom,
-        dateTo: item.dateTo,
-        dateFromCode: dateToCode(item.dateFrom),
-        dateToCode: dateToCode(item.dateTo),
+        dateFrom,
+        dateTo,
+        dateFromCode,
+        dateToCode: dateToCodeValue,
       });
     }
   }
@@ -715,8 +734,8 @@ export function createAdminScheduleTemporaryDayInputKeyboard(
  * @summary Текст підтвердження видалення періоду тимчасового графіку.
  */
 export function formatAdminScheduleDeleteTemporaryConfirmText(
-  dateFrom: Date,
-  dateTo: Date,
+  dateFrom: Date | string,
+  dateTo: Date | string,
 ): string {
   return (
     '⚠️ Видалення тимчасового графіку\n' +

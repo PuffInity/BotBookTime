@@ -5,6 +5,7 @@ import {initDb} from "./life-cycle/dataBase.lifeCycle.js";
 import {handleError} from "../utils/error.utils.js";
 import {redisConfig} from "../config/redis.config.js";
 import {RedisClient, SessionConfig} from "../types/redis.types.js";
+import {startBookingExpirationWorker} from "./life-cycle/booking-expiration.lifeCycle.js";
 
 /**
  * Фабрика створення `AppInstance` після отримання готового Redis-клієнта.
@@ -13,7 +14,7 @@ type CreateAppInstance = (redis: RedisClient, config: SessionConfig) => AppInsta
 
 /**
  * @file start.startup.ts
- * @summary Оркестратор старту застосунку (Redis -> PostgreSQL -> Telegram-бот).
+ * @summary Оркестратор старту застосунку (Redis -> PostgreSQL -> Telegram-бот -> booking-expiration worker).
  */
 
 /**
@@ -70,6 +71,7 @@ export class StartApp {
      * 1) Redis
      * 2) PostgreSQL
      * 3) Telegram-бот
+     * 4) Booking-expiration worker
      *
      * @returns Promise, який завершується після успішного старту.
      */
@@ -105,6 +107,7 @@ export class StartApp {
             }
 
             await this.runStep('Telegram-Бот', () => app.start())
+            await this.runStep('Booking-expiration-worker', startBookingExpirationWorker)
 
         } finally {
             this.starting = false

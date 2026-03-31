@@ -30,11 +30,33 @@ import {
  * @summary UI/helper-и для блоку "Записи" в адмін-панелі.
  */
 
-function formatDateTimeRange(startAt: Date, endAt: Date): string {
-  const date = startAt.toLocaleDateString('uk-UA');
-  const startTime = startAt.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
-  const endTime = endAt.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+function toSafeDate(value: Date | string): Date | null {
+  const parsed = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+  return parsed;
+}
 
+function formatUiDate(value: Date | string): string {
+  const parsed = toSafeDate(value);
+  if (!parsed) return '—';
+  return parsed.toLocaleDateString('uk-UA');
+}
+
+function formatUiTime(value: Date | string): string {
+  const parsed = toSafeDate(value);
+  if (!parsed) return '—';
+  return parsed.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatDateTimeRange(startAt: Date | string, endAt: Date | string): string {
+  const date = formatUiDate(startAt);
+  const startTime = formatUiTime(startAt);
+  const endTime = formatUiTime(endAt);
+  if (date === '—' || startTime === '—' || endTime === '—') {
+    return 'Некоректна дата/час';
+  }
   return `${date} • ${startTime}–${endTime}`;
 }
 
@@ -155,15 +177,17 @@ export function formatAdminBookingsFeedText(page: AdminBookingsFeedPage): string
   }
 
   const lines = page.items.map((item, index) => {
+    const dateLabel = formatUiDate(item.startAt);
+    const startTime = formatUiTime(item.startAt);
+    const endTime = formatUiTime(item.endAt);
     return (
       `${cardIndexLabel(index)}\n\n` +
       `👤 ${formatClientDisplayName(item)}\n` +
       `💼 ${item.serviceName}\n` +
       `👩‍🎨 ${item.masterName}\n` +
       `💰 Ціна: ${formatPrice(item.priceAmount, item.currencyCode)}\n` +
-      `📅 ${item.startAt.toLocaleDateString('uk-UA')}\n` +
-      `⏰ ${item.startAt.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}` +
-      `–${item.endAt.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}\n` +
+      `📅 ${dateLabel}\n` +
+      `⏰ ${startTime}–${endTime}\n` +
       `${formatBookingStatusLabel(item.status)}`
     );
   });

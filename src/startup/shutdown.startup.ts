@@ -2,6 +2,7 @@ import {ILogger} from "../utils/logger/types.logger.js";
 import {AppInstance} from "../types/bot.types.js";
 import {redisShutdown} from "./life-cycle/redis.lifeCycle.js";
 import {shutDownDb} from "./life-cycle/dataBase.lifeCycle.js";
+import {stopBookingExpirationWorker} from "./life-cycle/booking-expiration.lifeCycle.js";
 import {handleError} from "../utils/error.utils.js";
 
 /**
@@ -18,9 +19,10 @@ type getApp = () => AppInstance | null
 /**
  * Виконує поетапний shutdown:
  * 1) Telegram-бот
- * 2) PostgreSQL
- * 3) Redis
- * 4) flush/close логера
+ * 2) Booking-expiration worker
+ * 3) PostgreSQL
+ * 4) Redis
+ * 5) flush/close логера
  */
 export class Shutdown {
     private isStopping: boolean = false
@@ -78,6 +80,7 @@ export class Shutdown {
         }
 
         try {
+           await this.runStep('Booking-expiration-worker', stopBookingExpirationWorker)
            await this.runStep('PostgreSQL', shutDownDb)
            await this.runStep('Redis', redisShutdown)
 

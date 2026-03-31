@@ -1039,6 +1039,11 @@ function toStartAt(dateCode: string, timeCode: string): Date {
   return new Date(year, month - 1, day, hour, minute, 0, 0);
 }
 
+function toSafeDateValue(value: Date | string): Date | null {
+  const parsed = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
 function getAvailableRescheduleTimeCodes(dateCode: string): string[] {
   const options = buildBookingTimeOptions().map((item) => item.replace(':', ''));
   if (dateCode !== getTodayDateCode()) {
@@ -2983,7 +2988,9 @@ async function resolveAdminRecordById(
   state: AdminPanelSceneState,
   appointmentId: string,
 ): Promise<AdminBookingItem | null> {
-  const fromFeed = state.recordsFeed?.items.find((item) => item.appointmentId === appointmentId) ?? null;
+  const normalizedAppointmentId = String(appointmentId);
+  const fromFeed =
+    state.recordsFeed?.items.find((item) => String(item.appointmentId) === normalizedAppointmentId) ?? null;
   if (fromFeed) return fromFeed;
 
   const studioId = state.access?.studioId;
@@ -2994,16 +3001,44 @@ async function resolveAdminRecordById(
   });
 }
 
-async function renderAdminBookingCard(ctx: MyContext, item: AdminBookingItem): Promise<void> {
-  const state = getSceneState(ctx);
-  state.recordsOpenedAppointmentId = item.appointmentId;
-  const text = formatAdminBookingDetailsCardText(item);
-  const keyboard = createAdminBookingDetailsCardKeyboard(item);
+function tryParseAppointmentIdFromAction(ctx: MyContext, regex: RegExp): string | null {
+  const callbackData =
+    ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
+  const matches = callbackData.match(regex);
+  const appointmentId = matches?.[1]?.trim() ?? '';
+  if (!/^\d+$/.test(appointmentId) || appointmentId === '0') {
+    return null;
+  }
+  return appointmentId;
+}
 
+async function renderAdminBookingCard(ctx: MyContext, item: AdminBookingItem): Promise<void> {
   try {
-    await ctx.editMessageText(text, keyboard);
-  } catch {
-    await ctx.reply(text, keyboard);
+    const state = getSceneState(ctx);
+    state.recordsOpenedAppointmentId = item.appointmentId;
+    const text = formatAdminBookingDetailsCardText(item);
+    const keyboard = createAdminBookingDetailsCardKeyboard(item);
+
+    try {
+      await ctx.editMessageText(text, keyboard);
+    } catch {
+      await ctx.reply(text, keyboard);
+    }
+  } catch (error) {
+    handleError({
+      logger: loggerAdminPanel,
+      level: 'error',
+      scope: 'admin-panel.scene',
+      action: 'Failed to render booking card',
+      error,
+      meta: {
+        appointmentId: item.appointmentId,
+      },
+    });
+    await replyAdminWarning(
+      ctx,
+      'Не вдалося відкрити картку запису. Спробуйте ще раз або поверніться до списку.',
+    );
   }
 }
 
@@ -3240,7 +3275,19 @@ async function renderRescheduleConfirmStep(ctx: MyContext, preferEdit: boolean):
   }
 
   const newStartAt = toStartAt(draft.dateCode, draft.timeCode);
-  const durationMs = item.endAt.getTime() - item.startAt.getTime();
+  const currentStartAt = toSafeDateValue(item.startAt as unknown as Date | string);
+  const currentEndAt = toSafeDateValue(item.endAt as unknown as Date | string);
+  if (!currentStartAt || !currentEndAt || currentEndAt.getTime() <= currentStartAt.getTime()) {
+    resetRecordsActionDrafts(state);
+    await replyAdminWarning(
+      ctx,
+      'Не вдалося визначити поточний час запису. Спробуйте відкрити картку запису ще раз.',
+    );
+    await renderRecordsFallback(ctx, false);
+    return;
+  }
+
+  const durationMs = currentEndAt.getTime() - currentStartAt.getTime();
   const newEndAt = new Date(newStartAt.getTime() + durationMs);
   const text = formatAdminRescheduleConfirmText(item, newStartAt, newEndAt);
   const keyboard = createAdminRescheduleConfirmKeyboard();
@@ -7797,19 +7844,51 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
     resetRecordsActionDrafts(state);
-    const appointmentId = parseAppointmentIdFromAction(ctx, ADMIN_PANEL_RECORDS_OPEN_CARD_ACTION_REGEX);
-    const item = await resolveAdminRecordById(state, appointmentId);
-    if (!item) {
-      if (state.recordsFeed) {
-        await renderRecordsCategoryStub(ctx, state.recordsFeed.category, state.recordsFeed.offset, true);
+    try {
+      const appointmentId = tryParseAppointmentIdFromAction(ctx, ADMIN_PANEL_RECORDS_OPEN_CARD_ACTION_REGEX);
+      if (!appointmentId) {
+        logAdminCriticalAction(
+          ctx,
+          'Received invalid callback data for records open card',
+          {
+            callbackData:
+              ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : null,
+          },
+          state.access,
+        );
+        await replyAdminWarning(ctx, 'Не вдалося відкрити картку запису. Спробуйте оновити список.');
+        await renderRecordsFallback(ctx, false);
+        return;
+      }
+      const item = await resolveAdminRecordById(state, appointmentId);
+      if (!item) {
+        if (state.recordsFeed) {
+          await renderRecordsCategoryStub(ctx, state.recordsFeed.category, state.recordsFeed.offset, true);
+          return;
+        }
+
+        await renderRecordsMenu(ctx);
         return;
       }
 
-      await renderRecordsMenu(ctx);
-      return;
+      await renderAdminBookingCard(ctx, item);
+    } catch (error) {
+      handleError({
+        logger: loggerAdminPanel,
+        level: 'error',
+        scope: 'admin-panel.scene',
+        action: 'Failed to open booking card from records feed',
+        error,
+        meta: {
+          callbackData:
+            ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : null,
+          category: state.recordsFeed?.category ?? null,
+          offset: state.recordsFeed?.offset ?? null,
+        },
+      });
+      await replyAdminWarning(ctx, 'Не вдалося відкрити картку запису. Повертаю до списку.');
+      await renderRecordsFallback(ctx, false);
     }
-
-    await renderAdminBookingCard(ctx, item);
   });
 
   scene.action(ADMIN_PANEL_RECORDS_CONTACT_CLIENT_ACTION_REGEX, async (ctx) => {

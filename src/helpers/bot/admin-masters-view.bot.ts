@@ -92,10 +92,27 @@ function formatClientDisplayName(item: AdminBookingItem): string {
   return fullName || 'Клієнт';
 }
 
-function formatDateTimeRange(startAt: Date, endAt: Date): string {
-  const date = startAt.toLocaleDateString('uk-UA');
-  const startTime = startAt.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
-  const endTime = endAt.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+function toSafeDate(value: Date | string): Date | null {
+  const parsed = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function formatUiDate(value: Date | string): string {
+  const parsed = toSafeDate(value);
+  if (!parsed) return 'невідома дата';
+  return parsed.toLocaleDateString('uk-UA');
+}
+
+function formatUiTime(value: Date | string): string {
+  const parsed = toSafeDate(value);
+  if (!parsed) return '--:--';
+  return parsed.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatDateTimeRange(startAt: Date | string, endAt: Date | string): string {
+  const date = formatUiDate(startAt);
+  const startTime = formatUiTime(startAt);
+  const endTime = formatUiTime(endAt);
   return `${date} • ${startTime}–${endTime}`;
 }
 
