@@ -164,6 +164,7 @@ export function createAdminMastersCatalogKeyboard(
   return Markup.inlineKeyboard([
     ...rows,
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_OPEN, ADMIN_PANEL_ACTION.MASTERS_CREATE_OPEN)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_DELETE_OPEN, ADMIN_PANEL_ACTION.MASTERS_DELETE_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK, ADMIN_PANEL_ACTION.MASTERS_BACK)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.HOME, ADMIN_PANEL_ACTION.HOME)],
   ]);
@@ -594,8 +595,62 @@ export function createAdminMasterDetailsKeyboard(
         makeAdminPanelMastersEditOpenAction(masterId),
       ),
     ],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_DELETE_OPEN, ADMIN_PANEL_ACTION.MASTERS_DELETE_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK_TO_LIST, ADMIN_PANEL_ACTION.MASTERS_BACK_TO_LIST)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK, ADMIN_PANEL_ACTION.MASTERS_BACK)],
+  ]);
+}
+
+/**
+ * @summary Форматує екран введення Telegram ID для видалення майстра.
+ */
+export function formatAdminMasterDeleteInputText(): string {
+  return (
+    '❌ Видалення майстра\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Щоб видалити майстра з системи, надішліть його Telegram ID.\n\n' +
+    '📌 Формат: тільки цифри (5..15 символів)\n' +
+    'Приклад: 548732119'
+  );
+}
+
+/**
+ * @summary Клавіатура екрану введення Telegram ID для видалення майстра.
+ */
+export function createAdminMasterDeleteInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_DELETE_CANCEL, ADMIN_PANEL_ACTION.MASTERS_DELETE_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK_TO_LIST, ADMIN_PANEL_ACTION.MASTERS_BACK_TO_LIST)],
+  ]);
+}
+
+/**
+ * @summary Форматує екран підтвердження видалення майстра.
+ */
+export function formatAdminMasterDeleteConfirmText(
+  masterName: string,
+  telegramUserId: string,
+): string {
+  return (
+    '⚠️ Підтвердження видалення майстра\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `👩‍🎨 Майстер: ${masterName}\n` +
+    `🆔 Telegram ID: ${telegramUserId}\n\n` +
+    'Після видалення:\n' +
+    '• майстер втратить доступ до панелі майстра\n' +
+    '• клієнти не зможуть створювати нові записи до цього майстра\n' +
+    '• активні послуги майстра будуть вимкнені'
+  );
+}
+
+/**
+ * @summary Клавіатура підтвердження видалення майстра.
+ */
+export function createAdminMasterDeleteConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_DELETE_CONFIRM, ADMIN_PANEL_ACTION.MASTERS_DELETE_CONFIRM)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_DELETE_CANCEL, ADMIN_PANEL_ACTION.MASTERS_DELETE_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK_TO_LIST, ADMIN_PANEL_ACTION.MASTERS_BACK_TO_LIST)],
   ]);
 }
 

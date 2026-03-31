@@ -120,3 +120,32 @@ export const SQL_UPSERT_ADMIN_MASTER_WEEKLY_DAY = `
     open_time = EXCLUDED.open_time,
     close_time = EXCLUDED.close_time
 `;
+
+export const SQL_DEACTIVATE_ADMIN_MASTER = `
+  UPDATE masters m
+  SET
+    is_bookable = FALSE,
+    updated_at = now()
+  WHERE m.studio_id = $1::bigint
+    AND m.user_id = $2::bigint
+    AND m.is_bookable = TRUE
+  RETURNING
+    m.user_id AS master_id,
+    m.display_name
+`;
+
+export const SQL_DEACTIVATE_ADMIN_MASTER_SERVICES = `
+  UPDATE master_services ms
+  SET
+    is_active = FALSE,
+    updated_at = now()
+  WHERE ms.studio_id = $1::bigint
+    AND ms.master_id = $2::bigint
+    AND ms.is_active = TRUE
+`;
+
+export const SQL_REVOKE_ADMIN_MASTER_ROLE = `
+  DELETE FROM user_roles ur
+  WHERE ur.user_id = $1::bigint
+    AND ur.role = 'master'::user_role
+`;

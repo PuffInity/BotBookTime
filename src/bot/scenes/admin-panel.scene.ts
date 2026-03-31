@@ -147,6 +147,8 @@ import {
   type AdminMasterCreateScheduleDayView,
   createAdminMasterCreateConfirmKeyboard,
   createAdminMasterCreateInputKeyboard,
+  createAdminMasterDeleteConfirmKeyboard,
+  createAdminMasterDeleteInputKeyboard,
   createAdminMasterCreateScheduleInputKeyboard,
   createAdminMasterCreateSchedulePickKeyboard,
   createAdminMasterCreateServicesKeyboard,
@@ -164,6 +166,8 @@ import {
   formatAdminMasterCreateBioInputText,
   formatAdminMasterCreateConfirmText,
   formatAdminMasterCreateDisplayNameInputText,
+  formatAdminMasterDeleteConfirmText,
+  formatAdminMasterDeleteInputText,
   formatAdminMasterCreateEmailInputText,
   formatAdminMasterCreateExperienceYearsInputText,
   formatAdminMasterCreateMaterialsInputText,
@@ -336,6 +340,7 @@ import {
 } from '../../helpers/db/db-admin-schedule.helper.js';
 import {
   createAdminMaster,
+  deleteAdminMaster,
   findAdminMasterCandidateByTelegramId,
 } from '../../helpers/db/db-admin-masters.helper.js';
 import {
@@ -494,6 +499,7 @@ type AdminMasterSubSection =
   | 'stats'
   | 'edit'
   | 'edit-services'
+  | 'delete'
   | 'create';
 type AdminMasterEditDraft = {
   masterId: string;
@@ -538,6 +544,13 @@ type AdminMasterServicesDraft = {
   masterName: string;
   mode: 'menu' | 'add_candidates' | 'remove_candidates';
   items: MasterOwnProfileServiceManageItem[];
+};
+
+type AdminMasterDeleteDraft = {
+  mode: 'awaiting_telegram_id' | 'awaiting_confirm';
+  telegramUserId: string | null;
+  targetUserId: string | null;
+  targetDisplayName: string | null;
 };
 type AdminServiceSubSection = 'catalog' | 'details' | 'stats' | 'edit' | 'create';
 
@@ -666,6 +679,7 @@ type AdminPanelSceneState = {
   mastersEditDraft: AdminMasterEditDraft | null;
   mastersCreateDraft: AdminMasterCreateDraft | null;
   mastersServicesDraft: AdminMasterServicesDraft | null;
+  mastersDeleteDraft: AdminMasterDeleteDraft | null;
   servicesCatalog: ServicesCatalogItem[] | null;
   servicesSelectedServiceId: string | null;
   servicesCurrentSection: AdminServiceSubSection | null;
@@ -721,6 +735,7 @@ function resetMastersState(state: AdminPanelSceneState): void {
   state.mastersEditDraft = null;
   state.mastersCreateDraft = null;
   state.mastersServicesDraft = null;
+  state.mastersDeleteDraft = null;
 }
 
 function resetServicesState(state: AdminPanelSceneState): void {
@@ -1521,6 +1536,7 @@ async function renderAdminMastersCatalog(ctx: MyContext, preferEdit: boolean): P
   state.mastersEditDraft = null;
   state.mastersCreateDraft = null;
   state.mastersServicesDraft = null;
+  state.mastersDeleteDraft = null;
 
   const text = formatAdminMastersCatalogText(masters);
   const keyboard = createAdminMastersCatalogKeyboard(masters);
@@ -1562,9 +1578,67 @@ async function renderAdminMasterDetails(
   state.mastersEditDraft = null;
   state.mastersCreateDraft = null;
   state.mastersServicesDraft = null;
+  state.mastersDeleteDraft = null;
 
   const text = formatAdminMasterDetailsText(details);
   const keyboard = createAdminMasterDetailsKeyboard(masterId);
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminMasterDeleteInput(
+  ctx: MyContext,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  state.mastersCurrentSection = 'delete';
+  state.mastersSelectedMasterId = null;
+  state.mastersBookingsFeed = null;
+  state.mastersBookingsOpenedAppointmentId = null;
+  state.mastersEditDraft = null;
+  state.mastersCreateDraft = null;
+  state.mastersServicesDraft = null;
+  state.mastersDeleteDraft = {
+    mode: 'awaiting_telegram_id',
+    telegramUserId: null,
+    targetUserId: null,
+    targetDisplayName: null,
+  };
+
+  const text = formatAdminMasterDeleteInputText();
+  const keyboard = createAdminMasterDeleteInputKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminMasterDeleteConfirm(
+  ctx: MyContext,
+  draft: AdminMasterDeleteDraft,
+  preferEdit: boolean,
+): Promise<void> {
+  const text = formatAdminMasterDeleteConfirmText(
+    draft.targetDisplayName ?? '—',
+    draft.telegramUserId ?? '—',
+  );
+  const keyboard = createAdminMasterDeleteConfirmKeyboard();
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1815,6 +1889,7 @@ async function renderAdminMasterCreateStart(ctx: MyContext, preferEdit: boolean)
   state.mastersSelectedMasterId = null;
   state.mastersEditDraft = null;
   state.mastersServicesDraft = null;
+  state.mastersDeleteDraft = null;
   state.mastersCreateDraft = {
     mode: 'intro',
     displayName: null,
@@ -2002,6 +2077,7 @@ async function renderAdminMasterEditMenu(
   state.mastersEditDraft = null;
   state.mastersCreateDraft = null;
   state.mastersServicesDraft = null;
+  state.mastersDeleteDraft = null;
 
   const text = formatAdminMasterEditMenuText(details.master.displayName);
   const keyboard = createAdminMasterEditMenuKeyboard(masterId);
@@ -2039,6 +2115,7 @@ async function renderAdminMasterEditInput(
   };
   state.mastersCreateDraft = null;
   state.mastersServicesDraft = null;
+  state.mastersDeleteDraft = null;
 
   const text = formatAdminMasterEditInputText(field, currentValue);
   const keyboard = createAdminMasterEditInputKeyboard(masterId);
@@ -2089,6 +2166,7 @@ async function renderAdminMasterEditServicesMenu(
   state.mastersSelectedMasterId = masterId;
   state.mastersEditDraft = null;
   state.mastersCreateDraft = null;
+  state.mastersDeleteDraft = null;
   state.mastersServicesDraft = {
     masterId,
     masterName: details.master.displayName,
@@ -2124,6 +2202,7 @@ async function renderAdminMasterEditServicesAddCandidates(
   state.mastersSelectedMasterId = masterId;
   state.mastersEditDraft = null;
   state.mastersCreateDraft = null;
+  state.mastersDeleteDraft = null;
   state.mastersServicesDraft = {
     masterId,
     masterName: details.master.displayName,
@@ -2162,6 +2241,7 @@ async function renderAdminMasterEditServicesRemoveCandidates(
   state.mastersSelectedMasterId = masterId;
   state.mastersEditDraft = null;
   state.mastersCreateDraft = null;
+  state.mastersDeleteDraft = null;
   state.mastersServicesDraft = {
     masterId,
     masterName: details.master.displayName,
@@ -2221,6 +2301,7 @@ async function renderAdminMasterBookingsList(
   state.mastersEditDraft = null;
   state.mastersCreateDraft = null;
   state.mastersServicesDraft = null;
+  state.mastersDeleteDraft = null;
 
   const text = formatAdminMasterBookingsFeedText(details.master.displayName, feed);
   const keyboard = createAdminMasterBookingsFeedKeyboard(feed);
@@ -2264,6 +2345,7 @@ async function renderAdminMasterBookingCard(
   state.mastersEditDraft = null;
   state.mastersCreateDraft = null;
   state.mastersServicesDraft = null;
+  state.mastersDeleteDraft = null;
 
   const text = formatAdminMasterBookingCardText(booking);
   const keyboard = createAdminMasterBookingCardKeyboard();
@@ -3555,6 +3637,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.mastersEditDraft = null;
       state.mastersCreateDraft = null;
       state.mastersServicesDraft = null;
+      state.mastersDeleteDraft = null;
       state.servicesCatalog = null;
       state.servicesSelectedServiceId = null;
       state.servicesCurrentSection = null;
@@ -4129,6 +4212,61 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         }
       }
 
+      const mastersDeleteDraft = state.mastersDeleteDraft;
+      if (state.mastersCurrentSection === 'delete' && mastersDeleteDraft) {
+        const access = state.access;
+        try {
+          if (!access?.studioId) {
+            throw new ValidationError('Не вдалося визначити студію адміністратора');
+          }
+
+          if (mastersDeleteDraft.mode === 'awaiting_telegram_id') {
+            const telegramId = normalizeAdminMasterCreateTelegramIdInput(text);
+            const candidate = await findAdminMasterCandidateByTelegramId({
+              studioId: access.studioId,
+              telegramId,
+            });
+
+            if (!candidate) {
+              throw new ValidationError('Користувача з таким Telegram ID не знайдено в цьому салоні');
+            }
+            if (!candidate.isMaster) {
+              throw new ValidationError('Користувач із цим Telegram ID не має ролі майстра');
+            }
+
+            const details = await getMasterCatalogDetailsById({
+              masterId: candidate.userId,
+              studioId: access.studioId,
+            });
+            if (!details) {
+              throw new ValidationError('Майстра не знайдено серед активних профілів або він уже видалений');
+            }
+
+            mastersDeleteDraft.mode = 'awaiting_confirm';
+            mastersDeleteDraft.telegramUserId = candidate.telegramUserId;
+            mastersDeleteDraft.targetUserId = candidate.userId;
+            mastersDeleteDraft.targetDisplayName = details.master.displayName;
+            await renderAdminMasterDeleteConfirm(ctx, mastersDeleteDraft, false);
+            return;
+          }
+
+          if (mastersDeleteDraft.mode === 'awaiting_confirm') {
+            await ctx.reply(
+              'ℹ️ Для підтвердження або скасування видалення використовуйте кнопки під повідомленням.',
+              createAdminMasterDeleteConfirmKeyboard(),
+            );
+            return;
+          }
+        } catch (error) {
+          const err =
+            error instanceof ValidationError
+              ? error
+              : new ValidationError('Виникла помилка перевірки даних для видалення майстра');
+          await replyAdminWarning(ctx, err.message, createAdminMasterDeleteInputKeyboard());
+          return;
+        }
+      }
+
       const servicesCreateDraft = state.servicesCreateDraft;
       if (servicesCreateDraft) {
         try {
@@ -4551,6 +4689,18 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
         await ctx.reply(
           'ℹ️ Для керування послугами майстра використовуйте кнопки під повідомленням.',
+          keyboard,
+        );
+        return;
+      }
+
+      if (state.mastersCurrentSection === 'delete' && state.mastersDeleteDraft) {
+        const keyboard =
+          state.mastersDeleteDraft.mode === 'awaiting_confirm'
+            ? createAdminMasterDeleteConfirmKeyboard()
+            : createAdminMasterDeleteInputKeyboard();
+        await ctx.reply(
+          'ℹ️ Для видалення майстра використовуйте кнопки під повідомленням.',
           keyboard,
         );
         return;
@@ -6138,9 +6288,73 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     await renderAdminMasterEditMenu(ctx, draft.masterId, false);
   });
 
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_DELETE_OPEN, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderAdminMasterDeleteInput(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_DELETE_CANCEL, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    state.mastersDeleteDraft = null;
+    await renderAdminMastersCatalog(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_DELETE_CONFIRM, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const access = state.access;
+    const draft = state.mastersDeleteDraft;
+
+    if (
+      !access?.studioId ||
+      !access.userId ||
+      !draft ||
+      draft.mode !== 'awaiting_confirm' ||
+      !draft.targetUserId ||
+      !draft.telegramUserId
+    ) {
+      await renderAdminMastersCatalog(ctx, true);
+      return;
+    }
+
+    try {
+      const deleted = await deleteAdminMaster({
+        studioId: access.studioId,
+        masterId: draft.targetUserId,
+      });
+
+      logAdminCriticalAction(
+        ctx,
+        'Deleted master profile',
+        {
+          deletedMasterId: deleted.masterId,
+          deletedMasterName: deleted.displayName,
+          deletedMasterTelegramId: draft.telegramUserId,
+        },
+        access,
+      );
+
+      state.mastersDeleteDraft = null;
+      await replyAdminSuccess(
+        ctx,
+        `Майстра "${deleted.displayName}" успішно видалено з активного списку.`,
+      );
+      await renderAdminMastersCatalog(ctx, false);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        await replyAdminWarning(ctx, error.message, createAdminMasterDeleteConfirmKeyboard());
+        return;
+      }
+      throw error;
+    }
+  });
+
   scene.action(ADMIN_PANEL_ACTION.MASTERS_BACK_TO_LIST, async (ctx) => {
     await ctx.answerCbQuery();
-    getSceneState(ctx).mastersEditDraft = null;
+    const state = getSceneState(ctx);
+    state.mastersEditDraft = null;
+    state.mastersDeleteDraft = null;
     await renderAdminMastersCatalog(ctx, true);
   });
 

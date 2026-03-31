@@ -3,6 +3,9 @@ import type {
   AdminMasterCandidateLookupRow,
   AdminMasterCreateScheduleDayInput,
   CreateAdminMasterInput,
+  DeletedAdminMasterResult,
+  DeletedAdminMasterRow,
+  DeleteAdminMasterInput,
   CreatedAdminMasterResult,
   FindAdminMasterCandidateByTelegramInput,
 } from '../../types/db-helpers/db-admin-masters.types.js';
@@ -19,11 +22,14 @@ import {
   normalizeMasterProceduresDoneTotal,
 } from '../../utils/db/db-master-profile.js';
 import {
+  SQL_DEACTIVATE_ADMIN_MASTER,
+  SQL_DEACTIVATE_ADMIN_MASTER_SERVICES,
   SQL_ASSIGN_ADMIN_MASTER_SERVICES,
   SQL_FIND_ADMIN_MASTER_CANDIDATE_BY_TELEGRAM_ID,
   SQL_GET_ADMIN_MASTER_CANDIDATE_BY_USER_ID,
   SQL_INSERT_ADMIN_MASTER_PROFILE,
   SQL_INSERT_MASTER_ROLE,
+  SQL_REVOKE_ADMIN_MASTER_ROLE,
   SQL_UPSERT_ADMIN_MASTER_WEEKLY_DAY,
 } from '../db-sql/db-admin-masters.sql.js';
 
@@ -278,5 +284,49 @@ export async function createAdminMaster(input: CreateAdminMasterInput): Promise<
       meta: { studioId, targetUserId, createdByUserId },
     });
     throw adaptedError;
+  }
+}
+
+function mapDeletedMasterRow(row: DeletedAdminMasterRow): DeletedAdminMasterResult {
+  return {
+    masterId: row.master_id,
+    displayName: row.display_name,
+  };
+}
+
+/**
+ * @summary Вимикає профіль майстра в студії та прибирає роль `master`.
+ */
+export async function deleteAdminMaster(input: DeleteAdminMasterInput): Promise<DeletedAdminMasterResult> {
+  const studioId = normalizePositiveBigintId(input.studioId, 'studioId');
+  const masterId = normalizePositiveBigintId(input.masterId, 'masterId');
+
+  try {
+    return await withTransaction(async (client) => {
+      const deleted = await queryOne<DeletedAdminMasterRow, DeletedAdminMasterResult>(
+        SQL_DEACTIVATE_ADMIN_MASTER,
+        [studioId, masterId],
+        mapDeletedMasterRow,
+        client,
+      );
+
+      if (!deleted) {
+        throw new ValidationError('Майстра не знайдено або профіль уже неактивний');
+      }
+
+      await executeVoid(SQL_DEACTIVATE_ADMIN_MASTER_SERVICES, [studioId, masterId], client);
+      await executeVoid(SQL_REVOKE_ADMIN_MASTER_ROLE, [masterId], client);
+
+      return deleted;
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-admin-masters.helper',
+      action: 'Failed to delete admin master',
+      error,
+      meta: { studioId, masterId },
+    });
+    throw error;
   }
 }

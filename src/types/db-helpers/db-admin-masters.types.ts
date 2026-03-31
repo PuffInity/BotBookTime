@@ -57,3 +57,18 @@ export type CreatedAdminMasterResult = {
   displayName: string;
   assignedServicesCount: number;
 };
+
+export type DeleteAdminMasterInput = {
+  studioId: string | number;
+  masterId: string | number;
+};
+
+export type DeletedAdminMasterRow = {
+  master_id: string;
+  display_name: string;
+};
+
+export type DeletedAdminMasterResult = {
+  masterId: string;
+  displayName: string;
+};
