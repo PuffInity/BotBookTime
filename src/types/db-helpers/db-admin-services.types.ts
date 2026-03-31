@@ -92,3 +92,36 @@ export type UpdateAdminServiceDurationInput = {
   serviceId: string | number;
   durationMinutes: number;
 };
+
+export type CreateAdminServiceStepInput = {
+  title: string;
+  description: string;
+  durationMinutes: number;
+};
+
+export type CreateAdminServiceGuaranteeInput = {
+  guaranteeText: string;
+  validDays?: number | null;
+};
+
+export type CreateAdminServiceInput = {
+  studioId: string | number;
+  name: string;
+  durationMinutes: number;
+  basePrice: string;
+  currencyCode?: string;
+  description: string;
+  resultDescription: string;
+  steps: CreateAdminServiceStepInput[];
+  guarantees: CreateAdminServiceGuaranteeInput[];
+};
+
+export type CreateAdminServiceResult = {
+  serviceId: string;
+  name: string;
+  durationMinutes: number;
+  basePrice: string;
+  currencyCode: string;
+  stepsCount: number;
+  guaranteesCount: number;
+};

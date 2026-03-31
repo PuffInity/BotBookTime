@@ -12,6 +12,7 @@ import type {
   ServicesCatalogDetails,
   ServicesCatalogItem,
 } from '../../types/db-helpers/db-services.types.js';
+import type { CreateAdminServiceResult } from '../../types/db-helpers/db-admin-services.types.js';
 
 /**
  * @file admin-services-view.bot.ts
@@ -96,10 +97,292 @@ export function createAdminServicesCatalogKeyboard(
   ]);
 
   return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_CREATE, ADMIN_PANEL_ACTION.SERVICES_CREATE_OPEN)],
     ...rows,
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK, ADMIN_PANEL_ACTION.SERVICES_BACK)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.HOME, ADMIN_PANEL_ACTION.HOME)],
   ]);
+}
+
+type AdminServiceCreateStepPreview = {
+  title: string;
+  durationMinutes: number;
+  description: string;
+};
+
+type AdminServiceCreateGuaranteePreview = {
+  guaranteeText: string;
+  validDays: number | null;
+};
+
+type AdminServiceCreatePreview = {
+  name: string;
+  durationMinutes: number;
+  basePrice: string;
+  currencyCode: string;
+  description: string;
+  resultDescription: string;
+  steps: AdminServiceCreateStepPreview[];
+  guarantees: AdminServiceCreateGuaranteePreview[];
+};
+
+/**
+ * @summary Текст запуску створення нової послуги.
+ */
+export function formatAdminServiceCreateStartText(): string {
+  return (
+    '➕ Створення нової послуги\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Зараз послідовно заповнимо картку послуги:\n' +
+    '1) Назва\n' +
+    '2) Тривалість\n' +
+    '3) Ціна\n' +
+    '4) Опис\n' +
+    '5) Етапи\n' +
+    '6) Гарантії\n' +
+    '7) Результат\n\n' +
+    'Починаємо з назви.'
+  );
+}
+
+/**
+ * @summary Текст кроку вводу назви нової послуги.
+ */
+export function formatAdminServiceCreateNameInputText(): string {
+  return (
+    '💼 Назва нової послуги\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Надішліть назву послуги одним повідомленням.\n' +
+    'Мінімум 2 символи, максимум 120 символів.'
+  );
+}
+
+/**
+ * @summary Текст кроку вводу тривалості нової послуги.
+ */
+export function formatAdminServiceCreateDurationInputText(serviceName: string): string {
+  return (
+    '⏱ Тривалість нової послуги\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n\n` +
+    'Вкажіть тривалість у хвилинах.\n' +
+    'Діапазон: 5..720.'
+  );
+}
+
+/**
+ * @summary Текст кроку вводу ціни нової послуги.
+ */
+export function formatAdminServiceCreatePriceInputText(serviceName: string): string {
+  return (
+    '💰 Ціна нової послуги\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n\n` +
+    'Надішліть ціну у форматі 750 або 750.50.'
+  );
+}
+
+/**
+ * @summary Текст кроку вводу опису нової послуги.
+ */
+export function formatAdminServiceCreateDescriptionInputText(serviceName: string): string {
+  return (
+    '📝 Опис нової послуги\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n\n` +
+    'Надішліть опис послуги одним повідомленням.\n' +
+    'Мінімум 10 символів, максимум 1600 символів.'
+  );
+}
+
+/**
+ * @summary Текст кроку вводу назви етапу.
+ */
+export function formatAdminServiceCreateStepTitleInputText(stepNo: number): string {
+  return (
+    `🧩 Етап №${stepNo}: назва\n` +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Надішліть назву етапу одним повідомленням.\n' +
+    'Мінімум 2 символи, максимум 120 символів.'
+  );
+}
+
+/**
+ * @summary Текст кроку вводу тривалості етапу.
+ */
+export function formatAdminServiceCreateStepDurationInputText(stepNo: number, stepTitle: string): string {
+  return (
+    `🧩 Етап №${stepNo}: тривалість\n` +
+    '━━━━━━━━━━━━━━\n\n' +
+    `Назва етапу: ${stepTitle}\n\n` +
+    'Вкажіть тривалість етапу у хвилинах.\n' +
+    'Діапазон: 1..720.'
+  );
+}
+
+/**
+ * @summary Текст кроку вводу опису етапу.
+ */
+export function formatAdminServiceCreateStepDescriptionInputText(
+  stepNo: number,
+  stepTitle: string,
+  durationMinutes: number,
+): string {
+  return (
+    `🧩 Етап №${stepNo}: опис\n` +
+    '━━━━━━━━━━━━━━\n\n' +
+    `Назва етапу: ${stepTitle}\n` +
+    `Тривалість: ${durationMinutes} хв\n\n` +
+    'Надішліть опис етапу одним повідомленням.\n' +
+    'Мінімум 10 символів, максимум 500 символів.'
+  );
+}
+
+/**
+ * @summary Текст після успішного додавання етапу.
+ */
+export function formatAdminServiceCreateStepAddedText(
+  stepNo: number,
+  stepTitle: string,
+  durationMinutes: number,
+  totalSteps: number,
+): string {
+  return (
+    '✅ Етап додано\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `Додано етап №${stepNo}: ${stepTitle} (${durationMinutes} хв)\n` +
+    `Усього етапів: ${totalSteps}\n\n` +
+    'Оберіть наступну дію.'
+  );
+}
+
+/**
+ * @summary Клавіатура дій після додавання етапу.
+ */
+export function createAdminServiceCreateStepActionsKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_CREATE_ADD_ANOTHER, ADMIN_PANEL_ACTION.SERVICES_CREATE_STEP_ADD_ANOTHER)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_CREATE_CONTINUE, ADMIN_PANEL_ACTION.SERVICES_CREATE_STEP_CONTINUE)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_CREATE_CANCEL, ADMIN_PANEL_ACTION.SERVICES_CREATE_CANCEL)],
+  ]);
+}
+
+/**
+ * @summary Текст кроку вводу гарантії.
+ */
+export function formatAdminServiceCreateGuaranteeInputText(guaranteeNo: number): string {
+  return (
+    `🛡 Гарантія №${guaranteeNo}\n` +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Надішліть текст гарантії одним повідомленням.\n' +
+    'Мінімум 3 символи, максимум 500 символів.'
+  );
+}
+
+/**
+ * @summary Текст після успішного додавання гарантії.
+ */
+export function formatAdminServiceCreateGuaranteeAddedText(
+  guaranteeNo: number,
+  guaranteeText: string,
+  totalGuarantees: number,
+): string {
+  return (
+    '✅ Гарантію додано\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `Додано гарантію №${guaranteeNo}:\n${guaranteeText}\n\n` +
+    `Усього гарантій: ${totalGuarantees}\n\n` +
+    'Оберіть наступну дію.'
+  );
+}
+
+/**
+ * @summary Клавіатура дій після додавання гарантії.
+ */
+export function createAdminServiceCreateGuaranteeActionsKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_CREATE_ADD_ANOTHER, ADMIN_PANEL_ACTION.SERVICES_CREATE_GUARANTEE_ADD_ANOTHER)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_CREATE_CONTINUE, ADMIN_PANEL_ACTION.SERVICES_CREATE_GUARANTEE_CONTINUE)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_CREATE_CANCEL, ADMIN_PANEL_ACTION.SERVICES_CREATE_CANCEL)],
+  ]);
+}
+
+/**
+ * @summary Текст кроку вводу результату послуги.
+ */
+export function formatAdminServiceCreateResultInputText(serviceName: string): string {
+  return (
+    '🎯 Результат послуги\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n\n` +
+    'Надішліть опис результату для клієнта.\n' +
+    'Мінімум 10 символів, максимум 1200 символів.'
+  );
+}
+
+/**
+ * @summary Текст попереднього перегляду перед створенням.
+ */
+export function formatAdminServiceCreatePreviewText(draft: AdminServiceCreatePreview): string {
+  const stepsText = draft.steps
+    .map((step, index) => `${getNumberBadge(index)} ${step.title} (${step.durationMinutes} хв)\n${step.description}`)
+    .join('\n\n');
+
+  const guaranteesText = draft.guarantees
+    .map((item) => {
+      const suffix = item.validDays == null ? '' : ` (${item.validDays} дн.)`;
+      return `• ${item.guaranteeText}${suffix}`;
+    })
+    .join('\n');
+
+  return (
+    '📋 Попередній перегляд нової послуги\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Назва: ${draft.name}\n` +
+    `⏱ Тривалість: ${draft.durationMinutes} хв\n` +
+    `💰 Ціна: ${formatPrice(draft.basePrice, draft.currencyCode)}\n\n` +
+    `📝 Опис\n${draft.description}\n\n` +
+    `✨ Етапи\n${stepsText}\n\n` +
+    `🛡 Гарантії\n${guaranteesText}\n\n` +
+    `🎯 Результат\n${draft.resultDescription}\n\n` +
+    'Підтвердьте створення послуги.'
+  );
+}
+
+/**
+ * @summary Клавіатура підтвердження створення послуги.
+ */
+export function createAdminServiceCreatePreviewKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_CREATE_CONFIRM, ADMIN_PANEL_ACTION.SERVICES_CREATE_CONFIRM)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_CREATE_CANCEL, ADMIN_PANEL_ACTION.SERVICES_CREATE_CANCEL)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура для інпут-кроків створення послуги.
+ */
+export function createAdminServiceCreateInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_CREATE_CANCEL, ADMIN_PANEL_ACTION.SERVICES_CREATE_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK_TO_LIST, ADMIN_PANEL_ACTION.SERVICES_BACK_TO_LIST)],
+  ]);
+}
+
+/**
+ * @summary Текст успішного створення нової послуги.
+ */
+export function formatAdminServiceCreateSuccessText(result: CreateAdminServiceResult): string {
+  return (
+    '✅ Нову послугу створено\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 ${result.name}\n` +
+    `🪪 ID: ${result.serviceId}\n` +
+    `⏱ Тривалість: ${result.durationMinutes} хв\n` +
+    `💰 Ціна: ${formatPrice(result.basePrice, result.currencyCode)}\n` +
+    `🧩 Етапів: ${result.stepsCount}\n` +
+    `🛡 Гарантій: ${result.guaranteesCount}`
+  );
 }
 
 /**

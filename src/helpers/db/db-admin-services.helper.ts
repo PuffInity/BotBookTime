@@ -7,6 +7,8 @@ import type {
 import type {
   AdminEditableService,
   AdminEditableServiceRow,
+  CreateAdminServiceInput,
+  CreateAdminServiceResult,
   DeactivateAdminServiceInput,
   GetAdminEditableServiceInput,
   UpdateAdminServiceBasePriceInput,
@@ -19,7 +21,7 @@ import type {
   UpdateAdminServiceStepDurationInput,
   UpdateAdminServiceStepTitleInput,
 } from '../../types/db-helpers/db-admin-services.types.js';
-import { executeOne, queryOne, withTransaction } from '../db.helper.js';
+import { executeOne, executeVoid, queryOne, withTransaction } from '../db.helper.js';
 import { ValidationError, handleError } from '../../utils/error.utils.js';
 import { loggerDb } from '../../utils/logger/loggers-list.js';
 import { serviceGuaranteesRowToEntity } from '../../utils/mappers/serviceGuarantees.mapp.js';
@@ -27,6 +29,9 @@ import { serviceStepsRowToEntity } from '../../utils/mappers/serviceSteps.mapp.j
 import {
   SQL_DEACTIVATE_ADMIN_SERVICE,
   SQL_GET_ADMIN_EDITABLE_SERVICE_BY_ID,
+  SQL_INSERT_ADMIN_SERVICE,
+  SQL_INSERT_ADMIN_SERVICE_GUARANTEE,
+  SQL_INSERT_ADMIN_SERVICE_STEP,
   SQL_UPDATE_ADMIN_SERVICE_BASE_PRICE,
   SQL_UPDATE_ADMIN_SERVICE_DESCRIPTION,
   SQL_UPDATE_ADMIN_SERVICE_DURATION,
@@ -188,6 +193,29 @@ function normalizeServiceDurationMinutes(value: number): number {
   return normalized;
 }
 
+function normalizeCurrencyCode(value?: string): string {
+  const normalized = (value ?? 'CZK').trim().toUpperCase();
+  if (!/^[A-Z]{3}$/.test(normalized)) {
+    throw new ValidationError('Код валюти має складатися з 3 латинських літер');
+  }
+  return normalized;
+}
+
+function normalizeServiceGuaranteeValidDays(value: number | null | undefined): number | null {
+  if (value == null) return null;
+  if (!Number.isFinite(value)) {
+    throw new ValidationError('Термін гарантії має бути числом');
+  }
+  const normalized = Math.trunc(value);
+  if (normalized < 0) {
+    throw new ValidationError('Термін гарантії не може бути відʼємним');
+  }
+  if (normalized > 3650) {
+    throw new ValidationError('Термін гарантії занадто великий');
+  }
+  return normalized;
+}
+
 function mapAdminEditableServiceRow(row: AdminEditableServiceRow): AdminEditableService {
   return {
     id: row.id,
@@ -199,6 +227,97 @@ function mapAdminEditableServiceRow(row: AdminEditableServiceRow): AdminEditable
     description: row.description,
     resultDescription: row.result_description,
   };
+}
+
+type InsertAdminServiceIdRow = { id: string };
+
+/**
+ * @summary Створює нову послугу студії з етапами та гарантіями в адмін-панелі.
+ */
+export async function createAdminService(
+  input: CreateAdminServiceInput,
+): Promise<CreateAdminServiceResult> {
+  const studioId = normalizePositiveBigintId(input.studioId, 'studioId');
+  const name = normalizeServiceName(input.name);
+  const durationMinutes = normalizeServiceDurationMinutes(input.durationMinutes);
+  const basePrice = normalizeServiceBasePrice(input.basePrice);
+  const currencyCode = normalizeCurrencyCode(input.currencyCode);
+  const description = normalizeServiceDescription(input.description);
+  const resultDescription = normalizeServiceResultDescription(input.resultDescription);
+
+  if (!Array.isArray(input.steps) || input.steps.length === 0) {
+    throw new ValidationError('Потрібно додати щонайменше 1 етап послуги');
+  }
+  if (input.steps.length > 20) {
+    throw new ValidationError('Максимальна кількість етапів: 20');
+  }
+
+  if (!Array.isArray(input.guarantees) || input.guarantees.length === 0) {
+    throw new ValidationError('Потрібно додати щонайменше 1 гарантію послуги');
+  }
+  if (input.guarantees.length > 10) {
+    throw new ValidationError('Максимальна кількість гарантій: 10');
+  }
+
+  const steps = input.steps.map((step) => ({
+    title: normalizeServiceStepTitle(step.title),
+    description: normalizeServiceStepDescription(step.description),
+    durationMinutes: normalizeServiceStepDurationMinutes(step.durationMinutes),
+  }));
+
+  const guarantees = input.guarantees.map((guarantee) => ({
+    guaranteeText: normalizeServiceGuaranteeText(guarantee.guaranteeText),
+    validDays: normalizeServiceGuaranteeValidDays(guarantee.validDays),
+  }));
+
+  try {
+    return await withTransaction(async (client) => {
+      const inserted = await executeOne<InsertAdminServiceIdRow, InsertAdminServiceIdRow>(
+        SQL_INSERT_ADMIN_SERVICE,
+        [studioId, name, description, durationMinutes, basePrice, currencyCode, resultDescription],
+        (row) => row,
+        client,
+      );
+
+      const serviceId = inserted.id;
+      for (let index = 0; index < steps.length; index += 1) {
+        const step = steps[index];
+        await executeVoid(
+          SQL_INSERT_ADMIN_SERVICE_STEP,
+          [serviceId, index + 1, step.durationMinutes, step.title, step.description],
+          client,
+        );
+      }
+
+      for (let index = 0; index < guarantees.length; index += 1) {
+        const guarantee = guarantees[index];
+        await executeVoid(
+          SQL_INSERT_ADMIN_SERVICE_GUARANTEE,
+          [serviceId, index + 1, guarantee.guaranteeText, guarantee.validDays],
+          client,
+        );
+      }
+
+      return {
+        serviceId,
+        name,
+        durationMinutes,
+        basePrice,
+        currencyCode,
+        stepsCount: steps.length,
+        guaranteesCount: guarantees.length,
+      };
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-admin-services.helper',
+      action: 'Failed to create service from admin panel',
+      error,
+      meta: { studioId, name },
+    });
+    throw error;
+  }
 }
 
 /**

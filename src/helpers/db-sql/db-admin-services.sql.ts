@@ -19,6 +19,62 @@ export const SQL_GET_ADMIN_EDITABLE_SERVICE_BY_ID = `
   LIMIT 1
 `;
 
+export const SQL_INSERT_ADMIN_SERVICE = `
+  INSERT INTO services (
+    studio_id,
+    name,
+    description,
+    duration_minutes,
+    base_price,
+    currency_code,
+    result_description,
+    is_active
+  )
+  VALUES (
+    $1::bigint,
+    $2,
+    $3,
+    $4::integer,
+    $5::numeric(12,2),
+    $6,
+    $7,
+    TRUE
+  )
+  RETURNING id
+`;
+
+export const SQL_INSERT_ADMIN_SERVICE_STEP = `
+  INSERT INTO service_steps (
+    service_id,
+    step_no,
+    duration_minutes,
+    title,
+    description
+  )
+  VALUES (
+    $1::bigint,
+    $2::smallint,
+    $3::integer,
+    $4,
+    $5
+  )
+`;
+
+export const SQL_INSERT_ADMIN_SERVICE_GUARANTEE = `
+  INSERT INTO service_guarantees (
+    service_id,
+    guarantee_no,
+    guarantee_text,
+    valid_days
+  )
+  VALUES (
+    $1::bigint,
+    $2::smallint,
+    $3,
+    $4::integer
+  )
+`;
+
 export const SQL_UPDATE_ADMIN_SERVICE_RESULT_DESCRIPTION = `
   UPDATE services
   SET

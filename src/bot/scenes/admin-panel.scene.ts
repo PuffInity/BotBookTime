@@ -158,6 +158,10 @@ import {
   formatAdminMastersCatalogText,
 } from '../../helpers/bot/admin-masters-view.bot.js';
 import {
+  createAdminServiceCreateGuaranteeActionsKeyboard,
+  createAdminServiceCreateInputKeyboard,
+  createAdminServiceCreatePreviewKeyboard,
+  createAdminServiceCreateStepActionsKeyboard,
   createAdminServiceEditConfirmKeyboard,
   createAdminServiceEditGuaranteeSelectKeyboard,
   createAdminServiceEditStepSelectKeyboard,
@@ -166,6 +170,20 @@ import {
   createAdminServiceEditMenuKeyboard,
   createAdminServiceDetailsKeyboard,
   createAdminServicesCatalogKeyboard,
+  formatAdminServiceCreateDescriptionInputText,
+  formatAdminServiceCreateDurationInputText,
+  formatAdminServiceCreateGuaranteeAddedText,
+  formatAdminServiceCreateGuaranteeInputText,
+  formatAdminServiceCreateNameInputText,
+  formatAdminServiceCreatePreviewText,
+  formatAdminServiceCreatePriceInputText,
+  formatAdminServiceCreateResultInputText,
+  formatAdminServiceCreateStartText,
+  formatAdminServiceCreateStepAddedText,
+  formatAdminServiceCreateStepDescriptionInputText,
+  formatAdminServiceCreateStepDurationInputText,
+  formatAdminServiceCreateStepTitleInputText,
+  formatAdminServiceCreateSuccessText,
   formatAdminServiceEditDescriptionConfirmText,
   formatAdminServiceEditDescriptionInputText,
   formatAdminServiceEditGuaranteeConfirmText,
@@ -297,6 +315,7 @@ import {
   listActiveMastersCatalog,
 } from '../../helpers/db/db-masters.helper.js';
 import {
+  createAdminService,
   deactivateAdminService,
   getAdminEditableServiceById,
   updateAdminServiceBasePrice,
@@ -432,7 +451,7 @@ type AdminMasterEditDraft = {
   currentValue: string;
   value: string | null;
 };
-type AdminServiceSubSection = 'catalog' | 'details' | 'stats' | 'edit';
+type AdminServiceSubSection = 'catalog' | 'details' | 'stats' | 'edit' | 'create';
 
 type AdminServiceGuaranteeDraftOption = {
   guaranteeNo: number;
@@ -476,6 +495,43 @@ type AdminServiceEditDraft = {
   guaranteeOptions: AdminServiceGuaranteeDraftOption[];
   currentValue: string | number | null;
   value: string | number | null;
+};
+
+type AdminServiceCreateStepDraft = {
+  title: string;
+  durationMinutes: number;
+  description: string;
+};
+
+type AdminServiceCreateGuaranteeDraft = {
+  guaranteeText: string;
+  validDays: number | null;
+};
+
+type AdminServiceCreateDraft = {
+  mode:
+    | 'awaiting_name'
+    | 'awaiting_duration'
+    | 'awaiting_price'
+    | 'awaiting_description'
+    | 'awaiting_step_title'
+    | 'awaiting_step_duration'
+    | 'awaiting_step_description'
+    | 'awaiting_step_menu'
+    | 'awaiting_guarantee_text'
+    | 'awaiting_guarantee_menu'
+    | 'awaiting_result'
+    | 'awaiting_confirm';
+  name: string | null;
+  durationMinutes: number | null;
+  basePrice: string | null;
+  currencyCode: string;
+  description: string | null;
+  resultDescription: string | null;
+  pendingStepTitle: string | null;
+  pendingStepDurationMinutes: number | null;
+  steps: AdminServiceCreateStepDraft[];
+  guarantees: AdminServiceCreateGuaranteeDraft[];
 };
 type AdminStatsSection = 'overview' | 'masters' | 'services' | 'monthly' | 'clients';
 type AdminSettingsSection = 'menu' | 'language' | 'admins' | 'studio' | 'notifications';
@@ -524,6 +580,7 @@ type AdminPanelSceneState = {
   servicesSelectedServiceId: string | null;
   servicesCurrentSection: AdminServiceSubSection | null;
   servicesEditDraft: AdminServiceEditDraft | null;
+  servicesCreateDraft: AdminServiceCreateDraft | null;
   statsOverview: AdminPanelStatsOverview | null;
   statsMastersFeed: AdminPanelStatsMastersFeedPage | null;
   statsSelectedMasterId: string | null;
@@ -579,6 +636,7 @@ function resetServicesState(state: AdminPanelSceneState): void {
   state.servicesSelectedServiceId = null;
   state.servicesCurrentSection = null;
   state.servicesEditDraft = null;
+  state.servicesCreateDraft = null;
 }
 
 function resetStatsState(state: AdminPanelSceneState): void {
@@ -1729,6 +1787,7 @@ async function renderAdminServicesCatalog(ctx: MyContext, preferEdit: boolean): 
   state.servicesCurrentSection = 'catalog';
   state.servicesSelectedServiceId = null;
   state.servicesEditDraft = null;
+  state.servicesCreateDraft = null;
 
   const text = formatAdminServicesCatalogText(services);
   const keyboard = createAdminServicesCatalogKeyboard(services);
@@ -1766,6 +1825,7 @@ async function renderAdminServiceDetails(
   state.servicesCurrentSection = 'details';
   state.servicesSelectedServiceId = serviceId;
   state.servicesEditDraft = null;
+  state.servicesCreateDraft = null;
 
   const text = formatAdminServiceDetailsText(details);
   const keyboard = createAdminServiceDetailsKeyboard(serviceId);
@@ -1802,6 +1862,7 @@ async function renderAdminServiceEditMenu(
 
   state.servicesCurrentSection = 'edit';
   state.servicesSelectedServiceId = service.id;
+  state.servicesCreateDraft = null;
 
   if (!state.servicesEditDraft || state.servicesEditDraft.serviceId !== service.id) {
     state.servicesEditDraft = {
@@ -1871,6 +1932,44 @@ async function renderAdminServiceEditMenu(
     service.resultDescription,
   );
   const keyboard = createAdminServiceEditMenuKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+function createEmptyAdminServiceCreateDraft(): AdminServiceCreateDraft {
+  return {
+    mode: 'awaiting_name',
+    name: null,
+    durationMinutes: null,
+    basePrice: null,
+    currencyCode: 'CZK',
+    description: null,
+    resultDescription: null,
+    pendingStepTitle: null,
+    pendingStepDurationMinutes: null,
+    steps: [],
+    guarantees: [],
+  };
+}
+
+async function startAdminServiceCreate(ctx: MyContext, preferEdit: boolean): Promise<void> {
+  const state = getSceneState(ctx);
+  state.servicesCurrentSection = 'create';
+  state.servicesSelectedServiceId = null;
+  state.servicesEditDraft = null;
+  state.servicesCreateDraft = createEmptyAdminServiceCreateDraft();
+
+  const text = `${formatAdminServiceCreateStartText()}\n\n${formatAdminServiceCreateNameInputText()}`;
+  const keyboard = createAdminServiceCreateInputKeyboard();
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2859,6 +2958,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.servicesSelectedServiceId = null;
       state.servicesCurrentSection = null;
       state.servicesEditDraft = null;
+      state.servicesCreateDraft = null;
       state.statsOverview = null;
       state.statsMastersFeed = null;
       state.statsSelectedMasterId = null;
@@ -3213,6 +3313,200 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         return;
       }
 
+      const servicesCreateDraft = state.servicesCreateDraft;
+      if (servicesCreateDraft) {
+        try {
+          if (servicesCreateDraft.mode === 'awaiting_name') {
+            servicesCreateDraft.name = normalizeServiceNameInput(text);
+            servicesCreateDraft.mode = 'awaiting_duration';
+            await ctx.reply(
+              formatAdminServiceCreateDurationInputText(servicesCreateDraft.name),
+              createAdminServiceCreateInputKeyboard(),
+            );
+            return;
+          }
+
+          if (servicesCreateDraft.mode === 'awaiting_duration') {
+            servicesCreateDraft.durationMinutes = normalizeServiceDurationInput(text);
+            servicesCreateDraft.mode = 'awaiting_price';
+            await ctx.reply(
+              formatAdminServiceCreatePriceInputText(servicesCreateDraft.name ?? 'Нова послуга'),
+              createAdminServiceCreateInputKeyboard(),
+            );
+            return;
+          }
+
+          if (servicesCreateDraft.mode === 'awaiting_price') {
+            servicesCreateDraft.basePrice = normalizeServiceBasePriceInput(text);
+            servicesCreateDraft.mode = 'awaiting_description';
+            await ctx.reply(
+              formatAdminServiceCreateDescriptionInputText(servicesCreateDraft.name ?? 'Нова послуга'),
+              createAdminServiceCreateInputKeyboard(),
+            );
+            return;
+          }
+
+          if (servicesCreateDraft.mode === 'awaiting_description') {
+            servicesCreateDraft.description = normalizeServiceDescriptionInput(text);
+            servicesCreateDraft.mode = 'awaiting_step_title';
+            await ctx.reply(
+              formatAdminServiceCreateStepTitleInputText(servicesCreateDraft.steps.length + 1),
+              createAdminServiceCreateInputKeyboard(),
+            );
+            return;
+          }
+
+          if (servicesCreateDraft.mode === 'awaiting_step_title') {
+            servicesCreateDraft.pendingStepTitle = normalizeServiceStepTitleInput(text);
+            servicesCreateDraft.mode = 'awaiting_step_duration';
+            await ctx.reply(
+              formatAdminServiceCreateStepDurationInputText(
+                servicesCreateDraft.steps.length + 1,
+                servicesCreateDraft.pendingStepTitle,
+              ),
+              createAdminServiceCreateInputKeyboard(),
+            );
+            return;
+          }
+
+          if (servicesCreateDraft.mode === 'awaiting_step_duration') {
+            servicesCreateDraft.pendingStepDurationMinutes = normalizeServiceStepDurationInput(text);
+            if (!servicesCreateDraft.pendingStepTitle) {
+              throw new ValidationError('Спочатку вкажіть назву етапу');
+            }
+            servicesCreateDraft.mode = 'awaiting_step_description';
+            await ctx.reply(
+              formatAdminServiceCreateStepDescriptionInputText(
+                servicesCreateDraft.steps.length + 1,
+                servicesCreateDraft.pendingStepTitle,
+                servicesCreateDraft.pendingStepDurationMinutes,
+              ),
+              createAdminServiceCreateInputKeyboard(),
+            );
+            return;
+          }
+
+          if (servicesCreateDraft.mode === 'awaiting_step_description') {
+            const stepDescription = normalizeServiceStepDescriptionInput(text);
+            const stepTitle = servicesCreateDraft.pendingStepTitle;
+            const stepDuration = servicesCreateDraft.pendingStepDurationMinutes;
+            if (!stepTitle || stepDuration == null) {
+              throw new ValidationError('Спочатку заповніть назву і тривалість етапу');
+            }
+
+            servicesCreateDraft.steps.push({
+              title: stepTitle,
+              durationMinutes: stepDuration,
+              description: stepDescription,
+            });
+            servicesCreateDraft.pendingStepTitle = null;
+            servicesCreateDraft.pendingStepDurationMinutes = null;
+            servicesCreateDraft.mode = 'awaiting_step_menu';
+
+            await ctx.reply(
+              formatAdminServiceCreateStepAddedText(
+                servicesCreateDraft.steps.length,
+                stepTitle,
+                stepDuration,
+                servicesCreateDraft.steps.length,
+              ),
+              createAdminServiceCreateStepActionsKeyboard(),
+            );
+            return;
+          }
+
+          if (servicesCreateDraft.mode === 'awaiting_guarantee_text') {
+            const guaranteeText = normalizeServiceGuaranteeTextInput(text);
+            servicesCreateDraft.guarantees.push({
+              guaranteeText,
+              validDays: null,
+            });
+            servicesCreateDraft.mode = 'awaiting_guarantee_menu';
+
+            await ctx.reply(
+              formatAdminServiceCreateGuaranteeAddedText(
+                servicesCreateDraft.guarantees.length,
+                guaranteeText,
+                servicesCreateDraft.guarantees.length,
+              ),
+              createAdminServiceCreateGuaranteeActionsKeyboard(),
+            );
+            return;
+          }
+
+          if (servicesCreateDraft.mode === 'awaiting_result') {
+            servicesCreateDraft.resultDescription = normalizeServiceResultDescriptionInput(text);
+            if (
+              !servicesCreateDraft.name ||
+              servicesCreateDraft.durationMinutes == null ||
+              !servicesCreateDraft.basePrice ||
+              !servicesCreateDraft.description ||
+              servicesCreateDraft.steps.length === 0 ||
+              servicesCreateDraft.guarantees.length === 0
+            ) {
+              throw new ValidationError('Не вдалося сформувати дані послуги для попереднього перегляду');
+            }
+
+            servicesCreateDraft.mode = 'awaiting_confirm';
+            await ctx.reply(
+              formatAdminServiceCreatePreviewText({
+                name: servicesCreateDraft.name,
+                durationMinutes: servicesCreateDraft.durationMinutes,
+                basePrice: servicesCreateDraft.basePrice,
+                currencyCode: servicesCreateDraft.currencyCode,
+                description: servicesCreateDraft.description,
+                resultDescription: servicesCreateDraft.resultDescription,
+                steps: servicesCreateDraft.steps,
+                guarantees: servicesCreateDraft.guarantees,
+              }),
+              createAdminServiceCreatePreviewKeyboard(),
+            );
+            return;
+          }
+
+          if (servicesCreateDraft.mode === 'awaiting_step_menu') {
+            await ctx.reply(
+              'ℹ️ Для продовження створення етапів використовуйте кнопки під повідомленням.',
+              createAdminServiceCreateStepActionsKeyboard(),
+            );
+            return;
+          }
+
+          if (servicesCreateDraft.mode === 'awaiting_guarantee_menu') {
+            await ctx.reply(
+              'ℹ️ Для продовження створення гарантій використовуйте кнопки під повідомленням.',
+              createAdminServiceCreateGuaranteeActionsKeyboard(),
+            );
+            return;
+          }
+
+          if (servicesCreateDraft.mode === 'awaiting_confirm') {
+            await ctx.reply(
+              'ℹ️ Для завершення створення послуги використовуйте кнопки підтвердження під повідомленням.',
+              createAdminServiceCreatePreviewKeyboard(),
+            );
+            return;
+          }
+        } catch (error) {
+          const err =
+            error instanceof ValidationError
+              ? error
+              : new ValidationError('Виникла помилка перевірки введених даних');
+
+          const keyboard =
+            servicesCreateDraft.mode === 'awaiting_step_menu'
+              ? createAdminServiceCreateStepActionsKeyboard()
+              : servicesCreateDraft.mode === 'awaiting_guarantee_menu'
+              ? createAdminServiceCreateGuaranteeActionsKeyboard()
+              : servicesCreateDraft.mode === 'awaiting_confirm'
+              ? createAdminServiceCreatePreviewKeyboard()
+              : createAdminServiceCreateInputKeyboard();
+
+          await ctx.reply(`⚠️ ${err.message}`, keyboard);
+          return;
+        }
+      }
+
       const servicesEditDraft = state.servicesEditDraft;
       if (servicesEditDraft?.mode === 'awaiting_text') {
         try {
@@ -3433,6 +3727,14 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         await ctx.reply(
           'ℹ️ Для редагування послуги використовуйте кнопки під повідомленням.',
           createAdminServiceEditMenuKeyboard(),
+        );
+        return;
+      }
+
+      if (state.servicesCurrentSection === 'create') {
+        await ctx.reply(
+          'ℹ️ Для створення послуги використовуйте поточний крок або кнопки під повідомленням.',
+          createAdminServiceCreateInputKeyboard(),
         );
         return;
       }
@@ -4607,6 +4909,200 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     await renderAdminServicesCatalog(ctx, true);
   });
 
+  scene.action(ADMIN_PANEL_ACTION.SERVICES_CREATE_OPEN, async (ctx) => {
+    await ctx.answerCbQuery();
+    await startAdminServiceCreate(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SERVICES_CREATE_CANCEL, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    state.servicesCreateDraft = null;
+    await renderAdminServicesCatalog(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SERVICES_CREATE_STEP_ADD_ANOTHER, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.servicesCreateDraft;
+    if (!draft) {
+      await renderAdminServicesCatalog(ctx, true);
+      return;
+    }
+
+    if (draft.mode !== 'awaiting_step_menu') {
+      await ctx.reply(
+        'ℹ️ Спочатку завершіть поточний крок створення.',
+        createAdminServiceCreateInputKeyboard(),
+      );
+      return;
+    }
+
+    if (draft.steps.length >= 20) {
+      await ctx.reply(
+        '⚠️ Досягнуто максимальної кількості етапів (20). Перейдіть далі.',
+        createAdminServiceCreateStepActionsKeyboard(),
+      );
+      return;
+    }
+
+    draft.mode = 'awaiting_step_title';
+    draft.pendingStepTitle = null;
+    draft.pendingStepDurationMinutes = null;
+    await ctx.reply(
+      formatAdminServiceCreateStepTitleInputText(draft.steps.length + 1),
+      createAdminServiceCreateInputKeyboard(),
+    );
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SERVICES_CREATE_STEP_CONTINUE, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.servicesCreateDraft;
+    if (!draft) {
+      await renderAdminServicesCatalog(ctx, true);
+      return;
+    }
+
+    if (draft.mode !== 'awaiting_step_menu') {
+      await ctx.reply(
+        'ℹ️ Спочатку завершіть поточний крок створення.',
+        createAdminServiceCreateInputKeyboard(),
+      );
+      return;
+    }
+
+    if (draft.steps.length === 0) {
+      await ctx.reply(
+        '⚠️ Додайте щонайменше 1 етап перед переходом до гарантій.',
+        createAdminServiceCreateStepActionsKeyboard(),
+      );
+      return;
+    }
+
+    draft.mode = 'awaiting_guarantee_text';
+    await ctx.reply(
+      formatAdminServiceCreateGuaranteeInputText(draft.guarantees.length + 1),
+      createAdminServiceCreateInputKeyboard(),
+    );
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SERVICES_CREATE_GUARANTEE_ADD_ANOTHER, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.servicesCreateDraft;
+    if (!draft) {
+      await renderAdminServicesCatalog(ctx, true);
+      return;
+    }
+
+    if (draft.mode !== 'awaiting_guarantee_menu') {
+      await ctx.reply(
+        'ℹ️ Спочатку завершіть поточний крок створення.',
+        createAdminServiceCreateInputKeyboard(),
+      );
+      return;
+    }
+
+    if (draft.guarantees.length >= 10) {
+      await ctx.reply(
+        '⚠️ Досягнуто максимальної кількості гарантій (10). Перейдіть далі.',
+        createAdminServiceCreateGuaranteeActionsKeyboard(),
+      );
+      return;
+    }
+
+    draft.mode = 'awaiting_guarantee_text';
+    await ctx.reply(
+      formatAdminServiceCreateGuaranteeInputText(draft.guarantees.length + 1),
+      createAdminServiceCreateInputKeyboard(),
+    );
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SERVICES_CREATE_GUARANTEE_CONTINUE, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.servicesCreateDraft;
+    if (!draft) {
+      await renderAdminServicesCatalog(ctx, true);
+      return;
+    }
+
+    if (draft.mode !== 'awaiting_guarantee_menu') {
+      await ctx.reply(
+        'ℹ️ Спочатку завершіть поточний крок створення.',
+        createAdminServiceCreateInputKeyboard(),
+      );
+      return;
+    }
+
+    if (draft.guarantees.length === 0) {
+      await ctx.reply(
+        '⚠️ Додайте щонайменше 1 гарантію перед переходом до результату.',
+        createAdminServiceCreateGuaranteeActionsKeyboard(),
+      );
+      return;
+    }
+
+    draft.mode = 'awaiting_result';
+    await ctx.reply(
+      formatAdminServiceCreateResultInputText(draft.name ?? 'Нова послуга'),
+      createAdminServiceCreateInputKeyboard(),
+    );
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SERVICES_CREATE_CONFIRM, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const studioId = state.access?.studioId;
+    const draft = state.servicesCreateDraft;
+
+    if (!studioId || !draft || draft.mode !== 'awaiting_confirm') {
+      await renderAdminServicesCatalog(ctx, true);
+      return;
+    }
+
+    if (
+      !draft.name ||
+      draft.durationMinutes == null ||
+      !draft.basePrice ||
+      !draft.description ||
+      !draft.resultDescription ||
+      draft.steps.length === 0 ||
+      draft.guarantees.length === 0
+    ) {
+      await ctx.reply(
+        '⚠️ Недостатньо даних для створення послуги. Перевірте попередні кроки.',
+        createAdminServiceCreatePreviewKeyboard(),
+      );
+      return;
+    }
+
+    try {
+      const created = await createAdminService({
+        studioId,
+        name: draft.name,
+        durationMinutes: draft.durationMinutes,
+        basePrice: draft.basePrice,
+        currencyCode: draft.currencyCode,
+        description: draft.description,
+        resultDescription: draft.resultDescription,
+        steps: draft.steps,
+        guarantees: draft.guarantees,
+      });
+
+      state.servicesCreateDraft = null;
+      await ctx.reply(formatAdminServiceCreateSuccessText(created));
+      await renderAdminServiceDetails(ctx, created.serviceId, false);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        await ctx.reply(`⚠️ ${error.message}`, createAdminServiceCreatePreviewKeyboard());
+        return;
+      }
+      throw error;
+    }
+  });
+
   scene.action(ADMIN_PANEL_SERVICES_OPEN_ACTION_REGEX, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
@@ -5376,6 +5872,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     state.servicesCurrentSection = 'stats';
     state.servicesSelectedServiceId = serviceId;
     state.servicesEditDraft = null;
+    state.servicesCreateDraft = null;
 
     try {
       await ctx.editMessageText(
