@@ -13,10 +13,14 @@ import {
   makeAdminPanelRecordsChangeMasterAction,
   makeAdminPanelRecordsChangeMasterSelectAction,
   makeAdminPanelRecordsConfirmAction,
+  makeAdminPanelRecordsContactClientAction,
+  makeAdminPanelRecordsNextPendingAction,
   makeAdminPanelRecordsOpenCardAction,
   makeAdminPanelRecordsRescheduleAction,
   makeAdminPanelRecordsRescheduleDateAction,
   makeAdminPanelRecordsRescheduleTimeAction,
+  makeAdminPanelRecordsViewClientProfileAction,
+  makeAdminPanelRecordsViewMasterProfileAction,
 } from '../../types/bot-admin-panel.types.js';
 
 /**
@@ -61,6 +65,30 @@ function formatBookingStatusLabel(status: AdminBookingItem['status']): string {
     default:
       return status;
   }
+}
+
+function formatTelegramHandle(username: string | null): string {
+  if (!username) return 'Не вказано';
+  return `@${username}`;
+}
+
+function buildContactChannelsLines(item: AdminBookingItem): string {
+  const lines: string[] = [];
+  if (item.clientTelegramUsername) {
+    lines.push(`• Telegram: ${formatTelegramHandle(item.clientTelegramUsername)}`);
+  }
+  if (item.attendeePhoneE164) {
+    lines.push(`• Телефон: ${item.attendeePhoneE164}`);
+  }
+  if (item.attendeeEmail) {
+    lines.push(`• Email: ${item.attendeeEmail}`);
+  }
+
+  if (lines.length === 0) {
+    return '• Контактні дані не вказано';
+  }
+
+  return lines.join('\n');
 }
 
 function categoryTitle(category: AdminBookingsCategory): string {
@@ -222,6 +250,31 @@ export function createAdminBookingDetailsCardKeyboard(
   item: AdminBookingItem,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const actionRows: ReturnType<typeof Markup.button.callback>[][] = [];
+  actionRows.push([
+    Markup.button.callback(
+      ADMIN_PANEL_BUTTON_TEXT.RECORDS_CONTACT_CLIENT,
+      makeAdminPanelRecordsContactClientAction(item.appointmentId),
+    ),
+  ]);
+  actionRows.push([
+    Markup.button.callback(
+      ADMIN_PANEL_BUTTON_TEXT.RECORDS_VIEW_CLIENT_PROFILE,
+      makeAdminPanelRecordsViewClientProfileAction(item.appointmentId),
+    ),
+  ]);
+  actionRows.push([
+    Markup.button.callback(
+      ADMIN_PANEL_BUTTON_TEXT.RECORDS_VIEW_MASTER_PROFILE,
+      makeAdminPanelRecordsViewMasterProfileAction(item.appointmentId),
+    ),
+  ]);
+  actionRows.push([
+    Markup.button.callback(
+      ADMIN_PANEL_BUTTON_TEXT.RECORDS_NEXT_PENDING,
+      makeAdminPanelRecordsNextPendingAction(item.appointmentId),
+    ),
+  ]);
+
   if (item.status === 'pending') {
     actionRows.push([
       Markup.button.callback(
@@ -268,6 +321,127 @@ export function createAdminBookingDetailsCardKeyboard(
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_MENU, ADMIN_PANEL_ACTION.OPEN_RECORDS)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK, ADMIN_PANEL_ACTION.RECORDS_BACK)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.HOME, ADMIN_PANEL_ACTION.HOME)],
+  ]);
+}
+
+/**
+ * @summary Текст контактів клієнта для швидкого звʼязку.
+ */
+export function formatAdminBookingContactClientText(item: AdminBookingItem): string {
+  return (
+    '📞 Контакти клієнта\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `👤 ${formatClientDisplayName(item)}\n` +
+    `${buildContactChannelsLines(item)}\n\n` +
+    'Використайте один із каналів для звʼязку з клієнтом.'
+  );
+}
+
+/**
+ * @summary Клавіатура екрану контактів клієнта.
+ */
+export function createAdminBookingContactClientKeyboard(
+  item: AdminBookingItem,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const rows: ReturnType<typeof Markup.button.callback | typeof Markup.button.url>[][] = [];
+  if (item.clientTelegramUsername) {
+    rows.push([
+      Markup.button.url(
+        `💬 ${formatTelegramHandle(item.clientTelegramUsername)}`,
+        `https://t.me/${item.clientTelegramUsername}`,
+      ),
+    ]);
+  }
+  if (item.attendeePhoneE164) {
+    rows.push([
+      Markup.button.url(`📱 ${item.attendeePhoneE164}`, `tel:${item.attendeePhoneE164}`),
+    ]);
+  }
+  if (item.attendeeEmail) {
+    rows.push([Markup.button.url(`✉️ ${item.attendeeEmail}`, `mailto:${item.attendeeEmail}`)]);
+  }
+
+  return Markup.inlineKeyboard([
+    ...rows,
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_LIST, ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
+    [
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.RECORDS_VIEW_CLIENT_PROFILE,
+        makeAdminPanelRecordsViewClientProfileAction(item.appointmentId),
+      ),
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.RECORDS_NEXT_PENDING,
+        makeAdminPanelRecordsNextPendingAction(item.appointmentId),
+      ),
+    ],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_MENU, ADMIN_PANEL_ACTION.OPEN_RECORDS)],
+  ]);
+}
+
+/**
+ * @summary Текст профілю клієнта з картки запису.
+ */
+export function formatAdminBookingClientProfileText(item: AdminBookingItem): string {
+  return (
+    '👤 Профіль клієнта\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `🪪 ID клієнта: ${item.clientId}\n` +
+    `👤 Імʼя: ${formatClientDisplayName(item)}\n` +
+    `💬 Telegram: ${formatTelegramHandle(item.clientTelegramUsername)}\n` +
+    `📱 Телефон: ${item.attendeePhoneE164 ?? 'Не вказано'}\n` +
+    `✉️ Email: ${item.attendeeEmail ?? 'Не вказано'}\n\n` +
+    `🕒 Найближчий запис: ${formatDateTimeRange(item.startAt, item.endAt)}\n` +
+    `📌 Поточний статус: ${formatBookingStatusLabel(item.status)}`
+  );
+}
+
+/**
+ * @summary Клавіатура профілю клієнта з картки запису.
+ */
+export function createAdminBookingClientProfileKeyboard(
+  item: AdminBookingItem,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.RECORDS_CONTACT_CLIENT,
+        makeAdminPanelRecordsContactClientAction(item.appointmentId),
+      ),
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.RECORDS_NEXT_PENDING,
+        makeAdminPanelRecordsNextPendingAction(item.appointmentId),
+      ),
+    ],
+    [
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.RECORDS_VIEW_MASTER_PROFILE,
+        makeAdminPanelRecordsViewMasterProfileAction(item.appointmentId),
+      ),
+    ],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_LIST, ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_MENU, ADMIN_PANEL_ACTION.OPEN_RECORDS)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура профілю майстра, відкритого з картки запису.
+ */
+export function createAdminBookingMasterProfileKeyboard(
+  item: AdminBookingItem,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.RECORDS_VIEW_CLIENT_PROFILE,
+        makeAdminPanelRecordsViewClientProfileAction(item.appointmentId),
+      ),
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.RECORDS_NEXT_PENDING,
+        makeAdminPanelRecordsNextPendingAction(item.appointmentId),
+      ),
+    ],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_LIST, ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_MENU, ADMIN_PANEL_ACTION.OPEN_RECORDS)],
   ]);
 }
 

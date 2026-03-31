@@ -113,14 +113,19 @@ import {
   formatAdminScheduleTemporaryText,
 } from '../../helpers/bot/admin-schedule-view.bot.js';
 import {
+  createAdminBookingClientProfileKeyboard,
+  createAdminBookingContactClientKeyboard,
   createAdminCancelBookingConfirmKeyboard,
   createAdminChangeMasterConfirmKeyboard,
   createAdminChangeMasterSelectKeyboard,
   createAdminBookingDetailsCardKeyboard,
+  createAdminBookingMasterProfileKeyboard,
   createAdminBookingsFeedKeyboard,
   createAdminRescheduleConfirmKeyboard,
   createAdminRescheduleDateKeyboard,
   createAdminRescheduleTimeKeyboard,
+  formatAdminBookingClientProfileText,
+  formatAdminBookingContactClientText,
   formatAdminCancelBookingConfirmText,
   formatAdminChangeMasterConfirmText,
   formatAdminChangeMasterStepText,
@@ -222,13 +227,17 @@ import {
   ADMIN_PANEL_SERVICES_OPEN_STATS_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_CANCEL_REQUEST_ACTION_REGEX,
+  ADMIN_PANEL_RECORDS_CONTACT_CLIENT_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_CHANGE_MASTER_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_CHANGE_MASTER_SELECT_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_CONFIRM_ACTION_REGEX,
+  ADMIN_PANEL_RECORDS_NEXT_PENDING_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_OPEN_CARD_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_RESCHEDULE_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_RESCHEDULE_DATE_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_RESCHEDULE_TIME_ACTION_REGEX,
+  ADMIN_PANEL_RECORDS_VIEW_CLIENT_PROFILE_ACTION_REGEX,
+  ADMIN_PANEL_RECORDS_VIEW_MASTER_PROFILE_ACTION_REGEX,
   ADMIN_PANEL_SCHEDULE_CONFIGURE_DAY_OFF_ACTION_REGEX,
   ADMIN_PANEL_SCHEDULE_CONFIGURE_DAY_WEEKDAY_ACTION_REGEX,
   ADMIN_PANEL_SCHEDULE_DAY_OFF_DELETE_CONFIRM_ACTION_REGEX,
@@ -2308,6 +2317,100 @@ async function renderAdminBookingCard(ctx: MyContext, item: AdminBookingItem): P
   } catch {
     await ctx.reply(text, keyboard);
   }
+}
+
+async function renderAdminBookingClientContact(
+  ctx: MyContext,
+  item: AdminBookingItem,
+  preferEdit: boolean,
+): Promise<void> {
+  const text = formatAdminBookingContactClientText(item);
+  const keyboard = createAdminBookingContactClientKeyboard(item);
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminBookingClientProfile(
+  ctx: MyContext,
+  item: AdminBookingItem,
+  preferEdit: boolean,
+): Promise<void> {
+  const text = formatAdminBookingClientProfileText(item);
+  const keyboard = createAdminBookingClientProfileKeyboard(item);
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminBookingMasterProfile(
+  ctx: MyContext,
+  item: AdminBookingItem,
+  preferEdit: boolean,
+): Promise<void> {
+  const state = getSceneState(ctx);
+  const studioId = state.access?.studioId;
+  if (!studioId) {
+    throw new ValidationError('Не вдалося визначити студію адміністратора');
+  }
+
+  const details = await getMasterCatalogDetailsById({ masterId: item.masterId, studioId });
+  if (!details) {
+    await ctx.reply('⚠️ Профіль майстра недоступний або вже неактивний.');
+    await renderAdminBookingCard(ctx, item);
+    return;
+  }
+
+  const text = formatAdminMasterDetailsText(details);
+  const keyboard = createAdminBookingMasterProfileKeyboard(item);
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function resolveNextPendingBooking(
+  state: AdminPanelSceneState,
+  currentAppointmentId: string,
+): Promise<AdminBookingItem | null> {
+  const studioId = state.access?.studioId;
+  if (!studioId) return null;
+
+  const pending = await listAdminBookingsFeed({
+    studioId,
+    category: 'pending',
+    limit: 10,
+    offset: 0,
+  });
+
+  if (pending.items.length === 0) {
+    return null;
+  }
+
+  return pending.items.find((item) => item.appointmentId !== currentAppointmentId) ?? null;
 }
 
 async function renderRecordsFallback(ctx: MyContext, preferEdit: boolean): Promise<void> {
@@ -5719,6 +5822,73 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     await renderAdminBookingCard(ctx, item);
+  });
+
+  scene.action(ADMIN_PANEL_RECORDS_CONTACT_CLIENT_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const appointmentId = parseAppointmentIdFromAction(ctx, ADMIN_PANEL_RECORDS_CONTACT_CLIENT_ACTION_REGEX);
+    const item = await resolveAdminRecordById(state, appointmentId);
+    if (!item) {
+      await renderRecordsFallback(ctx, true);
+      return;
+    }
+
+    await renderAdminBookingClientContact(ctx, item, true);
+  });
+
+  scene.action(ADMIN_PANEL_RECORDS_VIEW_CLIENT_PROFILE_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const appointmentId = parseAppointmentIdFromAction(
+      ctx,
+      ADMIN_PANEL_RECORDS_VIEW_CLIENT_PROFILE_ACTION_REGEX,
+    );
+    const item = await resolveAdminRecordById(state, appointmentId);
+    if (!item) {
+      await renderRecordsFallback(ctx, true);
+      return;
+    }
+
+    await renderAdminBookingClientProfile(ctx, item, true);
+  });
+
+  scene.action(ADMIN_PANEL_RECORDS_VIEW_MASTER_PROFILE_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const appointmentId = parseAppointmentIdFromAction(
+      ctx,
+      ADMIN_PANEL_RECORDS_VIEW_MASTER_PROFILE_ACTION_REGEX,
+    );
+    const item = await resolveAdminRecordById(state, appointmentId);
+    if (!item) {
+      await renderRecordsFallback(ctx, true);
+      return;
+    }
+
+    await renderAdminBookingMasterProfile(ctx, item, true);
+  });
+
+  scene.action(ADMIN_PANEL_RECORDS_NEXT_PENDING_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const currentAppointmentId = parseAppointmentIdFromAction(
+      ctx,
+      ADMIN_PANEL_RECORDS_NEXT_PENDING_ACTION_REGEX,
+    );
+    const nextPending = await resolveNextPendingBooking(state, currentAppointmentId);
+    if (!nextPending) {
+      await ctx.reply('ℹ️ Більше непідтверджених записів зараз немає.');
+      const current = await resolveAdminRecordById(state, currentAppointmentId);
+      if (current) {
+        await renderAdminBookingCard(ctx, current);
+        return;
+      }
+      await renderRecordsFallback(ctx, false);
+      return;
+    }
+
+    await renderAdminBookingCard(ctx, nextPending);
   });
 
   scene.action(ADMIN_PANEL_RECORDS_CONFIRM_ACTION_REGEX, async (ctx) => {

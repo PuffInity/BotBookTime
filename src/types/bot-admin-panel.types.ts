@@ -129,6 +129,10 @@ export const ADMIN_PANEL_ACTION = {
   RECORDS_RESCHEDULE_PREFIX: 'admin-panel:records:reschedule:',
   RECORDS_RESCHEDULE_DATE_PREFIX: 'admin-panel:records:reschedule:date:',
   RECORDS_RESCHEDULE_TIME_PREFIX: 'admin-panel:records:reschedule:time:',
+  RECORDS_CONTACT_CLIENT_PREFIX: 'admin-panel:records:contact-client:',
+  RECORDS_VIEW_CLIENT_PROFILE_PREFIX: 'admin-panel:records:view-client-profile:',
+  RECORDS_VIEW_MASTER_PROFILE_PREFIX: 'admin-panel:records:view-master-profile:',
+  RECORDS_NEXT_PENDING_PREFIX: 'admin-panel:records:next-pending:',
   RECORDS_RESCHEDULE_CONFIRM: 'admin-panel:records:reschedule:confirm',
   RECORDS_RESCHEDULE_BACK_TO_DATE: 'admin-panel:records:reschedule:back-to-date',
   RECORDS_RESCHEDULE_BACK_TO_TIME: 'admin-panel:records:reschedule:back-to-time',
@@ -246,6 +250,10 @@ export const ADMIN_PANEL_BUTTON_TEXT = {
   RECORDS_CANCEL: '❌ Скасувати',
   RECORDS_RESCHEDULE: '🔄 Перенести',
   RECORDS_CHANGE_MASTER: '👩‍🎨 Змінити майстра',
+  RECORDS_CONTACT_CLIENT: '📞 Зв’язатися з клієнтом',
+  RECORDS_VIEW_CLIENT_PROFILE: '👤 Переглянути профіль клієнта',
+  RECORDS_VIEW_MASTER_PROFILE: '👩‍🎨 Переглянути профіль майстра',
+  RECORDS_NEXT_PENDING: '🆕 Наступний непідтверджений запис',
   RECORDS_CONFIRM_CANCEL: '✅ Так, скасувати',
   RECORDS_CONFIRM_RESCHEDULE: '✅ Підтвердити перенесення',
   RECORDS_CONFIRM_CHANGE_MASTER: '✅ Підтвердити зміну майстра',
@@ -274,6 +282,14 @@ export const ADMIN_PANEL_RECORDS_RESCHEDULE_DATE_ACTION_REGEX =
   /^admin-panel:records:reschedule:date:(\d{8})$/;
 export const ADMIN_PANEL_RECORDS_RESCHEDULE_TIME_ACTION_REGEX =
   /^admin-panel:records:reschedule:time:(\d{4})$/;
+export const ADMIN_PANEL_RECORDS_CONTACT_CLIENT_ACTION_REGEX =
+  /^admin-panel:records:contact-client:(\d+)$/;
+export const ADMIN_PANEL_RECORDS_VIEW_CLIENT_PROFILE_ACTION_REGEX =
+  /^admin-panel:records:view-client-profile:(\d+)$/;
+export const ADMIN_PANEL_RECORDS_VIEW_MASTER_PROFILE_ACTION_REGEX =
+  /^admin-panel:records:view-master-profile:(\d+)$/;
+export const ADMIN_PANEL_RECORDS_NEXT_PENDING_ACTION_REGEX =
+  /^admin-panel:records:next-pending:(\d+)$/;
 export const ADMIN_PANEL_RECORDS_CHANGE_MASTER_ACTION_REGEX =
   /^admin-panel:records:change-master:(\d+)$/;
 export const ADMIN_PANEL_RECORDS_CHANGE_MASTER_SELECT_ACTION_REGEX =
@@ -352,6 +368,22 @@ export function makeAdminPanelRecordsRescheduleDateAction(dateCode: string): str
 
 export function makeAdminPanelRecordsRescheduleTimeAction(timeCode: string): string {
   return `${ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_TIME_PREFIX}${timeCode}`;
+}
+
+export function makeAdminPanelRecordsContactClientAction(appointmentId: string): string {
+  return `${ADMIN_PANEL_ACTION.RECORDS_CONTACT_CLIENT_PREFIX}${appointmentId}`;
+}
+
+export function makeAdminPanelRecordsViewClientProfileAction(appointmentId: string): string {
+  return `${ADMIN_PANEL_ACTION.RECORDS_VIEW_CLIENT_PROFILE_PREFIX}${appointmentId}`;
+}
+
+export function makeAdminPanelRecordsViewMasterProfileAction(appointmentId: string): string {
+  return `${ADMIN_PANEL_ACTION.RECORDS_VIEW_MASTER_PROFILE_PREFIX}${appointmentId}`;
+}
+
+export function makeAdminPanelRecordsNextPendingAction(appointmentId: string): string {
+  return `${ADMIN_PANEL_ACTION.RECORDS_NEXT_PENDING_PREFIX}${appointmentId}`;
 }
 
 export function makeAdminPanelRecordsChangeMasterAction(appointmentId: string): string {
