@@ -13,6 +13,7 @@ import type {
   MasterCatalogItem,
 } from '../../types/db-helpers/db-masters.types.js';
 import type { MasterOwnProfileServiceManageItem } from '../../types/db-helpers/db-master-profile.types.js';
+import type { AdminMasterCreateScheduleDayInput } from '../../types/db-helpers/db-admin-masters.types.js';
 import type {
   ServicesCatalogDetails,
   ServicesCatalogItem,
@@ -142,6 +143,14 @@ import {
 } from '../../helpers/bot/admin-bookings-view.bot.js';
 import {
   type AdminMasterEditableField,
+  type AdminMasterCreateConfirmViewData,
+  type AdminMasterCreateScheduleDayView,
+  createAdminMasterCreateConfirmKeyboard,
+  createAdminMasterCreateInputKeyboard,
+  createAdminMasterCreateScheduleInputKeyboard,
+  createAdminMasterCreateSchedulePickKeyboard,
+  createAdminMasterCreateServicesKeyboard,
+  createAdminMasterCreateStartKeyboard,
   createAdminMasterEditConfirmKeyboard,
   createAdminMasterEditInputKeyboard,
   createAdminMasterEditMenuKeyboard,
@@ -152,6 +161,20 @@ import {
   createAdminMasterBookingsFeedKeyboard,
   createAdminMasterDetailsKeyboard,
   createAdminMastersCatalogKeyboard,
+  formatAdminMasterCreateBioInputText,
+  formatAdminMasterCreateConfirmText,
+  formatAdminMasterCreateDisplayNameInputText,
+  formatAdminMasterCreateEmailInputText,
+  formatAdminMasterCreateExperienceYearsInputText,
+  formatAdminMasterCreateMaterialsInputText,
+  formatAdminMasterCreatePhoneInputText,
+  formatAdminMasterCreateProceduresInputText,
+  formatAdminMasterCreateScheduleFromInputText,
+  formatAdminMasterCreateSchedulePickText,
+  formatAdminMasterCreateScheduleToInputText,
+  formatAdminMasterCreateServicesText,
+  formatAdminMasterCreateStartText,
+  formatAdminMasterCreateTelegramInputText,
   formatAdminMasterEditConfirmText,
   formatAdminMasterEditInputText,
   formatAdminMasterEditMenuText,
@@ -238,6 +261,9 @@ import {
 } from '../../helpers/bot/admin-stats-view.bot.js';
 import {
   ADMIN_PANEL_ACTION,
+  ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_DAY_OFF_ACTION_REGEX,
+  ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_PICK_ACTION_REGEX,
+  ADMIN_PANEL_MASTERS_CREATE_SERVICE_TOGGLE_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_OPEN_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_BOOKINGS_OPEN_CARD_ACTION_REGEX,
   ADMIN_PANEL_MASTERS_EDIT_FIELD_ACTION_REGEX,
@@ -308,6 +334,10 @@ import {
   getAdminStudioSchedule,
   upsertAdminStudioWeeklyDay,
 } from '../../helpers/db/db-admin-schedule.helper.js';
+import {
+  createAdminMaster,
+  findAdminMasterCandidateByTelegramId,
+} from '../../helpers/db/db-admin-masters.helper.js';
 import {
   addMasterOwnService,
   getMasterOwnProfile,
@@ -457,13 +487,51 @@ type AdminScheduleConfigureDayDraft = {
   fromTime: string | null;
 };
 
-type AdminMasterSubSection = 'catalog' | 'details' | 'bookings' | 'stats' | 'edit' | 'edit-services';
+type AdminMasterSubSection =
+  | 'catalog'
+  | 'details'
+  | 'bookings'
+  | 'stats'
+  | 'edit'
+  | 'edit-services'
+  | 'create';
 type AdminMasterEditDraft = {
   masterId: string;
   field: AdminMasterEditableField;
   mode: 'awaiting_value' | 'awaiting_confirm';
   currentValue: string;
   value: string | null;
+};
+type AdminMasterCreateDraft = {
+  mode:
+    | 'intro'
+    | 'awaiting_display_name'
+    | 'awaiting_telegram_id'
+    | 'selecting_services'
+    | 'awaiting_experience_years'
+    | 'awaiting_procedures_done_total'
+    | 'awaiting_bio'
+    | 'awaiting_materials'
+    | 'awaiting_phone'
+    | 'awaiting_email'
+    | 'awaiting_schedule_pick'
+    | 'awaiting_schedule_from'
+    | 'awaiting_schedule_to'
+    | 'awaiting_confirm';
+  displayName: string | null;
+  telegramUserId: string | null;
+  targetUserId: string | null;
+  selectedServiceIds: string[];
+  availableServices: ServicesCatalogItem[];
+  experienceYears: number | null;
+  proceduresDoneTotal: number | null;
+  bio: string | null;
+  materialsInfo: string | null;
+  contactPhoneE164: string | null;
+  contactEmail: string | null;
+  scheduleDays: AdminMasterCreateScheduleDayInput[];
+  scheduleSelectedWeekday: number | null;
+  schedulePendingFromTime: string | null;
 };
 type AdminMasterServicesDraft = {
   masterId: string;
@@ -596,6 +664,7 @@ type AdminPanelSceneState = {
   mastersBookingsOpenedAppointmentId: string | null;
   mastersCurrentSection: AdminMasterSubSection | null;
   mastersEditDraft: AdminMasterEditDraft | null;
+  mastersCreateDraft: AdminMasterCreateDraft | null;
   mastersServicesDraft: AdminMasterServicesDraft | null;
   servicesCatalog: ServicesCatalogItem[] | null;
   servicesSelectedServiceId: string | null;
@@ -650,6 +719,7 @@ function resetMastersState(state: AdminPanelSceneState): void {
   state.mastersBookingsOpenedAppointmentId = null;
   state.mastersCurrentSection = null;
   state.mastersEditDraft = null;
+  state.mastersCreateDraft = null;
   state.mastersServicesDraft = null;
 }
 
@@ -1444,6 +1514,7 @@ async function renderAdminMastersCatalog(ctx: MyContext, preferEdit: boolean): P
   state.mastersBookingsFeed = null;
   state.mastersBookingsOpenedAppointmentId = null;
   state.mastersEditDraft = null;
+  state.mastersCreateDraft = null;
   state.mastersServicesDraft = null;
 
   const text = formatAdminMastersCatalogText(masters);
@@ -1484,6 +1555,7 @@ async function renderAdminMasterDetails(
   state.mastersBookingsFeed = null;
   state.mastersBookingsOpenedAppointmentId = null;
   state.mastersEditDraft = null;
+  state.mastersCreateDraft = null;
   state.mastersServicesDraft = null;
 
   const text = formatAdminMasterDetailsText(details);
@@ -1627,6 +1699,292 @@ function parseAdminMasterEditFieldAction(ctx: MyContext): {
   return { masterId, field };
 }
 
+const MASTER_CREATE_WEEKDAYS = [1, 2, 3, 4, 5, 6, 7] as const;
+
+function getDefaultMasterCreateScheduleDays(): AdminMasterCreateScheduleDayInput[] {
+  return MASTER_CREATE_WEEKDAYS.map((weekday) => ({
+    weekday,
+    isWorking: false,
+    openTime: null,
+    closeTime: null,
+  }));
+}
+
+function normalizeAdminMasterCreateExperienceInput(value: string): number {
+  const normalized = value.trim();
+  if (!/^\d+$/.test(normalized)) {
+    throw new ValidationError('Досвід роботи має бути цілим числом');
+  }
+
+  const parsed = Number(normalized);
+  if (!Number.isInteger(parsed) || parsed < 0 || parsed > 50) {
+    throw new ValidationError('Досвід роботи має бути в діапазоні 0..50 років');
+  }
+
+  return parsed;
+}
+
+function normalizeAdminMasterCreateTelegramIdInput(value: string): string {
+  const normalized = value.trim();
+  if (!/^\d{5,15}$/.test(normalized)) {
+    throw new ValidationError('Telegram ID має містити тільки цифри (5..15 символів)');
+  }
+  return normalized;
+}
+
+function toMasterCreateScheduleViewDays(
+  scheduleDays: AdminMasterCreateScheduleDayInput[],
+): AdminMasterCreateScheduleDayView[] {
+  return scheduleDays.map((item) => ({
+    weekday: item.weekday,
+    isWorking: item.isWorking,
+    openTime: item.openTime,
+    closeTime: item.closeTime,
+  }));
+}
+
+function upsertMasterCreateScheduleDay(
+  days: AdminMasterCreateScheduleDayInput[],
+  day: AdminMasterCreateScheduleDayInput,
+): AdminMasterCreateScheduleDayInput[] {
+  const filtered = days.filter((current) => current.weekday !== day.weekday);
+  return [...filtered, day].sort((a, b) => a.weekday - b.weekday);
+}
+
+function isMasterCreateScheduleReady(days: AdminMasterCreateScheduleDayInput[]): boolean {
+  if (days.length !== 7) return false;
+  const unique = new Set(days.map((day) => day.weekday));
+  if (unique.size !== 7) return false;
+
+  return days.some((day) => day.isWorking && !!day.openTime && !!day.closeTime);
+}
+
+function buildAdminMasterCreateConfirmData(
+  draft: AdminMasterCreateDraft,
+): AdminMasterCreateConfirmViewData {
+  if (
+    !draft.displayName ||
+    !draft.telegramUserId ||
+    draft.selectedServiceIds.length === 0 ||
+    draft.experienceYears == null ||
+    draft.proceduresDoneTotal == null ||
+    !draft.bio ||
+    !draft.materialsInfo ||
+    !draft.contactPhoneE164 ||
+    !draft.contactEmail
+  ) {
+    throw new ValidationError('Профіль майстра заповнено не повністю');
+  }
+  if (!isMasterCreateScheduleReady(draft.scheduleDays)) {
+    throw new ValidationError('Потрібно заповнити графік майстра щонайменше з одним робочим днем');
+  }
+
+  const selectedServiceNames = draft.availableServices
+    .filter((service) => draft.selectedServiceIds.includes(service.id))
+    .map((service) => service.name);
+
+  return {
+    displayName: draft.displayName,
+    telegramUserId: draft.telegramUserId,
+    selectedServiceNames,
+    experienceYears: draft.experienceYears,
+    proceduresDoneTotal: draft.proceduresDoneTotal,
+    bio: draft.bio,
+    materialsInfo: draft.materialsInfo,
+    contactPhoneE164: draft.contactPhoneE164,
+    contactEmail: draft.contactEmail,
+    scheduleDays: toMasterCreateScheduleViewDays(draft.scheduleDays),
+  };
+}
+
+async function renderAdminMasterCreateStart(ctx: MyContext, preferEdit: boolean): Promise<void> {
+  const state = getSceneState(ctx);
+  const studioId = state.access?.studioId;
+  if (!studioId) {
+    throw new ValidationError('Не вдалося визначити студію адміністратора');
+  }
+
+  const availableServices = await listActiveServicesCatalog({ studioId, limit: 100 });
+
+  state.mastersCurrentSection = 'create';
+  state.mastersSelectedMasterId = null;
+  state.mastersEditDraft = null;
+  state.mastersServicesDraft = null;
+  state.mastersCreateDraft = {
+    mode: 'intro',
+    displayName: null,
+    telegramUserId: null,
+    targetUserId: null,
+    selectedServiceIds: [],
+    availableServices,
+    experienceYears: null,
+    proceduresDoneTotal: null,
+    bio: null,
+    materialsInfo: null,
+    contactPhoneE164: null,
+    contactEmail: null,
+    scheduleDays: getDefaultMasterCreateScheduleDays(),
+    scheduleSelectedWeekday: null,
+    schedulePendingFromTime: null,
+  };
+
+  const text = formatAdminMasterCreateStartText();
+  const keyboard = createAdminMasterCreateStartKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminMasterCreateTextStep(
+  ctx: MyContext,
+  draft: AdminMasterCreateDraft,
+  preferEdit: boolean,
+): Promise<void> {
+  let text = '';
+  switch (draft.mode) {
+    case 'awaiting_display_name':
+      text = formatAdminMasterCreateDisplayNameInputText();
+      break;
+    case 'awaiting_telegram_id':
+      text = formatAdminMasterCreateTelegramInputText(draft.displayName ?? '—');
+      break;
+    case 'awaiting_experience_years':
+      text = formatAdminMasterCreateExperienceYearsInputText();
+      break;
+    case 'awaiting_procedures_done_total':
+      text = formatAdminMasterCreateProceduresInputText();
+      break;
+    case 'awaiting_bio':
+      text = formatAdminMasterCreateBioInputText();
+      break;
+    case 'awaiting_materials':
+      text = formatAdminMasterCreateMaterialsInputText();
+      break;
+    case 'awaiting_phone':
+      text = formatAdminMasterCreatePhoneInputText();
+      break;
+    case 'awaiting_email':
+      text = formatAdminMasterCreateEmailInputText();
+      break;
+    case 'awaiting_schedule_from': {
+      if (!draft.scheduleSelectedWeekday) {
+        throw new ValidationError('Спочатку оберіть день тижня для графіку');
+      }
+      text = formatAdminMasterCreateScheduleFromInputText(draft.scheduleSelectedWeekday);
+      break;
+    }
+    case 'awaiting_schedule_to': {
+      if (!draft.scheduleSelectedWeekday || !draft.schedulePendingFromTime) {
+        throw new ValidationError('Спочатку вкажіть час початку робочого дня');
+      }
+      text = formatAdminMasterCreateScheduleToInputText(
+        draft.scheduleSelectedWeekday,
+        draft.schedulePendingFromTime,
+      );
+      break;
+    }
+    default:
+      throw new ValidationError('Некоректний крок створення майстра');
+  }
+
+  const keyboard =
+    draft.mode === 'awaiting_schedule_from' || draft.mode === 'awaiting_schedule_to'
+      ? createAdminMasterCreateScheduleInputKeyboard(draft.scheduleSelectedWeekday ?? 1)
+      : createAdminMasterCreateInputKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminMasterCreateServicesStep(
+  ctx: MyContext,
+  draft: AdminMasterCreateDraft,
+  preferEdit: boolean,
+): Promise<void> {
+  const text = formatAdminMasterCreateServicesText(
+    draft.displayName ?? '—',
+    draft.availableServices,
+    draft.selectedServiceIds,
+  );
+  const keyboard = createAdminMasterCreateServicesKeyboard(
+    draft.availableServices,
+    draft.selectedServiceIds,
+  );
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminMasterCreateSchedulePickStep(
+  ctx: MyContext,
+  draft: AdminMasterCreateDraft,
+  preferEdit: boolean,
+): Promise<void> {
+  const text = formatAdminMasterCreateSchedulePickText(
+    draft.displayName ?? '—',
+    toMasterCreateScheduleViewDays(draft.scheduleDays),
+  );
+  const keyboard = createAdminMasterCreateSchedulePickKeyboard(
+    toMasterCreateScheduleViewDays(draft.scheduleDays),
+  );
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+async function renderAdminMasterCreateConfirmStep(
+  ctx: MyContext,
+  draft: AdminMasterCreateDraft,
+  preferEdit: boolean,
+): Promise<void> {
+  const confirmData = buildAdminMasterCreateConfirmData(draft);
+  const text = formatAdminMasterCreateConfirmText(confirmData);
+  const keyboard = createAdminMasterCreateConfirmKeyboard();
+
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
 async function renderAdminMasterEditMenu(
   ctx: MyContext,
   masterId: string,
@@ -1637,6 +1995,7 @@ async function renderAdminMasterEditMenu(
   state.mastersCurrentSection = 'edit';
   state.mastersSelectedMasterId = masterId;
   state.mastersEditDraft = null;
+  state.mastersCreateDraft = null;
   state.mastersServicesDraft = null;
 
   const text = formatAdminMasterEditMenuText(details.master.displayName);
@@ -1673,6 +2032,7 @@ async function renderAdminMasterEditInput(
     currentValue,
     value: null,
   };
+  state.mastersCreateDraft = null;
   state.mastersServicesDraft = null;
 
   const text = formatAdminMasterEditInputText(field, currentValue);
@@ -1723,6 +2083,7 @@ async function renderAdminMasterEditServicesMenu(
   state.mastersCurrentSection = 'edit-services';
   state.mastersSelectedMasterId = masterId;
   state.mastersEditDraft = null;
+  state.mastersCreateDraft = null;
   state.mastersServicesDraft = {
     masterId,
     masterName: details.master.displayName,
@@ -1757,6 +2118,7 @@ async function renderAdminMasterEditServicesAddCandidates(
   state.mastersCurrentSection = 'edit-services';
   state.mastersSelectedMasterId = masterId;
   state.mastersEditDraft = null;
+  state.mastersCreateDraft = null;
   state.mastersServicesDraft = {
     masterId,
     masterName: details.master.displayName,
@@ -1794,6 +2156,7 @@ async function renderAdminMasterEditServicesRemoveCandidates(
   state.mastersCurrentSection = 'edit-services';
   state.mastersSelectedMasterId = masterId;
   state.mastersEditDraft = null;
+  state.mastersCreateDraft = null;
   state.mastersServicesDraft = {
     masterId,
     masterName: details.master.displayName,
@@ -1851,6 +2214,7 @@ async function renderAdminMasterBookingsList(
   state.mastersBookingsFeed = feed;
   state.mastersBookingsOpenedAppointmentId = null;
   state.mastersEditDraft = null;
+  state.mastersCreateDraft = null;
   state.mastersServicesDraft = null;
 
   const text = formatAdminMasterBookingsFeedText(details.master.displayName, feed);
@@ -1893,6 +2257,7 @@ async function renderAdminMasterBookingCard(
   state.mastersSelectedMasterId = masterId;
   state.mastersBookingsOpenedAppointmentId = appointmentId;
   state.mastersEditDraft = null;
+  state.mastersCreateDraft = null;
   state.mastersServicesDraft = null;
 
   const text = formatAdminMasterBookingCardText(booking);
@@ -3094,6 +3459,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.mastersBookingsOpenedAppointmentId = null;
       state.mastersCurrentSection = null;
       state.mastersEditDraft = null;
+      state.mastersCreateDraft = null;
       state.mastersServicesDraft = null;
       state.servicesCatalog = null;
       state.servicesSelectedServiceId = null;
@@ -3452,6 +3818,197 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           );
         }
         return;
+      }
+
+      const mastersCreateDraft = state.mastersCreateDraft;
+      if (state.mastersCurrentSection === 'create' && mastersCreateDraft) {
+        const access = state.access;
+
+        try {
+          if (mastersCreateDraft.mode === 'awaiting_display_name') {
+            mastersCreateDraft.displayName = normalizeMasterDisplayName(text);
+            mastersCreateDraft.mode = 'awaiting_telegram_id';
+            await renderAdminMasterCreateTextStep(ctx, mastersCreateDraft, false);
+            return;
+          }
+
+          if (mastersCreateDraft.mode === 'awaiting_telegram_id') {
+            if (!access?.studioId) {
+              throw new ValidationError('Не вдалося визначити студію адміністратора');
+            }
+            const telegramId = normalizeAdminMasterCreateTelegramIdInput(text);
+            const candidate = await findAdminMasterCandidateByTelegramId({
+              studioId: access.studioId,
+              telegramId,
+            });
+
+            if (!candidate) {
+              throw new ValidationError('Користувача з таким Telegram ID не знайдено в цьому салоні');
+            }
+            if (candidate.isMaster) {
+              throw new ValidationError('Цей користувач уже має профіль майстра');
+            }
+
+            mastersCreateDraft.telegramUserId = telegramId;
+            mastersCreateDraft.targetUserId = candidate.userId;
+            mastersCreateDraft.mode = 'selecting_services';
+            await renderAdminMasterCreateServicesStep(ctx, mastersCreateDraft, false);
+            return;
+          }
+
+          if (mastersCreateDraft.mode === 'awaiting_experience_years') {
+            mastersCreateDraft.experienceYears = normalizeAdminMasterCreateExperienceInput(text);
+            mastersCreateDraft.mode = 'awaiting_procedures_done_total';
+            await renderAdminMasterCreateTextStep(ctx, mastersCreateDraft, false);
+            return;
+          }
+
+          if (mastersCreateDraft.mode === 'awaiting_procedures_done_total') {
+            mastersCreateDraft.proceduresDoneTotal = normalizeMasterProceduresDoneTotal(text);
+            mastersCreateDraft.mode = 'awaiting_bio';
+            await renderAdminMasterCreateTextStep(ctx, mastersCreateDraft, false);
+            return;
+          }
+
+          if (mastersCreateDraft.mode === 'awaiting_bio') {
+            mastersCreateDraft.bio = normalizeMasterBio(text);
+            mastersCreateDraft.mode = 'awaiting_materials';
+            await renderAdminMasterCreateTextStep(ctx, mastersCreateDraft, false);
+            return;
+          }
+
+          if (mastersCreateDraft.mode === 'awaiting_materials') {
+            mastersCreateDraft.materialsInfo = normalizeMasterMaterialsInfo(text);
+            mastersCreateDraft.mode = 'awaiting_phone';
+            await renderAdminMasterCreateTextStep(ctx, mastersCreateDraft, false);
+            return;
+          }
+
+          if (mastersCreateDraft.mode === 'awaiting_phone') {
+            mastersCreateDraft.contactPhoneE164 = normalizeMasterContactPhone(text);
+            mastersCreateDraft.mode = 'awaiting_email';
+            await renderAdminMasterCreateTextStep(ctx, mastersCreateDraft, false);
+            return;
+          }
+
+          if (mastersCreateDraft.mode === 'awaiting_email') {
+            mastersCreateDraft.contactEmail = normalizeMasterContactEmail(text);
+            mastersCreateDraft.mode = 'awaiting_schedule_pick';
+            await renderAdminMasterCreateSchedulePickStep(ctx, mastersCreateDraft, false);
+            return;
+          }
+
+          if (mastersCreateDraft.mode === 'awaiting_schedule_from') {
+            if (!mastersCreateDraft.scheduleSelectedWeekday) {
+              throw new ValidationError('Спочатку оберіть день тижня');
+            }
+            mastersCreateDraft.schedulePendingFromTime = parseTimeInput(text);
+            mastersCreateDraft.mode = 'awaiting_schedule_to';
+            await renderAdminMasterCreateTextStep(ctx, mastersCreateDraft, false);
+            return;
+          }
+
+          if (mastersCreateDraft.mode === 'awaiting_schedule_to') {
+            const weekday = mastersCreateDraft.scheduleSelectedWeekday;
+            const fromTime = mastersCreateDraft.schedulePendingFromTime;
+            if (!weekday || !fromTime) {
+              throw new ValidationError('Спочатку оберіть день і введіть час початку');
+            }
+
+            const toTime = parseTimeInput(text);
+            if (timeToMinutes(toTime) <= timeToMinutes(fromTime)) {
+              throw new ValidationError('Час завершення має бути пізніше часу початку');
+            }
+
+            mastersCreateDraft.scheduleDays = upsertMasterCreateScheduleDay(
+              mastersCreateDraft.scheduleDays,
+              {
+                weekday,
+                isWorking: true,
+                openTime: fromTime,
+                closeTime: toTime,
+              },
+            );
+            mastersCreateDraft.scheduleSelectedWeekday = null;
+            mastersCreateDraft.schedulePendingFromTime = null;
+            mastersCreateDraft.mode = 'awaiting_schedule_pick';
+
+            await ctx.reply('✅ Робочий час для дня успішно збережено.');
+            await renderAdminMasterCreateSchedulePickStep(ctx, mastersCreateDraft, false);
+            return;
+          }
+
+          if (mastersCreateDraft.mode === 'selecting_services') {
+            await ctx.reply(
+              'ℹ️ Для вибору послуг використовуйте кнопки під повідомленням.',
+              createAdminMasterCreateServicesKeyboard(
+                mastersCreateDraft.availableServices,
+                mastersCreateDraft.selectedServiceIds,
+              ),
+            );
+            return;
+          }
+
+          if (mastersCreateDraft.mode === 'awaiting_schedule_pick') {
+            await ctx.reply(
+              'ℹ️ Для налаштування графіку використовуйте кнопки під повідомленням.',
+              createAdminMasterCreateSchedulePickKeyboard(
+                toMasterCreateScheduleViewDays(mastersCreateDraft.scheduleDays),
+              ),
+            );
+            return;
+          }
+
+          if (mastersCreateDraft.mode === 'awaiting_confirm') {
+            await ctx.reply(
+              'ℹ️ Для завершення створення використовуйте кнопки підтвердження під повідомленням.',
+              createAdminMasterCreateConfirmKeyboard(),
+            );
+            return;
+          }
+
+          await ctx.reply(
+            'ℹ️ Для створення майстра використовуйте кнопки під повідомленням.',
+            createAdminMasterCreateStartKeyboard(),
+          );
+          return;
+        } catch (error) {
+          const err =
+            error instanceof ValidationError
+              ? error
+              : new ValidationError('Виникла помилка перевірки даних створення майстра');
+
+          if (mastersCreateDraft.mode === 'selecting_services') {
+            await ctx.reply(
+              `⚠️ ${err.message}`,
+              createAdminMasterCreateServicesKeyboard(
+                mastersCreateDraft.availableServices,
+                mastersCreateDraft.selectedServiceIds,
+              ),
+            );
+            return;
+          }
+
+          if (
+            mastersCreateDraft.mode === 'awaiting_schedule_pick' ||
+            mastersCreateDraft.mode === 'awaiting_schedule_from' ||
+            mastersCreateDraft.mode === 'awaiting_schedule_to'
+          ) {
+            const keyboard =
+              mastersCreateDraft.mode === 'awaiting_schedule_pick'
+                ? createAdminMasterCreateSchedulePickKeyboard(
+                    toMasterCreateScheduleViewDays(mastersCreateDraft.scheduleDays),
+                  )
+                : createAdminMasterCreateScheduleInputKeyboard(
+                    mastersCreateDraft.scheduleSelectedWeekday ?? 1,
+                  );
+            await ctx.reply(`⚠️ ${err.message}`, keyboard);
+            return;
+          }
+
+          await ctx.reply(`⚠️ ${err.message}`, createAdminMasterCreateInputKeyboard());
+          return;
+        }
       }
 
       const servicesCreateDraft = state.servicesCreateDraft;
@@ -4839,6 +5396,231 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     resetStatsState(state);
     resetSettingsState(state);
     await renderAdminMastersCatalog(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_CREATE_OPEN, async (ctx) => {
+    await ctx.answerCbQuery();
+    await renderAdminMasterCreateStart(ctx, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_CREATE_START, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.mastersCreateDraft;
+    if (!draft || state.mastersCurrentSection !== 'create') {
+      await renderAdminMasterCreateStart(ctx, true);
+      return;
+    }
+
+    draft.mode = 'awaiting_display_name';
+    await renderAdminMasterCreateTextStep(ctx, draft, true);
+  });
+
+  scene.action(ADMIN_PANEL_MASTERS_CREATE_SERVICE_TOGGLE_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.mastersCreateDraft;
+    if (!draft || draft.mode !== 'selecting_services') {
+      await renderAdminMastersCatalog(ctx, true);
+      return;
+    }
+
+    const serviceId = parseNumericIdFromAction(
+      ctx,
+      ADMIN_PANEL_MASTERS_CREATE_SERVICE_TOGGLE_ACTION_REGEX,
+      'id послуги',
+    );
+    const exists = draft.availableServices.some((service) => service.id === serviceId);
+    if (!exists) {
+      await ctx.reply('⚠️ Послугу не знайдено в актуальному списку.');
+      await renderAdminMasterCreateServicesStep(ctx, draft, false);
+      return;
+    }
+
+    if (draft.selectedServiceIds.includes(serviceId)) {
+      draft.selectedServiceIds = draft.selectedServiceIds.filter((current) => current !== serviceId);
+    } else {
+      draft.selectedServiceIds = [...draft.selectedServiceIds, serviceId];
+    }
+
+    await renderAdminMasterCreateServicesStep(ctx, draft, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_CREATE_SERVICES_DONE, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.mastersCreateDraft;
+    if (!draft || draft.mode !== 'selecting_services') {
+      await renderAdminMastersCatalog(ctx, true);
+      return;
+    }
+
+    if (draft.selectedServiceIds.length === 0) {
+      await ctx.reply('⚠️ Оберіть щонайменше одну послугу для майстра.');
+      await renderAdminMasterCreateServicesStep(ctx, draft, false);
+      return;
+    }
+
+    draft.mode = 'awaiting_experience_years';
+    await renderAdminMasterCreateTextStep(ctx, draft, true);
+  });
+
+  scene.action(ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_PICK_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.mastersCreateDraft;
+    if (!draft || draft.mode !== 'awaiting_schedule_pick') {
+      await renderAdminMastersCatalog(ctx, true);
+      return;
+    }
+
+    const weekday = parseNumericIdFromAction(
+      ctx,
+      ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_PICK_ACTION_REGEX,
+      'день тижня',
+    );
+    draft.scheduleSelectedWeekday = Number(weekday);
+    draft.schedulePendingFromTime = null;
+    draft.mode = 'awaiting_schedule_from';
+    await renderAdminMasterCreateTextStep(ctx, draft, true);
+  });
+
+  scene.action(ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_DAY_OFF_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.mastersCreateDraft;
+    if (!draft || state.mastersCurrentSection !== 'create') {
+      await renderAdminMastersCatalog(ctx, true);
+      return;
+    }
+    if (draft.mode !== 'awaiting_schedule_from' && draft.mode !== 'awaiting_schedule_to') {
+      await renderAdminMasterCreateSchedulePickStep(ctx, draft, true);
+      return;
+    }
+
+    const weekday = parseNumericIdFromAction(
+      ctx,
+      ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_DAY_OFF_ACTION_REGEX,
+      'день тижня',
+    );
+    draft.scheduleDays = upsertMasterCreateScheduleDay(draft.scheduleDays, {
+      weekday: Number(weekday),
+      isWorking: false,
+      openTime: null,
+      closeTime: null,
+    });
+    draft.scheduleSelectedWeekday = null;
+    draft.schedulePendingFromTime = null;
+    draft.mode = 'awaiting_schedule_pick';
+
+    await ctx.reply('✅ День позначено як вихідний.');
+    await renderAdminMasterCreateSchedulePickStep(ctx, draft, false);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_CREATE_CONTINUE, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.mastersCreateDraft;
+    if (!draft || state.mastersCurrentSection !== 'create') {
+      await renderAdminMastersCatalog(ctx, true);
+      return;
+    }
+
+    if (
+      draft.mode === 'awaiting_schedule_from' ||
+      draft.mode === 'awaiting_schedule_to' ||
+      draft.mode === 'awaiting_confirm'
+    ) {
+      draft.scheduleSelectedWeekday = null;
+      draft.schedulePendingFromTime = null;
+      draft.mode = 'awaiting_schedule_pick';
+      await renderAdminMasterCreateSchedulePickStep(ctx, draft, true);
+      return;
+    }
+
+    await renderAdminMasterCreateTextStep(ctx, draft, true);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_CREATE_CANCEL, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    state.mastersCreateDraft = null;
+    await ctx.reply('✅ Створення майстра скасовано.');
+    await renderAdminMastersCatalog(ctx, false);
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.MASTERS_CREATE_CONFIRM, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.mastersCreateDraft;
+    const access = state.access;
+    if (!draft || !access?.studioId || !access.userId) {
+      await renderAdminMastersCatalog(ctx, true);
+      return;
+    }
+
+    if (draft.mode === 'awaiting_schedule_pick') {
+      try {
+        buildAdminMasterCreateConfirmData(draft);
+      } catch (error) {
+        const err =
+          error instanceof ValidationError
+            ? error
+            : new ValidationError('Профіль майстра заповнено не повністю');
+        await ctx.reply(`⚠️ ${err.message}`);
+        await renderAdminMasterCreateSchedulePickStep(ctx, draft, false);
+        return;
+      }
+
+      draft.mode = 'awaiting_confirm';
+      await renderAdminMasterCreateConfirmStep(ctx, draft, true);
+      return;
+    }
+
+    if (draft.mode !== 'awaiting_confirm') {
+      await renderAdminMasterCreateSchedulePickStep(ctx, draft, true);
+      return;
+    }
+
+    const confirmData = buildAdminMasterCreateConfirmData(draft);
+    if (!draft.targetUserId) {
+      await ctx.reply('⚠️ Не задано користувача для створення майстра.');
+      draft.mode = 'awaiting_telegram_id';
+      await renderAdminMasterCreateTextStep(ctx, draft, false);
+      return;
+    }
+
+    try {
+      const created = await createAdminMaster({
+        studioId: access.studioId,
+        targetUserId: draft.targetUserId,
+        createdByUserId: access.userId,
+        displayName: confirmData.displayName,
+        bio: confirmData.bio,
+        experienceYears: confirmData.experienceYears,
+        proceduresDoneTotal: confirmData.proceduresDoneTotal,
+        materialsInfo: confirmData.materialsInfo,
+        contactPhoneE164: confirmData.contactPhoneE164,
+        contactEmail: confirmData.contactEmail,
+        serviceIds: draft.selectedServiceIds,
+        weeklySchedule: draft.scheduleDays,
+      });
+
+      state.mastersCreateDraft = null;
+      await ctx.reply(
+        `✅ Майстра "${created.displayName}" успішно створено.\n` +
+          `🆔 Telegram ID: ${created.telegramUserId}\n` +
+          `💼 Призначено послуг: ${created.assignedServicesCount}`,
+      );
+      await renderAdminMastersCatalog(ctx, false);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        await ctx.reply(`⚠️ ${error.message}`);
+        await renderAdminMasterCreateConfirmStep(ctx, draft, false);
+        return;
+      }
+      throw error;
+    }
   });
 
   scene.action(ADMIN_PANEL_MASTERS_OPEN_ACTION_REGEX, async (ctx) => {

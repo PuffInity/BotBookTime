@@ -2,6 +2,9 @@ import { Markup } from 'telegraf';
 import {
   ADMIN_PANEL_ACTION,
   ADMIN_PANEL_BUTTON_TEXT,
+  makeAdminPanelMastersCreateScheduleDayOffAction,
+  makeAdminPanelMastersCreateSchedulePickAction,
+  makeAdminPanelMastersCreateServiceToggleAction,
   makeAdminPanelMastersBookingsOpenCardAction,
   makeAdminPanelMastersEditFieldAction,
   makeAdminPanelMastersEditServicesAddPickAction,
@@ -19,6 +22,7 @@ import type {
   MasterWeeklyScheduleItem,
 } from '../../types/db-helpers/db-masters.types.js';
 import type { MasterOwnProfileServiceManageItem } from '../../types/db-helpers/db-master-profile.types.js';
+import type { ServicesCatalogItem } from '../../types/db-helpers/db-services.types.js';
 
 /**
  * @file admin-masters-view.bot.ts
@@ -142,8 +146,364 @@ export function createAdminMastersCatalogKeyboard(
 
   return Markup.inlineKeyboard([
     ...rows,
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_OPEN, ADMIN_PANEL_ACTION.MASTERS_CREATE_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK, ADMIN_PANEL_ACTION.MASTERS_BACK)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.HOME, ADMIN_PANEL_ACTION.HOME)],
+  ]);
+}
+
+export type AdminMasterCreateScheduleDayView = {
+  weekday: number;
+  isWorking: boolean;
+  openTime: string | null;
+  closeTime: string | null;
+};
+
+export type AdminMasterCreateConfirmViewData = {
+  displayName: string;
+  telegramUserId: string;
+  selectedServiceNames: string[];
+  experienceYears: number;
+  proceduresDoneTotal: number;
+  bio: string;
+  materialsInfo: string;
+  contactPhoneE164: string;
+  contactEmail: string;
+  scheduleDays: AdminMasterCreateScheduleDayView[];
+};
+
+/**
+ * @summary Екран старту створення нового майстра.
+ */
+export function formatAdminMasterCreateStartText(): string {
+  return (
+    '➕ Створення нового майстра\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Ви запускаєте майстер створення нового профілю майстра.\n\n' +
+    'Потрібно послідовно заповнити:\n' +
+    '• імʼя майстра\n' +
+    '• Telegram ID користувача\n' +
+    '• послуги майстра\n' +
+    '• професійні та контактні дані\n' +
+    '• тижневий графік роботи'
+  );
+}
+
+/**
+ * @summary Клавіатура старту створення майстра.
+ */
+export function createAdminMasterCreateStartKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_START, ADMIN_PANEL_ACTION.MASTERS_CREATE_START)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_CANCEL, ADMIN_PANEL_ACTION.MASTERS_CREATE_CANCEL)],
+  ]);
+}
+
+/**
+ * @summary Базова клавіатура для текстових кроків створення майстра.
+ */
+export function createAdminMasterCreateInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_CANCEL, ADMIN_PANEL_ACTION.MASTERS_CREATE_CANCEL)],
+  ]);
+}
+
+/**
+ * @summary Екран вводу імені майстра.
+ */
+export function formatAdminMasterCreateDisplayNameInputText(): string {
+  return (
+    '👩‍🎨 Імʼя майстра\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Введіть імʼя майстра для відображення у профілі клієнтів.\n\n' +
+    'Формат: 2..30 символів, тільки літери.'
+  );
+}
+
+/**
+ * @summary Екран вводу Telegram ID майстра.
+ */
+export function formatAdminMasterCreateTelegramInputText(displayName: string): string {
+  return (
+    '🆔 Telegram ID майстра\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `👩‍🎨 Майстер: ${displayName}\n\n` +
+    'Введіть Telegram ID користувача (тільки цифри).'
+  );
+}
+
+/**
+ * @summary Екран вибору послуг для нового майстра.
+ */
+export function formatAdminMasterCreateServicesText(
+  displayName: string,
+  services: ServicesCatalogItem[],
+  selectedServiceIds: string[],
+): string {
+  const selected = new Set(selectedServiceIds);
+  const lines =
+    services.length === 0
+      ? '• У студії немає активних послуг для призначення.'
+      : services
+          .map((service, index) => {
+            const marker = selected.has(service.id) ? '✅' : '▫️';
+            return `${getNumberBadge(index)} ${marker} ${service.name}`;
+          })
+          .join('\n');
+
+  return (
+    '💼 Послуги майстра\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `👩‍🎨 Майстер: ${displayName}\n\n` +
+    `${lines}\n\n` +
+    `Обрано послуг: ${selected.size}`
+  );
+}
+
+/**
+ * @summary Клавіатура вибору послуг для нового майстра.
+ */
+export function createAdminMasterCreateServicesKeyboard(
+  services: ServicesCatalogItem[],
+  selectedServiceIds: string[],
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const selected = new Set(selectedServiceIds);
+  const rows = services.map((service, index) => {
+    const marker = selected.has(service.id) ? '✅' : '▫️';
+    return [
+      Markup.button.callback(
+        `${getNumberBadge(index)} ${marker} ${service.name}`,
+        makeAdminPanelMastersCreateServiceToggleAction(service.id),
+      ),
+    ];
+  });
+
+  return Markup.inlineKeyboard([
+    ...rows,
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_SERVICES_DONE, ADMIN_PANEL_ACTION.MASTERS_CREATE_SERVICES_DONE)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_CANCEL, ADMIN_PANEL_ACTION.MASTERS_CREATE_CANCEL)],
+  ]);
+}
+
+/**
+ * @summary Екран вводу досвіду майстра.
+ */
+export function formatAdminMasterCreateExperienceYearsInputText(): string {
+  return (
+    '🎓 Досвід роботи\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Введіть досвід роботи майстра у роках.\n\n' +
+    'Формат: ціле число від 0 до 50.'
+  );
+}
+
+/**
+ * @summary Екран вводу кількості виконаних процедур.
+ */
+export function formatAdminMasterCreateProceduresInputText(): string {
+  return (
+    '📊 Виконано процедур\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Введіть кількість виконаних процедур за весь час.\n\n' +
+    'Формат: ціле число від 0 до 100000.'
+  );
+}
+
+/**
+ * @summary Екран вводу опису майстра.
+ */
+export function formatAdminMasterCreateBioInputText(): string {
+  return (
+    '📝 Опис майстра\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Введіть короткий професійний опис майстра для профілю клієнтів.\n\n' +
+    'Рекомендація: 10..1000 символів.'
+  );
+}
+
+/**
+ * @summary Екран вводу додаткової інформації.
+ */
+export function formatAdminMasterCreateMaterialsInputText(): string {
+  return (
+    '🧴 Додаткова інформація\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Введіть інформацію про матеріали/особливості роботи майстра.\n\n' +
+    'Рекомендація: 2..500 символів.'
+  );
+}
+
+/**
+ * @summary Екран вводу контактного телефону майстра.
+ */
+export function formatAdminMasterCreatePhoneInputText(): string {
+  return (
+    '📞 Телефон майстра\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Введіть телефон майстра у форматі +420123456789.'
+  );
+}
+
+/**
+ * @summary Екран вводу контактного email майстра.
+ */
+export function formatAdminMasterCreateEmailInputText(): string {
+  return (
+    '✉️ Email майстра\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Введіть email майстра у форматі name@example.com.'
+  );
+}
+
+function formatSchedulePreviewLine(item: AdminMasterCreateScheduleDayView): string {
+  if (!item.isWorking || !item.openTime || !item.closeTime) {
+    return `• ${formatWeekdayLabel(item.weekday)}: вихідний`;
+  }
+  return `• ${formatWeekdayLabel(item.weekday)}: ${item.openTime}–${item.closeTime}`;
+}
+
+/**
+ * @summary Екран вибору дня тижня для налаштування графіку нового майстра.
+ */
+export function formatAdminMasterCreateSchedulePickText(
+  displayName: string,
+  scheduleDays: AdminMasterCreateScheduleDayView[],
+): string {
+  const lines =
+    scheduleDays.length === 0
+      ? '• Графік ще не налаштовано.'
+      : scheduleDays
+          .slice()
+          .sort((a, b) => a.weekday - b.weekday)
+          .map(formatSchedulePreviewLine)
+          .join('\n');
+
+  return (
+    '🕒 Налаштування графіку\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `👩‍🎨 Майстер: ${displayName}\n\n` +
+    `${lines}\n\n` +
+    'Оберіть день тижня для редагування. Після заповнення всіх днів підтвердіть створення.'
+  );
+}
+
+/**
+ * @summary Клавіатура вибору дня графіку.
+ */
+export function createAdminMasterCreateSchedulePickKeyboard(
+  scheduleDays: AdminMasterCreateScheduleDayView[],
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const byWeekday = new Map<number, AdminMasterCreateScheduleDayView>();
+  for (const item of scheduleDays) {
+    byWeekday.set(item.weekday, item);
+  }
+
+  const rows = Array.from({ length: 7 }, (_, index) => {
+    const weekday = index + 1;
+    const day = byWeekday.get(weekday) ?? {
+      weekday,
+      isWorking: false,
+      openTime: null,
+      closeTime: null,
+    };
+    const status =
+      day.isWorking && day.openTime && day.closeTime
+        ? `${day.openTime}–${day.closeTime}`
+        : 'вихідний';
+    return [
+      Markup.button.callback(
+        `${formatWeekdayLabel(weekday)} • ${status}`,
+        makeAdminPanelMastersCreateSchedulePickAction(weekday),
+      ),
+    ];
+  });
+
+  return Markup.inlineKeyboard([
+    ...rows,
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_CONFIRM, ADMIN_PANEL_ACTION.MASTERS_CREATE_CONFIRM)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_CANCEL, ADMIN_PANEL_ACTION.MASTERS_CREATE_CANCEL)],
+  ]);
+}
+
+/**
+ * @summary Клавіатура вводу часу для конкретного дня графіку.
+ */
+export function createAdminMasterCreateScheduleInputKeyboard(
+  weekday: number,
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('🚫 Вихідний', makeAdminPanelMastersCreateScheduleDayOffAction(weekday))],
+    [Markup.button.callback('⬅️ До графіку', ADMIN_PANEL_ACTION.MASTERS_CREATE_CONTINUE)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_CANCEL, ADMIN_PANEL_ACTION.MASTERS_CREATE_CANCEL)],
+  ]);
+}
+
+/**
+ * @summary Екран вводу часу початку робочого дня.
+ */
+export function formatAdminMasterCreateScheduleFromInputText(weekday: number): string {
+  return (
+    `🕒 ${formatWeekdayLabel(weekday)} • Час початку\n` +
+    '━━━━━━━━━━━━━━\n\n' +
+    'Введіть час початку у форматі HH:MM.\n' +
+    'Приклад: 9:00 або 09:00'
+  );
+}
+
+/**
+ * @summary Екран вводу часу завершення робочого дня.
+ */
+export function formatAdminMasterCreateScheduleToInputText(
+  weekday: number,
+  fromTime: string,
+): string {
+  return (
+    `🕒 ${formatWeekdayLabel(weekday)} • Час завершення\n` +
+    '━━━━━━━━━━━━━━\n\n' +
+    `Початок: ${fromTime}\n\n` +
+    'Введіть час завершення у форматі HH:MM.'
+  );
+}
+
+/**
+ * @summary Екран фінального підтвердження створення майстра.
+ */
+export function formatAdminMasterCreateConfirmText(data: AdminMasterCreateConfirmViewData): string {
+  const servicesList =
+    data.selectedServiceNames.length > 0
+      ? data.selectedServiceNames.map((name, index) => `${getNumberBadge(index)} ${name}`).join('\n')
+      : '• Послуги не обрані';
+
+  const scheduleList = data.scheduleDays
+    .slice()
+    .sort((a, b) => a.weekday - b.weekday)
+    .map(formatSchedulePreviewLine)
+    .join('\n');
+
+  return (
+    '⚠️ Підтвердження створення майстра\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `👩‍🎨 Імʼя: ${data.displayName}\n` +
+    `🆔 Telegram ID: ${data.telegramUserId}\n` +
+    `🎓 Досвід: ${data.experienceYears} років\n` +
+    `📊 Процедур: ${data.proceduresDoneTotal}\n` +
+    `📞 Телефон: ${data.contactPhoneE164}\n` +
+    `✉️ Email: ${data.contactEmail}\n\n` +
+    `📝 Опис:\n${data.bio}\n\n` +
+    `🧴 Додаткова інформація:\n${data.materialsInfo}\n\n` +
+    `💼 Послуги:\n${servicesList}\n\n` +
+    `🕒 Графік:\n${scheduleList}`
+  );
+}
+
+/**
+ * @summary Клавіатура фінального підтвердження створення майстра.
+ */
+export function createAdminMasterCreateConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_CONFIRM, ADMIN_PANEL_ACTION.MASTERS_CREATE_CONFIRM)],
+    [Markup.button.callback('⬅️ До графіку', ADMIN_PANEL_ACTION.MASTERS_CREATE_CONTINUE)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_CANCEL, ADMIN_PANEL_ACTION.MASTERS_CREATE_CANCEL)],
   ]);
 }
 

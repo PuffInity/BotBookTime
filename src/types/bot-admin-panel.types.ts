@@ -35,6 +35,15 @@ export const ADMIN_PANEL_ACTION = {
   SCHEDULE_BACK_TO_MENU: 'admin-panel:schedule:back-to-menu',
   SCHEDULE_BACK: 'admin-panel:schedule:back',
   OPEN_MASTERS: 'admin-panel:open-masters',
+  MASTERS_CREATE_OPEN: 'admin-panel:masters:create:open',
+  MASTERS_CREATE_START: 'admin-panel:masters:create:start',
+  MASTERS_CREATE_CANCEL: 'admin-panel:masters:create:cancel',
+  MASTERS_CREATE_CONTINUE: 'admin-panel:masters:create:continue',
+  MASTERS_CREATE_SERVICE_TOGGLE_PREFIX: 'admin-panel:masters:create:service:toggle:',
+  MASTERS_CREATE_SERVICES_DONE: 'admin-panel:masters:create:services:done',
+  MASTERS_CREATE_SCHEDULE_PICK_PREFIX: 'admin-panel:masters:create:schedule:pick:',
+  MASTERS_CREATE_SCHEDULE_DAY_OFF_PREFIX: 'admin-panel:masters:create:schedule:day-off:',
+  MASTERS_CREATE_CONFIRM: 'admin-panel:masters:create:confirm',
   MASTERS_OPEN_PREFIX: 'admin-panel:masters:open:',
   MASTERS_OPEN_BOOKINGS_PREFIX: 'admin-panel:masters:open-bookings:',
   MASTERS_OPEN_STATS_PREFIX: 'admin-panel:masters:open-stats:',
@@ -188,6 +197,12 @@ export const ADMIN_PANEL_BUTTON_TEXT = {
   SCHEDULE_BACK_TO_MENU: '⬅️ До меню розкладу',
   SCHEDULE_BACK: '⬅️ До адмін-панелі',
   MASTERS: '👩‍🎨 Майстри',
+  MASTERS_CREATE_OPEN: '➕ Додати майстра',
+  MASTERS_CREATE_START: '✅ Почати створення майстра',
+  MASTERS_CREATE_CANCEL: '❌ Скасувати створення',
+  MASTERS_CREATE_CONTINUE: '✅ Продовжити',
+  MASTERS_CREATE_SERVICES_DONE: '✅ Завершити вибір',
+  MASTERS_CREATE_CONFIRM: '✅ Підтвердити створення',
   MASTERS_OPEN_BOOKINGS: '📅 Записи майстра',
   MASTERS_OPEN_STATS: '📊 Статистика майстра',
   MASTERS_EDIT_OPEN: '✏️ Редагувати майстра',
@@ -353,6 +368,12 @@ export const ADMIN_PANEL_SCHEDULE_TEMPORARY_DELETE_REQUEST_ACTION_REGEX =
 export const ADMIN_PANEL_SCHEDULE_TEMPORARY_DELETE_CONFIRM_ACTION_REGEX =
   /^admin-panel:schedule:temporary:delete:confirm:(\d{8}):(\d{8})$/;
 export const ADMIN_PANEL_MASTERS_OPEN_ACTION_REGEX = /^admin-panel:masters:open:(\d+)$/;
+export const ADMIN_PANEL_MASTERS_CREATE_SERVICE_TOGGLE_ACTION_REGEX =
+  /^admin-panel:masters:create:service:toggle:(\d+)$/;
+export const ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_PICK_ACTION_REGEX =
+  /^admin-panel:masters:create:schedule:pick:([1-7])$/;
+export const ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_DAY_OFF_ACTION_REGEX =
+  /^admin-panel:masters:create:schedule:day-off:([1-7])$/;
 export const ADMIN_PANEL_MASTERS_OPEN_BOOKINGS_ACTION_REGEX =
   /^admin-panel:masters:open-bookings:(\d+)$/;
 export const ADMIN_PANEL_MASTERS_OPEN_STATS_ACTION_REGEX = /^admin-panel:masters:open-stats:(\d+)$/;
@@ -495,6 +516,18 @@ export function makeAdminPanelScheduleTemporaryDeleteConfirmAction(
 
 export function makeAdminPanelMastersOpenAction(masterId: string): string {
   return `${ADMIN_PANEL_ACTION.MASTERS_OPEN_PREFIX}${masterId}`;
+}
+
+export function makeAdminPanelMastersCreateServiceToggleAction(serviceId: string): string {
+  return `${ADMIN_PANEL_ACTION.MASTERS_CREATE_SERVICE_TOGGLE_PREFIX}${serviceId}`;
+}
+
+export function makeAdminPanelMastersCreateSchedulePickAction(weekday: number): string {
+  return `${ADMIN_PANEL_ACTION.MASTERS_CREATE_SCHEDULE_PICK_PREFIX}${weekday}`;
+}
+
+export function makeAdminPanelMastersCreateScheduleDayOffAction(weekday: number): string {
+  return `${ADMIN_PANEL_ACTION.MASTERS_CREATE_SCHEDULE_DAY_OFF_PREFIX}${weekday}`;
 }
 
 export function makeAdminPanelMastersOpenBookingsAction(masterId: string): string {
