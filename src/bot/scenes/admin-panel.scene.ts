@@ -409,7 +409,7 @@ import { buildBookingDateOptions, buildBookingTimeOptions } from '../../helpers/
 import { bookingDateCodeSchema, bookingTimeCodeSchema } from '../../validator/booking-input.schema.js';
 import { dispatchNotification } from '../../helpers/notification/notification-dispatch.helper.js';
 import { ValidationError, handleError } from '../../utils/error.utils.js';
-import { loggerNotification } from '../../utils/logger/loggers-list.js';
+import { loggerAdminPanel, loggerNotification } from '../../utils/logger/loggers-list.js';
 import {
   normalizeMasterBio,
   normalizeMasterContactEmail,
@@ -2907,6 +2907,29 @@ async function replyAdminInfo(
   await ctx.reply(`ℹ️ ${message}`, extra);
 }
 
+function getAdminActorMeta(ctx: MyContext, access?: AdminPanelAccess | null): Record<string, unknown> {
+  return {
+    adminUserId: access?.userId ?? null,
+    studioId: access?.studioId ?? null,
+    telegramUserId: ctx.from?.id ?? null,
+    telegramUsername: ctx.from?.username ?? null,
+    chatId: ctx.chat?.id ?? null,
+    updateType: ctx.updateType,
+  };
+}
+
+function logAdminCriticalAction(
+  ctx: MyContext,
+  action: string,
+  meta: Record<string, unknown> = {},
+  access?: AdminPanelAccess | null,
+): void {
+  loggerAdminPanel.info(`[admin-panel] ${action}`, {
+    ...getAdminActorMeta(ctx, access),
+    ...meta,
+  });
+}
+
 function parseAppointmentIdFromAction(ctx: MyContext, regex: RegExp): string {
   const callbackData =
     ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
@@ -3513,18 +3536,20 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.settingsStudioDraft = null;
       state.settingsCurrentSection = null;
 
-      if (!state.access) {
-        await ctx.reply(
-          '🚫 Доступ до адмін-панелі відсутній.\n\n' +
-            'Якщо доступ має бути відкритий, зверніться до власника салону.',
-        );
-        await ctx.scene.leave();
-        await sendClientMainMenu(ctx);
-        return;
-      }
+	      if (!state.access) {
+	        logAdminCriticalAction(ctx, 'Access denied for admin panel');
+	        await ctx.reply(
+	          '🚫 Доступ до адмін-панелі відсутній.\n\n' +
+	            'Якщо доступ має бути відкритий, зверніться до власника салону.',
+	        );
+	        await ctx.scene.leave();
+	        await sendClientMainMenu(ctx);
+	        return;
+	      }
 
-      await renderAdminRoot(ctx, false);
-      return ctx.wizard.next();
+	      logAdminCriticalAction(ctx, 'Admin panel opened', {}, state.access);
+	      await renderAdminRoot(ctx, false);
+	      return ctx.wizard.next();
     },
     async (ctx) => {
       const state = getSceneState(ctx);
@@ -3820,10 +3845,21 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
             closeTime: toTime,
           });
 
-          state.scheduleConfigureDayDraft = null;
-          await ctx.reply(
-            formatAdminScheduleConfigureDaySuccessText(
-              updated.weekday,
+	    state.scheduleConfigureDayDraft = null;
+	    logAdminCriticalAction(
+	      ctx,
+	      'Updated studio weekly schedule day',
+	      {
+	        weekday: updated.weekday,
+	        isOpen: updated.isOpen,
+	        openTime: updated.openTime,
+	        closeTime: updated.closeTime,
+	      },
+	      access,
+	    );
+	    await ctx.reply(
+	      formatAdminScheduleConfigureDaySuccessText(
+	        updated.weekday,
               updated.isOpen,
               updated.openTime,
               updated.closeTime,
@@ -3953,13 +3989,24 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
                 closeTime: toTime,
               },
             );
-            mastersCreateDraft.scheduleSelectedWeekday = null;
-            mastersCreateDraft.schedulePendingFromTime = null;
-            mastersCreateDraft.mode = 'awaiting_schedule_pick';
+	            mastersCreateDraft.scheduleSelectedWeekday = null;
+	            mastersCreateDraft.schedulePendingFromTime = null;
+	            mastersCreateDraft.mode = 'awaiting_schedule_pick';
+	            logAdminCriticalAction(
+	              ctx,
+	              'Updated master creation weekly day schedule',
+	              {
+	                stage: 'masters-create',
+	                weekday,
+	                openTime: fromTime,
+	                closeTime: toTime,
+	              },
+	              state.access,
+	            );
 
-            await replyAdminSuccess(ctx, 'Робочий час для дня успішно збережено.');
-            await renderAdminMasterCreateSchedulePickStep(ctx, mastersCreateDraft, false);
-            return;
+	            await replyAdminSuccess(ctx, 'Робочий час для дня успішно збережено.');
+	            await renderAdminMasterCreateSchedulePickStep(ctx, mastersCreateDraft, false);
+	            return;
           }
 
           if (mastersCreateDraft.mode === 'selecting_services') {
@@ -4784,18 +4831,26 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     const weekday = parseWeekdayFromAction(ctx, ADMIN_PANEL_SCHEDULE_CONFIGURE_DAY_OFF_ACTION_REGEX);
 
-    const updated = await upsertAdminStudioWeeklyDay({
-      studioId: access.studioId,
-      weekday,
-      isOpen: false,
-      openTime: null,
-      closeTime: null,
-    });
+	    const updated = await upsertAdminStudioWeeklyDay({
+	      studioId: access.studioId,
+	      weekday,
+	      isOpen: false,
+	      openTime: null,
+	      closeTime: null,
+	    });
 
-    state.scheduleConfigureDayDraft = null;
-    await ctx.reply(
-      formatAdminScheduleConfigureDaySuccessText(
-        updated.weekday,
+	    state.scheduleConfigureDayDraft = null;
+	    logAdminCriticalAction(
+	      ctx,
+	      'Marked studio weekday as day off',
+	      {
+	        weekday: updated.weekday,
+	      },
+	      access,
+	    );
+	    await ctx.reply(
+	      formatAdminScheduleConfigureDaySuccessText(
+	        updated.weekday,
         updated.isOpen,
         updated.openTime,
         updated.closeTime,
@@ -4871,9 +4926,17 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       throw error;
     }
 
-    state.scheduleDayOffDraft = null;
-    await replyAdminSuccess(ctx, `Вихідний день на ${draft.offDateLabel} успішно додано.`);
-    await renderScheduleSection(ctx, 'days-off', false);
+	    state.scheduleDayOffDraft = null;
+	    logAdminCriticalAction(
+	      ctx,
+	      'Created studio day off',
+	      {
+	        offDate: draft.offDate,
+	      },
+	      access,
+	    );
+	    await replyAdminSuccess(ctx, `Вихідний день на ${draft.offDateLabel} успішно додано.`);
+	    await renderScheduleSection(ctx, 'days-off', false);
   });
 
   scene.action(ADMIN_PANEL_ACTION.SCHEDULE_DAY_OFF_ADD_CANCEL, async (ctx) => {
@@ -4949,9 +5012,17 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       dayOffId,
     });
 
-    state.scheduleDeleteDraft = null;
-    await replyAdminSuccess(ctx, 'Вихідний день успішно видалено.');
-    await renderScheduleSection(ctx, 'days-off', false);
+	    state.scheduleDeleteDraft = null;
+	    logAdminCriticalAction(
+	      ctx,
+	      'Deleted studio day off',
+	      {
+	        dayOffId,
+	      },
+	      access,
+	    );
+	    await replyAdminSuccess(ctx, 'Вихідний день успішно видалено.');
+	    await renderScheduleSection(ctx, 'days-off', false);
   });
 
   scene.action(ADMIN_PANEL_ACTION.SCHEDULE_HOLIDAY_ADD_OPEN, async (ctx) => {
@@ -5031,9 +5102,18 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       throw error;
     }
 
-    state.scheduleHolidayDraft = null;
-    await replyAdminSuccess(ctx, `Свято "${draft.holidayName}" на ${draft.holidayDateLabel} успішно додано.`);
-    await renderScheduleSection(ctx, 'holidays', false);
+	    state.scheduleHolidayDraft = null;
+	    logAdminCriticalAction(
+	      ctx,
+	      'Created studio holiday',
+	      {
+	        holidayDate: draft.holidayDate,
+	        holidayName: draft.holidayName,
+	      },
+	      access,
+	    );
+	    await replyAdminSuccess(ctx, `Свято "${draft.holidayName}" на ${draft.holidayDateLabel} успішно додано.`);
+	    await renderScheduleSection(ctx, 'holidays', false);
   });
 
   scene.action(ADMIN_PANEL_ACTION.SCHEDULE_HOLIDAY_ADD_CANCEL, async (ctx) => {
@@ -5109,9 +5189,17 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       holidayId,
     });
 
-    state.scheduleDeleteDraft = null;
-    await replyAdminSuccess(ctx, 'Святковий день успішно видалено.');
-    await renderScheduleSection(ctx, 'holidays', false);
+	    state.scheduleDeleteDraft = null;
+	    logAdminCriticalAction(
+	      ctx,
+	      'Deleted studio holiday',
+	      {
+	        holidayId,
+	      },
+	      access,
+	    );
+	    await replyAdminSuccess(ctx, 'Святковий день успішно видалено.');
+	    await renderScheduleSection(ctx, 'holidays', false);
   });
 
   scene.action(ADMIN_PANEL_ACTION.SCHEDULE_DELETE_CANCEL, async (ctx) => {
@@ -5303,10 +5391,20 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       throw error;
     }
 
-    state.scheduleTemporaryDraft = null;
-    await ctx.reply(
-      `✅ Тимчасовий графік студії успішно встановлено на період ${draft.dateFromLabel} - ${draft.dateToLabel}.`,
-    );
+	    state.scheduleTemporaryDraft = null;
+	    logAdminCriticalAction(
+	      ctx,
+	      'Created temporary studio schedule period',
+	      {
+	        dateFrom: draft.dateFrom,
+	        dateTo: draft.dateTo,
+	        configuredDays: draft.days.length,
+	      },
+	      access,
+	    );
+	    await ctx.reply(
+	      `✅ Тимчасовий графік студії успішно встановлено на період ${draft.dateFromLabel} - ${draft.dateToLabel}.`,
+	    );
     await renderScheduleSection(ctx, 'temporary', false);
   });
 
@@ -5405,9 +5503,18 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       dateTo: dateToSql,
     });
 
-    state.scheduleDeleteDraft = null;
-    await replyAdminSuccess(ctx, 'Тимчасовий графік за обраний період успішно видалено.');
-    await renderScheduleSection(ctx, 'temporary', false);
+	    state.scheduleDeleteDraft = null;
+	    logAdminCriticalAction(
+	      ctx,
+	      'Deleted studio temporary schedule period',
+	      {
+	        dateFrom: dateFromSql,
+	        dateTo: dateToSql,
+	      },
+	      access,
+	    );
+	    await replyAdminSuccess(ctx, 'Тимчасовий графік за обраний період успішно видалено.');
+	    await renderScheduleSection(ctx, 'temporary', false);
   });
 
   scene.action(ADMIN_PANEL_ACTION.OPEN_MASTERS, async (ctx) => {
@@ -5630,10 +5737,21 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         weeklySchedule: draft.scheduleDays,
       });
 
-      state.mastersCreateDraft = null;
-      await ctx.reply(
-        `✅ Майстра "${created.displayName}" успішно створено.\n` +
-          `🆔 Telegram ID: ${created.telegramUserId}\n` +
+	      state.mastersCreateDraft = null;
+	      logAdminCriticalAction(
+	        ctx,
+	        'Created master profile',
+	        {
+	          createdUserId: draft.targetUserId,
+	          createdMasterId: created.masterId,
+	          createdTelegramUserId: created.telegramUserId,
+	          assignedServicesCount: created.assignedServicesCount,
+	        },
+	        access,
+	      );
+	      await ctx.reply(
+	        `✅ Майстра "${created.displayName}" успішно створено.\n` +
+	          `🆔 Telegram ID: ${created.telegramUserId}\n` +
           `💼 Призначено послуг: ${created.assignedServicesCount}`,
       );
       await renderAdminMastersCatalog(ctx, false);
@@ -5842,9 +5960,19 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       'id послуги',
     );
 
-    try {
-      const added = await addMasterOwnService({ masterId, serviceId });
-      await replyAdminSuccess(ctx, `Послугу "${added.serviceName}" додано майстру.`);
+	    try {
+	      const added = await addMasterOwnService({ masterId, serviceId });
+	      logAdminCriticalAction(
+	        ctx,
+	        'Added service to master',
+	        {
+	          masterId,
+	          serviceId,
+	          serviceName: added.serviceName,
+	        },
+	        state.access,
+	      );
+	      await replyAdminSuccess(ctx, `Послугу "${added.serviceName}" додано майстру.`);
       await renderAdminMasterEditServicesAddCandidates(ctx, masterId, false);
     } catch (error) {
       if (error instanceof ValidationError) {
@@ -5871,9 +5999,19 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       'id послуги',
     );
 
-    try {
-      const removed = await removeMasterOwnService({ masterId, serviceId });
-      await replyAdminSuccess(ctx, `Послугу "${removed.serviceName}" вимкнено у майстра.`);
+	    try {
+	      const removed = await removeMasterOwnService({ masterId, serviceId });
+	      logAdminCriticalAction(
+	        ctx,
+	        'Removed service from master',
+	        {
+	          masterId,
+	          serviceId,
+	          serviceName: removed.serviceName,
+	        },
+	        state.access,
+	      );
+	      await replyAdminSuccess(ctx, `Послугу "${removed.serviceName}" вимкнено у майстра.`);
       await renderAdminMasterEditServicesRemoveCandidates(ctx, masterId, false);
     } catch (error) {
       if (error instanceof ValidationError) {
@@ -6160,8 +6298,19 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         guarantees: draft.guarantees,
       });
 
-      state.servicesCreateDraft = null;
-      await ctx.reply(formatAdminServiceCreateSuccessText(created));
+	      state.servicesCreateDraft = null;
+	      logAdminCriticalAction(
+	        ctx,
+	        'Created service',
+	        {
+	          serviceId: created.serviceId,
+	          serviceName: created.name,
+	          durationMinutes: created.durationMinutes,
+	          basePrice: created.basePrice,
+	        },
+	        state.access,
+	      );
+	      await ctx.reply(formatAdminServiceCreateSuccessText(created));
       await renderAdminServiceDetails(ctx, created.serviceId, false);
     } catch (error) {
       if (error instanceof ValidationError) {
@@ -6760,12 +6909,21 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     try {
       if (draft.field === 'deactivate') {
-        const deactivated = await deactivateAdminService({
-          studioId,
-          serviceId: draft.serviceId,
-        });
-        state.servicesEditDraft = null;
-        await replyAdminSuccess(ctx, `Послугу "${deactivated.name}" успішно видалено зі списку активних.`);
+	        const deactivated = await deactivateAdminService({
+	          studioId,
+	          serviceId: draft.serviceId,
+	        });
+	        state.servicesEditDraft = null;
+	        logAdminCriticalAction(
+	          ctx,
+	          'Deactivated service',
+	          {
+	            serviceId: draft.serviceId,
+	            serviceName: deactivated.name,
+	          },
+	          state.access,
+	        );
+	        await replyAdminSuccess(ctx, `Послугу "${deactivated.name}" успішно видалено зі списку активних.`);
         await renderAdminServicesCatalog(ctx, false);
         return;
       }
@@ -7262,13 +7420,23 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const currentState = state.settingsNotificationsState ?? (await getUserNotificationSettingsState(userId));
     const nextEnabled = !(currentState[notificationType] ?? true);
 
-    await upsertUserNotificationSetting({
-      userId,
-      notificationType,
-      enabled: nextEnabled,
-    });
+	    await upsertUserNotificationSetting({
+	      userId,
+	      notificationType,
+	      enabled: nextEnabled,
+	    });
+	    logAdminCriticalAction(
+	      ctx,
+	      'Changed admin notification toggle',
+	      {
+	        targetUserId: userId,
+	        notificationType,
+	        enabled: nextEnabled,
+	      },
+	      state.access,
+	    );
 
-    await renderAdminSettingsNotifications(ctx, true);
+	    await renderAdminSettingsNotifications(ctx, true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.SETTINGS_NOTIFICATIONS_ALL_ON, async (ctx) => {
@@ -7278,11 +7446,19 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       throw new ValidationError('Не вдалося визначити користувача адміністратора');
     }
 
-    await setAllUserNotificationSettings({
-      userId,
-      enabled: true,
-    });
-    await renderAdminSettingsNotifications(ctx, true);
+	    await setAllUserNotificationSettings({
+	      userId,
+	      enabled: true,
+	    });
+	    logAdminCriticalAction(
+	      ctx,
+	      'Enabled all admin notifications',
+	      {
+	        targetUserId: userId,
+	      },
+	      getSceneState(ctx).access,
+	    );
+	    await renderAdminSettingsNotifications(ctx, true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.SETTINGS_NOTIFICATIONS_ALL_OFF, async (ctx) => {
@@ -7292,11 +7468,19 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       throw new ValidationError('Не вдалося визначити користувача адміністратора');
     }
 
-    await setAllUserNotificationSettings({
-      userId,
-      enabled: false,
-    });
-    await renderAdminSettingsNotifications(ctx, true);
+	    await setAllUserNotificationSettings({
+	      userId,
+	      enabled: false,
+	    });
+	    logAdminCriticalAction(
+	      ctx,
+	      'Disabled all admin notifications',
+	      {
+	        targetUserId: userId,
+	      },
+	      getSceneState(ctx).access,
+	    );
+	    await renderAdminSettingsNotifications(ctx, true);
   });
 
   scene.action(ADMIN_PANEL_SETTINGS_LANGUAGE_SELECT_ACTION_REGEX, async (ctx) => {
@@ -7339,12 +7523,21 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     try {
-      await setAdminPanelLanguage({
-        userId,
-        language: draft.nextLanguage,
-      });
-      state.settingsLanguageDraft = null;
-      await replyAdminSuccess(ctx, 'Мову адмін-панелі успішно оновлено.');
+	      await setAdminPanelLanguage({
+	        userId,
+	        language: draft.nextLanguage,
+	      });
+	      state.settingsLanguageDraft = null;
+	      logAdminCriticalAction(
+	        ctx,
+	        'Changed admin panel language',
+	        {
+	          targetUserId: userId,
+	          language: draft.nextLanguage,
+	        },
+	        state.access,
+	      );
+	      await replyAdminSuccess(ctx, 'Мову адмін-панелі успішно оновлено.');
       await renderAdminSettingsLanguage(ctx, false);
     } catch (error) {
       if (error instanceof ValidationError) {
@@ -7399,15 +7592,24 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     try {
-      await upsertAdminStudioContentBlock({
+	      await upsertAdminStudioContentBlock({
         studioId: access.studioId,
         blockKey: draft.blockKey,
         content: draft.draftContent,
         updatedBy: access.userId,
         language: 'uk',
-      });
-      state.settingsStudioDraft = null;
-      await replyAdminSuccess(ctx, `Блок "${draft.blockTitle}" успішно оновлено.`);
+	      });
+	      state.settingsStudioDraft = null;
+	      logAdminCriticalAction(
+	        ctx,
+	        'Updated studio content block',
+	        {
+	          blockKey: draft.blockKey,
+	          blockTitle: draft.blockTitle,
+	        },
+	        access,
+	      );
+	      await replyAdminSuccess(ctx, `Блок "${draft.blockTitle}" успішно оновлено.`);
       await renderAdminSettingsStudioProfile(ctx, false);
     } catch (error) {
       if (error instanceof ValidationError) {
@@ -7461,16 +7663,25 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     try {
-      const granted = await grantStudioAdminRole({
+	      const granted = await grantStudioAdminRole({
         studioId: access.studioId,
         telegramId: draft.target.telegramUserId,
         grantedByUserId: access.userId,
       });
 
-      state.settingsAdminsDraft = null;
-      await ctx.reply(
-        `✅ Роль адміністратора успішно надано.\n\n👤 ${granted.displayName}\n🆔 ${granted.telegramUserId}`,
-      );
+	      state.settingsAdminsDraft = null;
+	      logAdminCriticalAction(
+	        ctx,
+	        'Granted studio admin role',
+	        {
+	          targetTelegramUserId: granted.telegramUserId,
+	          targetDisplayName: granted.displayName,
+	        },
+	        access,
+	      );
+	      await ctx.reply(
+	        `✅ Роль адміністратора успішно надано.\n\n👤 ${granted.displayName}\n🆔 ${granted.telegramUserId}`,
+	      );
       await renderAdminSettingsAdmins(ctx, false);
     } catch (error) {
       if (error instanceof ValidationError) {
@@ -7500,16 +7711,25 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     try {
-      const revoked = await revokeStudioAdminRole({
+	      const revoked = await revokeStudioAdminRole({
         studioId: access.studioId,
         telegramId: draft.target.telegramUserId,
         revokedByUserId: access.userId,
       });
 
-      state.settingsAdminsDraft = null;
-      await ctx.reply(
-        `✅ Роль адміністратора успішно видалено.\n\n👤 ${revoked.displayName}\n🆔 ${revoked.telegramUserId}`,
-      );
+	      state.settingsAdminsDraft = null;
+	      logAdminCriticalAction(
+	        ctx,
+	        'Revoked studio admin role',
+	        {
+	          targetTelegramUserId: revoked.telegramUserId,
+	          targetDisplayName: revoked.displayName,
+	        },
+	        access,
+	      );
+	      await ctx.reply(
+	        `✅ Роль адміністратора успішно видалено.\n\n👤 ${revoked.displayName}\n🆔 ${revoked.telegramUserId}`,
+	      );
       await renderAdminSettingsAdmins(ctx, false);
     } catch (error) {
       if (error instanceof ValidationError) {
@@ -7690,8 +7910,20 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       throw error;
     }
 
-    await notifyAdminConfirmedBooking(updated);
-    await replyAdminSuccess(ctx, 'Запис підтверджено. Клієнту надіслано сповіщення.');
+	    await notifyAdminConfirmedBooking(updated);
+	    logAdminCriticalAction(
+	      ctx,
+	      'Confirmed booking',
+	      {
+	        appointmentId: updated.appointmentId,
+	        clientId: updated.clientId,
+	        masterId: updated.masterId,
+	        serviceId: updated.serviceId,
+	        status: updated.status,
+	      },
+	      access,
+	    );
+	    await replyAdminSuccess(ctx, 'Запис підтверджено. Клієнту надіслано сповіщення.');
     resetRecordsActionDrafts(state);
     await renderRecordsFallback(ctx, true);
   });
@@ -7768,9 +8000,17 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    resetRecordsActionDrafts(state);
-    state.recordsOpenedAppointmentId = null;
-    await replyAdminSuccess(ctx, 'Запис видалено назавжди.');
+	    resetRecordsActionDrafts(state);
+	    state.recordsOpenedAppointmentId = null;
+	    logAdminCriticalAction(
+	      ctx,
+	      'Hard deleted booking',
+	      {
+	        appointmentId,
+	      },
+	      access,
+	    );
+	    await replyAdminSuccess(ctx, 'Запис видалено назавжди.');
 
     if (state.recordsFeed) {
       await renderRecordsCategoryWithOffsetFallback(
@@ -7832,9 +8072,17 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       studioId: access.studioId,
     });
 
-    resetRecordsActionDrafts(state);
-    state.recordsOpenedAppointmentId = null;
-    await replyAdminSuccess(ctx, `Скасовані записи очищено. Видалено: ${deletedCount}.`);
+	    resetRecordsActionDrafts(state);
+	    state.recordsOpenedAppointmentId = null;
+	    logAdminCriticalAction(
+	      ctx,
+	      'Cleared canceled bookings',
+	      {
+	        deletedCount,
+	      },
+	      access,
+	    );
+	    await replyAdminSuccess(ctx, `Скасовані записи очищено. Видалено: ${deletedCount}.`);
     await renderRecordsCategoryWithOffsetFallback(ctx, 'canceled', 0, true);
   });
 
@@ -7881,8 +8129,19 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       throw error;
     }
 
-    await notifyAdminCanceledBooking(canceled);
-    await replyAdminSuccess(ctx, 'Запис скасовано. Клієнту надіслано сповіщення.');
+	    await notifyAdminCanceledBooking(canceled);
+	    logAdminCriticalAction(
+	      ctx,
+	      'Canceled booking',
+	      {
+	        appointmentId: canceled.appointmentId,
+	        clientId: canceled.clientId,
+	        masterId: canceled.masterId,
+	        status: canceled.status,
+	      },
+	      access,
+	    );
+	    await replyAdminSuccess(ctx, 'Запис скасовано. Клієнту надіслано сповіщення.');
     resetRecordsActionDrafts(state);
     await renderRecordsFallback(ctx, true);
   });
@@ -8028,8 +8287,20 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       throw error;
     }
 
-    await notifyAdminRescheduledBooking(result);
-    await replyAdminSuccess(ctx, 'Запис успішно перенесено. Клієнту надіслано сповіщення.');
+	    await notifyAdminRescheduledBooking(result);
+	    logAdminCriticalAction(
+	      ctx,
+	      'Rescheduled booking',
+	      {
+	        appointmentId: result.current.appointmentId,
+	        previousStartAt: result.previous.startAt,
+	        currentStartAt: result.current.startAt,
+	        clientId: result.current.clientId,
+	        masterId: result.current.masterId,
+	      },
+	      access,
+	    );
+	    await replyAdminSuccess(ctx, 'Запис успішно перенесено. Клієнту надіслано сповіщення.');
     state.recordsRescheduleDraft = null;
     await renderRecordsFallback(ctx, true);
   });
@@ -8145,8 +8416,19 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       throw error;
     }
 
-    await notifyAdminMasterChangedBooking(previous, updated);
-    await replyAdminSuccess(ctx, 'Майстра успішно змінено. Клієнту надіслано сповіщення.');
+	    await notifyAdminMasterChangedBooking(previous, updated);
+	    logAdminCriticalAction(
+	      ctx,
+	      'Changed booking master',
+	      {
+	        appointmentId: updated.appointmentId,
+	        previousMasterId: previous.masterId,
+	        currentMasterId: updated.masterId,
+	        clientId: updated.clientId,
+	      },
+	      access,
+	    );
+	    await replyAdminSuccess(ctx, 'Майстра успішно змінено. Клієнту надіслано сповіщення.');
     state.recordsChangeMasterDraft = null;
     await renderAdminBookingCard(ctx, updated);
   });
@@ -8188,12 +8470,14 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
   scene.action(ADMIN_PANEL_ACTION.EXIT, async (ctx) => {
     await ctx.answerCbQuery();
+    logAdminCriticalAction(ctx, 'Admin panel exited by user', {}, getSceneState(ctx).access);
     await ctx.scene.leave();
     await sendClientMainMenu(ctx);
   });
 
   scene.action(ADMIN_PANEL_ACTION.HOME, async (ctx) => {
     await ctx.answerCbQuery();
+    logAdminCriticalAction(ctx, 'Admin panel left to home', {}, getSceneState(ctx).access);
     await ctx.scene.leave();
     await sendClientMainMenu(ctx);
   });

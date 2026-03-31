@@ -34,3 +34,6 @@ export const loggerMigration = createAppLogger({service: 'migration'})
 
 /** Логер централізованого error-utils модуля. */
 export const loggerErrorUtils = createAppLogger({service: 'error-utils'})
+
+/** Логер адмін-панелі (критичні дії адміністратора). */
+export const loggerAdminPanel = createAppLogger({service: 'admin-panel'})
