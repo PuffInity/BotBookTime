@@ -54,6 +54,13 @@ export type UpdateAdminServiceGuaranteeTextInput = {
   guaranteeText: string;
 };
 
+export type UpdateAdminServiceStepTitleInput = {
+  studioId: string | number;
+  serviceId: string | number;
+  stepNo: number;
+  title: string;
+};
+
 export type UpdateAdminServiceDescriptionInput = {
   studioId: string | number;
   serviceId: string | number;

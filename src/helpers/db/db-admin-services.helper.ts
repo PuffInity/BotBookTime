@@ -1,6 +1,8 @@
 import type {
   ServiceGuaranteesEntity,
   ServiceGuaranteesRow,
+  ServiceStepsEntity,
+  ServiceStepsRow,
 } from '../../types/db/index.js';
 import type {
   AdminEditableService,
@@ -13,11 +15,13 @@ import type {
   UpdateAdminServiceGuaranteeTextInput,
   UpdateAdminServiceNameInput,
   UpdateAdminServiceResultDescriptionInput,
+  UpdateAdminServiceStepTitleInput,
 } from '../../types/db-helpers/db-admin-services.types.js';
 import { executeOne, queryOne, withTransaction } from '../db.helper.js';
 import { ValidationError, handleError } from '../../utils/error.utils.js';
 import { loggerDb } from '../../utils/logger/loggers-list.js';
 import { serviceGuaranteesRowToEntity } from '../../utils/mappers/serviceGuarantees.mapp.js';
+import { serviceStepsRowToEntity } from '../../utils/mappers/serviceSteps.mapp.js';
 import {
   SQL_DEACTIVATE_ADMIN_SERVICE,
   SQL_GET_ADMIN_EDITABLE_SERVICE_BY_ID,
@@ -27,6 +31,7 @@ import {
   SQL_UPDATE_ADMIN_SERVICE_GUARANTEE_TEXT,
   SQL_UPDATE_ADMIN_SERVICE_NAME,
   SQL_UPDATE_ADMIN_SERVICE_RESULT_DESCRIPTION,
+  SQL_UPDATE_ADMIN_SERVICE_STEP_TITLE,
 } from '../db-sql/db-admin-services.sql.js';
 
 /**
@@ -96,6 +101,17 @@ function normalizeGuaranteeNo(value: number): number {
   return normalized;
 }
 
+function normalizeStepNo(value: number): number {
+  if (!Number.isFinite(value)) {
+    throw new ValidationError('Некоректний номер етапу');
+  }
+  const normalized = Math.trunc(value);
+  if (normalized < 1 || normalized > 20) {
+    throw new ValidationError('Номер етапу має бути в діапазоні 1..20');
+  }
+  return normalized;
+}
+
 function normalizeServiceGuaranteeText(value: string): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length < 3) {
@@ -103,6 +119,17 @@ function normalizeServiceGuaranteeText(value: string): string {
   }
   if (normalized.length > 500) {
     throw new ValidationError('Текст гарантії занадто довгий (максимум 500 символів)');
+  }
+  return normalized;
+}
+
+function normalizeServiceStepTitle(value: string): string {
+  const normalized = value.trim().replace(/\s+/g, ' ');
+  if (normalized.length < 2) {
+    throw new ValidationError('Назва етапу має містити щонайменше 2 символи');
+  }
+  if (normalized.length > 120) {
+    throw new ValidationError('Назва етапу занадто довга (максимум 120 символів)');
   }
   return normalized;
 }
@@ -205,6 +232,38 @@ export async function updateAdminServiceGuaranteeText(
       action: 'Failed to update service guarantee text from admin panel',
       error,
       meta: { studioId, serviceId, guaranteeNo },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Оновлює назву етапу послуги з адмін-панелі.
+ */
+export async function updateAdminServiceStepTitle(
+  input: UpdateAdminServiceStepTitleInput,
+): Promise<ServiceStepsEntity> {
+  const studioId = normalizePositiveBigintId(input.studioId, 'studioId');
+  const serviceId = normalizePositiveBigintId(input.serviceId, 'serviceId');
+  const stepNo = normalizeStepNo(input.stepNo);
+  const title = normalizeServiceStepTitle(input.title);
+
+  try {
+    return await withTransaction(async (client) =>
+      executeOne<ServiceStepsRow, ServiceStepsEntity>(
+        SQL_UPDATE_ADMIN_SERVICE_STEP_TITLE,
+        [serviceId, stepNo, title, studioId],
+        serviceStepsRowToEntity,
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-admin-services.helper',
+      action: 'Failed to update service step title from admin panel',
+      error,
+      meta: { studioId, serviceId, stepNo },
     });
     throw error;
   }

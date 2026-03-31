@@ -3,6 +3,7 @@ import {
   ADMIN_PANEL_ACTION,
   ADMIN_PANEL_BUTTON_TEXT,
   makeAdminPanelServicesEditOpenAction,
+  makeAdminPanelServicesEditStepPickAction,
   makeAdminPanelServicesEditGuaranteePickAction,
   makeAdminPanelServicesOpenAction,
   makeAdminPanelServicesOpenStatsAction,
@@ -186,6 +187,7 @@ export function createAdminServiceEditMenuKeyboard(): ReturnType<typeof Markup.i
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_PRICE, ADMIN_PANEL_ACTION.SERVICES_EDIT_PRICE_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_DESCRIPTION, ADMIN_PANEL_ACTION.SERVICES_EDIT_DESCRIPTION_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_RESULT, ADMIN_PANEL_ACTION.SERVICES_EDIT_RESULT_OPEN)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_STEP, ADMIN_PANEL_ACTION.SERVICES_EDIT_STEP_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_GUARANTEE, ADMIN_PANEL_ACTION.SERVICES_EDIT_GUARANTEE_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_DELETE, ADMIN_PANEL_ACTION.SERVICES_EDIT_DELETE_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_BACK, ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
@@ -197,6 +199,11 @@ export function createAdminServiceEditMenuKeyboard(): ReturnType<typeof Markup.i
 type AdminServiceGuaranteeOption = {
   guaranteeNo: number;
   guaranteeText: string;
+};
+
+type AdminServiceStepOption = {
+  stepNo: number;
+  title: string;
 };
 
 function compactText(value: string, max = 64): string {
@@ -241,6 +248,81 @@ export function createAdminServiceEditGuaranteeSelectKeyboard(
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_CANCEL, ADMIN_PANEL_ACTION.SERVICES_EDIT_CANCEL)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_BACK, ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
   ]);
+}
+
+/**
+ * @summary Текст вибору етапу для редагування.
+ */
+export function formatAdminServiceEditStepSelectText(
+  serviceName: string,
+  options: AdminServiceStepOption[],
+): string {
+  return (
+    '🧩 Редагування етапу послуги\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n\n` +
+    'Оберіть етап, назву якого потрібно змінити:\n\n' +
+    options
+      .map((item, index) => `${getNumberBadge(index)} Етап №${item.stepNo} — ${compactText(item.title, 54)}`)
+      .join('\n')
+  );
+}
+
+/**
+ * @summary Клавіатура вибору етапу послуги.
+ */
+export function createAdminServiceEditStepSelectKeyboard(
+  options: AdminServiceStepOption[],
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const rows = options.map((item, index) => [
+    Markup.button.callback(
+      `${getNumberBadge(index)} Етап №${item.stepNo}`,
+      makeAdminPanelServicesEditStepPickAction(item.stepNo),
+    ),
+  ]);
+
+  return Markup.inlineKeyboard([
+    ...rows,
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_CANCEL, ADMIN_PANEL_ACTION.SERVICES_EDIT_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_BACK, ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
+  ]);
+}
+
+/**
+ * @summary Текст кроку вводу нової назви етапу.
+ */
+export function formatAdminServiceEditStepInputText(
+  serviceName: string,
+  stepNo: number,
+  currentStepTitle: string,
+): string {
+  return (
+    '✏️ Оновлення назви етапу\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n` +
+    `🧩 Етап №${stepNo}\n\n` +
+    `Поточна назва:\n${currentStepTitle}\n\n` +
+    'Надішліть нову назву етапу одним повідомленням.\n' +
+    'Мінімум 2 символи, максимум 120 символів.'
+  );
+}
+
+/**
+ * @summary Текст підтвердження оновлення назви етапу.
+ */
+export function formatAdminServiceEditStepConfirmText(
+  serviceName: string,
+  stepNo: number,
+  nextStepTitle: string,
+): string {
+  return (
+    '✅ Підтвердження оновлення\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n` +
+    `🧩 Етап №${stepNo}\n\n` +
+    `Нова назва:\n${nextStepTitle}\n\n` +
+    'Підтвердьте збереження змін.'
+  );
 }
 
 /**

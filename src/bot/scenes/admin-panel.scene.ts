@@ -151,6 +151,7 @@ import {
 import {
   createAdminServiceEditConfirmKeyboard,
   createAdminServiceEditGuaranteeSelectKeyboard,
+  createAdminServiceEditStepSelectKeyboard,
   createAdminServiceDeleteConfirmKeyboard,
   createAdminServiceEditInputKeyboard,
   createAdminServiceEditMenuKeyboard,
@@ -161,6 +162,9 @@ import {
   formatAdminServiceEditGuaranteeConfirmText,
   formatAdminServiceEditGuaranteeInputText,
   formatAdminServiceEditGuaranteeSelectText,
+  formatAdminServiceEditStepConfirmText,
+  formatAdminServiceEditStepInputText,
+  formatAdminServiceEditStepSelectText,
   formatAdminServiceDeleteConfirmText,
   formatAdminServiceEditDurationConfirmText,
   formatAdminServiceEditDurationInputText,
@@ -211,6 +215,7 @@ import {
   ADMIN_PANEL_STATS_SERVICES_OPEN_ACTION_REGEX,
   ADMIN_PANEL_SERVICES_OPEN_ACTION_REGEX,
   ADMIN_PANEL_SERVICES_EDIT_OPEN_ACTION_REGEX,
+  ADMIN_PANEL_SERVICES_EDIT_STEP_PICK_ACTION_REGEX,
   ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_PICK_ACTION_REGEX,
   ADMIN_PANEL_SERVICES_OPEN_STATS_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_ACTION_REGEX,
@@ -275,6 +280,7 @@ import {
   getAdminEditableServiceById,
   updateAdminServiceBasePrice,
   updateAdminServiceGuaranteeText,
+  updateAdminServiceStepTitle,
   updateAdminServiceName,
   updateAdminServiceDuration,
   updateAdminServiceDescription,
@@ -410,6 +416,11 @@ type AdminServiceGuaranteeDraftOption = {
   guaranteeText: string;
 };
 
+type AdminServiceStepDraftOption = {
+  stepNo: number;
+  title: string;
+};
+
 type AdminServiceEditDraft = {
   serviceId: string;
   serviceName: string;
@@ -419,14 +430,18 @@ type AdminServiceEditDraft = {
     | 'base_price'
     | 'description'
     | 'result_description'
+    | 'step_title'
     | 'guarantee_text'
     | 'deactivate';
-  mode: 'awaiting_text' | 'awaiting_confirm' | 'selecting_guarantee';
+  mode: 'awaiting_text' | 'awaiting_confirm' | 'selecting_guarantee' | 'selecting_step';
   currentDurationMinutes: number;
   currentBasePrice: string;
   currentCurrencyCode: string;
   currentDescription: string | null;
   currentResultDescription: string | null;
+  currentStepNo: number | null;
+  currentStepTitle: string | null;
+  stepOptions: AdminServiceStepDraftOption[];
   currentGuaranteeNo: number | null;
   currentGuaranteeText: string | null;
   guaranteeOptions: AdminServiceGuaranteeDraftOption[];
@@ -649,6 +664,17 @@ function normalizeServiceGuaranteeTextInput(value: string): string {
   }
   if (normalized.length > 500) {
     throw new ValidationError('Текст гарантії занадто довгий (максимум 500 символів)');
+  }
+  return normalized;
+}
+
+function normalizeServiceStepTitleInput(value: string): string {
+  const normalized = value.trim().replace(/\s+/g, ' ');
+  if (normalized.length < 2) {
+    throw new ValidationError('Назва етапу має містити щонайменше 2 символи');
+  }
+  if (normalized.length > 120) {
+    throw new ValidationError('Назва етапу занадто довга (максимум 120 символів)');
   }
   return normalized;
 }
@@ -1729,6 +1755,9 @@ async function renderAdminServiceEditMenu(
       currentCurrencyCode: service.currencyCode,
       currentDescription: service.description,
       currentResultDescription: service.resultDescription,
+      currentStepNo: null,
+      currentStepTitle: null,
+      stepOptions: [],
       currentGuaranteeNo: null,
       currentGuaranteeText: null,
       guaranteeOptions: [],
@@ -1742,6 +1771,9 @@ async function renderAdminServiceEditMenu(
     state.servicesEditDraft.currentCurrencyCode = service.currencyCode;
     state.servicesEditDraft.currentDescription = service.description;
     state.servicesEditDraft.currentResultDescription = service.resultDescription;
+    state.servicesEditDraft.currentStepNo = null;
+    state.servicesEditDraft.currentStepTitle = null;
+    state.servicesEditDraft.stepOptions = [];
     state.servicesEditDraft.currentGuaranteeNo = null;
     state.servicesEditDraft.currentGuaranteeText = null;
     state.servicesEditDraft.guaranteeOptions = [];
@@ -1750,6 +1782,8 @@ async function renderAdminServiceEditMenu(
         ? service.name
         : state.servicesEditDraft.field === 'deactivate'
         ? null
+        : state.servicesEditDraft.field === 'step_title'
+        ? state.servicesEditDraft.currentStepTitle
         : state.servicesEditDraft.field === 'guarantee_text'
         ? state.servicesEditDraft.currentGuaranteeText
         : state.servicesEditDraft.field === 'duration_minutes'
@@ -3016,6 +3050,21 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               ),
               createAdminServiceEditConfirmKeyboard(),
             );
+          } else if (servicesEditDraft.field === 'step_title') {
+            const nextStepTitle = normalizeServiceStepTitleInput(text);
+            if (!servicesEditDraft.currentStepNo) {
+              throw new ValidationError('Спочатку оберіть етап зі списку');
+            }
+            servicesEditDraft.mode = 'awaiting_confirm';
+            servicesEditDraft.value = nextStepTitle;
+            await ctx.reply(
+              formatAdminServiceEditStepConfirmText(
+                servicesEditDraft.serviceName,
+                servicesEditDraft.currentStepNo,
+                nextStepTitle,
+              ),
+              createAdminServiceEditConfirmKeyboard(),
+            );
           } else if (servicesEditDraft.field === 'guarantee_text') {
             const nextGuaranteeText = normalizeServiceGuaranteeTextInput(text);
             if (!servicesEditDraft.currentGuaranteeNo) {
@@ -3056,6 +3105,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
                     ? 'Виникла помилка перевірки ціни послуги'
                     : servicesEditDraft.field === 'description'
                     ? 'Виникла помилка перевірки опису послуги'
+                    : servicesEditDraft.field === 'step_title'
+                    ? 'Виникла помилка перевірки назви етапу'
                     : servicesEditDraft.field === 'guarantee_text'
                     ? 'Виникла помилка перевірки тексту гарантії'
                     : 'Виникла помилка перевірки тексту результату',
@@ -3066,6 +3117,14 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
             createAdminServiceEditInputKeyboard(),
           );
         }
+        return;
+      }
+
+      if (servicesEditDraft?.mode === 'selecting_step') {
+        await ctx.reply(
+          'ℹ️ Для вибору етапу використовуйте кнопки під повідомленням.',
+          createAdminServiceEditStepSelectKeyboard(servicesEditDraft.stepOptions),
+        );
         return;
       }
 
@@ -4344,6 +4403,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     draft.field = 'result_description';
     draft.mode = 'awaiting_text';
+    draft.currentStepNo = null;
+    draft.currentStepTitle = null;
+    draft.stepOptions = [];
     draft.currentGuaranteeNo = null;
     draft.currentGuaranteeText = null;
     draft.guaranteeOptions = [];
@@ -4371,6 +4433,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     draft.field = 'name';
     draft.mode = 'awaiting_text';
+    draft.currentStepNo = null;
+    draft.currentStepTitle = null;
+    draft.stepOptions = [];
     draft.currentGuaranteeNo = null;
     draft.currentGuaranteeText = null;
     draft.guaranteeOptions = [];
@@ -4398,6 +4463,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     draft.field = 'duration_minutes';
     draft.mode = 'awaiting_text';
+    draft.currentStepNo = null;
+    draft.currentStepTitle = null;
+    draft.stepOptions = [];
     draft.currentGuaranteeNo = null;
     draft.currentGuaranteeText = null;
     draft.guaranteeOptions = [];
@@ -4428,6 +4496,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     draft.field = 'base_price';
     draft.mode = 'awaiting_text';
+    draft.currentStepNo = null;
+    draft.currentStepTitle = null;
+    draft.stepOptions = [];
     draft.currentGuaranteeNo = null;
     draft.currentGuaranteeText = null;
     draft.guaranteeOptions = [];
@@ -4459,6 +4530,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     draft.field = 'description';
     draft.mode = 'awaiting_text';
+    draft.currentStepNo = null;
+    draft.currentStepTitle = null;
+    draft.stepOptions = [];
     draft.currentGuaranteeNo = null;
     draft.currentGuaranteeText = null;
     draft.guaranteeOptions = [];
@@ -4466,6 +4540,98 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.value = null;
     await ctx.reply(
       formatAdminServiceEditDescriptionInputText(draft.serviceName, draft.currentDescription),
+      createAdminServiceEditInputKeyboard(),
+    );
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SERVICES_EDIT_STEP_OPEN, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.servicesEditDraft;
+    const studioId = state.access?.studioId;
+
+    if (!draft || !studioId) {
+      const fallbackServiceId = state.servicesSelectedServiceId;
+      if (!fallbackServiceId) {
+        await renderAdminServicesCatalog(ctx, true);
+        return;
+      }
+      await renderAdminServiceEditMenu(ctx, fallbackServiceId, true);
+      return;
+    }
+
+    const details = await getServiceCatalogDetailsById({ serviceId: draft.serviceId, studioId });
+    if (!details || details.steps.length === 0) {
+      await ctx.reply(
+        '⚠️ Для цієї послуги не знайдено етапів. Спочатку додайте етапи у БД.',
+        createAdminServiceEditMenuKeyboard(),
+      );
+      return;
+    }
+
+    draft.field = 'step_title';
+    draft.mode = 'selecting_step';
+    draft.currentStepNo = null;
+    draft.currentStepTitle = null;
+    draft.stepOptions = details.steps.map((item) => ({
+      stepNo: item.stepNo,
+      title: item.title,
+    }));
+    draft.currentGuaranteeNo = null;
+    draft.currentGuaranteeText = null;
+    draft.guaranteeOptions = [];
+    draft.currentValue = null;
+    draft.value = null;
+
+    await ctx.reply(
+      formatAdminServiceEditStepSelectText(draft.serviceName, draft.stepOptions),
+      createAdminServiceEditStepSelectKeyboard(draft.stepOptions),
+    );
+  });
+
+  scene.action(ADMIN_PANEL_SERVICES_EDIT_STEP_PICK_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.servicesEditDraft;
+    if (!draft) {
+      const fallbackServiceId = state.servicesSelectedServiceId;
+      if (!fallbackServiceId) {
+        await renderAdminServicesCatalog(ctx, true);
+        return;
+      }
+      await renderAdminServiceEditMenu(ctx, fallbackServiceId, true);
+      return;
+    }
+
+    const stepNo = Number(
+      parseNumericIdFromAction(
+        ctx,
+        ADMIN_PANEL_SERVICES_EDIT_STEP_PICK_ACTION_REGEX,
+        'номер етапу',
+      ),
+    );
+    const selectedStep = draft.stepOptions.find((item) => item.stepNo === stepNo);
+    if (!selectedStep) {
+      await ctx.reply(
+        '⚠️ Обраний етап не знайдено. Спробуйте ще раз.',
+        createAdminServiceEditStepSelectKeyboard(draft.stepOptions),
+      );
+      return;
+    }
+
+    draft.field = 'step_title';
+    draft.mode = 'awaiting_text';
+    draft.currentStepNo = selectedStep.stepNo;
+    draft.currentStepTitle = selectedStep.title;
+    draft.currentValue = selectedStep.title;
+    draft.value = null;
+
+    await ctx.reply(
+      formatAdminServiceEditStepInputText(
+        draft.serviceName,
+        selectedStep.stepNo,
+        selectedStep.title,
+      ),
       createAdminServiceEditInputKeyboard(),
     );
   });
@@ -4497,6 +4663,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     draft.field = 'guarantee_text';
     draft.mode = 'selecting_guarantee';
+    draft.currentStepNo = null;
+    draft.currentStepTitle = null;
+    draft.stepOptions = [];
     draft.currentGuaranteeNo = null;
     draft.currentGuaranteeText = null;
     draft.guaranteeOptions = details.guarantees.map((item) => ({
@@ -4575,6 +4744,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     draft.field = 'deactivate';
     draft.mode = 'awaiting_confirm';
+    draft.currentStepNo = null;
+    draft.currentStepTitle = null;
+    draft.stepOptions = [];
     draft.currentGuaranteeNo = null;
     draft.currentGuaranteeText = null;
     draft.guaranteeOptions = [];
@@ -4656,6 +4828,21 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         return;
       }
 
+      if (draft.field === 'step_title') {
+        await updateAdminServiceStepTitle({
+          studioId,
+          serviceId: draft.serviceId,
+          stepNo: draft.currentStepNo ?? 0,
+          title: String(draft.value),
+        });
+        state.servicesEditDraft = null;
+        await ctx.reply(
+          `✅ Назву етапу №${draft.currentStepNo ?? '-'} для послуги "${draft.serviceName}" успішно оновлено.`,
+        );
+        await renderAdminServiceDetails(ctx, draft.serviceId, false);
+        return;
+      }
+
       const updated =
         draft.field === 'name'
           ? await updateAdminServiceName({
@@ -4713,7 +4900,18 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         );
         state.servicesEditDraft = {
           ...draft,
-          mode: draft.field === 'deactivate' ? 'awaiting_confirm' : 'awaiting_text',
+          mode:
+            draft.field === 'deactivate'
+              ? 'awaiting_confirm'
+              : draft.field === 'guarantee_text' && draft.currentGuaranteeNo
+              ? 'awaiting_text'
+              : draft.field === 'step_title' && draft.currentStepNo
+              ? 'awaiting_text'
+              : draft.field === 'guarantee_text'
+              ? 'selecting_guarantee'
+              : draft.field === 'step_title'
+              ? 'selecting_step'
+              : 'awaiting_text',
           value: draft.field === 'deactivate' ? 'deactivate' : null,
         };
         return;

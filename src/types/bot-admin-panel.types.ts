@@ -59,6 +59,8 @@ export const ADMIN_PANEL_ACTION = {
   SERVICES_EDIT_DURATION_OPEN: 'admin-panel:services:edit:duration:open',
   SERVICES_EDIT_DESCRIPTION_OPEN: 'admin-panel:services:edit:description:open',
   SERVICES_EDIT_RESULT_OPEN: 'admin-panel:services:edit:result:open',
+  SERVICES_EDIT_STEP_OPEN: 'admin-panel:services:edit:step:open',
+  SERVICES_EDIT_STEP_PICK_PREFIX: 'admin-panel:services:edit:step:pick:',
   SERVICES_EDIT_GUARANTEE_OPEN: 'admin-panel:services:edit:guarantee:open',
   SERVICES_EDIT_GUARANTEE_PICK_PREFIX: 'admin-panel:services:edit:guarantee:pick:',
   SERVICES_EDIT_DELETE_OPEN: 'admin-panel:services:edit:delete:open',
@@ -185,6 +187,7 @@ export const ADMIN_PANEL_BUTTON_TEXT = {
   SERVICES_EDIT_DURATION: '⏱ Змінити тривалість',
   SERVICES_EDIT_DESCRIPTION: '📝 Змінити опис',
   SERVICES_EDIT_RESULT: '🎯 Змінити результат',
+  SERVICES_EDIT_STEP: '🧩 Змінити назву етапу',
   SERVICES_EDIT_GUARANTEE: '🛡 Змінити гарантію',
   SERVICES_EDIT_DELETE: '🗑 Видалити послугу',
   SERVICES_EDIT_CONFIRM_DELETE: '🗑 Так, видалити',
@@ -306,6 +309,8 @@ export const ADMIN_PANEL_MASTERS_BOOKINGS_OPEN_CARD_ACTION_REGEX =
 export const ADMIN_PANEL_SERVICES_OPEN_ACTION_REGEX = /^admin-panel:services:open:(\d+)$/;
 export const ADMIN_PANEL_SERVICES_OPEN_STATS_ACTION_REGEX = /^admin-panel:services:open-stats:(\d+)$/;
 export const ADMIN_PANEL_SERVICES_EDIT_OPEN_ACTION_REGEX = /^admin-panel:services:edit:open:(\d+)$/;
+export const ADMIN_PANEL_SERVICES_EDIT_STEP_PICK_ACTION_REGEX =
+  /^admin-panel:services:edit:step:pick:(\d+)$/;
 export const ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_PICK_ACTION_REGEX =
   /^admin-panel:services:edit:guarantee:pick:(\d+)$/;
 export const ADMIN_PANEL_STATS_MASTERS_OPEN_ACTION_REGEX = /^admin-panel:stats:masters:open:(\d+)$/;
@@ -448,6 +453,10 @@ export function makeAdminPanelServicesOpenStatsAction(serviceId: string): string
 
 export function makeAdminPanelServicesEditOpenAction(serviceId: string): string {
   return `${ADMIN_PANEL_ACTION.SERVICES_EDIT_OPEN_PREFIX}${serviceId}`;
+}
+
+export function makeAdminPanelServicesEditStepPickAction(stepNo: number): string {
+  return `${ADMIN_PANEL_ACTION.SERVICES_EDIT_STEP_PICK_PREFIX}${stepNo}`;
 }
 
 export function makeAdminPanelServicesEditGuaranteePickAction(guaranteeNo: number): string {
