@@ -68,3 +68,13 @@ export const SQL_UPDATE_ADMIN_SERVICE_DURATION = `
     AND studio_id = $2::bigint
   RETURNING id, studio_id, name, duration_minutes, base_price, currency_code, description, result_description
 `;
+
+export const SQL_DEACTIVATE_ADMIN_SERVICE = `
+  UPDATE services
+  SET
+    is_active = FALSE,
+    updated_at = NOW()
+  WHERE id = $1::bigint
+    AND studio_id = $2::bigint
+  RETURNING id, studio_id, name, duration_minutes, base_price, currency_code, description, result_description
+`;

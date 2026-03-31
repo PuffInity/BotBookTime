@@ -150,12 +150,14 @@ import {
 } from '../../helpers/bot/admin-masters-view.bot.js';
 import {
   createAdminServiceEditConfirmKeyboard,
+  createAdminServiceDeleteConfirmKeyboard,
   createAdminServiceEditInputKeyboard,
   createAdminServiceEditMenuKeyboard,
   createAdminServiceDetailsKeyboard,
   createAdminServicesCatalogKeyboard,
   formatAdminServiceEditDescriptionConfirmText,
   formatAdminServiceEditDescriptionInputText,
+  formatAdminServiceDeleteConfirmText,
   formatAdminServiceEditDurationConfirmText,
   formatAdminServiceEditDurationInputText,
   formatAdminServiceEditNameConfirmText,
@@ -264,6 +266,7 @@ import {
   listActiveMastersCatalog,
 } from '../../helpers/db/db-masters.helper.js';
 import {
+  deactivateAdminService,
   getAdminEditableServiceById,
   updateAdminServiceBasePrice,
   updateAdminServiceName,
@@ -398,7 +401,7 @@ type AdminServiceSubSection = 'catalog' | 'details' | 'stats' | 'edit';
 type AdminServiceEditDraft = {
   serviceId: string;
   serviceName: string;
-  field: 'name' | 'duration_minutes' | 'base_price' | 'description' | 'result_description';
+  field: 'name' | 'duration_minutes' | 'base_price' | 'description' | 'result_description' | 'deactivate';
   mode: 'awaiting_text' | 'awaiting_confirm';
   currentDurationMinutes: number;
   currentBasePrice: string;
@@ -1706,6 +1709,8 @@ async function renderAdminServiceEditMenu(
     state.servicesEditDraft.currentValue =
       state.servicesEditDraft.field === 'name'
         ? service.name
+        : state.servicesEditDraft.field === 'deactivate'
+        ? null
         : state.servicesEditDraft.field === 'duration_minutes'
         ? String(service.durationMinutes)
         : state.servicesEditDraft.field === 'base_price'
@@ -3009,7 +3014,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       if (servicesEditDraft?.mode === 'awaiting_confirm') {
         await ctx.reply(
           'ℹ️ Для завершення змін використовуйте кнопки підтвердження під повідомленням.',
-          createAdminServiceEditConfirmKeyboard(),
+          servicesEditDraft.field === 'deactivate'
+            ? createAdminServiceDeleteConfirmKeyboard()
+            : createAdminServiceEditConfirmKeyboard(),
         );
         return;
       }
@@ -4382,6 +4389,30 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     );
   });
 
+  scene.action(ADMIN_PANEL_ACTION.SERVICES_EDIT_DELETE_OPEN, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.servicesEditDraft;
+    if (!draft) {
+      const fallbackServiceId = state.servicesSelectedServiceId;
+      if (!fallbackServiceId) {
+        await renderAdminServicesCatalog(ctx, true);
+        return;
+      }
+      await renderAdminServiceEditMenu(ctx, fallbackServiceId, true);
+      return;
+    }
+
+    draft.field = 'deactivate';
+    draft.mode = 'awaiting_confirm';
+    draft.currentValue = null;
+    draft.value = 'deactivate';
+    await ctx.reply(
+      formatAdminServiceDeleteConfirmText(draft.serviceName),
+      createAdminServiceDeleteConfirmKeyboard(),
+    );
+  });
+
   scene.action(ADMIN_PANEL_ACTION.SERVICES_EDIT_CANCEL, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
@@ -4427,7 +4458,12 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     try {
       const updated =
-        draft.field === 'name'
+        draft.field === 'deactivate'
+          ? await deactivateAdminService({
+              studioId,
+              serviceId: draft.serviceId,
+            })
+        : draft.field === 'name'
           ? await updateAdminServiceName({
               studioId,
               serviceId: draft.serviceId,
@@ -4462,7 +4498,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.servicesEditDraft = null;
 
       await ctx.reply(
-        draft.field === 'name'
+        draft.field === 'deactivate'
+          ? `✅ Послугу "${updated.name}" успішно видалено зі списку активних.`
+        : draft.field === 'name'
           ? `✅ Назву послуги "${updated.name}" успішно оновлено.`
         : draft.field === 'duration_minutes'
           ? `✅ Тривалість послуги "${updated.name}" успішно оновлено.`
@@ -4472,17 +4510,23 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           ? `✅ Опис послуги "${updated.name}" успішно оновлено.`
           : `✅ Результат послуги "${updated.name}" успішно оновлено.`,
       );
+      if (draft.field === 'deactivate') {
+        await renderAdminServicesCatalog(ctx, false);
+        return;
+      }
       await renderAdminServiceDetails(ctx, updated.id, false);
     } catch (error) {
       if (error instanceof ValidationError) {
         await ctx.reply(
           `⚠️ ${error.message}`,
-          createAdminServiceEditInputKeyboard(),
+          draft.field === 'deactivate'
+            ? createAdminServiceDeleteConfirmKeyboard()
+            : createAdminServiceEditInputKeyboard(),
         );
         state.servicesEditDraft = {
           ...draft,
-          mode: 'awaiting_text',
-          value: null,
+          mode: draft.field === 'deactivate' ? 'awaiting_confirm' : 'awaiting_text',
+          value: draft.field === 'deactivate' ? 'deactivate' : null,
         };
         return;
       }

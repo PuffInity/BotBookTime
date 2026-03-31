@@ -1,6 +1,7 @@
 import type {
   AdminEditableService,
   AdminEditableServiceRow,
+  DeactivateAdminServiceInput,
   GetAdminEditableServiceInput,
   UpdateAdminServiceBasePriceInput,
   UpdateAdminServiceDescriptionInput,
@@ -12,6 +13,7 @@ import { executeOne, queryOne, withTransaction } from '../db.helper.js';
 import { ValidationError, handleError } from '../../utils/error.utils.js';
 import { loggerDb } from '../../utils/logger/loggers-list.js';
 import {
+  SQL_DEACTIVATE_ADMIN_SERVICE,
   SQL_GET_ADMIN_EDITABLE_SERVICE_BY_ID,
   SQL_UPDATE_ADMIN_SERVICE_BASE_PRICE,
   SQL_UPDATE_ADMIN_SERVICE_DESCRIPTION,
@@ -297,6 +299,36 @@ export async function updateAdminServiceDuration(
       action: 'Failed to update service duration from admin panel',
       error,
       meta: { studioId, serviceId, durationMinutes },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Деактивує послугу студії (псевдо-видалення) з адмін-панелі.
+ */
+export async function deactivateAdminService(
+  input: DeactivateAdminServiceInput,
+): Promise<AdminEditableService> {
+  const studioId = normalizePositiveBigintId(input.studioId, 'studioId');
+  const serviceId = normalizePositiveBigintId(input.serviceId, 'serviceId');
+
+  try {
+    return await withTransaction(async (client) =>
+      executeOne<AdminEditableServiceRow, AdminEditableService>(
+        SQL_DEACTIVATE_ADMIN_SERVICE,
+        [serviceId, studioId],
+        mapAdminEditableServiceRow,
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-admin-services.helper',
+      action: 'Failed to deactivate service from admin panel',
+      error,
+      meta: { studioId, serviceId },
     });
     throw error;
   }

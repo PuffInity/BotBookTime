@@ -185,6 +185,7 @@ export function createAdminServiceEditMenuKeyboard(): ReturnType<typeof Markup.i
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_PRICE, ADMIN_PANEL_ACTION.SERVICES_EDIT_PRICE_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_DESCRIPTION, ADMIN_PANEL_ACTION.SERVICES_EDIT_DESCRIPTION_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_RESULT, ADMIN_PANEL_ACTION.SERVICES_EDIT_RESULT_OPEN)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_DELETE, ADMIN_PANEL_ACTION.SERVICES_EDIT_DELETE_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_BACK, ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK_TO_LIST, ADMIN_PANEL_ACTION.SERVICES_BACK_TO_LIST)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK, ADMIN_PANEL_ACTION.SERVICES_BACK)],
@@ -369,6 +370,33 @@ export function formatAdminServiceEditNameConfirmText(
 export function createAdminServiceEditConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_CONFIRM, ADMIN_PANEL_ACTION.SERVICES_EDIT_CONFIRM)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_CANCEL, ADMIN_PANEL_ACTION.SERVICES_EDIT_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_BACK, ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
+  ]);
+}
+
+/**
+ * @summary Текст підтвердження видалення (деактивації) послуги.
+ */
+export function formatAdminServiceDeleteConfirmText(
+  serviceName: string,
+): string {
+  return (
+    '⚠️ Підтвердження видалення послуги\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n\n` +
+    'Після підтвердження послуга буде прихована для клієнтів та майстрів.\n' +
+    'Записи в історії залишаться, але нові бронювання для цієї послуги стануть недоступні.\n\n' +
+    'Підтвердьте дію.'
+  );
+}
+
+/**
+ * @summary Клавіатура підтвердження видалення (деактивації) послуги.
+ */
+export function createAdminServiceDeleteConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_CONFIRM_DELETE, ADMIN_PANEL_ACTION.SERVICES_EDIT_CONFIRM)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_CANCEL, ADMIN_PANEL_ACTION.SERVICES_EDIT_CANCEL)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_BACK, ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
   ]);

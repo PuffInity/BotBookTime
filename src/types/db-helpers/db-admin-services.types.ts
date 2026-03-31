@@ -42,6 +42,11 @@ export type UpdateAdminServiceNameInput = {
   name: string;
 };
 
+export type DeactivateAdminServiceInput = {
+  studioId: string | number;
+  serviceId: string | number;
+};
+
 export type UpdateAdminServiceDescriptionInput = {
   studioId: string | number;
   serviceId: string | number;
