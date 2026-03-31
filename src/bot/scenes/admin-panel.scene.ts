@@ -1545,7 +1545,7 @@ async function renderAdminMasterDetails(
 
   const details = await getMasterCatalogDetailsById({ masterId, studioId });
   if (!details) {
-    await ctx.reply('⚠️ Майстра не знайдено або профіль вже неактивний.');
+    await replyAdminWarning(ctx, 'Майстра не знайдено або профіль вже неактивний.');
     await renderAdminMastersCatalog(ctx, false);
     return;
   }
@@ -2196,7 +2196,7 @@ async function renderAdminMasterBookingsList(
 
   const details = await getMasterCatalogDetailsById({ masterId, studioId });
   if (!details) {
-    await ctx.reply('⚠️ Майстра не знайдено або профіль вже неактивний.');
+    await replyAdminWarning(ctx, 'Майстра не знайдено або профіль вже неактивний.');
     await renderAdminMastersCatalog(ctx, false);
     return;
   }
@@ -2248,7 +2248,7 @@ async function renderAdminMasterBookingCard(
     state.mastersBookingsFeed?.items.find((item) => item.appointmentId === appointmentId) ?? null;
   const booking = fromFeed ?? (await getAdminBookingCardById({ studioId, appointmentId }));
   if (!booking || booking.masterId !== masterId) {
-    await ctx.reply('⚠️ Запис не знайдено в контексті цього майстра.');
+    await replyAdminWarning(ctx, 'Запис не знайдено в контексті цього майстра.');
     await renderAdminMasterBookingsList(ctx, masterId, state.mastersBookingsFeed?.offset ?? 0, false);
     return;
   }
@@ -2322,7 +2322,7 @@ async function renderAdminServiceDetails(
 
   const details = await getServiceCatalogDetailsById({ serviceId, studioId });
   if (!details) {
-    await ctx.reply('⚠️ Послугу не знайдено або вона неактивна.');
+    await replyAdminWarning(ctx, 'Послугу не знайдено або вона неактивна.');
     await renderAdminServicesCatalog(ctx, false);
     return;
   }
@@ -2360,7 +2360,7 @@ async function renderAdminServiceEditMenu(
 
   const service = await getAdminEditableServiceById({ studioId, serviceId });
   if (!service) {
-    await ctx.reply('⚠️ Послугу для редагування не знайдено.');
+    await replyAdminWarning(ctx, 'Послугу для редагування не знайдено.');
     await renderAdminServicesCatalog(ctx, false);
     return;
   }
@@ -2883,6 +2883,30 @@ async function renderRecordsCategoryStub(
   await ctx.reply(text, keyboard);
 }
 
+async function replyAdminSuccess(
+  ctx: MyContext,
+  message: string,
+  extra?: Parameters<MyContext['reply']>[1],
+): Promise<void> {
+  await ctx.reply(`✅ ${message}`, extra);
+}
+
+async function replyAdminWarning(
+  ctx: MyContext,
+  message: string,
+  extra?: Parameters<MyContext['reply']>[1],
+): Promise<void> {
+  await ctx.reply(`⚠️ ${message}`, extra);
+}
+
+async function replyAdminInfo(
+  ctx: MyContext,
+  message: string,
+  extra?: Parameters<MyContext['reply']>[1],
+): Promise<void> {
+  await ctx.reply(`ℹ️ ${message}`, extra);
+}
+
 function parseAppointmentIdFromAction(ctx: MyContext, regex: RegExp): string {
   const callbackData =
     ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
@@ -3013,7 +3037,7 @@ async function renderAdminBookingMasterProfile(
 
   const details = await getMasterCatalogDetailsById({ masterId: item.masterId, studioId });
   if (!details) {
-    await ctx.reply('⚠️ Профіль майстра недоступний або вже неактивний.');
+    await replyAdminWarning(ctx, 'Профіль майстра недоступний або вже неактивний.');
     await renderAdminBookingCard(ctx, item);
     return;
   }
@@ -3933,7 +3957,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
             mastersCreateDraft.schedulePendingFromTime = null;
             mastersCreateDraft.mode = 'awaiting_schedule_pick';
 
-            await ctx.reply('✅ Робочий час для дня успішно збережено.');
+            await replyAdminSuccess(ctx, 'Робочий час для дня успішно збережено.');
             await renderAdminMasterCreateSchedulePickStep(ctx, mastersCreateDraft, false);
             return;
           }
@@ -4002,11 +4026,11 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
                 : createAdminMasterCreateScheduleInputKeyboard(
                     mastersCreateDraft.scheduleSelectedWeekday ?? 1,
                   );
-            await ctx.reply(`⚠️ ${err.message}`, keyboard);
+            await replyAdminWarning(ctx, err.message, keyboard);
             return;
           }
 
-          await ctx.reply(`⚠️ ${err.message}`, createAdminMasterCreateInputKeyboard());
+          await replyAdminWarning(ctx, err.message, createAdminMasterCreateInputKeyboard());
           return;
         }
       }
@@ -4200,7 +4224,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               ? createAdminServiceCreatePreviewKeyboard()
               : createAdminServiceCreateInputKeyboard();
 
-          await ctx.reply(`⚠️ ${err.message}`, keyboard);
+          await replyAdminWarning(ctx, err.message, keyboard);
           return;
         }
       }
@@ -4848,7 +4872,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     state.scheduleDayOffDraft = null;
-    await ctx.reply(`✅ Вихідний день на ${draft.offDateLabel} успішно додано.`);
+    await replyAdminSuccess(ctx, `Вихідний день на ${draft.offDateLabel} успішно додано.`);
     await renderScheduleSection(ctx, 'days-off', false);
   });
 
@@ -4926,7 +4950,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     });
 
     state.scheduleDeleteDraft = null;
-    await ctx.reply('✅ Вихідний день успішно видалено.');
+    await replyAdminSuccess(ctx, 'Вихідний день успішно видалено.');
     await renderScheduleSection(ctx, 'days-off', false);
   });
 
@@ -5008,7 +5032,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     state.scheduleHolidayDraft = null;
-    await ctx.reply(`✅ Свято "${draft.holidayName}" на ${draft.holidayDateLabel} успішно додано.`);
+    await replyAdminSuccess(ctx, `Свято "${draft.holidayName}" на ${draft.holidayDateLabel} успішно додано.`);
     await renderScheduleSection(ctx, 'holidays', false);
   });
 
@@ -5086,7 +5110,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     });
 
     state.scheduleDeleteDraft = null;
-    await ctx.reply('✅ Святковий день успішно видалено.');
+    await replyAdminSuccess(ctx, 'Святковий день успішно видалено.');
     await renderScheduleSection(ctx, 'holidays', false);
   });
 
@@ -5382,7 +5406,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     });
 
     state.scheduleDeleteDraft = null;
-    await ctx.reply('✅ Тимчасовий графік за обраний період успішно видалено.');
+    await replyAdminSuccess(ctx, 'Тимчасовий графік за обраний період успішно видалено.');
     await renderScheduleSection(ctx, 'temporary', false);
   });
 
@@ -5432,7 +5456,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     );
     const exists = draft.availableServices.some((service) => service.id === serviceId);
     if (!exists) {
-      await ctx.reply('⚠️ Послугу не знайдено в актуальному списку.');
+      await replyAdminWarning(ctx, 'Послугу не знайдено в актуальному списку.');
       await renderAdminMasterCreateServicesStep(ctx, draft, false);
       return;
     }
@@ -5456,7 +5480,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     if (draft.selectedServiceIds.length === 0) {
-      await ctx.reply('⚠️ Оберіть щонайменше одну послугу для майстра.');
+      await replyAdminWarning(ctx, 'Оберіть щонайменше одну послугу для майстра.');
       await renderAdminMasterCreateServicesStep(ctx, draft, false);
       return;
     }
@@ -5513,7 +5537,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.schedulePendingFromTime = null;
     draft.mode = 'awaiting_schedule_pick';
 
-    await ctx.reply('✅ День позначено як вихідний.');
+    await replyAdminSuccess(ctx, 'День позначено як вихідний.');
     await renderAdminMasterCreateSchedulePickStep(ctx, draft, false);
   });
 
@@ -5545,7 +5569,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
     state.mastersCreateDraft = null;
-    await ctx.reply('✅ Створення майстра скасовано.');
+    await replyAdminSuccess(ctx, 'Створення майстра скасовано.');
     await renderAdminMastersCatalog(ctx, false);
   });
 
@@ -5567,7 +5591,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           error instanceof ValidationError
             ? error
             : new ValidationError('Профіль майстра заповнено не повністю');
-        await ctx.reply(`⚠️ ${err.message}`);
+        await replyAdminWarning(ctx, err.message);
         await renderAdminMasterCreateSchedulePickStep(ctx, draft, false);
         return;
       }
@@ -5584,7 +5608,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     const confirmData = buildAdminMasterCreateConfirmData(draft);
     if (!draft.targetUserId) {
-      await ctx.reply('⚠️ Не задано користувача для створення майстра.');
+      await replyAdminWarning(ctx, 'Не задано користувача для створення майстра.');
       draft.mode = 'awaiting_telegram_id';
       await renderAdminMasterCreateTextStep(ctx, draft, false);
       return;
@@ -5615,7 +5639,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       await renderAdminMastersCatalog(ctx, false);
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(`⚠️ ${error.message}`);
+        await replyAdminWarning(ctx, error.message);
         await renderAdminMasterCreateConfirmStep(ctx, draft, false);
         return;
       }
@@ -5730,7 +5754,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       stats = await getAdminPanelStatsMasterDetails({ studioId, masterId });
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(`⚠️ ${error.message}`);
+        await replyAdminWarning(ctx, error.message);
         await renderAdminMastersCatalog(ctx, false);
         return;
       }
@@ -5820,11 +5844,11 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     try {
       const added = await addMasterOwnService({ masterId, serviceId });
-      await ctx.reply(`✅ Послугу "${added.serviceName}" додано майстру.`);
+      await replyAdminSuccess(ctx, `Послугу "${added.serviceName}" додано майстру.`);
       await renderAdminMasterEditServicesAddCandidates(ctx, masterId, false);
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(`⚠️ ${error.message}`);
+        await replyAdminWarning(ctx, error.message);
         await renderAdminMasterEditServicesAddCandidates(ctx, masterId, false);
         return;
       }
@@ -5849,11 +5873,11 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     try {
       const removed = await removeMasterOwnService({ masterId, serviceId });
-      await ctx.reply(`✅ Послугу "${removed.serviceName}" вимкнено у майстра.`);
+      await replyAdminSuccess(ctx, `Послугу "${removed.serviceName}" вимкнено у майстра.`);
       await renderAdminMasterEditServicesRemoveCandidates(ctx, masterId, false);
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(`⚠️ ${error.message}`);
+        await replyAdminWarning(ctx, error.message);
         await renderAdminMasterEditServicesRemoveCandidates(ctx, masterId, false);
         return;
       }
@@ -5917,7 +5941,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       await persistAdminMasterFieldValue(draft.masterId, draft.field, draft.value);
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(`⚠️ ${error.message}`);
+        await replyAdminWarning(ctx, error.message);
         await renderAdminMasterEditInput(ctx, draft.masterId, draft.field, false);
         return;
       }
@@ -6141,7 +6165,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       await renderAdminServiceDetails(ctx, created.serviceId, false);
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(`⚠️ ${error.message}`, createAdminServiceCreatePreviewKeyboard());
+        await replyAdminWarning(ctx, error.message, createAdminServiceCreatePreviewKeyboard());
         return;
       }
       throw error;
@@ -6741,7 +6765,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           serviceId: draft.serviceId,
         });
         state.servicesEditDraft = null;
-        await ctx.reply(`✅ Послугу "${deactivated.name}" успішно видалено зі списку активних.`);
+        await replyAdminSuccess(ctx, `Послугу "${deactivated.name}" успішно видалено зі списку активних.`);
         await renderAdminServicesCatalog(ctx, false);
         return;
       }
@@ -6908,7 +6932,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       stats = await getAdminPanelStatsServiceDetails({ studioId, serviceId });
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(`⚠️ ${error.message}`);
+        await replyAdminWarning(ctx, error.message);
         await renderAdminServicesCatalog(ctx, false);
         return;
       }
@@ -6996,7 +7020,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       await renderAdminStatsMasterDetails(ctx, masterId, true);
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(`⚠️ ${error.message}`);
+        await replyAdminWarning(ctx, error.message);
         const fallbackOffset = state.statsMastersFeed?.offset ?? 0;
         await renderAdminStatsMastersList(ctx, fallbackOffset, false);
         return;
@@ -7051,7 +7075,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       await renderAdminStatsServiceDetails(ctx, serviceId, true);
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(`⚠️ ${error.message}`);
+        await replyAdminWarning(ctx, error.message);
         const fallbackOffset = state.statsServicesFeed?.offset ?? 0;
         await renderAdminStatsServicesList(ctx, fallbackOffset, false);
         return;
@@ -7102,7 +7126,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       await renderAdminStatsMonthlyReportDetails(ctx, monthCode, true);
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(`⚠️ ${error.message}`);
+        await replyAdminWarning(ctx, error.message);
         const fallbackOffset = state.statsMonthlyFeed?.offset ?? 0;
         await renderAdminStatsMonthlyList(ctx, fallbackOffset, false);
         return;
@@ -7157,7 +7181,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       await renderAdminStatsClientDetails(ctx, clientId, true);
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(`⚠️ ${error.message}`);
+        await replyAdminWarning(ctx, error.message);
         const fallbackOffset = state.statsClientsFeed?.offset ?? 0;
         await renderAdminStatsClientsList(ctx, fallbackOffset, false);
         return;
@@ -7320,11 +7344,11 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         language: draft.nextLanguage,
       });
       state.settingsLanguageDraft = null;
-      await ctx.reply('✅ Мову адмін-панелі успішно оновлено.');
+      await replyAdminSuccess(ctx, 'Мову адмін-панелі успішно оновлено.');
       await renderAdminSettingsLanguage(ctx, false);
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(`⚠️ ${error.message}`);
+        await replyAdminWarning(ctx, error.message);
         await renderAdminSettingsLanguage(ctx, false);
         return;
       }
@@ -7383,11 +7407,11 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         language: 'uk',
       });
       state.settingsStudioDraft = null;
-      await ctx.reply(`✅ Блок "${draft.blockTitle}" успішно оновлено.`);
+      await replyAdminSuccess(ctx, `Блок "${draft.blockTitle}" успішно оновлено.`);
       await renderAdminSettingsStudioProfile(ctx, false);
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(`⚠️ ${error.message}`);
+        await replyAdminWarning(ctx, error.message);
         await renderAdminSettingsStudioEditPrompt(ctx, draft.blockKey, false);
         return;
       }
@@ -7450,7 +7474,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       await renderAdminSettingsAdmins(ctx, false);
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(`⚠️ ${error.message}`);
+        await replyAdminWarning(ctx, error.message);
         await renderAdminSettingsAdminsInput(ctx, 'grant', false);
         return;
       }
@@ -7489,7 +7513,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       await renderAdminSettingsAdmins(ctx, false);
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(`⚠️ ${error.message}`);
+        await replyAdminWarning(ctx, error.message);
         await renderAdminSettingsAdminsInput(ctx, 'revoke', false);
         return;
       }
@@ -7622,7 +7646,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     );
     const nextPending = await resolveNextPendingBooking(state, currentAppointmentId);
     if (!nextPending) {
-      await ctx.reply('ℹ️ Більше непідтверджених записів зараз немає.');
+      await replyAdminInfo(ctx, 'Більше непідтверджених записів зараз немає.');
       const current = await resolveAdminRecordById(state, currentAppointmentId);
       if (current) {
         await renderAdminBookingCard(ctx, current);
@@ -7654,7 +7678,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       });
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(`⚠️ ${error.message}`);
+        await replyAdminWarning(ctx, error.message);
         const current = await resolveAdminRecordById(state, appointmentId);
         if (current) {
           await renderAdminBookingCard(ctx, current);
@@ -7667,7 +7691,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     await notifyAdminConfirmedBooking(updated);
-    await ctx.reply('✅ Запис підтверджено. Клієнту надіслано сповіщення.');
+    await replyAdminSuccess(ctx, 'Запис підтверджено. Клієнту надіслано сповіщення.');
     resetRecordsActionDrafts(state);
     await renderRecordsFallback(ctx, true);
   });
@@ -7699,7 +7723,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     if (item.status !== 'canceled' && item.status !== 'completed' && item.status !== 'transferred') {
-      await ctx.reply('⚠️ Цей запис ще активний. Hard-delete доступний лише для неактивних записів.');
+      await replyAdminWarning(ctx, 'Цей запис ще активний. Видалення назавжди доступне лише для неактивних записів.');
       await renderAdminBookingCard(ctx, item);
       return;
     }
@@ -7722,13 +7746,13 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     );
     const target = await resolveAdminRecordById(state, appointmentId);
     if (!target) {
-      await ctx.reply('ℹ️ Запис уже відсутній у системі.');
+      await replyAdminInfo(ctx, 'Запис уже відсутній у системі.');
       await renderRecordsFallback(ctx, true);
       return;
     }
 
     if (target.status !== 'canceled' && target.status !== 'completed' && target.status !== 'transferred') {
-      await ctx.reply('⚠️ Цей запис ще активний. Hard-delete скасовано.');
+      await replyAdminWarning(ctx, 'Цей запис ще активний. Видалення назавжди скасовано.');
       await renderAdminBookingCard(ctx, target);
       return;
     }
@@ -7739,14 +7763,14 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     });
 
     if (!deleted) {
-      await ctx.reply('ℹ️ Запис не видалено. Можливо, він уже був видалений або змінений.');
+      await replyAdminInfo(ctx, 'Запис не видалено. Можливо, його вже було видалено або змінено.');
       await renderRecordsFallback(ctx, true);
       return;
     }
 
     resetRecordsActionDrafts(state);
     state.recordsOpenedAppointmentId = null;
-    await ctx.reply('✅ Запис видалено назавжди.');
+    await replyAdminSuccess(ctx, 'Запис видалено назавжди.');
 
     if (state.recordsFeed) {
       await renderRecordsCategoryWithOffsetFallback(
@@ -7774,7 +7798,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       await renderRecordsFallback(ctx, true);
       return;
     }
-    await ctx.reply('↩️ Дію скасовано.\n\nЖодних змін не внесено.');
+    await replyAdminInfo(ctx, 'Дію скасовано.\n\nЖодних змін не внесено.');
     await renderAdminBookingCard(ctx, item);
   });
 
@@ -7787,7 +7811,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     if (feed.total <= 0) {
-      await ctx.reply('ℹ️ Список скасованих записів уже порожній.');
+      await replyAdminInfo(ctx, 'Список скасованих записів уже порожній.');
       await renderRecordsCategoryStub(ctx, 'canceled', 0, true);
       return;
     }
@@ -7810,14 +7834,14 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     resetRecordsActionDrafts(state);
     state.recordsOpenedAppointmentId = null;
-    await ctx.reply(`✅ Скасовані записи очищено. Видалено: ${deletedCount}.`);
+    await replyAdminSuccess(ctx, `Скасовані записи очищено. Видалено: ${deletedCount}.`);
     await renderRecordsCategoryWithOffsetFallback(ctx, 'canceled', 0, true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.RECORDS_CLEAR_CANCELED_CANCEL, async (ctx) => {
     await ctx.answerCbQuery();
     const feed = getSceneState(ctx).recordsFeed;
-    await ctx.reply('↩️ Дію скасовано.\n\nЖодних змін не внесено.');
+    await replyAdminInfo(ctx, 'Дію скасовано.\n\nЖодних змін не внесено.');
     if (feed?.category === 'canceled') {
       await renderRecordsCategoryStub(ctx, 'canceled', feed.offset, true);
       return;
@@ -7845,7 +7869,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       });
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(`⚠️ ${error.message}`);
+        await replyAdminWarning(ctx, error.message);
         const current = await resolveAdminRecordById(state, appointmentId);
         if (current) {
           await renderAdminBookingCard(ctx, current);
@@ -7858,7 +7882,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     await notifyAdminCanceledBooking(canceled);
-    await ctx.reply('✅ Запис скасовано. Клієнту надіслано сповіщення.');
+    await replyAdminSuccess(ctx, 'Запис скасовано. Клієнту надіслано сповіщення.');
     resetRecordsActionDrafts(state);
     await renderRecordsFallback(ctx, true);
   });
@@ -7874,7 +7898,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     if (item.status !== 'pending' && item.status !== 'confirmed') {
-      await ctx.reply('⚠️ Цей запис уже не можна перенести.');
+      await replyAdminWarning(ctx, 'Цей запис уже не можна перенести.');
       await renderAdminBookingCard(ctx, item);
       return;
     }
@@ -7997,7 +8021,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       });
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(`⚠️ ${error.message}`);
+        await replyAdminWarning(ctx, error.message);
         await renderRescheduleTimeStep(ctx, false);
         return;
       }
@@ -8005,7 +8029,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     await notifyAdminRescheduledBooking(result);
-    await ctx.reply('✅ Запис успішно перенесено. Клієнту надіслано сповіщення.');
+    await replyAdminSuccess(ctx, 'Запис успішно перенесено. Клієнту надіслано сповіщення.');
     state.recordsRescheduleDraft = null;
     await renderRecordsFallback(ctx, true);
   });
@@ -8021,7 +8045,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     if (item.status !== 'pending' && item.status !== 'confirmed') {
-      await ctx.reply('⚠️ Для цього запису змінити майстра вже не можна.');
+      await replyAdminWarning(ctx, 'Для цього запису змінити майстра вже не можна.');
       await renderAdminBookingCard(ctx, item);
       return;
     }
@@ -8114,7 +8138,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       });
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(`⚠️ ${error.message}`);
+        await replyAdminWarning(ctx, error.message);
         await renderChangeMasterSelectStep(ctx, false);
         return;
       }
@@ -8122,7 +8146,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     await notifyAdminMasterChangedBooking(previous, updated);
-    await ctx.reply('✅ Майстра успішно змінено. Клієнту надіслано сповіщення.');
+    await replyAdminSuccess(ctx, 'Майстра успішно змінено. Клієнту надіслано сповіщення.');
     state.recordsChangeMasterDraft = null;
     await renderAdminBookingCard(ctx, updated);
   });

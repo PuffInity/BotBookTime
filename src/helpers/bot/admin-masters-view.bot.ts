@@ -432,8 +432,13 @@ export function createAdminMasterCreateScheduleInputKeyboard(
   weekday: number,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('🚫 Вихідний', makeAdminPanelMastersCreateScheduleDayOffAction(weekday))],
-    [Markup.button.callback('⬅️ До графіку', ADMIN_PANEL_ACTION.MASTERS_CREATE_CONTINUE)],
+    [
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_MARK_DAY_OFF,
+        makeAdminPanelMastersCreateScheduleDayOffAction(weekday),
+      ),
+    ],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_BACK_TO_SCHEDULE, ADMIN_PANEL_ACTION.MASTERS_CREATE_CONTINUE)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_CANCEL, ADMIN_PANEL_ACTION.MASTERS_CREATE_CANCEL)],
   ]);
 }
@@ -502,7 +507,7 @@ export function formatAdminMasterCreateConfirmText(data: AdminMasterCreateConfir
 export function createAdminMasterCreateConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_CONFIRM, ADMIN_PANEL_ACTION.MASTERS_CREATE_CONFIRM)],
-    [Markup.button.callback('⬅️ До графіку', ADMIN_PANEL_ACTION.MASTERS_CREATE_CONTINUE)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_BACK_TO_SCHEDULE, ADMIN_PANEL_ACTION.MASTERS_CREATE_CONTINUE)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_CANCEL, ADMIN_PANEL_ACTION.MASTERS_CREATE_CANCEL)],
   ]);
 }

@@ -339,7 +339,7 @@ export function createAdminBookingDetailsCardKeyboard(
 }
 
 /**
- * @summary Текст підтвердження hard-delete запису.
+ * @summary Текст підтвердження видалення запису назавжди.
  */
 export function formatAdminHardDeleteBookingConfirmText(item: AdminBookingItem): string {
   return (
@@ -356,7 +356,7 @@ export function formatAdminHardDeleteBookingConfirmText(item: AdminBookingItem):
 }
 
 /**
- * @summary Клавіатура підтвердження hard-delete.
+ * @summary Клавіатура підтвердження видалення запису назавжди.
  */
 export function createAdminHardDeleteBookingConfirmKeyboard(
   item: AdminBookingItem,

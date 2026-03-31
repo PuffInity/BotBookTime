@@ -146,7 +146,7 @@ export function createAdminScheduleConfigureDayKeyboard(): ReturnType<typeof Mar
       Markup.button.callback('Сб', makeAdminPanelScheduleConfigureDayWeekdayAction(6)),
     ],
     [Markup.button.callback('Нд', makeAdminPanelScheduleConfigureDayWeekdayAction(7))],
-    [Markup.button.callback('🔄 Оновити', ADMIN_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_REFRESH, ADMIN_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK, ADMIN_PANEL_ACTION.SCHEDULE_BACK)],
   ]);
@@ -210,8 +210,13 @@ export function createAdminScheduleConfigureDayInputKeyboard(
   weekday: number,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('🚫 Зробити вихідним', makeAdminPanelScheduleConfigureDayOffAction(weekday))],
-    [Markup.button.callback('❌ Скасувати дію', ADMIN_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY)],
+    [
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_MARK_DAY_OFF,
+        makeAdminPanelScheduleConfigureDayOffAction(weekday),
+      ),
+    ],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CANCEL_ACTION, ADMIN_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
   ]);
 }
@@ -695,7 +700,12 @@ export function createAdminScheduleTemporaryDayInputKeyboard(
   weekday: number,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('🚫 Зробити вихідним', makeAdminPanelScheduleTemporaryDayOffAction(weekday))],
+    [
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_MARK_DAY_OFF,
+        makeAdminPanelScheduleTemporaryDayOffAction(weekday),
+      ),
+    ],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CANCEL_ACTION, ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_CANCEL)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_SECTION, ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_OPEN)],
   ]);

@@ -626,8 +626,14 @@ export function createAdminSettingsNotificationsKeyboard(
       ),
     ],
     [
-      Markup.button.callback('🔄 Увімкнути всі', ADMIN_PANEL_ACTION.SETTINGS_NOTIFICATIONS_ALL_ON),
-      Markup.button.callback('🔕 Вимкнути всі', ADMIN_PANEL_ACTION.SETTINGS_NOTIFICATIONS_ALL_OFF),
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_NOTIFICATIONS_ALL_ON,
+        ADMIN_PANEL_ACTION.SETTINGS_NOTIFICATIONS_ALL_ON,
+      ),
+      Markup.button.callback(
+        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_NOTIFICATIONS_ALL_OFF,
+        ADMIN_PANEL_ACTION.SETTINGS_NOTIFICATIONS_ALL_OFF,
+      ),
     ],
     [
       Markup.button.callback(
