@@ -42,7 +42,7 @@ function formatStepsBlock(details: ServicesCatalogDetails): string {
   }
 
   const lines = details.steps.map(
-    (step) => `🔹 ${step.stepNo}. ${step.title}\n${step.description}`,
+    (step) => `🔹 ${step.stepNo}. ${step.title} (≈${step.durationMinutes} хв)\n${step.description}`,
   );
   return `✨ Як проходить процедура\n${lines.join('\n\n')}`;
 }
@@ -132,4 +132,3 @@ export function createServiceDetailsKeyboard(): ReturnType<typeof Markup.inlineK
     ],
   ]);
 }
-

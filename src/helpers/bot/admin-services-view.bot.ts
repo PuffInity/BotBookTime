@@ -44,7 +44,7 @@ function formatSteps(details: ServicesCatalogDetails): string {
   }
 
   return details.steps
-    .map((step) => `• ${step.stepNo}. ${step.title}`)
+    .map((step) => `• ${step.stepNo}. ${step.title} (≈${step.durationMinutes} хв)`)
     .join('\n');
 }
 
@@ -189,6 +189,7 @@ export function createAdminServiceEditMenuKeyboard(): ReturnType<typeof Markup.i
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_RESULT, ADMIN_PANEL_ACTION.SERVICES_EDIT_RESULT_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_STEP, ADMIN_PANEL_ACTION.SERVICES_EDIT_STEP_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_STEP_DESCRIPTION, ADMIN_PANEL_ACTION.SERVICES_EDIT_STEP_DESCRIPTION_OPEN)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_STEP_DURATION, ADMIN_PANEL_ACTION.SERVICES_EDIT_STEP_DURATION_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_GUARANTEE, ADMIN_PANEL_ACTION.SERVICES_EDIT_GUARANTEE_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_DELETE, ADMIN_PANEL_ACTION.SERVICES_EDIT_DELETE_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_BACK, ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
@@ -204,6 +205,7 @@ type AdminServiceGuaranteeOption = {
 
 type AdminServiceStepOption = {
   stepNo: number;
+  durationMinutes: number;
   title: string;
 };
 
@@ -257,14 +259,22 @@ export function createAdminServiceEditGuaranteeSelectKeyboard(
 export function formatAdminServiceEditStepSelectText(
   serviceName: string,
   options: AdminServiceStepOption[],
+  mode: 'title' | 'description' | 'duration' = 'title',
 ): string {
+  const modeText =
+    mode === 'description'
+      ? 'Оберіть етап, опис якого потрібно змінити:'
+      : mode === 'duration'
+      ? 'Оберіть етап, час якого потрібно змінити:'
+      : 'Оберіть етап, назву якого потрібно змінити:';
+
   return (
     '🧩 Редагування етапу послуги\n' +
     '━━━━━━━━━━━━━━\n\n' +
     `💼 Послуга: ${serviceName}\n\n` +
-    'Оберіть етап, назву якого потрібно змінити:\n\n' +
+    `${modeText}\n\n` +
     options
-      .map((item, index) => `${getNumberBadge(index)} Етап №${item.stepNo} — ${compactText(item.title, 54)}`)
+      .map((item, index) => `${getNumberBadge(index)} Етап №${item.stepNo} (${item.durationMinutes} хв) — ${compactText(item.title, 54)}`)
       .join('\n')
   );
 }
@@ -359,6 +369,43 @@ export function formatAdminServiceEditStepDescriptionConfirmText(
     `💼 Послуга: ${serviceName}\n` +
     `🧩 Етап №${stepNo}\n\n` +
     `Новий опис:\n${nextStepDescription}\n\n` +
+    'Підтвердьте збереження змін.'
+  );
+}
+
+/**
+ * @summary Текст кроку вводу нового часу етапу.
+ */
+export function formatAdminServiceEditStepDurationInputText(
+  serviceName: string,
+  stepNo: number,
+  currentStepDurationMinutes: number,
+): string {
+  return (
+    '✏️ Оновлення часу етапу\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n` +
+    `🧩 Етап №${stepNo}\n\n` +
+    `Поточний час етапу: ${currentStepDurationMinutes} хв\n\n` +
+    'Надішліть нову тривалість етапу в хвилинах.\n' +
+    'Діапазон: 1..720.'
+  );
+}
+
+/**
+ * @summary Текст підтвердження оновлення часу етапу.
+ */
+export function formatAdminServiceEditStepDurationConfirmText(
+  serviceName: string,
+  stepNo: number,
+  nextStepDurationMinutes: number,
+): string {
+  return (
+    '✅ Підтвердження оновлення\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n` +
+    `🧩 Етап №${stepNo}\n\n` +
+    `Новий час етапу: ${nextStepDurationMinutes} хв\n\n` +
     'Підтвердьте збереження змін.'
   );
 }

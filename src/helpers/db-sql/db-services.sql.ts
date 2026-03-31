@@ -20,6 +20,7 @@ export const SERVICES_SELECT_COLUMNS = `
 export const SERVICE_STEPS_SELECT_COLUMNS = `
   service_id,
   step_no,
+  duration_minutes,
   title,
   description,
   created_at,
@@ -70,4 +71,3 @@ export const SQL_LIST_SERVICE_GUARANTEES_BY_SERVICE_ID = `
   WHERE service_id = $1::bigint
   ORDER BY guarantee_no ASC
 `;
-

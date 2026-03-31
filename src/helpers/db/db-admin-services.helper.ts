@@ -16,6 +16,7 @@ import type {
   UpdateAdminServiceNameInput,
   UpdateAdminServiceResultDescriptionInput,
   UpdateAdminServiceStepDescriptionInput,
+  UpdateAdminServiceStepDurationInput,
   UpdateAdminServiceStepTitleInput,
 } from '../../types/db-helpers/db-admin-services.types.js';
 import { executeOne, queryOne, withTransaction } from '../db.helper.js';
@@ -33,6 +34,7 @@ import {
   SQL_UPDATE_ADMIN_SERVICE_NAME,
   SQL_UPDATE_ADMIN_SERVICE_RESULT_DESCRIPTION,
   SQL_UPDATE_ADMIN_SERVICE_STEP_DESCRIPTION,
+  SQL_UPDATE_ADMIN_SERVICE_STEP_DURATION,
   SQL_UPDATE_ADMIN_SERVICE_STEP_TITLE,
 } from '../db-sql/db-admin-services.sql.js';
 
@@ -143,6 +145,17 @@ function normalizeServiceStepDescription(value: string): string {
   }
   if (normalized.length > 500) {
     throw new ValidationError('Опис етапу занадто довгий (максимум 500 символів)');
+  }
+  return normalized;
+}
+
+function normalizeServiceStepDurationMinutes(value: number): number {
+  if (!Number.isFinite(value)) {
+    throw new ValidationError('Тривалість етапу має бути числом');
+  }
+  const normalized = Math.trunc(value);
+  if (normalized < 1 || normalized > 720) {
+    throw new ValidationError('Тривалість етапу має бути в діапазоні 1..720 хв');
   }
   return normalized;
 }
@@ -309,6 +322,38 @@ export async function updateAdminServiceStepDescription(
       action: 'Failed to update service step description from admin panel',
       error,
       meta: { studioId, serviceId, stepNo },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Оновлює тривалість етапу послуги з адмін-панелі.
+ */
+export async function updateAdminServiceStepDuration(
+  input: UpdateAdminServiceStepDurationInput,
+): Promise<ServiceStepsEntity> {
+  const studioId = normalizePositiveBigintId(input.studioId, 'studioId');
+  const serviceId = normalizePositiveBigintId(input.serviceId, 'serviceId');
+  const stepNo = normalizeStepNo(input.stepNo);
+  const durationMinutes = normalizeServiceStepDurationMinutes(input.durationMinutes);
+
+  try {
+    return await withTransaction(async (client) =>
+      executeOne<ServiceStepsRow, ServiceStepsEntity>(
+        SQL_UPDATE_ADMIN_SERVICE_STEP_DURATION,
+        [serviceId, stepNo, durationMinutes, studioId],
+        serviceStepsRowToEntity,
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-admin-services.helper',
+      action: 'Failed to update service step duration from admin panel',
+      error,
+      meta: { studioId, serviceId, stepNo, durationMinutes },
     });
     throw error;
   }

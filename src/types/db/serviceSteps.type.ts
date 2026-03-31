@@ -1,6 +1,7 @@
 export type ServiceStepsRow = {
     service_id: string,
     step_no: number,
+    duration_minutes: number,
     title: string,
     description: string,
     created_at: Date,
@@ -10,6 +11,7 @@ export type ServiceStepsRow = {
 export type ServiceStepsEntity = {
     serviceId: string,
     stepNo: number,
+    durationMinutes: number,
     title: string,
     description: string,
     createdAt: Date,
@@ -19,6 +21,7 @@ export type ServiceStepsEntity = {
 export type ServiceStepsInsert = {
     serviceId: string,
     stepNo: number,
+    durationMinutes?: number,
     title: string,
     description: string,
 }
@@ -26,6 +29,7 @@ export type ServiceStepsInsert = {
 export type ServiceStepsUpdate = Partial<{
     serviceId: string,
     stepNo: number,
+    durationMinutes: number,
     title: string,
     description: string,
 }>

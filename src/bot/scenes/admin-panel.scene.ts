@@ -174,6 +174,8 @@ import {
   formatAdminServiceEditStepConfirmText,
   formatAdminServiceEditStepDescriptionConfirmText,
   formatAdminServiceEditStepDescriptionInputText,
+  formatAdminServiceEditStepDurationConfirmText,
+  formatAdminServiceEditStepDurationInputText,
   formatAdminServiceEditStepInputText,
   formatAdminServiceEditStepSelectText,
   formatAdminServiceDeleteConfirmText,
@@ -300,6 +302,7 @@ import {
   updateAdminServiceBasePrice,
   updateAdminServiceGuaranteeText,
   updateAdminServiceStepDescription,
+  updateAdminServiceStepDuration,
   updateAdminServiceStepTitle,
   updateAdminServiceName,
   updateAdminServiceDuration,
@@ -438,6 +441,7 @@ type AdminServiceGuaranteeDraftOption = {
 
 type AdminServiceStepDraftOption = {
   stepNo: number;
+  durationMinutes: number;
   title: string;
   description: string;
 };
@@ -453,6 +457,7 @@ type AdminServiceEditDraft = {
     | 'result_description'
     | 'step_title'
     | 'step_description'
+    | 'step_duration_minutes'
     | 'guarantee_text'
     | 'deactivate';
   mode: 'awaiting_text' | 'awaiting_confirm' | 'selecting_guarantee' | 'selecting_step';
@@ -464,6 +469,7 @@ type AdminServiceEditDraft = {
   currentStepNo: number | null;
   currentStepTitle: string | null;
   currentStepDescription: string | null;
+  currentStepDurationMinutes: number | null;
   stepOptions: AdminServiceStepDraftOption[];
   currentGuaranteeNo: number | null;
   currentGuaranteeText: string | null;
@@ -766,6 +772,25 @@ function normalizeServiceDurationInput(value: string): number {
   const duration = Math.trunc(minutes);
   if (duration < 5 || duration > 720) {
     throw new ValidationError('Тривалість послуги має бути в діапазоні 5..720 хв');
+  }
+
+  return duration;
+}
+
+function normalizeServiceStepDurationInput(value: string): number {
+  const normalized = value.trim();
+  if (!/^\d+$/.test(normalized)) {
+    throw new ValidationError('Тривалість етапу має бути цілим числом у хвилинах');
+  }
+
+  const minutes = Number(normalized);
+  if (!Number.isFinite(minutes)) {
+    throw new ValidationError('Тривалість етапу має бути числом');
+  }
+
+  const duration = Math.trunc(minutes);
+  if (duration < 1 || duration > 720) {
+    throw new ValidationError('Тривалість етапу має бути в діапазоні 1..720 хв');
   }
 
   return duration;
@@ -1792,6 +1817,7 @@ async function renderAdminServiceEditMenu(
       currentStepNo: null,
       currentStepTitle: null,
       currentStepDescription: null,
+      currentStepDurationMinutes: null,
       stepOptions: [],
       currentGuaranteeNo: null,
       currentGuaranteeText: null,
@@ -1809,6 +1835,7 @@ async function renderAdminServiceEditMenu(
     state.servicesEditDraft.currentStepNo = null;
     state.servicesEditDraft.currentStepTitle = null;
     state.servicesEditDraft.currentStepDescription = null;
+    state.servicesEditDraft.currentStepDurationMinutes = null;
     state.servicesEditDraft.stepOptions = [];
     state.servicesEditDraft.currentGuaranteeNo = null;
     state.servicesEditDraft.currentGuaranteeText = null;
@@ -1822,6 +1849,8 @@ async function renderAdminServiceEditMenu(
         ? state.servicesEditDraft.currentStepTitle
         : state.servicesEditDraft.field === 'step_description'
         ? state.servicesEditDraft.currentStepDescription
+        : state.servicesEditDraft.field === 'step_duration_minutes'
+        ? state.servicesEditDraft.currentStepDurationMinutes
         : state.servicesEditDraft.field === 'guarantee_text'
         ? state.servicesEditDraft.currentGuaranteeText
         : state.servicesEditDraft.field === 'duration_minutes'
@@ -3262,6 +3291,21 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               ),
               createAdminServiceEditConfirmKeyboard(),
             );
+          } else if (servicesEditDraft.field === 'step_duration_minutes') {
+            const nextStepDuration = normalizeServiceStepDurationInput(text);
+            if (!servicesEditDraft.currentStepNo) {
+              throw new ValidationError('Спочатку оберіть етап зі списку');
+            }
+            servicesEditDraft.mode = 'awaiting_confirm';
+            servicesEditDraft.value = nextStepDuration;
+            await ctx.reply(
+              formatAdminServiceEditStepDurationConfirmText(
+                servicesEditDraft.serviceName,
+                servicesEditDraft.currentStepNo,
+                nextStepDuration,
+              ),
+              createAdminServiceEditConfirmKeyboard(),
+            );
           } else if (servicesEditDraft.field === 'guarantee_text') {
             const nextGuaranteeText = normalizeServiceGuaranteeTextInput(text);
             if (!servicesEditDraft.currentGuaranteeNo) {
@@ -3306,6 +3350,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
                     ? 'Виникла помилка перевірки назви етапу'
                     : servicesEditDraft.field === 'step_description'
                     ? 'Виникла помилка перевірки опису етапу'
+                    : servicesEditDraft.field === 'step_duration_minutes'
+                    ? 'Виникла помилка перевірки часу етапу'
                     : servicesEditDraft.field === 'guarantee_text'
                     ? 'Виникла помилка перевірки тексту гарантії'
                     : 'Виникла помилка перевірки тексту результату',
@@ -4605,6 +4651,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.currentStepNo = null;
     draft.currentStepTitle = null;
     draft.currentStepDescription = null;
+    draft.currentStepDurationMinutes = null;
     draft.stepOptions = [];
     draft.currentGuaranteeNo = null;
     draft.currentGuaranteeText = null;
@@ -4636,6 +4683,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.currentStepNo = null;
     draft.currentStepTitle = null;
     draft.currentStepDescription = null;
+    draft.currentStepDurationMinutes = null;
     draft.stepOptions = [];
     draft.currentGuaranteeNo = null;
     draft.currentGuaranteeText = null;
@@ -4667,6 +4715,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.currentStepNo = null;
     draft.currentStepTitle = null;
     draft.currentStepDescription = null;
+    draft.currentStepDurationMinutes = null;
     draft.stepOptions = [];
     draft.currentGuaranteeNo = null;
     draft.currentGuaranteeText = null;
@@ -4701,6 +4750,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.currentStepNo = null;
     draft.currentStepTitle = null;
     draft.currentStepDescription = null;
+    draft.currentStepDurationMinutes = null;
     draft.stepOptions = [];
     draft.currentGuaranteeNo = null;
     draft.currentGuaranteeText = null;
@@ -4736,6 +4786,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.currentStepNo = null;
     draft.currentStepTitle = null;
     draft.currentStepDescription = null;
+    draft.currentStepDurationMinutes = null;
     draft.stepOptions = [];
     draft.currentGuaranteeNo = null;
     draft.currentGuaranteeText = null;
@@ -4778,8 +4829,10 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.currentStepNo = null;
     draft.currentStepTitle = null;
     draft.currentStepDescription = null;
+    draft.currentStepDurationMinutes = null;
     draft.stepOptions = details.steps.map((item) => ({
       stepNo: item.stepNo,
+      durationMinutes: item.durationMinutes,
       title: item.title,
       description: item.description,
     }));
@@ -4790,7 +4843,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.value = null;
 
     await ctx.reply(
-      formatAdminServiceEditStepSelectText(draft.serviceName, draft.stepOptions),
+      formatAdminServiceEditStepSelectText(draft.serviceName, draft.stepOptions, 'title'),
       createAdminServiceEditStepSelectKeyboard(draft.stepOptions),
     );
   });
@@ -4825,8 +4878,10 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.currentStepNo = null;
     draft.currentStepTitle = null;
     draft.currentStepDescription = null;
+    draft.currentStepDurationMinutes = null;
     draft.stepOptions = details.steps.map((item) => ({
       stepNo: item.stepNo,
+      durationMinutes: item.durationMinutes,
       title: item.title,
       description: item.description,
     }));
@@ -4837,7 +4892,56 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.value = null;
 
     await ctx.reply(
-      formatAdminServiceEditStepSelectText(draft.serviceName, draft.stepOptions),
+      formatAdminServiceEditStepSelectText(draft.serviceName, draft.stepOptions, 'description'),
+      createAdminServiceEditStepSelectKeyboard(draft.stepOptions),
+    );
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SERVICES_EDIT_STEP_DURATION_OPEN, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.servicesEditDraft;
+    const studioId = state.access?.studioId;
+
+    if (!draft || !studioId) {
+      const fallbackServiceId = state.servicesSelectedServiceId;
+      if (!fallbackServiceId) {
+        await renderAdminServicesCatalog(ctx, true);
+        return;
+      }
+      await renderAdminServiceEditMenu(ctx, fallbackServiceId, true);
+      return;
+    }
+
+    const details = await getServiceCatalogDetailsById({ serviceId: draft.serviceId, studioId });
+    if (!details || details.steps.length === 0) {
+      await ctx.reply(
+        '⚠️ Для цієї послуги не знайдено етапів. Спочатку додайте етапи у БД.',
+        createAdminServiceEditMenuKeyboard(),
+      );
+      return;
+    }
+
+    draft.field = 'step_duration_minutes';
+    draft.mode = 'selecting_step';
+    draft.currentStepNo = null;
+    draft.currentStepTitle = null;
+    draft.currentStepDescription = null;
+    draft.currentStepDurationMinutes = null;
+    draft.stepOptions = details.steps.map((item) => ({
+      stepNo: item.stepNo,
+      durationMinutes: item.durationMinutes,
+      title: item.title,
+      description: item.description,
+    }));
+    draft.currentGuaranteeNo = null;
+    draft.currentGuaranteeText = null;
+    draft.guaranteeOptions = [];
+    draft.currentValue = null;
+    draft.value = null;
+
+    await ctx.reply(
+      formatAdminServiceEditStepSelectText(draft.serviceName, draft.stepOptions, 'duration'),
       createAdminServiceEditStepSelectKeyboard(draft.stepOptions),
     );
   });
@@ -4873,12 +4977,30 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     const editingStepDescription = draft.field === 'step_description';
+    const editingStepDuration = draft.field === 'step_duration_minutes';
     draft.mode = 'awaiting_text';
     draft.currentStepNo = selectedStep.stepNo;
     draft.currentStepTitle = selectedStep.title;
     draft.currentStepDescription = selectedStep.description;
-    draft.currentValue = editingStepDescription ? selectedStep.description : selectedStep.title;
+    draft.currentStepDurationMinutes = selectedStep.durationMinutes;
+    draft.currentValue = editingStepDescription
+      ? selectedStep.description
+      : editingStepDuration
+      ? selectedStep.durationMinutes
+      : selectedStep.title;
     draft.value = null;
+
+    if (editingStepDuration) {
+      await ctx.reply(
+        formatAdminServiceEditStepDurationInputText(
+          draft.serviceName,
+          selectedStep.stepNo,
+          selectedStep.durationMinutes,
+        ),
+        createAdminServiceEditInputKeyboard(),
+      );
+      return;
+    }
 
     if (editingStepDescription) {
       await ctx.reply(
@@ -4932,6 +5054,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.currentStepNo = null;
     draft.currentStepTitle = null;
     draft.currentStepDescription = null;
+    draft.currentStepDurationMinutes = null;
     draft.stepOptions = [];
     draft.currentGuaranteeNo = null;
     draft.currentGuaranteeText = null;
@@ -5014,6 +5137,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.currentStepNo = null;
     draft.currentStepTitle = null;
     draft.currentStepDescription = null;
+    draft.currentStepDurationMinutes = null;
     draft.stepOptions = [];
     draft.currentGuaranteeNo = null;
     draft.currentGuaranteeText = null;
@@ -5126,6 +5250,24 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         return;
       }
 
+      if (draft.field === 'step_duration_minutes') {
+        await updateAdminServiceStepDuration({
+          studioId,
+          serviceId: draft.serviceId,
+          stepNo: draft.currentStepNo ?? 0,
+          durationMinutes:
+            typeof draft.value === 'number'
+              ? draft.value
+              : normalizeServiceStepDurationInput(String(draft.value)),
+        });
+        state.servicesEditDraft = null;
+        await ctx.reply(
+          `✅ Час етапу №${draft.currentStepNo ?? '-'} для послуги "${draft.serviceName}" успішно оновлено.`,
+        );
+        await renderAdminServiceDetails(ctx, draft.serviceId, false);
+        return;
+      }
+
       const updated =
         draft.field === 'name'
           ? await updateAdminServiceName({
@@ -5193,7 +5335,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               ? 'awaiting_text'
               : draft.field === 'guarantee_text'
               ? 'selecting_guarantee'
-              : draft.field === 'step_title' || draft.field === 'step_description'
+              : draft.field === 'step_title' ||
+                draft.field === 'step_description' ||
+                draft.field === 'step_duration_minutes'
               ? 'selecting_step'
               : 'awaiting_text',
           value: draft.field === 'deactivate' ? 'deactivate' : null,
