@@ -188,6 +188,7 @@ export function createAdminServiceEditMenuKeyboard(): ReturnType<typeof Markup.i
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_DESCRIPTION, ADMIN_PANEL_ACTION.SERVICES_EDIT_DESCRIPTION_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_RESULT, ADMIN_PANEL_ACTION.SERVICES_EDIT_RESULT_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_STEP, ADMIN_PANEL_ACTION.SERVICES_EDIT_STEP_OPEN)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_STEP_DESCRIPTION, ADMIN_PANEL_ACTION.SERVICES_EDIT_STEP_DESCRIPTION_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_GUARANTEE, ADMIN_PANEL_ACTION.SERVICES_EDIT_GUARANTEE_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_DELETE, ADMIN_PANEL_ACTION.SERVICES_EDIT_DELETE_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_BACK, ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
@@ -321,6 +322,43 @@ export function formatAdminServiceEditStepConfirmText(
     `💼 Послуга: ${serviceName}\n` +
     `🧩 Етап №${stepNo}\n\n` +
     `Нова назва:\n${nextStepTitle}\n\n` +
+    'Підтвердьте збереження змін.'
+  );
+}
+
+/**
+ * @summary Текст кроку вводу нового опису етапу.
+ */
+export function formatAdminServiceEditStepDescriptionInputText(
+  serviceName: string,
+  stepNo: number,
+  currentStepDescription: string,
+): string {
+  return (
+    '✏️ Оновлення опису етапу\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n` +
+    `🧩 Етап №${stepNo}\n\n` +
+    `Поточний опис:\n${currentStepDescription}\n\n` +
+    'Надішліть новий опис етапу одним повідомленням.\n' +
+    'Мінімум 10 символів, максимум 500 символів.'
+  );
+}
+
+/**
+ * @summary Текст підтвердження оновлення опису етапу.
+ */
+export function formatAdminServiceEditStepDescriptionConfirmText(
+  serviceName: string,
+  stepNo: number,
+  nextStepDescription: string,
+): string {
+  return (
+    '✅ Підтвердження оновлення\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n` +
+    `🧩 Етап №${stepNo}\n\n` +
+    `Новий опис:\n${nextStepDescription}\n\n` +
     'Підтвердьте збереження змін.'
   );
 }

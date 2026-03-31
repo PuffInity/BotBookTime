@@ -110,3 +110,19 @@ export const SQL_UPDATE_ADMIN_SERVICE_STEP_TITLE = `
     )
   RETURNING ss.service_id, ss.step_no, ss.title, ss.description, ss.created_at, ss.updated_at
 `;
+
+export const SQL_UPDATE_ADMIN_SERVICE_STEP_DESCRIPTION = `
+  UPDATE service_steps ss
+  SET
+    description = $3,
+    updated_at = NOW()
+  WHERE ss.service_id = $1::bigint
+    AND ss.step_no = $2::smallint
+    AND EXISTS (
+      SELECT 1
+      FROM services s
+      WHERE s.id = ss.service_id
+        AND s.studio_id = $4::bigint
+    )
+  RETURNING ss.service_id, ss.step_no, ss.title, ss.description, ss.created_at, ss.updated_at
+`;

@@ -15,6 +15,7 @@ import type {
   UpdateAdminServiceGuaranteeTextInput,
   UpdateAdminServiceNameInput,
   UpdateAdminServiceResultDescriptionInput,
+  UpdateAdminServiceStepDescriptionInput,
   UpdateAdminServiceStepTitleInput,
 } from '../../types/db-helpers/db-admin-services.types.js';
 import { executeOne, queryOne, withTransaction } from '../db.helper.js';
@@ -31,6 +32,7 @@ import {
   SQL_UPDATE_ADMIN_SERVICE_GUARANTEE_TEXT,
   SQL_UPDATE_ADMIN_SERVICE_NAME,
   SQL_UPDATE_ADMIN_SERVICE_RESULT_DESCRIPTION,
+  SQL_UPDATE_ADMIN_SERVICE_STEP_DESCRIPTION,
   SQL_UPDATE_ADMIN_SERVICE_STEP_TITLE,
 } from '../db-sql/db-admin-services.sql.js';
 
@@ -130,6 +132,17 @@ function normalizeServiceStepTitle(value: string): string {
   }
   if (normalized.length > 120) {
     throw new ValidationError('Назва етапу занадто довга (максимум 120 символів)');
+  }
+  return normalized;
+}
+
+function normalizeServiceStepDescription(value: string): string {
+  const normalized = value.trim().replace(/\s+/g, ' ');
+  if (normalized.length < 10) {
+    throw new ValidationError('Опис етапу має містити щонайменше 10 символів');
+  }
+  if (normalized.length > 500) {
+    throw new ValidationError('Опис етапу занадто довгий (максимум 500 символів)');
   }
   return normalized;
 }
@@ -262,6 +275,38 @@ export async function updateAdminServiceStepTitle(
       logger: loggerDb,
       scope: 'db-admin-services.helper',
       action: 'Failed to update service step title from admin panel',
+      error,
+      meta: { studioId, serviceId, stepNo },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Оновлює опис етапу послуги з адмін-панелі.
+ */
+export async function updateAdminServiceStepDescription(
+  input: UpdateAdminServiceStepDescriptionInput,
+): Promise<ServiceStepsEntity> {
+  const studioId = normalizePositiveBigintId(input.studioId, 'studioId');
+  const serviceId = normalizePositiveBigintId(input.serviceId, 'serviceId');
+  const stepNo = normalizeStepNo(input.stepNo);
+  const description = normalizeServiceStepDescription(input.description);
+
+  try {
+    return await withTransaction(async (client) =>
+      executeOne<ServiceStepsRow, ServiceStepsEntity>(
+        SQL_UPDATE_ADMIN_SERVICE_STEP_DESCRIPTION,
+        [serviceId, stepNo, description, studioId],
+        serviceStepsRowToEntity,
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-admin-services.helper',
+      action: 'Failed to update service step description from admin panel',
       error,
       meta: { studioId, serviceId, stepNo },
     });

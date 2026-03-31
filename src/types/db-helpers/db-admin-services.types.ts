@@ -61,6 +61,13 @@ export type UpdateAdminServiceStepTitleInput = {
   title: string;
 };
 
+export type UpdateAdminServiceStepDescriptionInput = {
+  studioId: string | number;
+  serviceId: string | number;
+  stepNo: number;
+  description: string;
+};
+
 export type UpdateAdminServiceDescriptionInput = {
   studioId: string | number;
   serviceId: string | number;
