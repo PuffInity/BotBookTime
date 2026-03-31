@@ -47,6 +47,13 @@ export type DeactivateAdminServiceInput = {
   serviceId: string | number;
 };
 
+export type UpdateAdminServiceGuaranteeTextInput = {
+  studioId: string | number;
+  serviceId: string | number;
+  guaranteeNo: number;
+  guaranteeText: string;
+};
+
 export type UpdateAdminServiceDescriptionInput = {
   studioId: string | number;
   serviceId: string | number;

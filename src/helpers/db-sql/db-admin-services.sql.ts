@@ -78,3 +78,19 @@ export const SQL_DEACTIVATE_ADMIN_SERVICE = `
     AND studio_id = $2::bigint
   RETURNING id, studio_id, name, duration_minutes, base_price, currency_code, description, result_description
 `;
+
+export const SQL_UPDATE_ADMIN_SERVICE_GUARANTEE_TEXT = `
+  UPDATE service_guarantees sg
+  SET
+    guarantee_text = $3,
+    updated_at = NOW()
+  WHERE sg.service_id = $1::bigint
+    AND sg.guarantee_no = $2::smallint
+    AND EXISTS (
+      SELECT 1
+      FROM services s
+      WHERE s.id = sg.service_id
+        AND s.studio_id = $4::bigint
+    )
+  RETURNING sg.service_id, sg.guarantee_no, sg.guarantee_text, sg.valid_days, sg.created_at, sg.updated_at
+`;

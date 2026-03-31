@@ -150,6 +150,7 @@ import {
 } from '../../helpers/bot/admin-masters-view.bot.js';
 import {
   createAdminServiceEditConfirmKeyboard,
+  createAdminServiceEditGuaranteeSelectKeyboard,
   createAdminServiceDeleteConfirmKeyboard,
   createAdminServiceEditInputKeyboard,
   createAdminServiceEditMenuKeyboard,
@@ -157,6 +158,9 @@ import {
   createAdminServicesCatalogKeyboard,
   formatAdminServiceEditDescriptionConfirmText,
   formatAdminServiceEditDescriptionInputText,
+  formatAdminServiceEditGuaranteeConfirmText,
+  formatAdminServiceEditGuaranteeInputText,
+  formatAdminServiceEditGuaranteeSelectText,
   formatAdminServiceDeleteConfirmText,
   formatAdminServiceEditDurationConfirmText,
   formatAdminServiceEditDurationInputText,
@@ -207,6 +211,7 @@ import {
   ADMIN_PANEL_STATS_SERVICES_OPEN_ACTION_REGEX,
   ADMIN_PANEL_SERVICES_OPEN_ACTION_REGEX,
   ADMIN_PANEL_SERVICES_EDIT_OPEN_ACTION_REGEX,
+  ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_PICK_ACTION_REGEX,
   ADMIN_PANEL_SERVICES_OPEN_STATS_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_ACTION_REGEX,
   ADMIN_PANEL_RECORDS_CANCEL_REQUEST_ACTION_REGEX,
@@ -269,6 +274,7 @@ import {
   deactivateAdminService,
   getAdminEditableServiceById,
   updateAdminServiceBasePrice,
+  updateAdminServiceGuaranteeText,
   updateAdminServiceName,
   updateAdminServiceDuration,
   updateAdminServiceDescription,
@@ -398,16 +404,32 @@ type AdminMasterEditDraft = {
   value: string | null;
 };
 type AdminServiceSubSection = 'catalog' | 'details' | 'stats' | 'edit';
+
+type AdminServiceGuaranteeDraftOption = {
+  guaranteeNo: number;
+  guaranteeText: string;
+};
+
 type AdminServiceEditDraft = {
   serviceId: string;
   serviceName: string;
-  field: 'name' | 'duration_minutes' | 'base_price' | 'description' | 'result_description' | 'deactivate';
-  mode: 'awaiting_text' | 'awaiting_confirm';
+  field:
+    | 'name'
+    | 'duration_minutes'
+    | 'base_price'
+    | 'description'
+    | 'result_description'
+    | 'guarantee_text'
+    | 'deactivate';
+  mode: 'awaiting_text' | 'awaiting_confirm' | 'selecting_guarantee';
   currentDurationMinutes: number;
   currentBasePrice: string;
   currentCurrencyCode: string;
   currentDescription: string | null;
   currentResultDescription: string | null;
+  currentGuaranteeNo: number | null;
+  currentGuaranteeText: string | null;
+  guaranteeOptions: AdminServiceGuaranteeDraftOption[];
   currentValue: string | number | null;
   value: string | number | null;
 };
@@ -616,6 +638,17 @@ function normalizeServiceNameInput(value: string): string {
   }
   if (normalized.length > 120) {
     throw new ValidationError('Назва послуги занадто довга (максимум 120 символів)');
+  }
+  return normalized;
+}
+
+function normalizeServiceGuaranteeTextInput(value: string): string {
+  const normalized = value.trim().replace(/\s+/g, ' ');
+  if (normalized.length < 3) {
+    throw new ValidationError('Текст гарантії має містити щонайменше 3 символи');
+  }
+  if (normalized.length > 500) {
+    throw new ValidationError('Текст гарантії занадто довгий (максимум 500 символів)');
   }
   return normalized;
 }
@@ -1696,6 +1729,9 @@ async function renderAdminServiceEditMenu(
       currentCurrencyCode: service.currencyCode,
       currentDescription: service.description,
       currentResultDescription: service.resultDescription,
+      currentGuaranteeNo: null,
+      currentGuaranteeText: null,
+      guaranteeOptions: [],
       currentValue: service.name,
       value: null,
     };
@@ -1706,11 +1742,16 @@ async function renderAdminServiceEditMenu(
     state.servicesEditDraft.currentCurrencyCode = service.currencyCode;
     state.servicesEditDraft.currentDescription = service.description;
     state.servicesEditDraft.currentResultDescription = service.resultDescription;
+    state.servicesEditDraft.currentGuaranteeNo = null;
+    state.servicesEditDraft.currentGuaranteeText = null;
+    state.servicesEditDraft.guaranteeOptions = [];
     state.servicesEditDraft.currentValue =
       state.servicesEditDraft.field === 'name'
         ? service.name
         : state.servicesEditDraft.field === 'deactivate'
         ? null
+        : state.servicesEditDraft.field === 'guarantee_text'
+        ? state.servicesEditDraft.currentGuaranteeText
         : state.servicesEditDraft.field === 'duration_minutes'
         ? String(service.durationMinutes)
         : state.servicesEditDraft.field === 'base_price'
@@ -2975,6 +3016,21 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               ),
               createAdminServiceEditConfirmKeyboard(),
             );
+          } else if (servicesEditDraft.field === 'guarantee_text') {
+            const nextGuaranteeText = normalizeServiceGuaranteeTextInput(text);
+            if (!servicesEditDraft.currentGuaranteeNo) {
+              throw new ValidationError('Спочатку оберіть гарантію зі списку');
+            }
+            servicesEditDraft.mode = 'awaiting_confirm';
+            servicesEditDraft.value = nextGuaranteeText;
+            await ctx.reply(
+              formatAdminServiceEditGuaranteeConfirmText(
+                servicesEditDraft.serviceName,
+                servicesEditDraft.currentGuaranteeNo,
+                nextGuaranteeText,
+              ),
+              createAdminServiceEditConfirmKeyboard(),
+            );
           } else {
             const nextResult = normalizeServiceResultDescriptionInput(text);
             servicesEditDraft.mode = 'awaiting_confirm';
@@ -3000,6 +3056,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
                     ? 'Виникла помилка перевірки ціни послуги'
                     : servicesEditDraft.field === 'description'
                     ? 'Виникла помилка перевірки опису послуги'
+                    : servicesEditDraft.field === 'guarantee_text'
+                    ? 'Виникла помилка перевірки тексту гарантії'
                     : 'Виникла помилка перевірки тексту результату',
                 );
 
@@ -3008,6 +3066,14 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
             createAdminServiceEditInputKeyboard(),
           );
         }
+        return;
+      }
+
+      if (servicesEditDraft?.mode === 'selecting_guarantee') {
+        await ctx.reply(
+          'ℹ️ Для вибору гарантії використовуйте кнопки під повідомленням.',
+          createAdminServiceEditGuaranteeSelectKeyboard(servicesEditDraft.guaranteeOptions),
+        );
         return;
       }
 
@@ -4278,6 +4344,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     draft.field = 'result_description';
     draft.mode = 'awaiting_text';
+    draft.currentGuaranteeNo = null;
+    draft.currentGuaranteeText = null;
+    draft.guaranteeOptions = [];
     draft.currentValue = draft.currentResultDescription;
     draft.value = null;
     await ctx.reply(
@@ -4302,6 +4371,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     draft.field = 'name';
     draft.mode = 'awaiting_text';
+    draft.currentGuaranteeNo = null;
+    draft.currentGuaranteeText = null;
+    draft.guaranteeOptions = [];
     draft.currentValue = draft.serviceName;
     draft.value = null;
     await ctx.reply(
@@ -4326,6 +4398,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     draft.field = 'duration_minutes';
     draft.mode = 'awaiting_text';
+    draft.currentGuaranteeNo = null;
+    draft.currentGuaranteeText = null;
+    draft.guaranteeOptions = [];
     draft.currentValue = String(draft.currentDurationMinutes);
     draft.value = null;
     await ctx.reply(
@@ -4353,6 +4428,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     draft.field = 'base_price';
     draft.mode = 'awaiting_text';
+    draft.currentGuaranteeNo = null;
+    draft.currentGuaranteeText = null;
+    draft.guaranteeOptions = [];
     draft.currentValue = draft.currentBasePrice;
     draft.value = null;
     await ctx.reply(
@@ -4381,10 +4459,102 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     draft.field = 'description';
     draft.mode = 'awaiting_text';
+    draft.currentGuaranteeNo = null;
+    draft.currentGuaranteeText = null;
+    draft.guaranteeOptions = [];
     draft.currentValue = draft.currentDescription;
     draft.value = null;
     await ctx.reply(
       formatAdminServiceEditDescriptionInputText(draft.serviceName, draft.currentDescription),
+      createAdminServiceEditInputKeyboard(),
+    );
+  });
+
+  scene.action(ADMIN_PANEL_ACTION.SERVICES_EDIT_GUARANTEE_OPEN, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.servicesEditDraft;
+    const studioId = state.access?.studioId;
+
+    if (!draft || !studioId) {
+      const fallbackServiceId = state.servicesSelectedServiceId;
+      if (!fallbackServiceId) {
+        await renderAdminServicesCatalog(ctx, true);
+        return;
+      }
+      await renderAdminServiceEditMenu(ctx, fallbackServiceId, true);
+      return;
+    }
+
+    const details = await getServiceCatalogDetailsById({ serviceId: draft.serviceId, studioId });
+    if (!details || details.guarantees.length === 0) {
+      await ctx.reply(
+        '⚠️ Для цієї послуги не знайдено гарантій. Спочатку додайте гарантії у БД.',
+        createAdminServiceEditMenuKeyboard(),
+      );
+      return;
+    }
+
+    draft.field = 'guarantee_text';
+    draft.mode = 'selecting_guarantee';
+    draft.currentGuaranteeNo = null;
+    draft.currentGuaranteeText = null;
+    draft.guaranteeOptions = details.guarantees.map((item) => ({
+      guaranteeNo: item.guaranteeNo,
+      guaranteeText: item.guaranteeText,
+    }));
+    draft.currentValue = null;
+    draft.value = null;
+
+    await ctx.reply(
+      formatAdminServiceEditGuaranteeSelectText(draft.serviceName, draft.guaranteeOptions),
+      createAdminServiceEditGuaranteeSelectKeyboard(draft.guaranteeOptions),
+    );
+  });
+
+  scene.action(ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_PICK_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+    const state = getSceneState(ctx);
+    const draft = state.servicesEditDraft;
+    if (!draft) {
+      const fallbackServiceId = state.servicesSelectedServiceId;
+      if (!fallbackServiceId) {
+        await renderAdminServicesCatalog(ctx, true);
+        return;
+      }
+      await renderAdminServiceEditMenu(ctx, fallbackServiceId, true);
+      return;
+    }
+
+    const guaranteeNo = Number(
+      parseNumericIdFromAction(
+        ctx,
+        ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_PICK_ACTION_REGEX,
+        'номер гарантії',
+      ),
+    );
+    const selectedGuarantee = draft.guaranteeOptions.find((item) => item.guaranteeNo === guaranteeNo);
+    if (!selectedGuarantee) {
+      await ctx.reply(
+        '⚠️ Обрану гарантію не знайдено. Спробуйте ще раз.',
+        createAdminServiceEditGuaranteeSelectKeyboard(draft.guaranteeOptions),
+      );
+      return;
+    }
+
+    draft.field = 'guarantee_text';
+    draft.mode = 'awaiting_text';
+    draft.currentGuaranteeNo = selectedGuarantee.guaranteeNo;
+    draft.currentGuaranteeText = selectedGuarantee.guaranteeText;
+    draft.currentValue = selectedGuarantee.guaranteeText;
+    draft.value = null;
+
+    await ctx.reply(
+      formatAdminServiceEditGuaranteeInputText(
+        draft.serviceName,
+        selectedGuarantee.guaranteeNo,
+        selectedGuarantee.guaranteeText,
+      ),
       createAdminServiceEditInputKeyboard(),
     );
   });
@@ -4405,6 +4575,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     draft.field = 'deactivate';
     draft.mode = 'awaiting_confirm';
+    draft.currentGuaranteeNo = null;
+    draft.currentGuaranteeText = null;
+    draft.guaranteeOptions = [];
     draft.currentValue = null;
     draft.value = 'deactivate';
     await ctx.reply(
@@ -4457,19 +4630,40 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     try {
+      if (draft.field === 'deactivate') {
+        const deactivated = await deactivateAdminService({
+          studioId,
+          serviceId: draft.serviceId,
+        });
+        state.servicesEditDraft = null;
+        await ctx.reply(`✅ Послугу "${deactivated.name}" успішно видалено зі списку активних.`);
+        await renderAdminServicesCatalog(ctx, false);
+        return;
+      }
+
+      if (draft.field === 'guarantee_text') {
+        await updateAdminServiceGuaranteeText({
+          studioId,
+          serviceId: draft.serviceId,
+          guaranteeNo: draft.currentGuaranteeNo ?? 0,
+          guaranteeText: String(draft.value),
+        });
+        state.servicesEditDraft = null;
+        await ctx.reply(
+          `✅ Гарантію №${draft.currentGuaranteeNo ?? '-'} для послуги "${draft.serviceName}" успішно оновлено.`,
+        );
+        await renderAdminServiceDetails(ctx, draft.serviceId, false);
+        return;
+      }
+
       const updated =
-        draft.field === 'deactivate'
-          ? await deactivateAdminService({
-              studioId,
-              serviceId: draft.serviceId,
-            })
-        : draft.field === 'name'
+        draft.field === 'name'
           ? await updateAdminServiceName({
               studioId,
               serviceId: draft.serviceId,
               name: String(draft.value),
             })
-        : draft.field === 'duration_minutes'
+          : draft.field === 'duration_minutes'
           ? await updateAdminServiceDuration({
               studioId,
               serviceId: draft.serviceId,
@@ -4498,9 +4692,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       state.servicesEditDraft = null;
 
       await ctx.reply(
-        draft.field === 'deactivate'
-          ? `✅ Послугу "${updated.name}" успішно видалено зі списку активних.`
-        : draft.field === 'name'
+        draft.field === 'name'
           ? `✅ Назву послуги "${updated.name}" успішно оновлено.`
         : draft.field === 'duration_minutes'
           ? `✅ Тривалість послуги "${updated.name}" успішно оновлено.`
@@ -4510,11 +4702,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           ? `✅ Опис послуги "${updated.name}" успішно оновлено.`
           : `✅ Результат послуги "${updated.name}" успішно оновлено.`,
       );
-      if (draft.field === 'deactivate') {
-        await renderAdminServicesCatalog(ctx, false);
-        return;
-      }
-      await renderAdminServiceDetails(ctx, updated.id, false);
+      await renderAdminServiceDetails(ctx, draft.serviceId, false);
     } catch (error) {
       if (error instanceof ValidationError) {
         await ctx.reply(

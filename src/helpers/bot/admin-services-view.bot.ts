@@ -3,6 +3,7 @@ import {
   ADMIN_PANEL_ACTION,
   ADMIN_PANEL_BUTTON_TEXT,
   makeAdminPanelServicesEditOpenAction,
+  makeAdminPanelServicesEditGuaranteePickAction,
   makeAdminPanelServicesOpenAction,
   makeAdminPanelServicesOpenStatsAction,
 } from '../../types/bot-admin-panel.types.js';
@@ -185,11 +186,98 @@ export function createAdminServiceEditMenuKeyboard(): ReturnType<typeof Markup.i
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_PRICE, ADMIN_PANEL_ACTION.SERVICES_EDIT_PRICE_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_DESCRIPTION, ADMIN_PANEL_ACTION.SERVICES_EDIT_DESCRIPTION_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_RESULT, ADMIN_PANEL_ACTION.SERVICES_EDIT_RESULT_OPEN)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_GUARANTEE, ADMIN_PANEL_ACTION.SERVICES_EDIT_GUARANTEE_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_DELETE, ADMIN_PANEL_ACTION.SERVICES_EDIT_DELETE_OPEN)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_BACK, ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK_TO_LIST, ADMIN_PANEL_ACTION.SERVICES_BACK_TO_LIST)],
     [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK, ADMIN_PANEL_ACTION.SERVICES_BACK)],
   ]);
+}
+
+type AdminServiceGuaranteeOption = {
+  guaranteeNo: number;
+  guaranteeText: string;
+};
+
+function compactText(value: string, max = 64): string {
+  const normalized = value.trim().replace(/\s+/g, ' ');
+  if (normalized.length <= max) return normalized;
+  return `${normalized.slice(0, max - 1)}…`;
+}
+
+/**
+ * @summary Текст вибору гарантії для редагування.
+ */
+export function formatAdminServiceEditGuaranteeSelectText(
+  serviceName: string,
+  options: AdminServiceGuaranteeOption[],
+): string {
+  return (
+    '🛡 Редагування гарантії послуги\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n\n` +
+    'Оберіть гарантію, яку потрібно змінити:\n\n' +
+    options
+      .map((item, index) => `${getNumberBadge(index)} №${item.guaranteeNo} — ${compactText(item.guaranteeText, 54)}`)
+      .join('\n')
+  );
+}
+
+/**
+ * @summary Клавіатура вибору гарантії послуги.
+ */
+export function createAdminServiceEditGuaranteeSelectKeyboard(
+  options: AdminServiceGuaranteeOption[],
+): ReturnType<typeof Markup.inlineKeyboard> {
+  const rows = options.map((item, index) => [
+    Markup.button.callback(
+      `${getNumberBadge(index)} Гарантія №${item.guaranteeNo}`,
+      makeAdminPanelServicesEditGuaranteePickAction(item.guaranteeNo),
+    ),
+  ]);
+
+  return Markup.inlineKeyboard([
+    ...rows,
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_CANCEL, ADMIN_PANEL_ACTION.SERVICES_EDIT_CANCEL)],
+    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_BACK, ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
+  ]);
+}
+
+/**
+ * @summary Текст кроку вводу нового тексту гарантії.
+ */
+export function formatAdminServiceEditGuaranteeInputText(
+  serviceName: string,
+  guaranteeNo: number,
+  currentGuaranteeText: string,
+): string {
+  return (
+    '✏️ Оновлення гарантії\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n` +
+    `🛡 Гарантія №${guaranteeNo}\n\n` +
+    `Поточний текст:\n${currentGuaranteeText}\n\n` +
+    'Надішліть новий текст гарантії одним повідомленням.\n' +
+    'Мінімум 3 символи, максимум 500 символів.'
+  );
+}
+
+/**
+ * @summary Текст підтвердження оновлення гарантії.
+ */
+export function formatAdminServiceEditGuaranteeConfirmText(
+  serviceName: string,
+  guaranteeNo: number,
+  nextGuaranteeText: string,
+): string {
+  return (
+    '✅ Підтвердження оновлення\n' +
+    '━━━━━━━━━━━━━━\n\n' +
+    `💼 Послуга: ${serviceName}\n` +
+    `🛡 Гарантія №${guaranteeNo}\n\n` +
+    `Новий текст:\n${nextGuaranteeText}\n\n` +
+    'Підтвердьте збереження змін.'
+  );
 }
 
 /**
