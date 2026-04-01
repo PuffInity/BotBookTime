@@ -37,3 +37,9 @@ export const loggerErrorUtils = createAppLogger({service: 'error-utils'})
 
 /** Логер адмін-панелі (критичні дії адміністратора). */
 export const loggerAdminPanel = createAppLogger({service: 'admin-panel'})
+
+/** Логер конфігурації перекладу (env/feature-gate). */
+export const loggerTranslateConfig = createAppLogger({service: 'translate-config'})
+
+/** Логер runtime перекладу (provider/cache/fallback). */
+export const loggerTranslate = createAppLogger({service: 'translate'})
