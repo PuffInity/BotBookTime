@@ -27,16 +27,7 @@ export const translateEnvSchema = z.object({
   TRANSLATE_TIMEOUT_MS: z.coerce.number().int().min(500).max(30_000).default(5_000),
   TRANSLATE_MAX_TEXT_LENGTH: z.coerce.number().int().min(10).max(10_000).default(2_000),
   TRANSLATE_DEFAULT_SOURCE: z.enum(['uk', 'en', 'cs']).default('uk'),
-}).superRefine((env, ctx) => {
-  if (env.TRANSLATE_ENABLED && env.TRANSLATE_PROVIDER === 'google' && !env.GOOGLE_TRANSLATE_API_KEY) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ['GOOGLE_TRANSLATE_API_KEY'],
-      message: 'GOOGLE_TRANSLATE_API_KEY обовʼязковий, коли TRANSLATE_ENABLED=true',
-    });
-  }
 });
 
 /** Провалідована конфігурація translate feature. */
 export const translateSchemaConfig = translateEnvSchema.parse(process.env);
-

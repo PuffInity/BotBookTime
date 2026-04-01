@@ -20,6 +20,13 @@ export const translateConfig = Object.freeze({
   defaultSourceLanguage: translateSchemaConfig.TRANSLATE_DEFAULT_SOURCE as LanguageCode,
 });
 
+function hasProviderCredentials(): boolean {
+  if (translateConfig.provider === 'google') {
+    return Boolean(translateConfig.googleApiKey);
+  }
+  return false;
+}
+
 loggerTranslateConfig.info('[translate-config] Loaded', {
   enabled: translateConfig.enabled,
   provider: translateConfig.provider,
@@ -28,10 +35,18 @@ loggerTranslateConfig.info('[translate-config] Loaded', {
   timeoutMs: translateConfig.timeoutMs,
   maxTextLength: translateConfig.maxTextLength,
   defaultSourceLanguage: translateConfig.defaultSourceLanguage,
+  isConfigured: hasProviderCredentials(),
 });
 
+if (translateConfig.enabled && !hasProviderCredentials()) {
+  loggerTranslateConfig.warn(
+    '[translate-config] Feature requested but provider credentials are missing. Translation is disabled.',
+    { provider: translateConfig.provider },
+  );
+}
+
 export function isTranslationFeatureEnabled(): boolean {
-  return translateConfig.enabled;
+  return translateConfig.enabled && hasProviderCredentials();
 }
 
 export function isLanguageSwitchEnabled(): boolean {
@@ -69,4 +84,3 @@ export function resolveUiLanguageByFeatureGate(
 export function shouldAutoTranslateToLanguage(language: LanguageCode): boolean {
   return getAutoTranslationTargetLanguages().includes(language);
 }
-
