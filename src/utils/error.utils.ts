@@ -162,6 +162,17 @@ export type HandleErrorInput = {
     meta?: Record<string, unknown>;
 };
 
+type UnifiedErrorLog = {
+    code: string;
+    statusCode: number;
+    name?: string;
+    message: string;
+    reason: string;
+    isOperational: boolean;
+    stack?: string;
+    causeMessage?: string;
+};
+
 /**
  * Нормалізатор помилки з `catch` у стабільний об'єкт для логування.
  */
@@ -191,6 +202,46 @@ export function adapterError(error: unknown): AdaptedError {
     return { message: String(error), raw: error };
 }
 
+function extractCauseMessage(cause: unknown): string | undefined {
+    if (cause instanceof Error) return cause.message;
+    if (typeof cause === "string") return cause;
+    if (cause && typeof cause === "object") {
+        const candidate = cause as { message?: unknown };
+        if (typeof candidate.message === "string") return candidate.message;
+    }
+    return undefined;
+}
+
+function toUnifiedErrorLog(error: unknown): UnifiedErrorLog {
+    const adapted = adapterError(error);
+
+    if (error instanceof AppError) {
+        const causeMessage = extractCauseMessage(error.cause);
+        return {
+            code: String(error.code),
+            statusCode: error.statusCode,
+            name: adapted.name ?? error.name,
+            message: error.message,
+            reason: causeMessage ?? adapted.message,
+            isOperational: error.isOperational,
+            stack: adapted.stack,
+            causeMessage,
+        };
+    }
+
+    const causeMessage = extractCauseMessage(adapted.cause);
+    return {
+        code: ERROR_CODE.INTERNAL_SERVER_ERROR,
+        statusCode: 500,
+        name: adapted.name,
+        message: adapted.message,
+        reason: causeMessage ?? adapted.message,
+        isOperational: false,
+        stack: adapted.stack,
+        causeMessage,
+    };
+}
+
 /**
  * Єдина точка логування помилок у проєкті.
  */
@@ -202,10 +253,10 @@ export function handleError({
     error,
     meta = {},
 }: HandleErrorInput): AdaptedError {
-    const err = adapterError(error);
+    const err = toUnifiedErrorLog(error);
     const message = `[${scope}] ${action}`;
     logger[level](message, { err, ...meta });
-    return err;
+    return adapterError(error);
 }
 
 type PgLikeError = {
@@ -352,9 +403,16 @@ function sanitizeValue(input: unknown): unknown {
 }
 
 function getBotUserMessage(error: AppError, isProduction: boolean): string {
-    if (!isProduction) return error.message;
-    if (error.statusCode >= 500) return "Сталася внутрішня помилка. Спробуйте ще раз пізніше.";
-    return error.message;
+    const code = String(error.code ?? ERROR_CODE.INTERNAL_SERVER_ERROR);
+    const causeMessage = extractCauseMessage(error.cause);
+    const reason =
+        error.statusCode >= 500
+            ? isProduction
+                ? "Сталася внутрішня помилка. Спробуйте ще раз пізніше."
+                : causeMessage ?? error.message
+            : error.message;
+
+    return `⚠️ Помилка [${code}]\nПричина: ${reason}`;
 }
 
 /**
@@ -364,10 +422,14 @@ export function createTelegrafErrorHandler<C extends BotContextLike>({
     logger,
     env = process.env.NODE_ENV ?? "development",
     replyToUser = true,
+    isPrivilegedUser,
+    restrictedUserMessage = "⚠️ Ця дія недоступна. Звʼяжіться з адміністратором.",
 }: {
     logger: Pick<ILogger, "warn" | "error">;
     env?: string;
     replyToUser?: boolean;
+    isPrivilegedUser?: (ctx: C) => Promise<boolean>;
+    restrictedUserMessage?: string;
 }): BotCatchHandler<C> {
     const isProduction = env === "production";
 
@@ -402,7 +464,27 @@ export function createTelegrafErrorHandler<C extends BotContextLike>({
         if (!replyToUser || typeof ctx.reply !== "function") return;
 
         try {
-            await ctx.reply(getBotUserMessage(appError, isProduction));
+            let canSeeDetailedError = true;
+            if (isPrivilegedUser) {
+                try {
+                    canSeeDetailedError = await isPrivilegedUser(ctx);
+                } catch (roleCheckError) {
+                    canSeeDetailedError = false;
+                    handleError({
+                        logger,
+                        level: "warn",
+                        scope: "bot",
+                        action: "Не вдалося перевірити роль користувача для формату помилки",
+                        error: roleCheckError,
+                    });
+                }
+            }
+
+            const userMessage = canSeeDetailedError
+                ? getBotUserMessage(appError, isProduction)
+                : restrictedUserMessage;
+
+            await ctx.reply(userMessage);
         } catch (replyError) {
             handleError({
                 logger,

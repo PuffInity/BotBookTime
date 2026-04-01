@@ -5,6 +5,7 @@ import type { BotDeps, MyContext } from '../types/bot.types.js';
 import { createTelegrafErrorHandler } from '../utils/error.utils.js';
 import { loggerTelegramBot } from '../utils/logger/loggers-list.js';
 import { setTelegramNotificationSender } from '../helpers/notification/notification-telegram.helper.js';
+import { getAdminPanelAccessByTelegramId } from '../helpers/db/db-admin-panel.helper.js';
 
 /**
  * @file createBot.ts
@@ -72,6 +73,13 @@ export function createBot(deps: BotDeps): Telegraf<MyContext> {
   bot.catch(
     createTelegrafErrorHandler({
       logger: botLogger,
+      isPrivilegedUser: async (ctx) => {
+        const telegramId = ctx.from?.id;
+        if (!telegramId) return false;
+        const access = await getAdminPanelAccessByTelegramId(telegramId);
+        return Boolean(access);
+      },
+      restrictedUserMessage: '⚠️ Тимчасово недоступна або виникла помилка.',
     }),
   );
 
