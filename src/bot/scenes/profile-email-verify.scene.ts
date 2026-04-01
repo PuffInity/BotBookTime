@@ -23,6 +23,9 @@ import {
   otpEmailSendFailedText,
   otpEmailVerifiedText,
 } from '../../utils/text.utils.js';
+import { resolveBotUiLanguage } from '../../helpers/bot/i18n.bot.js';
+import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
+import { tBot } from '../../helpers/bot/i18n.bot.js';
 
 /**
  * @file profile-email-verify.scene.ts
@@ -30,6 +33,14 @@ import {
  */
 
 export const PROFILE_EMAIL_VERIFY_SCENE_ID = 'profile-email-verify-scene';
+
+type ProfileEmailVerifySceneState = {
+  language: BotUiLanguage;
+};
+
+function getSceneState(ctx: MyContext): ProfileEmailVerifySceneState {
+  return ctx.wizard.state as ProfileEmailVerifySceneState;
+}
 
 function getMessageText(ctx: MyContext): string | null {
   if (!ctx.message) return null;
@@ -42,121 +53,135 @@ async function sendFreshProfileCard(ctx: MyContext): Promise<void> {
   await sendProfileCard(ctx, user);
 }
 
-async function handleResendByTelegramId(ctx: MyContext, telegramId: number): Promise<void> {
+async function handleResendByTelegramId(
+  ctx: MyContext,
+  telegramId: number,
+  language: BotUiLanguage,
+): Promise<void> {
   const resend = await resendOTP(telegramId);
 
   if (resend.status === 'EMAIL_MISSING') {
-    await ctx.reply(otpEmailMissingText(), createProfileStubKeyboard());
+    await ctx.reply(otpEmailMissingText(language), createProfileStubKeyboard(language));
     return;
   }
 
   if (resend.status === 'ALREADY_VERIFIED') {
-    await ctx.reply(otpEmailAlreadyVerifiedText(), createProfileStubKeyboard());
+    await ctx.reply(otpEmailAlreadyVerifiedText(language), createProfileStubKeyboard(language));
     return;
   }
 
   if (resend.status === 'RESEND_LIMIT') {
     await ctx.reply(
-      otpEmailResendCooldownText(resend.retryAfterSec ?? 60),
-      createProfileEmailOtpKeyboard(),
+      otpEmailResendCooldownText(resend.retryAfterSec ?? 60, language),
+      createProfileEmailOtpKeyboard(language),
     );
     return;
   }
 
   if (resend.status === 'MAILER_NOT_CONFIGURED') {
-    await ctx.reply(otpEmailMailerNotConfiguredText(), createProfileStubKeyboard());
+    await ctx.reply(otpEmailMailerNotConfiguredText(language), createProfileStubKeyboard(language));
     return;
   }
 
   if (resend.status === 'SEND_FAILED') {
-    await ctx.reply(otpEmailSendFailedText(), createProfileStubKeyboard());
+    await ctx.reply(otpEmailSendFailedText(language), createProfileStubKeyboard(language));
     return;
   }
 
-  await ctx.reply(otpEmailCodeSentText(resend.email ?? 'ваш email'), createProfileEmailOtpKeyboard());
+  await ctx.reply(
+    otpEmailCodeSentText(resend.email ?? tBot(language, 'PROFILE_NOT_SET'), language),
+    createProfileEmailOtpKeyboard(language),
+  );
 }
 
 export function createProfileEmailVerifyScene(): Scenes.WizardScene<MyContext> {
   const scene = new Scenes.WizardScene<MyContext>(
     PROFILE_EMAIL_VERIFY_SCENE_ID,
     async (ctx) => {
+      const user = await getOrCreateUser(ctx);
+      const state = getSceneState(ctx);
+      state.language = resolveBotUiLanguage(user.preferredLanguage);
+
       const telegramId = ctx.from?.id;
       if (!telegramId) {
-        await ctx.reply(otpEmailMissingText(), createProfileStubKeyboard());
+        await ctx.reply(otpEmailMissingText(state.language), createProfileStubKeyboard(state.language));
         await ctx.scene.leave();
         return;
       }
 
-      await handleResendByTelegramId(ctx, telegramId);
+      await handleResendByTelegramId(ctx, telegramId, state.language);
       return ctx.wizard.next();
     },
     async (ctx) => {
+      const state = getSceneState(ctx);
       const telegramId = ctx.from?.id;
       if (!telegramId) {
-        await ctx.reply(otpEmailMissingText(), createProfileStubKeyboard());
+        await ctx.reply(otpEmailMissingText(state.language ?? 'uk'), createProfileStubKeyboard(state.language ?? 'uk'));
         await ctx.scene.leave();
         return;
       }
 
       const text = getMessageText(ctx);
       if (!text || !/^\d{6}$/.test(text)) {
-        await ctx.reply(otpEmailInvalidCodeText(), createProfileEmailOtpKeyboard());
+        await ctx.reply(otpEmailInvalidCodeText(state.language), createProfileEmailOtpKeyboard(state.language));
         return;
       }
 
       const result = await verifyOTP({ telegramId, code: text });
 
       if (result.status === 'VERIFIED') {
-        const email = result.user?.email ?? 'ваш email';
-        await ctx.reply(otpEmailVerifiedText(email), createProfileStubKeyboard());
+        const email = result.user?.email ?? tBot(state.language, 'PROFILE_NOT_SET');
+        await ctx.reply(otpEmailVerifiedText(email, state.language), createProfileStubKeyboard(state.language));
         await ctx.scene.leave();
         await sendFreshProfileCard(ctx);
         return;
       }
 
       if (result.status === 'INVALID') {
-        await ctx.reply(otpEmailInvalidCodeText(), createProfileEmailOtpKeyboard());
+        await ctx.reply(otpEmailInvalidCodeText(state.language), createProfileEmailOtpKeyboard(state.language));
         return;
       }
 
       if (result.status === 'EXPIRED' || result.status === 'NO_ACTIVE_OTP') {
-        await ctx.reply(otpEmailExpiredText(), createProfileEmailOtpKeyboard());
+        await ctx.reply(otpEmailExpiredText(state.language), createProfileEmailOtpKeyboard(state.language));
         return;
       }
 
       if (result.status === 'BLOCKED') {
-        await ctx.reply(otpEmailBlockedText(), createProfileStubKeyboard());
+        await ctx.reply(otpEmailBlockedText(state.language), createProfileStubKeyboard(state.language));
         await ctx.scene.leave();
         return;
       }
 
       if (result.status === 'ALREADY_VERIFIED') {
-        await ctx.reply(otpEmailAlreadyVerifiedText(), createProfileStubKeyboard());
+        await ctx.reply(otpEmailAlreadyVerifiedText(state.language), createProfileStubKeyboard(state.language));
         await ctx.scene.leave();
         await sendFreshProfileCard(ctx);
         return;
       }
 
-      await ctx.reply(otpEmailMissingText(), createProfileStubKeyboard());
+      await ctx.reply(otpEmailMissingText(state.language), createProfileStubKeyboard(state.language));
       await ctx.scene.leave();
     },
   );
 
   scene.action(PROFILE_ACTION.EMAIL_OTP_RESEND, async (ctx) => {
+    const state = getSceneState(ctx);
     await ctx.answerCbQuery();
     const telegramId = ctx.from?.id;
     if (!telegramId) {
-      await ctx.reply(otpEmailMissingText(), createProfileStubKeyboard());
+      await ctx.reply(otpEmailMissingText(state.language ?? 'uk'), createProfileStubKeyboard(state.language ?? 'uk'));
       await ctx.scene.leave();
       return;
     }
-    await handleResendByTelegramId(ctx, telegramId);
+    await handleResendByTelegramId(ctx, telegramId, state.language);
   });
 
   scene.action(PROFILE_ACTION.EMAIL_OTP_CANCEL, async (ctx) => {
+    const state = getSceneState(ctx);
     await ctx.answerCbQuery();
     await ctx.scene.leave();
-    await ctx.reply(otpEmailCancelledText(), createProfileStubKeyboard());
+    await ctx.reply(otpEmailCancelledText(state.language), createProfileStubKeyboard(state.language));
     await sendFreshProfileCard(ctx);
   });
 

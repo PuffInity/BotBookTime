@@ -2,55 +2,52 @@
  * @file text.utils.ts
  * @summary Reusable text builders for bot screens.
  */
+import { tBot, tBotTemplate } from '../helpers/bot/i18n.bot.js';
+import type { BotUiLanguage } from '../helpers/bot/i18n.bot.js';
 
-export function otpEmailCodeSentText(email: string): string {
-  return (
-    '✉️ Код підтвердження відправлено.\n' +
-    `Email: ${email}\n\n` +
-    'Введіть 6-значний код із листа.\n' +
-    'Код дійсний 5 хвилин.'
-  );
+export function otpEmailCodeSentText(email: string, language: BotUiLanguage = 'uk'): string {
+  return tBotTemplate(language, 'OTP_EMAIL_CODE_SENT', { email });
 }
 
-export function otpEmailAlreadyVerifiedText(): string {
-  return '✅ Email вже підтверджено.';
+export function otpEmailAlreadyVerifiedText(language: BotUiLanguage = 'uk'): string {
+  return tBot(language, 'OTP_EMAIL_ALREADY_VERIFIED');
 }
 
-export function otpEmailMissingText(): string {
-  return '⚠️ Email не вказано. Спочатку додайте email у профілі.';
+export function otpEmailMissingText(language: BotUiLanguage = 'uk'): string {
+  return tBot(language, 'OTP_EMAIL_MISSING');
 }
 
-export function otpEmailInvalidCodeText(): string {
-  return '⚠️ Невірний OTP код. Перевірте код і спробуйте ще раз.';
+export function otpEmailInvalidCodeText(language: BotUiLanguage = 'uk'): string {
+  return tBot(language, 'OTP_EMAIL_INVALID_CODE');
 }
 
-export function otpEmailExpiredText(): string {
-  return '⌛ Термін дії коду завершився. Надішліть код повторно.';
+export function otpEmailExpiredText(language: BotUiLanguage = 'uk'): string {
+  return tBot(language, 'OTP_EMAIL_EXPIRED');
 }
 
-export function otpEmailBlockedText(): string {
-  return '⛔ Забагато невірних спроб. Спробуйте знову через 5 хвилин.';
+export function otpEmailBlockedText(language: BotUiLanguage = 'uk'): string {
+  return tBot(language, 'OTP_EMAIL_BLOCKED');
 }
 
-export function otpEmailResendCooldownText(retryAfterSec: number): string {
-  return `⏱ Повторна відправка буде доступна через ${retryAfterSec} сек.`;
+export function otpEmailResendCooldownText(
+  retryAfterSec: number,
+  language: BotUiLanguage = 'uk',
+): string {
+  return tBotTemplate(language, 'OTP_EMAIL_RESEND_COOLDOWN', { seconds: retryAfterSec });
 }
 
-export function otpEmailVerifiedText(email: string): string {
-  return `✅ Email підтверджено успішно.\nПідтверджений email: ${email}`;
+export function otpEmailVerifiedText(email: string, language: BotUiLanguage = 'uk'): string {
+  return tBotTemplate(language, 'OTP_EMAIL_VERIFIED', { email });
 }
 
-export function otpEmailCancelledText(): string {
-  return '❌ Підтвердження email скасовано.';
+export function otpEmailCancelledText(language: BotUiLanguage = 'uk'): string {
+  return tBot(language, 'OTP_EMAIL_CANCELLED');
 }
 
-export function otpEmailMailerNotConfiguredText(): string {
-  return (
-    '⚙️ Сервіс email тимчасово не налаштований.\n' +
-    'Зверніться до адміністратора або спробуйте пізніше.'
-  );
+export function otpEmailMailerNotConfiguredText(language: BotUiLanguage = 'uk'): string {
+  return tBot(language, 'OTP_EMAIL_MAILER_NOT_CONFIGURED');
 }
 
-export function otpEmailSendFailedText(): string {
-  return '⚠️ Не вдалося відправити код підтвердження. Спробуйте ще раз пізніше.';
+export function otpEmailSendFailedText(language: BotUiLanguage = 'uk'): string {
+  return tBot(language, 'OTP_EMAIL_SEND_FAILED');
 }

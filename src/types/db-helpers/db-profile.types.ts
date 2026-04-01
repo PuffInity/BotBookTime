@@ -27,6 +27,11 @@ export type UpdateUserEmailInput = {
   email: string;
 };
 
+export type UpdateUserLanguageInput = {
+  telegramId: number | string;
+  language: 'uk' | 'en' | 'cs';
+};
+
 export type SaveEmailOtpInput = {
   userId: string;
   destination: string;

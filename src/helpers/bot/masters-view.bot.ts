@@ -2,7 +2,6 @@ import { Markup } from 'telegraf';
 import { COMMON_NAV_ACTION } from '../../types/bot-menu.types.js';
 import {
   MASTERS_ACTION,
-  MASTERS_BUTTON_TEXT,
   makeMasterItemAction,
 } from '../../types/bot-masters.types.js';
 import type {
@@ -13,6 +12,8 @@ import type {
   MasterSpecializationItem,
   MasterWeeklyScheduleItem,
 } from '../../types/db-helpers/db-masters.types.js';
+import { tBot, tBotTemplate } from './i18n.bot.js';
+import type { BotUiLanguage } from './i18n.bot.js';
 
 /**
  * @file masters-view.bot.ts
@@ -33,10 +34,20 @@ function formatPrice(price: string, currencyCode: string): string {
   return `${normalizedPrice} ${currencyCode}`;
 }
 
-function formatDate(value: Date | null): string | null {
+function toLocale(language: BotUiLanguage): string {
+  if (language === 'en') return 'en-US';
+  if (language === 'cs') return 'cs-CZ';
+  return 'uk-UA';
+}
+
+function getMinutesUnit(language: BotUiLanguage): string {
+  return language === 'uk' ? 'хв' : 'min';
+}
+
+function formatDate(value: Date | null, language: BotUiLanguage): string | null {
   if (!value) return null;
 
-  return new Intl.DateTimeFormat('uk-UA', {
+  return new Intl.DateTimeFormat(toLocale(language), {
     timeZone: 'Europe/Prague',
     day: '2-digit',
     month: '2-digit',
@@ -44,31 +55,37 @@ function formatDate(value: Date | null): string | null {
   }).format(value);
 }
 
-function formatWeekdayLabel(weekday: number): string {
+function formatWeekdayLabel(weekday: number, language: BotUiLanguage): string {
   const labels: Record<number, string> = {
-    1: 'Пн',
-    2: 'Вт',
-    3: 'Ср',
-    4: 'Чт',
-    5: 'Пт',
-    6: 'Сб',
-    7: 'Нд',
+    1: language === 'en' ? 'Mon' : language === 'cs' ? 'Po' : 'Пн',
+    2: language === 'en' ? 'Tue' : language === 'cs' ? 'Út' : 'Вт',
+    3: language === 'en' ? 'Wed' : language === 'cs' ? 'St' : 'Ср',
+    4: language === 'en' ? 'Thu' : language === 'cs' ? 'Čt' : 'Чт',
+    5: language === 'en' ? 'Fri' : language === 'cs' ? 'Pá' : 'Пт',
+    6: language === 'en' ? 'Sat' : language === 'cs' ? 'So' : 'Сб',
+    7: language === 'en' ? 'Sun' : language === 'cs' ? 'Ne' : 'Нд',
   };
 
-  return labels[weekday] ?? `День ${weekday}`;
+  return labels[weekday] ?? tBotTemplate(language, 'MASTERS_WEEKDAY_FALLBACK', { weekday });
 }
 
-function formatWorkingRange(item: MasterWeeklyScheduleItem): string {
+function formatWorkingRange(item: MasterWeeklyScheduleItem, language: BotUiLanguage): string {
   if (!item.isWorking || !item.openTime || !item.closeTime) {
-    return 'вихідний';
+    return tBot(language, 'MASTERS_DAY_OFF');
   }
 
   return `${item.openTime.slice(0, 5)}–${item.closeTime.slice(0, 5)}`;
 }
 
-function formatMasterListLine(master: MasterCatalogItem, index: number): string {
+function formatMasterListLine(
+  master: MasterCatalogItem,
+  index: number,
+  language: BotUiLanguage,
+): string {
   const experienceLabel =
-    master.experienceYears == null ? 'Досвід не вказано' : `${master.experienceYears} років досвіду`;
+    master.experienceYears == null
+      ? tBot(language, 'MASTERS_EXPERIENCE_NOT_SET')
+      : tBotTemplate(language, 'MASTERS_EXPERIENCE_YEARS', { years: master.experienceYears });
 
   return (
     `${getNumberBadge(index)} 👩‍🎨 ${master.displayName}\n` +
@@ -76,80 +93,86 @@ function formatMasterListLine(master: MasterCatalogItem, index: number): string 
   );
 }
 
-function formatSpecializationLine(item: MasterSpecializationItem): string {
+function formatSpecializationLine(item: MasterSpecializationItem, language: BotUiLanguage): string {
   return (
     `• ${item.serviceName}\n` +
-    `  ⏱ ${item.durationMinutes} хв • 💰 ${formatPrice(item.priceAmount, item.currencyCode)}`
+    `  ⏱ ${item.durationMinutes} ${getMinutesUnit(language)} • 💰 ${formatPrice(item.priceAmount, item.currencyCode)}`
   );
 }
 
-function formatCertificateLine(certificate: MasterCatalogCertificate): string {
+function formatCertificateLine(
+  certificate: MasterCatalogCertificate,
+  language: BotUiLanguage,
+): string {
   const issuer = certificate.issuer ? ` (${certificate.issuer})` : '';
-  const issuedOn = formatDate(certificate.issuedOn);
+  const issuedOn = formatDate(certificate.issuedOn, language);
   const dateLabel = issuedOn ? ` — ${issuedOn}` : '';
   return `• ${certificate.title}${issuer}${dateLabel}`;
 }
 
-function formatSpecializationsBlock(details: MasterCatalogDetails): string {
+function formatSpecializationsBlock(details: MasterCatalogDetails, language: BotUiLanguage): string {
   if (details.specializations.length === 0) {
-    return '💼 Спеціалізація\nІнформацію буде додано найближчим часом.';
+    return `${tBot(language, 'MASTERS_SPECIALIZATION_TITLE')}\n${tBot(language, 'MASTERS_SPECIALIZATION_EMPTY')}`;
   }
 
-  const lines = details.specializations.map(formatSpecializationLine);
-  return `💼 Спеціалізація\n${lines.join('\n\n')}`;
+  const lines = details.specializations.map((item) => formatSpecializationLine(item, language));
+  return `${tBot(language, 'MASTERS_SPECIALIZATION_TITLE')}\n${lines.join('\n\n')}`;
 }
 
-function formatCertificatesBlock(details: MasterCatalogDetails): string {
+function formatCertificatesBlock(details: MasterCatalogDetails, language: BotUiLanguage): string {
   if (details.certificates.length === 0) {
-    return '🎓 Сертифікати\nІнформацію буде додано найближчим часом.';
+    return `${tBot(language, 'MASTERS_CERTIFICATES_TITLE')}\n${tBot(language, 'MASTERS_CERTIFICATES_EMPTY')}`;
   }
 
-  const lines = details.certificates.map(formatCertificateLine);
-  return `🎓 Сертифікати\n${lines.join('\n')}`;
+  const lines = details.certificates.map((item) => formatCertificateLine(item, language));
+  return `${tBot(language, 'MASTERS_CERTIFICATES_TITLE')}\n${lines.join('\n')}`;
 }
 
-function formatContactsBlock(details: MasterCatalogDetails): string {
+function formatContactsBlock(details: MasterCatalogDetails, language: BotUiLanguage): string {
   return (
-    '📌 Контакти\n' +
-    `📱 Телефон: ${details.contactPhoneE164 ?? 'Не вказано'}\n` +
-    `✉️ Email: ${details.contactEmail ?? 'Не вказано'}`
+    `${tBot(language, 'MASTERS_CONTACTS_TITLE')}\n` +
+    `${tBot(language, 'MASTERS_CONTACT_PHONE')}: ${details.contactPhoneE164 ?? tBot(language, 'PROFILE_NOT_SET')}\n` +
+    `${tBot(language, 'MASTERS_CONTACT_EMAIL')}: ${details.contactEmail ?? tBot(language, 'PROFILE_NOT_SET')}`
   );
 }
 
-function formatWeeklyScheduleBlock(details: MasterCatalogDetails): string {
+function formatWeeklyScheduleBlock(details: MasterCatalogDetails, language: BotUiLanguage): string {
   if (details.weeklySchedule.length === 0) {
-    return '🕒 Графік роботи\nІнформацію про графік буде додано найближчим часом.';
+    return `${tBot(language, 'MASTERS_SCHEDULE_TITLE')}\n${tBot(language, 'MASTERS_SCHEDULE_EMPTY')}`;
   }
 
   const lines = details.weeklySchedule
     .slice()
     .sort((a, b) => a.weekday - b.weekday)
-    .map((item) => `• ${formatWeekdayLabel(item.weekday)}: ${formatWorkingRange(item)}`);
+    .map((item) => `• ${formatWeekdayLabel(item.weekday, language)}: ${formatWorkingRange(item, language)}`);
 
-  return `🕒 Графік роботи\n${lines.join('\n')}`;
+  return `${tBot(language, 'MASTERS_SCHEDULE_TITLE')}\n${lines.join('\n')}`;
 }
 
-function formatScheduleExceptionLine(item: MasterUpcomingScheduleException): string {
+function formatScheduleExceptionLine(
+  item: MasterUpcomingScheduleException,
+  language: BotUiLanguage,
+): string {
   if (item.type === 'day_off') {
-    const dateLabel = formatDate(item.offDate) ?? '—';
+    const dateLabel = formatDate(item.offDate, language) ?? '—';
     const reasonLabel = item.reason ? ` (${item.reason})` : '';
-    return `• ${dateLabel}: вихідний${reasonLabel}`;
+    return `• ${dateLabel}: ${tBot(language, 'MASTERS_DAY_OFF')}${reasonLabel}`;
   }
 
   if (item.type === 'vacation') {
-    const from = formatDate(item.dateFrom) ?? '—';
-    const to = formatDate(item.dateTo) ?? '—';
+    const from = formatDate(item.dateFrom, language) ?? '—';
+    const to = formatDate(item.dateTo, language) ?? '—';
     const reasonLabel = item.reason ? ` (${item.reason})` : '';
-    return `• ${from}–${to}: відпустка${reasonLabel}`;
+    return `• ${from}–${to}: ${tBot(language, 'MASTERS_VACATION')}${reasonLabel}`;
   }
 
-  const from = formatDate(item.dateFrom) ?? '—';
-  const to = formatDate(item.dateTo) ?? '—';
-  const weekday = formatWeekdayLabel(item.weekday);
+  const from = formatDate(item.dateFrom, language) ?? '—';
+  const to = formatDate(item.dateTo, language) ?? '—';
+  const weekday = formatWeekdayLabel(item.weekday, language);
 
   if (!item.isWorking || !item.openTime || !item.closeTime) {
     const noteLabel = item.note ? ` (${item.note})` : '';
-    return `• ${from}–${to}, ${weekday}: вихідний${noteLabel}`;
+    return `• ${from}–${to}, ${weekday}: ${tBot(language, 'MASTERS_DAY_OFF')}${noteLabel}`;
   }
 
   const noteLabel = item.note ? ` (${item.note})` : '';
@@ -159,33 +182,41 @@ function formatScheduleExceptionLine(item: MasterUpcomingScheduleException): str
   );
 }
 
-function formatUpcomingScheduleExceptionsBlock(details: MasterCatalogDetails): string {
+function formatUpcomingScheduleExceptionsBlock(
+  details: MasterCatalogDetails,
+  language: BotUiLanguage,
+): string {
   if (details.upcomingScheduleExceptions.length === 0) {
-    return '📅 Найближчі зміни графіка\nНаразі запланованих змін немає.';
+    return `${tBot(language, 'MASTERS_SCHEDULE_CHANGES_TITLE')}\n${tBot(language, 'MASTERS_SCHEDULE_CHANGES_EMPTY')}`;
   }
 
-  const lines = details.upcomingScheduleExceptions.map(formatScheduleExceptionLine);
-  return `📅 Найближчі зміни графіка\n${lines.join('\n')}`;
+  const lines = details.upcomingScheduleExceptions.map((item) =>
+    formatScheduleExceptionLine(item, language),
+  );
+  return `${tBot(language, 'MASTERS_SCHEDULE_CHANGES_TITLE')}\n${lines.join('\n')}`;
 }
 
 /**
  * @summary Форматує текст каталогу майстрів.
  */
-export function formatMastersCatalogText(masters: MasterCatalogItem[]): string {
+export function formatMastersCatalogText(
+  masters: MasterCatalogItem[],
+  language: BotUiLanguage,
+): string {
   if (masters.length === 0) {
     return (
-      '👩‍🎨 Майстри\n' +
+      `${tBot(language, 'MASTERS_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n' +
-      'Наразі активних майстрів немає.\n' +
-      'Спробуйте пізніше або зверніться до адміністратора.'
+      `${tBot(language, 'MASTERS_EMPTY')}\n` +
+      tBot(language, 'MASTERS_EMPTY_HINT')
     );
   }
 
-  const lines = masters.map(formatMasterListLine);
+  const lines = masters.map((master, index) => formatMasterListLine(master, index, language));
   return (
-    '👩‍🎨 Майстри\n' +
+    `${tBot(language, 'MASTERS_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n' +
-    'Оберіть майстра, щоб переглянути детальний профіль:\n\n' +
+    `${tBot(language, 'MASTERS_SELECT')}\n\n` +
     lines.join('\n\n')
   );
 }
@@ -193,29 +224,32 @@ export function formatMastersCatalogText(masters: MasterCatalogItem[]): string {
 /**
  * @summary Форматує текст детального профілю майстра.
  */
-export function formatMasterDetailsText(details: MasterCatalogDetails): string {
+export function formatMasterDetailsText(
+  details: MasterCatalogDetails,
+  language: BotUiLanguage,
+): string {
   const bioBlock = details.master.bio
-    ? `📝 Про майстра\n${details.master.bio}`
-    : '📝 Про майстра\nІнформацію буде додано найближчим часом.';
+    ? `${tBot(language, 'MASTERS_ABOUT_TITLE')}\n${details.master.bio}`
+    : `${tBot(language, 'MASTERS_ABOUT_TITLE')}\n${tBot(language, 'MASTERS_ABOUT_EMPTY')}`;
 
   const materialsBlock = details.materialsInfo
-    ? `🧴 Додаткова інформація\n${details.materialsInfo}`
-    : '🧴 Додаткова інформація\nНе вказано.';
+    ? `${tBot(language, 'MASTERS_ADDITIONAL_TITLE')}\n${details.materialsInfo}`
+    : `${tBot(language, 'MASTERS_ADDITIONAL_TITLE')}\n${tBot(language, 'MASTERS_ADDITIONAL_EMPTY')}`;
 
   return (
-    '👩‍🎨 Профіль майстра\n' +
+    `${tBot(language, 'MASTERS_PROFILE_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n' +
     `👤 ${details.master.displayName}\n` +
-    `⭐ Рейтинг: ${details.master.ratingAvg} (${details.master.ratingCount})\n` +
-    `🗓 Досвід: ${details.master.experienceYears ?? 'Не вказано'}\n` +
-    `📈 Виконано процедур: ${details.master.proceduresDoneTotal}\n\n` +
-    `${formatSpecializationsBlock(details)}\n\n` +
-    `${formatCertificatesBlock(details)}\n\n` +
-    `${formatWeeklyScheduleBlock(details)}\n\n` +
-    `${formatUpcomingScheduleExceptionsBlock(details)}\n\n` +
+    `${tBot(language, 'MASTERS_RATING_LABEL')}: ${details.master.ratingAvg} (${details.master.ratingCount})\n` +
+    `${tBot(language, 'MASTERS_EXPERIENCE_LABEL')}: ${details.master.experienceYears ?? tBot(language, 'PROFILE_NOT_SET')}\n` +
+    `${tBot(language, 'MASTERS_PROCEDURES_LABEL')}: ${details.master.proceduresDoneTotal}\n\n` +
+    `${formatSpecializationsBlock(details, language)}\n\n` +
+    `${formatCertificatesBlock(details, language)}\n\n` +
+    `${formatWeeklyScheduleBlock(details, language)}\n\n` +
+    `${formatUpcomingScheduleExceptionsBlock(details, language)}\n\n` +
     `${bioBlock}\n\n` +
     `${materialsBlock}\n\n` +
-    formatContactsBlock(details)
+    formatContactsBlock(details, language)
   );
 }
 
@@ -224,6 +258,7 @@ export function formatMasterDetailsText(details: MasterCatalogDetails): string {
  */
 export function createMastersCatalogKeyboard(
   masters: MasterCatalogItem[],
+  language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const masterRows = masters.map((master, index) => [
     Markup.button.callback(
@@ -234,18 +269,20 @@ export function createMastersCatalogKeyboard(
 
   return Markup.inlineKeyboard([
     ...masterRows,
-    [Markup.button.callback(MASTERS_BUTTON_TEXT.HOME, COMMON_NAV_ACTION.HOME)],
+    [Markup.button.callback(tBot(language, 'HOME'), COMMON_NAV_ACTION.HOME)],
   ]);
 }
 
 /**
  * @summary Створює inline-клавіатуру детальної картки майстра.
  */
-export function createMasterDetailsKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterDetailsKeyboard(
+  language: BotUiLanguage,
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
-      Markup.button.callback(MASTERS_BUTTON_TEXT.BACK, MASTERS_ACTION.BACK_TO_LIST),
-      Markup.button.callback(MASTERS_BUTTON_TEXT.HOME, COMMON_NAV_ACTION.HOME),
+      Markup.button.callback(tBot(language, 'COMMON_BACK'), MASTERS_ACTION.BACK_TO_LIST),
+      Markup.button.callback(tBot(language, 'HOME'), COMMON_NAV_ACTION.HOME),
     ],
   ]);
 }

@@ -11,6 +11,7 @@ import type {
   CreateUserInput,
   SaveEmailOtpInput,
   UpdateUserEmailInput,
+  UpdateUserLanguageInput,
   UpdateUserNameInput,
 } from '../../types/db-helpers/db-profile.types.js';
 import { appUsersRowToEntity, toInsertAppUsers } from '../../utils/mappers/appUsers.mapp.js';
@@ -22,6 +23,7 @@ import {
   normalizeCreateUserInput,
   normalizeCtxFrom,
   normalizeFirstName,
+  normalizeProfileLanguage,
   normalizeProfileEmail,
   normalizeTelegramId,
 } from '../../utils/db/db-profile.js';
@@ -35,6 +37,7 @@ import {
   SQL_INSERT_EMAIL_VERIFY_OTP,
   SQL_MARK_EMAIL_VERIFIED_BY_USER_ID,
   SQL_UPDATE_USER_EMAIL_BY_TELEGRAM_ID,
+  SQL_UPDATE_USER_LANGUAGE_BY_TELEGRAM_ID,
   SQL_UPDATE_USER_NAME_BY_TELEGRAM_ID,
 } from '../db-sql/db-profile.sql.js';
 
@@ -170,6 +173,36 @@ export async function updateUserEmailByTelegramId(data: UpdateUserEmailInput): P
       action: 'Failed to update user email',
       error,
       meta: { telegramUserId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Updates user interface language by telegram id.
+ */
+export async function updateUserLanguageByTelegramId(
+  data: UpdateUserLanguageInput,
+): Promise<AppUsersEntity> {
+  const telegramUserId = normalizeTelegramId(data.telegramId);
+  const language = normalizeProfileLanguage(data.language);
+
+  try {
+    return await withTransaction(async (client) =>
+      executeOne<AppUsersRow, AppUsersEntity>(
+        SQL_UPDATE_USER_LANGUAGE_BY_TELEGRAM_ID,
+        [telegramUserId, language],
+        appUsersRowToEntity,
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-profile.helper',
+      action: 'Failed to update user language',
+      error,
+      meta: { telegramUserId, language },
     });
     throw error;
   }

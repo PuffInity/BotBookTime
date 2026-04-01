@@ -3,6 +3,8 @@ import type { MyContext } from '../../types/bot.types.js';
 import type { NotificationType } from '../../types/db/dbEnums.type.js';
 import { COMMON_NAV_ACTION } from '../../types/bot-menu.types.js';
 import { PROFILE_ACTION } from '../../types/bot-profile.types.js';
+import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
+import { resolveBotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 import {
   NOTIFICATION_SETTINGS_ACTION,
   NOTIFICATION_SETTINGS_TOGGLE_ACTION_REGEX,
@@ -30,6 +32,7 @@ export const PROFILE_NOTIFICATION_SETTINGS_SCENE_ID = 'profile-notification-sett
 
 type ProfileNotificationSettingsSceneState = {
   userId: string | null;
+  language: BotUiLanguage;
 };
 
 function getSceneState(ctx: MyContext): ProfileNotificationSettingsSceneState {
@@ -45,11 +48,12 @@ function getMessageText(ctx: MyContext): string | null {
 async function renderSettingsView(
   ctx: MyContext,
   userId: string,
+  language: BotUiLanguage,
   preferEdit: boolean,
 ): Promise<void> {
   const settings = await getUserNotificationSettingsState(userId);
-  const text = formatNotificationSettingsText(settings);
-  const keyboard = createNotificationSettingsKeyboard(settings);
+  const text = formatNotificationSettingsText(settings, language);
+  const keyboard = createNotificationSettingsKeyboard(settings, language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -75,8 +79,9 @@ export function createProfileNotificationSettingsScene(): Scenes.WizardScene<MyC
       const user = await getOrCreateUser(ctx);
       const state = getSceneState(ctx);
       state.userId = user.id;
+      state.language = resolveBotUiLanguage(user.preferredLanguage);
 
-      await renderSettingsView(ctx, user.id, false);
+      await renderSettingsView(ctx, user.id, state.language, false);
       return ctx.wizard.next();
     },
     async (ctx) => {
@@ -89,9 +94,10 @@ export function createProfileNotificationSettingsScene(): Scenes.WizardScene<MyC
       if (!state.userId) {
         const user = await getOrCreateUser(ctx);
         state.userId = user.id;
+        state.language = resolveBotUiLanguage(user.preferredLanguage);
       }
 
-      await renderSettingsView(ctx, state.userId, false);
+      await renderSettingsView(ctx, state.userId, state.language, false);
     },
   );
 
@@ -100,6 +106,7 @@ export function createProfileNotificationSettingsScene(): Scenes.WizardScene<MyC
     if (!state.userId) {
       const user = await getOrCreateUser(ctx);
       state.userId = user.id;
+      state.language = resolveBotUiLanguage(user.preferredLanguage);
     }
 
     const matches = ctx.match as RegExpExecArray | string[];
@@ -114,8 +121,8 @@ export function createProfileNotificationSettingsScene(): Scenes.WizardScene<MyC
       enabled: !currentEnabled,
     });
 
-    await ctx.answerCbQuery(notificationSettingsUpdatedText());
-    await renderSettingsView(ctx, state.userId, true);
+    await ctx.answerCbQuery(notificationSettingsUpdatedText(state.language));
+    await renderSettingsView(ctx, state.userId, state.language, true);
   });
 
   scene.action(NOTIFICATION_SETTINGS_ACTION.TOGGLE_ALL_ON, async (ctx) => {
@@ -123,6 +130,7 @@ export function createProfileNotificationSettingsScene(): Scenes.WizardScene<MyC
     if (!state.userId) {
       const user = await getOrCreateUser(ctx);
       state.userId = user.id;
+      state.language = resolveBotUiLanguage(user.preferredLanguage);
     }
 
     await setAllUserNotificationSettings({
@@ -130,8 +138,8 @@ export function createProfileNotificationSettingsScene(): Scenes.WizardScene<MyC
       enabled: true,
     });
 
-    await ctx.answerCbQuery(notificationSettingsUpdatedText());
-    await renderSettingsView(ctx, state.userId, true);
+    await ctx.answerCbQuery(notificationSettingsUpdatedText(state.language));
+    await renderSettingsView(ctx, state.userId, state.language, true);
   });
 
   scene.action(NOTIFICATION_SETTINGS_ACTION.TOGGLE_ALL_OFF, async (ctx) => {
@@ -139,6 +147,7 @@ export function createProfileNotificationSettingsScene(): Scenes.WizardScene<MyC
     if (!state.userId) {
       const user = await getOrCreateUser(ctx);
       state.userId = user.id;
+      state.language = resolveBotUiLanguage(user.preferredLanguage);
     }
 
     await setAllUserNotificationSettings({
@@ -146,8 +155,8 @@ export function createProfileNotificationSettingsScene(): Scenes.WizardScene<MyC
       enabled: false,
     });
 
-    await ctx.answerCbQuery(notificationSettingsUpdatedText());
-    await renderSettingsView(ctx, state.userId, true);
+    await ctx.answerCbQuery(notificationSettingsUpdatedText(state.language));
+    await renderSettingsView(ctx, state.userId, state.language, true);
   });
 
   scene.action(NOTIFICATION_SETTINGS_ACTION.BACK_TO_PROFILE, async (ctx) => {

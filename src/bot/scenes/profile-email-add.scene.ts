@@ -13,6 +13,8 @@ import {
 } from '../../helpers/bot/profile-view.bot.js';
 import { getOrCreateUser, updateUserEmailByTelegramId } from '../../helpers/db/db-profile.helper.js';
 import { profileEmailSchema } from '../../validator/bot-input.schema.js';
+import { resolveBotUiLanguage } from '../../helpers/bot/i18n.bot.js';
+import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 
 /**
  * @file profile-email-add.scene.ts
@@ -20,6 +22,14 @@ import { profileEmailSchema } from '../../validator/bot-input.schema.js';
  */
 
 export const PROFILE_EMAIL_ADD_SCENE_ID = 'profile-email-add-scene';
+
+type ProfileEmailAddSceneState = {
+  language: BotUiLanguage;
+};
+
+function getSceneState(ctx: MyContext): ProfileEmailAddSceneState {
+  return ctx.wizard.state as ProfileEmailAddSceneState;
+}
 
 function getMessageText(ctx: MyContext): string | null {
   if (!ctx.message) return null;
@@ -41,25 +51,30 @@ export function createProfileEmailAddScene(): Scenes.WizardScene<MyContext> {
   const scene = new Scenes.WizardScene<MyContext>(
     PROFILE_EMAIL_ADD_SCENE_ID,
     async (ctx) => {
-      await sendProfileEmailAddPrompt(ctx);
+      const user = await getOrCreateUser(ctx);
+      const state = getSceneState(ctx);
+      state.language = resolveBotUiLanguage(user.preferredLanguage);
+
+      await sendProfileEmailAddPrompt(ctx, state.language);
       return ctx.wizard.next();
     },
     async (ctx) => {
+      const state = getSceneState(ctx);
       const telegramId = ctx.from?.id;
       if (!telegramId) {
-        await sendProfileEmailValidationError(ctx);
+        await sendProfileEmailValidationError(ctx, state.language ?? 'uk');
         return;
       }
 
       const text = getMessageText(ctx);
       if (!text) {
-        await sendProfileEmailValidationError(ctx);
+        await sendProfileEmailValidationError(ctx, state.language);
         return;
       }
 
       const parsed = profileEmailSchema.safeParse(text);
       if (!parsed.success) {
-        await sendProfileEmailValidationError(ctx);
+        await sendProfileEmailValidationError(ctx, state.language);
         return;
       }
 
@@ -68,12 +83,12 @@ export function createProfileEmailAddScene(): Scenes.WizardScene<MyContext> {
           telegramId,
           email: parsed.data,
         });
-        await sendProfileEmailAddedMessage(ctx, updatedUser.email ?? parsed.data);
+        await sendProfileEmailAddedMessage(ctx, updatedUser.email ?? parsed.data, state.language);
         await ctx.scene.leave();
         await sendFreshProfileCard(ctx);
       } catch (error) {
         if (isUniqueViolationError(error)) {
-          await sendProfileEmailAlreadyUsedError(ctx);
+          await sendProfileEmailAlreadyUsedError(ctx, state.language);
           return;
         }
         throw error;
@@ -82,9 +97,10 @@ export function createProfileEmailAddScene(): Scenes.WizardScene<MyContext> {
   );
 
   scene.action(PROFILE_ACTION.ADD_EMAIL_CANCEL, async (ctx) => {
+    const state = getSceneState(ctx);
     await ctx.answerCbQuery();
     await ctx.scene.leave();
-    await sendProfileEmailAddCancelledMessage(ctx);
+    await sendProfileEmailAddCancelledMessage(ctx, state.language);
     await sendFreshProfileCard(ctx);
   });
 
@@ -102,4 +118,3 @@ export function createProfileEmailAddScene(): Scenes.WizardScene<MyContext> {
 
   return scene;
 }
-

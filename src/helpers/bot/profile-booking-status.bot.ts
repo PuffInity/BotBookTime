@@ -1,17 +1,18 @@
 import { Markup } from 'telegraf';
 import type { MyContext } from '../../types/bot.types.js';
+import type { BotUiLanguage } from './i18n.bot.js';
 import type {
   ProfileBookingStatusData,
   ProfileBookingStatusItem,
 } from '../../types/db-helpers/db-profile-booking.types.js';
 import {
   PROFILE_ACTION,
-  PROFILE_BUTTON_TEXT,
   makeProfileBookingCancelAction,
   makeProfileBookingCancelConfirmAction,
   makeProfileBookingOpenItemAction,
   makeProfileBookingRescheduleAction,
 } from '../../types/bot-profile.types.js';
+import { tBot } from './i18n.bot.js';
 
 /**
  * @file profile-booking-status.bot.ts
@@ -24,8 +25,14 @@ function getNumberBadge(index: number): string {
   return NUMBER_BADGES[index] ?? `${index + 1}.`;
 }
 
-function formatDateTime(date: Date): string {
-  return date.toLocaleString('uk-UA', {
+function toLocale(language: BotUiLanguage): string {
+  if (language === 'en') return 'en-US';
+  if (language === 'cs') return 'cs-CZ';
+  return 'uk-UA';
+}
+
+function formatDateTime(date: Date, language: BotUiLanguage): string {
+  return date.toLocaleString(toLocale(language), {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -39,47 +46,47 @@ function formatPrice(price: string, currencyCode: string): string {
   return `${normalized} ${currencyCode}`;
 }
 
-function statusToLabel(status: ProfileBookingStatusItem['status']): string {
+function statusToLabel(status: ProfileBookingStatusItem['status'], language: BotUiLanguage): string {
   switch (status) {
     case 'pending':
-      return '🟡 Очікує підтвердження';
+      return tBot(language, 'PROFILE_BOOKING_STATUS_PENDING');
     case 'confirmed':
-      return '🟢 Підтверджено';
+      return tBot(language, 'PROFILE_BOOKING_STATUS_CONFIRMED');
     case 'canceled':
-      return '🔴 Скасовано';
+      return tBot(language, 'PROFILE_BOOKING_STATUS_CANCELED');
     case 'completed':
-      return '🟢 Відвідано';
+      return tBot(language, 'PROFILE_BOOKING_STATUS_COMPLETED');
     case 'transferred':
-      return '🟣 Перенесено';
+      return tBot(language, 'PROFILE_BOOKING_STATUS_TRANSFERRED');
     default:
       return status;
   }
 }
 
-function formatUpcomingBlock(item: ProfileBookingStatusItem | null): string {
+function formatUpcomingBlock(item: ProfileBookingStatusItem | null, language: BotUiLanguage): string {
   if (!item) {
     return (
-      '📭 У вас наразі немає активних записів.\n' +
-      'Нове бронювання можна створити через кнопку «📅 Бронювання».'
+      `${tBot(language, 'PROFILE_BOOKING_UPCOMING_EMPTY')}\n` +
+      tBot(language, 'PROFILE_BOOKING_UPCOMING_EMPTY_HINT')
     );
   }
 
   return (
-    '📅 Ваш найближчий запис:\n\n' +
-    `💼 Послуга: ${item.serviceName}\n` +
-    `👩‍🎨 Майстер: ${item.masterName}\n` +
-    `🕒 Час: ${formatDateTime(item.startAt)}\n` +
-    `💰 Вартість: ${formatPrice(item.priceAmount, item.currencyCode)}\n` +
-    `📌 Статус: ${statusToLabel(item.status)}`
+    `${tBot(language, 'PROFILE_BOOKING_UPCOMING_TITLE')}\n\n` +
+    `${tBot(language, 'PROFILE_BOOKING_LABEL_SERVICE')}: ${item.serviceName}\n` +
+    `${tBot(language, 'PROFILE_BOOKING_LABEL_MASTER')}: ${item.masterName}\n` +
+    `${tBot(language, 'PROFILE_BOOKING_LABEL_TIME')}: ${formatDateTime(item.startAt, language)}\n` +
+    `${tBot(language, 'PROFILE_BOOKING_LABEL_PRICE')}: ${formatPrice(item.priceAmount, item.currencyCode)}\n` +
+    `${tBot(language, 'PROFILE_BOOKING_LABEL_STATUS')}: ${statusToLabel(item.status, language)}`
   );
 }
 
-function formatRecentItem(item: ProfileBookingStatusItem, index: number): string {
+function formatRecentItem(item: ProfileBookingStatusItem, index: number, language: BotUiLanguage): string {
   return (
     `${getNumberBadge(index)} ${item.serviceName}\n` +
-    `🕒 ${formatDateTime(item.startAt)}\n` +
-    `👩‍🎨 Майстер: ${item.masterName}\n` +
-    `📌 ${statusToLabel(item.status)}`
+    `🕒 ${formatDateTime(item.startAt, language)}\n` +
+    `${tBot(language, 'PROFILE_BOOKING_LABEL_MASTER')}: ${item.masterName}\n` +
+    `📌 ${statusToLabel(item.status, language)}`
   );
 }
 
@@ -91,75 +98,83 @@ export function getHistoryItems(data: ProfileBookingStatusData): ProfileBookingS
   return data.recent.filter((item) => !data.upcoming || item.appointmentId !== data.upcoming.appointmentId);
 }
 
-export function formatProfileBookingStatusText(data: ProfileBookingStatusData): string {
+export function formatProfileBookingStatusText(
+  data: ProfileBookingStatusData,
+  language: BotUiLanguage,
+): string {
   return (
-    '📅 Статус бронювання\n' +
+    `${tBot(language, 'PROFILE_BOOKING_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
-      `${formatUpcomingBlock(data.upcoming)}`
+      `${formatUpcomingBlock(data.upcoming, language)}`
   );
 }
 
 export function createProfileBookingStatusKeyboard(
   data: ProfileBookingStatusData,
+  language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   if (!data.upcoming) {
     return Markup.inlineKeyboard([
-      [Markup.button.callback(PROFILE_BUTTON_TEXT.BOOKING_STATUS_CREATE, PROFILE_ACTION.BOOKING_STATUS_CREATE)],
-      [Markup.button.callback(PROFILE_BUTTON_TEXT.BACK_TO_PROFILE, PROFILE_ACTION.OPEN)],
+      [Markup.button.callback(tBot(language, 'PROFILE_BOOKING_BTN_CREATE'), PROFILE_ACTION.BOOKING_STATUS_CREATE)],
+      [Markup.button.callback(tBot(language, 'BACK_TO_PROFILE'), PROFILE_ACTION.OPEN)],
     ]);
   }
 
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        PROFILE_BUTTON_TEXT.BOOKING_STATUS_RESCHEDULE,
+        tBot(language, 'PROFILE_BOOKING_BTN_RESCHEDULE'),
         makeProfileBookingRescheduleAction(data.upcoming.appointmentId),
       ),
       Markup.button.callback(
-        PROFILE_BUTTON_TEXT.BOOKING_STATUS_CANCEL,
+        tBot(language, 'PROFILE_BOOKING_BTN_CANCEL'),
         makeProfileBookingCancelAction(data.upcoming.appointmentId),
       ),
     ],
     [
       Markup.button.callback(
-        PROFILE_BUTTON_TEXT.BOOKING_STATUS_VIEW_ALL,
+        tBot(language, 'PROFILE_BOOKING_BTN_VIEW_ALL'),
         PROFILE_ACTION.BOOKING_STATUS_VIEW_ALL,
       ),
     ],
-    [Markup.button.callback(PROFILE_BUTTON_TEXT.BACK_TO_PROFILE, PROFILE_ACTION.OPEN)],
+    [Markup.button.callback(tBot(language, 'BACK_TO_PROFILE'), PROFILE_ACTION.OPEN)],
   ]);
 }
 
-export function formatProfileBookingHistoryText(data: ProfileBookingStatusData): string {
+export function formatProfileBookingHistoryText(
+  data: ProfileBookingStatusData,
+  language: BotUiLanguage,
+): string {
   const history = getHistoryItems(data);
   if (history.length === 0) {
     return (
-      '📖 Історія ваших записів\n' +
+      `${tBot(language, 'PROFILE_BOOKING_HISTORY_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
-      '📭 У вас поки що немає завершених записів.'
+      tBot(language, 'PROFILE_BOOKING_HISTORY_EMPTY')
     );
   }
 
   return (
-    '📖 Історія ваших записів\n' +
+    `${tBot(language, 'PROFILE_BOOKING_HISTORY_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    history.slice(0, 10).map(formatRecentItem).join('\n\n')
+    history.slice(0, 10).map((item, index) => formatRecentItem(item, index, language)).join('\n\n')
   );
 }
 
 export function createProfileBookingHistoryKeyboard(
   data: ProfileBookingStatusData,
+  language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const history = getHistoryItems(data);
   if (history.length === 0) {
     return Markup.inlineKeyboard([
       [
         Markup.button.callback(
-          PROFILE_BUTTON_TEXT.BOOKING_STATUS_CREATE_FIRST,
+          tBot(language, 'PROFILE_BOOKING_BTN_CREATE_FIRST'),
           PROFILE_ACTION.BOOKING_STATUS_CREATE,
         ),
       ],
-      [Markup.button.callback(PROFILE_BUTTON_TEXT.BACK_TO_PROFILE, PROFILE_ACTION.OPEN)],
+      [Markup.button.callback(tBot(language, 'BACK_TO_PROFILE'), PROFILE_ACTION.OPEN)],
     ]);
   }
 
@@ -167,132 +182,157 @@ export function createProfileBookingHistoryKeyboard(
     ...history.slice(0, 10).map((item, index) => [
       Markup.button.callback(`${getNumberBadge(index)} ${item.serviceName}`, makeProfileBookingOpenItemAction(item.appointmentId)),
     ]),
-    [Markup.button.callback('📅 Переглянути статус', PROFILE_ACTION.BOOKING_STATUS)],
-    [Markup.button.callback(PROFILE_BUTTON_TEXT.BACK_TO_PROFILE, PROFILE_ACTION.OPEN)],
+    [Markup.button.callback(tBot(language, 'PROFILE_BOOKING_VIEW_STATUS'), PROFILE_ACTION.BOOKING_STATUS)],
+    [Markup.button.callback(tBot(language, 'BACK_TO_PROFILE'), PROFILE_ACTION.OPEN)],
   ]);
 }
 
-export function formatSelectedBookingText(item: ProfileBookingStatusItem): string {
+export function formatSelectedBookingText(item: ProfileBookingStatusItem, language: BotUiLanguage): string {
   const actionHint = isBookingActionable(item)
-    ? 'Оберіть дію для цього запису нижче.'
-    : '⚠️ Для цього запису зміна або скасування недоступні.';
+    ? tBot(language, 'PROFILE_BOOKING_ACTION_HINT')
+    : tBot(language, 'PROFILE_BOOKING_ACTION_DISABLED');
 
   return (
-    '📄 Картка запису\n' +
+    `${tBot(language, 'PROFILE_BOOKING_CARD_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${item.serviceName}\n` +
-    `👩‍🎨 Майстер: ${item.masterName}\n` +
-    `🕒 Час: ${formatDateTime(item.startAt)}\n` +
-    `💰 Вартість: ${formatPrice(item.priceAmount, item.currencyCode)}\n` +
-    `📌 Статус: ${statusToLabel(item.status)}\n\n` +
+    `${tBot(language, 'PROFILE_BOOKING_LABEL_SERVICE')}: ${item.serviceName}\n` +
+    `${tBot(language, 'PROFILE_BOOKING_LABEL_MASTER')}: ${item.masterName}\n` +
+    `${tBot(language, 'PROFILE_BOOKING_LABEL_TIME')}: ${formatDateTime(item.startAt, language)}\n` +
+    `${tBot(language, 'PROFILE_BOOKING_LABEL_PRICE')}: ${formatPrice(item.priceAmount, item.currencyCode)}\n` +
+    `${tBot(language, 'PROFILE_BOOKING_LABEL_STATUS')}: ${statusToLabel(item.status, language)}\n\n` +
     actionHint
   );
 }
 
 export function createSelectedBookingKeyboard(
   item: ProfileBookingStatusItem,
+  language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   if (isBookingActionable(item)) {
     return Markup.inlineKeyboard([
       [
         Markup.button.callback(
-          PROFILE_BUTTON_TEXT.BOOKING_STATUS_RESCHEDULE,
+          tBot(language, 'PROFILE_BOOKING_BTN_RESCHEDULE'),
           makeProfileBookingRescheduleAction(item.appointmentId),
         ),
         Markup.button.callback(
-          PROFILE_BUTTON_TEXT.BOOKING_STATUS_CANCEL,
+          tBot(language, 'PROFILE_BOOKING_BTN_CANCEL'),
           makeProfileBookingCancelAction(item.appointmentId),
         ),
       ],
-      [Markup.button.callback(PROFILE_BUTTON_TEXT.BACK_TO_BOOKING_HISTORY, PROFILE_ACTION.BOOKING_STATUS_VIEW_ALL)],
-      [Markup.button.callback(PROFILE_BUTTON_TEXT.BACK_TO_PROFILE, PROFILE_ACTION.OPEN)],
+      [Markup.button.callback(tBot(language, 'PROFILE_BOOKING_BTN_BACK_TO_HISTORY'), PROFILE_ACTION.BOOKING_STATUS_VIEW_ALL)],
+      [Markup.button.callback(tBot(language, 'BACK_TO_PROFILE'), PROFILE_ACTION.OPEN)],
     ]);
   }
 
   return Markup.inlineKeyboard([
-    [Markup.button.callback(PROFILE_BUTTON_TEXT.BACK_TO_BOOKING_HISTORY, PROFILE_ACTION.BOOKING_STATUS_VIEW_ALL)],
-    [Markup.button.callback(PROFILE_BUTTON_TEXT.BACK_TO_PROFILE, PROFILE_ACTION.OPEN)],
+    [Markup.button.callback(tBot(language, 'PROFILE_BOOKING_BTN_BACK_TO_HISTORY'), PROFILE_ACTION.BOOKING_STATUS_VIEW_ALL)],
+    [Markup.button.callback(tBot(language, 'BACK_TO_PROFILE'), PROFILE_ACTION.OPEN)],
   ]);
 }
 
-export function formatCancelBookingConfirmText(item: ProfileBookingStatusItem): string {
+export function formatCancelBookingConfirmText(
+  item: ProfileBookingStatusItem,
+  language: BotUiLanguage,
+): string {
   return (
-    '⚠️ Підтвердження скасування\n' +
+    `${tBot(language, 'PROFILE_BOOKING_CANCEL_CONFIRM_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Ви дійсно хочете скасувати цей запис?\n\n' +
+    `${tBot(language, 'PROFILE_BOOKING_CANCEL_CONFIRM_ASK')}\n\n` +
     `💼 ${item.serviceName}\n` +
     `👩‍🎨 ${item.masterName}\n` +
-    `🕒 ${formatDateTime(item.startAt)}`
+    `🕒 ${formatDateTime(item.startAt, language)}`
   );
 }
 
 export function createCancelBookingConfirmKeyboard(
   item: ProfileBookingStatusItem,
+  language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        PROFILE_BUTTON_TEXT.BOOKING_STATUS_CANCEL_CONFIRM,
+        tBot(language, 'PROFILE_BOOKING_BTN_CANCEL_CONFIRM'),
         makeProfileBookingCancelConfirmAction(item.appointmentId),
       ),
       Markup.button.callback(
-        PROFILE_BUTTON_TEXT.BOOKING_STATUS_CANCEL_ABORT,
+        tBot(language, 'PROFILE_BOOKING_BTN_CANCEL_ABORT'),
         makeProfileBookingOpenItemAction(item.appointmentId),
       ),
     ],
-    [Markup.button.callback(PROFILE_BUTTON_TEXT.BACK_TO_BOOKING_HISTORY, PROFILE_ACTION.BOOKING_STATUS_VIEW_ALL)],
+    [Markup.button.callback(tBot(language, 'PROFILE_BOOKING_BTN_BACK_TO_HISTORY'), PROFILE_ACTION.BOOKING_STATUS_VIEW_ALL)],
   ]);
 }
 
 export async function sendProfileBookingStatus(
   ctx: MyContext,
   data: ProfileBookingStatusData,
+  language: BotUiLanguage,
 ): Promise<void> {
-  await ctx.reply(formatProfileBookingStatusText(data), createProfileBookingStatusKeyboard(data));
+  await ctx.reply(
+    formatProfileBookingStatusText(data, language),
+    createProfileBookingStatusKeyboard(data, language),
+  );
 }
 
-export async function sendProfileBookingHistory(ctx: MyContext, data: ProfileBookingStatusData): Promise<void> {
-  await ctx.reply(formatProfileBookingHistoryText(data), createProfileBookingHistoryKeyboard(data));
+export async function sendProfileBookingHistory(
+  ctx: MyContext,
+  data: ProfileBookingStatusData,
+  language: BotUiLanguage,
+): Promise<void> {
+  await ctx.reply(
+    formatProfileBookingHistoryText(data, language),
+    createProfileBookingHistoryKeyboard(data, language),
+  );
 }
 
 export async function sendSelectedBookingDetails(
   ctx: MyContext,
   item: ProfileBookingStatusItem,
+  language: BotUiLanguage,
 ): Promise<void> {
-  await ctx.reply(formatSelectedBookingText(item), createSelectedBookingKeyboard(item));
+  await ctx.reply(formatSelectedBookingText(item, language), createSelectedBookingKeyboard(item, language));
 }
 
 export async function sendCancelBookingConfirm(
   ctx: MyContext,
   item: ProfileBookingStatusItem,
+  language: BotUiLanguage,
 ): Promise<void> {
-  await ctx.reply(formatCancelBookingConfirmText(item), createCancelBookingConfirmKeyboard(item));
+  await ctx.reply(
+    formatCancelBookingConfirmText(item, language),
+    createCancelBookingConfirmKeyboard(item, language),
+  );
 }
 
 export async function sendCancelBookingSuccess(
   ctx: MyContext,
   item: ProfileBookingStatusItem,
+  language: BotUiLanguage,
 ): Promise<void> {
   await ctx.reply(
-    '✅ Запис успішно скасовано.\n\n' +
+    `${tBot(language, 'PROFILE_BOOKING_CANCEL_SUCCESS')}\n\n` +
       `💼 ${item.serviceName}\n` +
-      `🕒 ${formatDateTime(item.startAt)}\n\n` +
-      'Оновлений статус доступний у розділі «📅 Статус бронювання».',
+      `🕒 ${formatDateTime(item.startAt, language)}\n\n` +
+      tBot(language, 'PROFILE_BOOKING_CANCEL_SUCCESS_HINT'),
     Markup.inlineKeyboard([
-      [Markup.button.callback('📅 Переглянути статус', PROFILE_ACTION.BOOKING_STATUS)],
-      [Markup.button.callback(PROFILE_BUTTON_TEXT.BACK_TO_PROFILE, PROFILE_ACTION.OPEN)],
+      [Markup.button.callback(tBot(language, 'PROFILE_BOOKING_VIEW_STATUS'), PROFILE_ACTION.BOOKING_STATUS)],
+      [Markup.button.callback(tBot(language, 'BACK_TO_PROFILE'), PROFILE_ACTION.OPEN)],
     ]),
   );
 }
 
-export async function sendProfileBookingActionStub(ctx: MyContext, title: string): Promise<void> {
+export async function sendProfileBookingActionStub(
+  ctx: MyContext,
+  title: string,
+  language: BotUiLanguage,
+): Promise<void> {
   await ctx.reply(
     `${title}\n\n` +
-      'Цю дію вже винесено в окремий етап.\n' +
-      'На наступному кроці підключимо повну робочу реалізацію.',
+      tBot(language, 'PROFILE_BOOKING_ACTION_STUB'),
     Markup.inlineKeyboard([
-      [Markup.button.callback('📅 Переглянути статус', PROFILE_ACTION.BOOKING_STATUS)],
-      [Markup.button.callback(PROFILE_BUTTON_TEXT.BACK_TO_PROFILE, PROFILE_ACTION.OPEN)],
+      [Markup.button.callback(tBot(language, 'PROFILE_BOOKING_VIEW_STATUS'), PROFILE_ACTION.BOOKING_STATUS)],
+      [Markup.button.callback(tBot(language, 'BACK_TO_PROFILE'), PROFILE_ACTION.OPEN)],
     ]),
   );
 }

@@ -1,5 +1,6 @@
 import { BOOKING_SCENE_ID } from '../scenes/booking.scene.js';
 import { PROFILE_NAME_SCENE_ID } from '../scenes/profile-name.scene.js';
+import { PROFILE_LANGUAGE_SCENE_ID } from '../scenes/profile-language.scene.js';
 import { PROFILE_EMAIL_VERIFY_SCENE_ID } from '../scenes/profile-email-verify.scene.js';
 import { PROFILE_EMAIL_ADD_SCENE_ID } from '../scenes/profile-email-add.scene.js';
 import { PROFILE_NOTIFICATION_SETTINGS_SCENE_ID } from '../scenes/profile-notification-settings.scene.js';
@@ -25,6 +26,7 @@ import {
   PROFILE_BOOKING_OPEN_ITEM_ACTION_REGEX,
   PROFILE_BOOKING_RESCHEDULE_ACTION_REGEX,
 } from '../../types/bot-profile.types.js';
+import { canUseLanguageActions } from '../../helpers/bot/language-feature.bot.js';
 import {
   getEmailProfileActionTitle,
   getPhoneProfileActionTitle,
@@ -46,6 +48,7 @@ import {
   sendProfileBookingStatus,
 } from '../../helpers/bot/profile-booking-status.bot.js';
 import type { ProfileBookingStatusItem } from '../../types/db-helpers/db-profile-booking.types.js';
+import { resolveBotUiLanguage, tBot, tBotTemplate } from '../../helpers/bot/i18n.bot.js';
 
 /**
  * @file common.commands.ts
@@ -79,6 +82,7 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     userId: string;
     userEmail: string | null;
     userFirstName: string;
+    language: 'uk' | 'en' | 'cs';
     item: ProfileBookingStatusItem | null;
   }> {
     const appointmentId = getActionIdFromCallbackData(ctx, regex);
@@ -89,12 +93,26 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     );
     const selected = available.find((item) => item.appointmentId === appointmentId) ?? null;
 
+    const language = resolveBotUiLanguage(user.preferredLanguage);
+
     if (!selected) {
-      await sendProfileBookingActionStub(ctx, '⚠️ Запис не знайдено');
-      return { userId: user.id, userEmail: user.email, userFirstName: user.firstName, item: null };
+      await sendProfileBookingActionStub(ctx, tBot(language, 'PROFILE_BOOKING_NOT_FOUND'), language);
+      return {
+        userId: user.id,
+        userEmail: user.email,
+        userFirstName: user.firstName,
+        language,
+        item: null,
+      };
     }
 
-    return { userId: user.id, userEmail: user.email, userFirstName: user.firstName, item: selected };
+    return {
+      userId: user.id,
+      userEmail: user.email,
+      userFirstName: user.firstName,
+      language,
+      item: selected,
+    };
   }
 
   bot.start(
@@ -107,15 +125,9 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
   bot.command(
     'help',
     asyncBotHandler(async (ctx) => {
-      await ctx.reply(
-        'Список команд:\n' +
-          '/start - головне меню\n' +
-          '/menu - показати головне меню\n' +
-          '/master - відкрити панель майстра\n' +
-          '/admin - відкрити адмін-панель\n' +
-          '/booking - почати сценарій запису\n' +
-          '/cancel - вийти зі сценарію',
-      );
+      const user = await getOrCreateUser(ctx);
+      const language = resolveBotUiLanguage(user.preferredLanguage);
+      await ctx.reply(tBot(language, 'HELP_TEXT'));
     }),
   );
 
@@ -158,12 +170,16 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     asyncBotHandler(async (ctx) => {
       // Якщо користувач не в сцені, просто пояснюємо це.
       if (!ctx.scene.current) {
-        await ctx.reply('Зараз немає активного сценарію для скасування.');
+        const user = await getOrCreateUser(ctx);
+        const language = resolveBotUiLanguage(user.preferredLanguage);
+        await ctx.reply(tBot(language, 'NO_ACTIVE_SCENARIO'));
         return;
       }
 
       await ctx.scene.leave();
-      await ctx.reply('Сценарій скасовано.');
+      const user = await getOrCreateUser(ctx);
+      const language = resolveBotUiLanguage(user.preferredLanguage);
+      await ctx.reply(tBot(language, 'SCENARIO_CANCELLED'));
       await sendClientMainMenu(ctx);
     }),
   );
@@ -217,7 +233,8 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
         await ctx.scene.enter(PROFILE_EMAIL_ADD_SCENE_ID);
         return;
       }
-      await sendProfileFeatureStub(ctx, getEmailProfileActionTitle(user));
+      const language = resolveBotUiLanguage(user.preferredLanguage);
+      await sendProfileFeatureStub(ctx, getEmailProfileActionTitle(user, language), language);
     }),
   );
 
@@ -237,7 +254,8 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     asyncBotHandler(async (ctx) => {
       await ctx.answerCbQuery();
       const user = await getOrCreateUser(ctx);
-      await sendProfileFeatureStub(ctx, getPhoneProfileActionTitle(user));
+      const language = resolveBotUiLanguage(user.preferredLanguage);
+      await sendProfileFeatureStub(ctx, getPhoneProfileActionTitle(user, language), language);
     }),
   );
 
@@ -245,7 +263,14 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     PROFILE_ACTION.EDIT_LANGUAGE,
     asyncBotHandler(async (ctx) => {
       await ctx.answerCbQuery();
-      await sendProfileFeatureStub(ctx, '🌐 Зміна мови');
+      if (!canUseLanguageActions()) {
+        return;
+      }
+
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+      await ctx.scene.enter(PROFILE_LANGUAGE_SCENE_ID);
     }),
   );
 
@@ -254,8 +279,9 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     asyncBotHandler(async (ctx) => {
       await ctx.answerCbQuery();
       const user = await getOrCreateUser(ctx);
+      const language = resolveBotUiLanguage(user.preferredLanguage);
       const bookingStatus = await getProfileBookingStatus(user.id);
-      await sendProfileBookingStatus(ctx, bookingStatus);
+      await sendProfileBookingStatus(ctx, bookingStatus, language);
     }),
   );
 
@@ -264,8 +290,9 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     asyncBotHandler(async (ctx) => {
       await ctx.answerCbQuery();
       const user = await getOrCreateUser(ctx);
+      const language = resolveBotUiLanguage(user.preferredLanguage);
       const bookingStatus = await getProfileBookingStatus(user.id, 20);
-      await sendProfileBookingHistory(ctx, bookingStatus);
+      await sendProfileBookingHistory(ctx, bookingStatus, language);
     }),
   );
 
@@ -284,10 +311,13 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     PROFILE_BOOKING_OPEN_ITEM_ACTION_REGEX,
     asyncBotHandler(async (ctx) => {
       await ctx.answerCbQuery();
-      const { item } = await findBookingForProfileAction(ctx, PROFILE_BOOKING_OPEN_ITEM_ACTION_REGEX);
+      const { item, language } = await findBookingForProfileAction(
+        ctx,
+        PROFILE_BOOKING_OPEN_ITEM_ACTION_REGEX,
+      );
       if (!item) return;
 
-      await sendSelectedBookingDetails(ctx, item);
+      await sendSelectedBookingDetails(ctx, item, language);
     }),
   );
 
@@ -295,7 +325,10 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     PROFILE_BOOKING_RESCHEDULE_ACTION_REGEX,
     asyncBotHandler(async (ctx) => {
       await ctx.answerCbQuery();
-      const { item } = await findBookingForProfileAction(ctx, PROFILE_BOOKING_RESCHEDULE_ACTION_REGEX);
+      const { item, language } = await findBookingForProfileAction(
+        ctx,
+        PROFILE_BOOKING_RESCHEDULE_ACTION_REGEX,
+      );
       if (!item) return;
 
       if (ctx.scene.current) {
@@ -303,9 +336,12 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
       }
 
       await ctx.reply(
-        '🔄 Перенесення запису\n\n' +
-          `Обраний запис: ${item.serviceName} (${item.startAt.toLocaleString('uk-UA')}).\n` +
-          'Оберіть нову дату та час у сценарії бронювання.',
+        tBotTemplate(language, 'BOOKING_RESCHEDULE_TEXT', {
+          serviceName: item.serviceName,
+          dateTime: item.startAt.toLocaleString(
+            language === 'en' ? 'en-US' : language === 'cs' ? 'cs-CZ' : 'uk-UA',
+          ),
+        }),
       );
       await ctx.scene.enter(BOOKING_SCENE_ID);
     }),
@@ -315,10 +351,13 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     PROFILE_BOOKING_CANCEL_ACTION_REGEX,
     asyncBotHandler(async (ctx) => {
       await ctx.answerCbQuery();
-      const { item } = await findBookingForProfileAction(ctx, PROFILE_BOOKING_CANCEL_ACTION_REGEX);
+      const { item, language } = await findBookingForProfileAction(
+        ctx,
+        PROFILE_BOOKING_CANCEL_ACTION_REGEX,
+      );
       if (!item) return;
 
-      await sendCancelBookingConfirm(ctx, item);
+      await sendCancelBookingConfirm(ctx, item, language);
     }),
   );
 
@@ -326,7 +365,7 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     PROFILE_BOOKING_CANCEL_CONFIRM_ACTION_REGEX,
     asyncBotHandler(async (ctx) => {
       await ctx.answerCbQuery();
-      const { userId, userEmail, userFirstName, item } = await findBookingForProfileAction(
+      const { userId, userEmail, userFirstName, language, item } = await findBookingForProfileAction(
         ctx,
         PROFILE_BOOKING_CANCEL_CONFIRM_ACTION_REGEX,
       );
@@ -342,10 +381,10 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
           serviceName: item.serviceName,
           masterName: item.masterName,
           startAt: item.startAt,
-          cancelReason: 'Скасовано через Telegram-бота',
+          cancelReason: tBot(language, 'BOOKING_CANCEL_REASON_PROFILE'),
         });
       }
-      await sendCancelBookingSuccess(ctx, item);
+      await sendCancelBookingSuccess(ctx, item, language);
     }),
   );
 
@@ -500,6 +539,8 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
       return;
     }
 
-    await ctx.reply('Використайте /menu, щоб відкрити головне меню.');
+    const user = await getOrCreateUser(ctx);
+    const language = resolveBotUiLanguage(user.preferredLanguage);
+    await ctx.reply(tBot(language, 'FALLBACK_USE_MENU'));
   });
 }

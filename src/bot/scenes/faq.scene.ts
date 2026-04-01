@@ -13,6 +13,7 @@ import { getOrCreateUser } from '../../helpers/db/db-profile.helper.js';
 import { getFaqCatalogItemById, listFaqCatalog } from '../../helpers/db/db-faq.helper.js';
 import type { FaqCatalogItem } from '../../types/db-helpers/db-faq.types.js';
 import type { LanguageCode } from '../../types/db/index.js';
+import { resolveBotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 
 /**
  * @file faq.scene.ts
@@ -68,8 +69,8 @@ async function renderCatalog(ctx: MyContext, preferEdit: boolean): Promise<void>
 
   await renderView(
     ctx,
-    formatFaqCatalogText(state.items),
-    createFaqCatalogKeyboard(state.items),
+    formatFaqCatalogText(state.items, state.language),
+    createFaqCatalogKeyboard(state.items, state.language),
     preferEdit,
   );
 }
@@ -82,7 +83,7 @@ export function createFaqScene(): Scenes.WizardScene<MyContext> {
       const state = getSceneState(ctx);
 
       state.studioId = user.studioId;
-      state.language = user.preferredLanguage;
+      state.language = resolveBotUiLanguage(user.preferredLanguage);
       state.items = [];
 
       await renderCatalog(ctx, false);
@@ -122,7 +123,12 @@ export function createFaqScene(): Scenes.WizardScene<MyContext> {
     const indexInList = state.items.findIndex((entry) => entry.id === item.id);
     const displayIndex = indexInList >= 0 ? indexInList : item.sortOrder - 1;
 
-    await renderView(ctx, formatFaqItemText(item, displayIndex), createFaqItemKeyboard(), true);
+    await renderView(
+      ctx,
+      formatFaqItemText(item, displayIndex, state.language),
+      createFaqItemKeyboard(state.language),
+      true,
+    );
   });
 
   scene.action(FAQ_ACTION.BACK_TO_LIST, async (ctx) => {
@@ -138,4 +144,3 @@ export function createFaqScene(): Scenes.WizardScene<MyContext> {
 
   return scene;
 }
-

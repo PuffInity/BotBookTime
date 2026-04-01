@@ -3,6 +3,7 @@ import type {
   CreateUserInput,
   NormalizedTelegramProfile,
 } from '../../types/db-helpers/db-profile.types.js';
+import type { LanguageCode } from '../../types/db/dbEnums.type.js';
 import { profileEmailSchema, telegramUserIdSchema } from '../../validator/bot-input.schema.js';
 import { bookingClientNameSchema } from '../../validator/booking-input.schema.js';
 import { ValidationError } from '../error.utils.js';
@@ -81,4 +82,12 @@ export function normalizeProfileEmail(email: string): string {
     });
   }
   return parsed.data;
+}
+
+export function normalizeProfileLanguage(language: string): LanguageCode {
+  if (language === 'uk' || language === 'en' || language === 'cs') {
+    return language;
+  }
+
+  throw new ValidationError('Некоректний код мови', { language });
 }

@@ -15,6 +15,8 @@ import {
 } from '../../helpers/db/db-services.helper.js';
 import { getOrCreateUser } from '../../helpers/db/db-profile.helper.js';
 import type { ServicesCatalogItem } from '../../types/db-helpers/db-services.types.js';
+import { resolveBotUiLanguage } from '../../helpers/bot/i18n.bot.js';
+import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 
 /**
  * @file services.scene.ts
@@ -25,6 +27,7 @@ export const SERVICES_SCENE_ID = 'services-scene';
 
 type ServicesSceneState = {
   studioId: string | null;
+  language: BotUiLanguage;
 };
 
 function getSceneState(ctx: MyContext): ServicesSceneState {
@@ -60,10 +63,11 @@ async function renderCatalog(
   services: ServicesCatalogItem[],
   preferEdit: boolean,
 ): Promise<void> {
+  const state = getSceneState(ctx);
   await renderView(
     ctx,
-    formatServicesCatalogText(services),
-    createServicesCatalogKeyboard(services),
+    formatServicesCatalogText(services, state.language),
+    createServicesCatalogKeyboard(services, state.language),
     preferEdit,
   );
 }
@@ -81,6 +85,7 @@ export function createServicesScene(): Scenes.WizardScene<MyContext> {
       const user = await getOrCreateUser(ctx);
       const state = getSceneState(ctx);
       state.studioId = user.studioId;
+      state.language = resolveBotUiLanguage(user.preferredLanguage);
 
       await loadAndRenderCatalog(ctx, false);
       return ctx.wizard.next();
@@ -113,8 +118,8 @@ export function createServicesScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatServiceDetailsText(details),
-      createServiceDetailsKeyboard(),
+      formatServiceDetailsText(details, state.language),
+      createServiceDetailsKeyboard(state.language),
       true,
     );
   });
@@ -132,4 +137,3 @@ export function createServicesScene(): Scenes.WizardScene<MyContext> {
 
   return scene;
 }
-

@@ -1,7 +1,9 @@
 import { Markup } from 'telegraf';
 import { COMMON_NAV_ACTION } from '../../types/bot-menu.types.js';
-import { FAQ_ACTION, FAQ_BUTTON_TEXT, makeFaqItemAction } from '../../types/bot-faq.types.js';
+import { FAQ_ACTION, makeFaqItemAction } from '../../types/bot-faq.types.js';
 import type { FaqCatalogItem } from '../../types/db-helpers/db-faq.types.js';
+import { tBot } from './i18n.bot.js';
+import type { BotUiLanguage } from './i18n.bot.js';
 
 /**
  * @file faq-view.bot.ts
@@ -17,35 +19,39 @@ function getNumberBadge(index: number): string {
 /**
  * @summary Форматує текст FAQ списку.
  */
-export function formatFaqCatalogText(items: FaqCatalogItem[]): string {
+export function formatFaqCatalogText(items: FaqCatalogItem[], language: BotUiLanguage): string {
   if (items.length === 0) {
     return (
-      '❓ FAQ — Часті запитання\n' +
+      `${tBot(language, 'FAQ_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n' +
-      'Наразі розділ FAQ порожній.\n' +
-      'Спробуйте пізніше або зверніться до адміністратора.'
+      `${tBot(language, 'FAQ_EMPTY')}\n` +
+      tBot(language, 'FAQ_EMPTY_HINT')
     );
   }
 
   const lines = items.map((item, index) => `${getNumberBadge(index)} ${item.question}`);
 
   return (
-    '❓ FAQ — Часті запитання\n' +
+    `${tBot(language, 'FAQ_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n' +
     `${lines.join('\n\n')}\n\n` +
-    'Для детальної інформації виберіть номер питання.'
+    tBot(language, 'FAQ_SELECT_HINT')
   );
 }
 
 /**
  * @summary Форматує текст детальної відповіді FAQ.
  */
-export function formatFaqItemText(item: FaqCatalogItem, index: number): string {
+export function formatFaqItemText(
+  item: FaqCatalogItem,
+  index: number,
+  language: BotUiLanguage,
+): string {
   return (
-    `❓ Питання ${getNumberBadge(index)}\n` +
+    `${tBot(language, 'FAQ_QUESTION')} ${getNumberBadge(index)}\n` +
     '━━━━━━━━━━━━━━\n' +
     `${item.question}\n\n` +
-    '✅ Відповідь\n' +
+    `${tBot(language, 'FAQ_ANSWER')}\n` +
     `${item.answer}`
   );
 }
@@ -55,6 +61,7 @@ export function formatFaqItemText(item: FaqCatalogItem, index: number): string {
  */
 export function createFaqCatalogKeyboard(
   items: FaqCatalogItem[],
+  language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const itemRows = items.map((item, index) => [
     Markup.button.callback(getNumberBadge(index), makeFaqItemAction(item.id)),
@@ -62,19 +69,18 @@ export function createFaqCatalogKeyboard(
 
   return Markup.inlineKeyboard([
     ...itemRows,
-    [Markup.button.callback(FAQ_BUTTON_TEXT.HOME, COMMON_NAV_ACTION.HOME)],
+    [Markup.button.callback(tBot(language, 'HOME'), COMMON_NAV_ACTION.HOME)],
   ]);
 }
 
 /**
  * @summary Створює inline-клавіатуру для детальної FAQ відповіді.
  */
-export function createFaqItemKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createFaqItemKeyboard(language: BotUiLanguage): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
-      Markup.button.callback(FAQ_BUTTON_TEXT.BACK, FAQ_ACTION.BACK_TO_LIST),
-      Markup.button.callback(FAQ_BUTTON_TEXT.HOME, COMMON_NAV_ACTION.HOME),
+      Markup.button.callback(tBot(language, 'COMMON_BACK'), FAQ_ACTION.BACK_TO_LIST),
+      Markup.button.callback(tBot(language, 'HOME'), COMMON_NAV_ACTION.HOME),
     ],
   ]);
 }
-

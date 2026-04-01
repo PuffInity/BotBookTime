@@ -15,6 +15,8 @@ import {
 } from '../../helpers/db/db-masters.helper.js';
 import { getOrCreateUser } from '../../helpers/db/db-profile.helper.js';
 import type { MasterCatalogItem } from '../../types/db-helpers/db-masters.types.js';
+import { resolveBotUiLanguage } from '../../helpers/bot/i18n.bot.js';
+import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 
 /**
  * @file masters.scene.ts
@@ -25,6 +27,7 @@ export const MASTERS_SCENE_ID = 'masters-scene';
 
 type MastersSceneState = {
   studioId: string | null;
+  language: BotUiLanguage;
 };
 
 function getSceneState(ctx: MyContext): MastersSceneState {
@@ -60,10 +63,11 @@ async function renderCatalog(
   masters: MasterCatalogItem[],
   preferEdit: boolean,
 ): Promise<void> {
+  const state = getSceneState(ctx);
   await renderView(
     ctx,
-    formatMastersCatalogText(masters),
-    createMastersCatalogKeyboard(masters),
+    formatMastersCatalogText(masters, state.language),
+    createMastersCatalogKeyboard(masters, state.language),
     preferEdit,
   );
 }
@@ -81,6 +85,7 @@ export function createMastersScene(): Scenes.WizardScene<MyContext> {
       const user = await getOrCreateUser(ctx);
       const state = getSceneState(ctx);
       state.studioId = user.studioId;
+      state.language = resolveBotUiLanguage(user.preferredLanguage);
 
       await loadAndRenderCatalog(ctx, false);
       return ctx.wizard.next();
@@ -113,8 +118,8 @@ export function createMastersScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterDetailsText(details),
-      createMasterDetailsKeyboard(),
+      formatMasterDetailsText(details, state.language),
+      createMasterDetailsKeyboard(state.language),
       true,
     );
   });

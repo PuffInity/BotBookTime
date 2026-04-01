@@ -1,6 +1,7 @@
 import { Scenes } from 'telegraf';
 import { createBookingScene } from './booking.scene.js';
 import { createProfileNameScene } from './profile-name.scene.js';
+import { createProfileLanguageScene } from './profile-language.scene.js';
 import { createProfileEmailVerifyScene } from './profile-email-verify.scene.js';
 import { createProfileEmailAddScene } from './profile-email-add.scene.js';
 import { createProfileNotificationSettingsScene } from './profile-notification-settings.scene.js';
@@ -19,6 +20,7 @@ import type { MyContext } from '../../types/bot.types.js';
 export function createBotStage(): Scenes.Stage<MyContext> {
   const bookingScene = createBookingScene();
   const profileNameScene = createProfileNameScene();
+  const profileLanguageScene = createProfileLanguageScene();
   const profileEmailVerifyScene = createProfileEmailVerifyScene();
   const profileEmailAddScene = createProfileEmailAddScene();
   const profileNotificationSettingsScene = createProfileNotificationSettingsScene();
@@ -34,6 +36,7 @@ export function createBotStage(): Scenes.Stage<MyContext> {
   return new Scenes.Stage<MyContext>([
     bookingScene,
     profileNameScene,
+    profileLanguageScene,
     profileEmailVerifyScene,
     profileEmailAddScene,
     profileNotificationSettingsScene,

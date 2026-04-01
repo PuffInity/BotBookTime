@@ -4,12 +4,13 @@ import type { ServicesCatalogItem } from '../../types/db-helpers/db-services.typ
 import type { CreatePendingBookingResult } from '../../types/db-helpers/db-booking.types.js';
 import {
   BOOKING_ACTION,
-  BOOKING_BUTTON_TEXT,
   makeBookingDateAction,
   makeBookingMasterAction,
   makeBookingServiceAction,
   makeBookingTimeAction,
 } from '../../types/bot-booking.types.js';
+import { tBot } from './i18n.bot.js';
+import type { BotUiLanguage } from './i18n.bot.js';
 
 /**
  * @file booking-view.bot.ts
@@ -17,10 +18,13 @@ import {
  */
 
 const NUMBER_BADGES = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
-const WEEKDAY_LABELS = ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
 
 function getNumberBadge(index: number): string {
   return NUMBER_BADGES[index] ?? `${index + 1}.`;
+}
+
+function getMinutesUnit(language: BotUiLanguage): string {
+  return language === 'uk' ? 'хв' : 'min';
 }
 
 function formatPrice(price: string, currencyCode: string): string {
@@ -31,20 +35,29 @@ function formatPrice(price: string, currencyCode: string): string {
   return `${normalizedPrice} ${currencyCode}`;
 }
 
-function formatDateLabel(date: Date): string {
-  const weekday = WEEKDAY_LABELS[date.getDay()];
+function toLocale(language: BotUiLanguage): string {
+  if (language === 'en') return 'en-US';
+  if (language === 'cs') return 'cs-CZ';
+  return 'uk-UA';
+}
+
+function formatDateLabel(date: Date, language: BotUiLanguage): string {
+  const weekday = new Intl.DateTimeFormat(toLocale(language), { weekday: 'short' }).format(date);
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   return `${weekday} ${day}.${month}`;
 }
 
-function formatDateTimeLabel(startAt: Date): string {
-  const day = String(startAt.getDate()).padStart(2, '0');
-  const month = String(startAt.getMonth() + 1).padStart(2, '0');
-  const year = startAt.getFullYear();
-  const hours = String(startAt.getHours()).padStart(2, '0');
-  const minutes = String(startAt.getMinutes()).padStart(2, '0');
-  return `${day}.${month}.${year} ${hours}:${minutes}`;
+function formatDateTimeLabel(startAt: Date, language: BotUiLanguage): string {
+  return new Intl.DateTimeFormat(toLocale(language), {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Europe/Prague',
+  }).format(startAt);
 }
 
 export function buildBookingDateOptions(days = 7): Date[] {
@@ -85,25 +98,29 @@ function getTimeCode(timeLabel: string): string {
   return timeLabel.replace(':', '');
 }
 
-export function formatBookingServiceStepText(services: ServicesCatalogItem[]): string {
+export function formatBookingServiceStepText(
+  services: ServicesCatalogItem[],
+  language: BotUiLanguage,
+): string {
   if (services.length === 0) {
     return (
-      '📅 Бронювання\n' +
+      `${tBot(language, 'BOOKING_STEP_1_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n' +
-      'Наразі немає активних послуг для запису.\n' +
-      'Спробуйте пізніше або зверніться до адміністратора.'
+      `${tBot(language, 'BOOKING_NO_SERVICES')}\n` +
+      tBot(language, 'BOOKING_NO_SERVICES_HINT')
     );
   }
 
   return (
-    '📅 Бронювання — крок 1/5\n' +
+    `${tBot(language, 'BOOKING_STEP_1_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n' +
-    'Оберіть послугу для запису.'
+    tBot(language, 'BOOKING_SELECT_SERVICE')
   );
 }
 
 export function createBookingServiceKeyboard(
   services: ServicesCatalogItem[],
+  language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const serviceRows = services.map((service, index) => [
     Markup.button.callback(
@@ -114,47 +131,53 @@ export function createBookingServiceKeyboard(
 
   return Markup.inlineKeyboard([
     ...serviceRows,
-    [Markup.button.callback(BOOKING_BUTTON_TEXT.CANCEL_BOOKING, BOOKING_ACTION.CANCEL)],
+    [Markup.button.callback(tBot(language, 'BOOKING_BTN_CANCEL'), BOOKING_ACTION.CANCEL)],
   ]);
 }
 
-export function formatBookingDateStepText(serviceName: string): string {
+export function formatBookingDateStepText(serviceName: string, language: BotUiLanguage): string {
   return (
-    '📅 Бронювання — крок 2/5\n' +
+    `${tBot(language, 'BOOKING_STEP_2_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n' +
-    `💼 Послуга: ${serviceName}\n\n` +
-    'Оберіть дату візиту.'
+    `${tBot(language, 'BOOKING_LABEL_SERVICE')}: ${serviceName}\n\n` +
+    tBot(language, 'BOOKING_SELECT_DATE')
   );
 }
 
 export function createBookingDateKeyboard(
   dates: Date[],
+  language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const dateRows = dates.map((date) => [
-    Markup.button.callback(formatDateLabel(date), makeBookingDateAction(getDateCode(date))),
+    Markup.button.callback(formatDateLabel(date, language), makeBookingDateAction(getDateCode(date))),
   ]);
 
   return Markup.inlineKeyboard([
     ...dateRows,
     [
-      Markup.button.callback(BOOKING_BUTTON_TEXT.BACK, BOOKING_ACTION.BACK),
-      Markup.button.callback(BOOKING_BUTTON_TEXT.CANCEL_BOOKING, BOOKING_ACTION.CANCEL),
+      Markup.button.callback(tBot(language, 'COMMON_BACK'), BOOKING_ACTION.BACK),
+      Markup.button.callback(tBot(language, 'BOOKING_BTN_CANCEL'), BOOKING_ACTION.CANCEL),
     ],
   ]);
 }
 
-export function formatBookingTimeStepText(serviceName: string, dateLabel: string): string {
+export function formatBookingTimeStepText(
+  serviceName: string,
+  dateLabel: string,
+  language: BotUiLanguage,
+): string {
   return (
-    '📅 Бронювання — крок 3/5\n' +
+    `${tBot(language, 'BOOKING_STEP_3_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n' +
-    `💼 Послуга: ${serviceName}\n` +
-    `📆 Дата: ${dateLabel}\n\n` +
-    'Оберіть зручний час.'
+    `${tBot(language, 'BOOKING_LABEL_SERVICE')}: ${serviceName}\n` +
+    `${tBot(language, 'BOOKING_LABEL_DATE')}: ${dateLabel}\n\n` +
+    tBot(language, 'BOOKING_SELECT_TIME')
   );
 }
 
 export function createBookingTimeKeyboard(
   timeLabels: string[],
+  language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const rows: ReturnType<typeof Markup.button.callback>[][] = [];
 
@@ -173,8 +196,8 @@ export function createBookingTimeKeyboard(
   return Markup.inlineKeyboard([
     ...rows,
     [
-      Markup.button.callback(BOOKING_BUTTON_TEXT.BACK, BOOKING_ACTION.BACK),
-      Markup.button.callback(BOOKING_BUTTON_TEXT.CANCEL_BOOKING, BOOKING_ACTION.CANCEL),
+      Markup.button.callback(tBot(language, 'COMMON_BACK'), BOOKING_ACTION.BACK),
+      Markup.button.callback(tBot(language, 'BOOKING_BTN_CANCEL'), BOOKING_ACTION.CANCEL),
     ],
   ]);
 }
@@ -184,30 +207,32 @@ export function formatBookingMasterStepText(
   dateLabel: string,
   timeLabel: string,
   masters: MasterBookingOption[],
+  language: BotUiLanguage,
 ): string {
   if (masters.length === 0) {
     return (
-      '📅 Бронювання — крок 4/5\n' +
+      `${tBot(language, 'BOOKING_STEP_4_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n' +
-      `💼 Послуга: ${serviceName}\n` +
-      `📆 Дата: ${dateLabel}\n` +
-      `⏰ Час: ${timeLabel}\n\n` +
-      'На жаль, для цієї послуги зараз немає доступних майстрів.'
+      `${tBot(language, 'BOOKING_LABEL_SERVICE')}: ${serviceName}\n` +
+      `${tBot(language, 'BOOKING_LABEL_DATE')}: ${dateLabel}\n` +
+      `${tBot(language, 'BOOKING_LABEL_TIME')}: ${timeLabel}\n\n` +
+      tBot(language, 'BOOKING_NO_MASTERS')
     );
   }
 
   return (
-    '📅 Бронювання — крок 4/5\n' +
+    `${tBot(language, 'BOOKING_STEP_4_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n' +
-    `💼 Послуга: ${serviceName}\n` +
-    `📆 Дата: ${dateLabel}\n` +
-    `⏰ Час: ${timeLabel}\n\n` +
-    'Оберіть майстра.'
+    `${tBot(language, 'BOOKING_LABEL_SERVICE')}: ${serviceName}\n` +
+    `${tBot(language, 'BOOKING_LABEL_DATE')}: ${dateLabel}\n` +
+    `${tBot(language, 'BOOKING_LABEL_TIME')}: ${timeLabel}\n\n` +
+    tBot(language, 'BOOKING_SELECT_MASTER')
   );
 }
 
 export function createBookingMasterKeyboard(
   masters: MasterBookingOption[],
+  language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const rows = masters.map((master, index) => {
     const ratingSuffix = master.ratingCount > 0 ? ` ⭐ ${master.ratingAvg}` : '';
@@ -222,48 +247,49 @@ export function createBookingMasterKeyboard(
   return Markup.inlineKeyboard([
     ...rows,
     [
-      Markup.button.callback(BOOKING_BUTTON_TEXT.BACK, BOOKING_ACTION.BACK),
-      Markup.button.callback(BOOKING_BUTTON_TEXT.CANCEL_BOOKING, BOOKING_ACTION.CANCEL),
+      Markup.button.callback(tBot(language, 'COMMON_BACK'), BOOKING_ACTION.BACK),
+      Markup.button.callback(tBot(language, 'BOOKING_BTN_CANCEL'), BOOKING_ACTION.CANCEL),
     ],
   ]);
 }
 
-export function formatBookingPhoneStepText(name: string): string {
+export function formatBookingPhoneStepText(name: string, language: BotUiLanguage): string {
   return (
-    '📅 Бронювання — крок 5/5\n' +
+    `${tBot(language, 'BOOKING_STEP_5_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n' +
-    `👤 Ім'я з профілю: ${name}\n\n` +
-    '📱 Номер у профілі не доданий.\n' +
-    'Будь ласка, напишіть ваш номер телефону у форматі +420123456789.'
+    `${tBot(language, 'BOOKING_PROFILE_NAME')}: ${name}\n\n` +
+    `${tBot(language, 'BOOKING_PHONE_MISSING')}\n` +
+    tBot(language, 'BOOKING_PHONE_ENTER')
   );
 }
 
 export function formatBookingPhoneUnverifiedStepText(input: {
   name: string;
   phone: string;
-}): string {
+}, language: BotUiLanguage): string {
   return (
-    '📅 Бронювання — крок 5/5\n' +
+    `${tBot(language, 'BOOKING_STEP_5_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n' +
-    `👤 Ім'я з профілю: ${input.name}\n` +
-    `📱 Телефон у профілі: ${input.phone}\n\n` +
-    '⚠️ Ваш номер телефону доданий, але не підтверджений.\n' +
-    'Оберіть дію: перейти в профіль або використати непідтверджений номер.'
+    `${tBot(language, 'BOOKING_PROFILE_NAME')}: ${input.name}\n` +
+    `${tBot(language, 'BOOKING_PROFILE_PHONE')}: ${input.phone}\n\n` +
+    tBot(language, 'BOOKING_PHONE_UNVERIFIED')
   );
 }
 
-export function createBookingPhoneUnverifiedKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createBookingPhoneUnverifiedKeyboard(
+  language: BotUiLanguage,
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
-      Markup.button.callback(BOOKING_BUTTON_TEXT.GO_PROFILE, BOOKING_ACTION.PHONE_GO_PROFILE),
+      Markup.button.callback(tBot(language, 'BOOKING_BTN_GO_PROFILE'), BOOKING_ACTION.PHONE_GO_PROFILE),
       Markup.button.callback(
-        BOOKING_BUTTON_TEXT.USE_UNVERIFIED_PHONE,
+        tBot(language, 'BOOKING_BTN_USE_UNVERIFIED'),
         BOOKING_ACTION.PHONE_USE_UNVERIFIED,
       ),
     ],
     [
-      Markup.button.callback(BOOKING_BUTTON_TEXT.BACK, BOOKING_ACTION.BACK),
-      Markup.button.callback(BOOKING_BUTTON_TEXT.CANCEL_BOOKING, BOOKING_ACTION.CANCEL),
+      Markup.button.callback(tBot(language, 'COMMON_BACK'), BOOKING_ACTION.BACK),
+      Markup.button.callback(tBot(language, 'BOOKING_BTN_CANCEL'), BOOKING_ACTION.CANCEL),
     ],
   ]);
 }
@@ -274,41 +300,44 @@ export function formatBookingConfirmStepText(input: {
   startAt: Date;
   attendeeName: string;
   attendeePhone: string;
-}): string {
+}, language: BotUiLanguage): string {
   return (
-    '✅ Підтвердження бронювання\n' +
+    `${tBot(language, 'BOOKING_CONFIRM_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n' +
-    `💼 Послуга: ${input.serviceName}\n` +
-    `👩‍🎨 Майстер: ${input.masterName}\n` +
-    `📆 Дата та час: ${formatDateTimeLabel(input.startAt)}\n` +
-    `👤 Клієнт: ${input.attendeeName}\n` +
-    `📱 Телефон: ${input.attendeePhone}\n\n` +
-    'Підтвердити створення запису?'
+    `${tBot(language, 'BOOKING_LABEL_SERVICE')}: ${input.serviceName}\n` +
+    `${tBot(language, 'BOOKING_LABEL_MASTER')}: ${input.masterName}\n` +
+    `${tBot(language, 'BOOKING_LABEL_DATETIME')}: ${formatDateTimeLabel(input.startAt, language)}\n` +
+    `${tBot(language, 'BOOKING_LABEL_CLIENT')}: ${input.attendeeName}\n` +
+    `${tBot(language, 'BOOKING_LABEL_PHONE')}: ${input.attendeePhone}\n\n` +
+    tBot(language, 'BOOKING_CONFIRM_ASK')
   );
 }
 
-export function createBookingConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createBookingConfirmKeyboard(language: BotUiLanguage): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(BOOKING_BUTTON_TEXT.CONFIRM, BOOKING_ACTION.CONFIRM)],
+    [Markup.button.callback(tBot(language, 'BOOKING_BTN_CONFIRM'), BOOKING_ACTION.CONFIRM)],
     [
-      Markup.button.callback(BOOKING_BUTTON_TEXT.CHANGE, BOOKING_ACTION.CHANGE),
-      Markup.button.callback(BOOKING_BUTTON_TEXT.CANCEL, BOOKING_ACTION.CANCEL),
+      Markup.button.callback(tBot(language, 'BOOKING_BTN_CHANGE'), BOOKING_ACTION.CHANGE),
+      Markup.button.callback(tBot(language, 'BOOKING_BTN_CANCEL'), BOOKING_ACTION.CANCEL),
     ],
   ]);
 }
 
-export function formatBookingSuccessText(result: CreatePendingBookingResult): string {
-  const startLabel = formatDateTimeLabel(result.appointment.startAt);
+export function formatBookingSuccessText(
+  result: CreatePendingBookingResult,
+  language: BotUiLanguage,
+): string {
+  const startLabel = formatDateTimeLabel(result.appointment.startAt, language);
   const priceLabel = formatPrice(result.meta.priceAmount, result.meta.currencyCode);
 
   return (
-    '🎉 Ваш запис успішно створено\n' +
+    `${tBot(language, 'BOOKING_SUCCESS_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n' +
-    `💼 Послуга: ${result.meta.serviceName}\n` +
-    `👩‍🎨 Майстер: ${result.meta.masterDisplayName}\n` +
-    `📆 Дата та час: ${startLabel}\n` +
-    `💰 Вартість: ${priceLabel}\n` +
-    `🆔 Номер запису: ${result.appointment.id}\n\n` +
-    'Статус: 🟡 Очікує підтвердження майстром.'
+    `${tBot(language, 'BOOKING_LABEL_SERVICE')}: ${result.meta.serviceName}\n` +
+    `${tBot(language, 'BOOKING_LABEL_MASTER')}: ${result.meta.masterDisplayName}\n` +
+    `${tBot(language, 'BOOKING_LABEL_DATETIME')}: ${startLabel}\n` +
+    `${tBot(language, 'SERVICES_LABEL_PRICE')}: ${priceLabel}\n` +
+    `${tBot(language, 'BOOKING_RECORD_ID')}: ${result.appointment.id}\n\n` +
+    tBot(language, 'BOOKING_STATUS_PENDING')
   );
 }

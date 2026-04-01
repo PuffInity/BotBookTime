@@ -14,6 +14,7 @@ export const PROFILE_ACTION = {
   EMAIL_OTP_CANCEL: 'profile:email-otp-cancel',
   EDIT_PHONE: 'profile:edit-phone',
   EDIT_LANGUAGE: 'profile:edit-language',
+  EDIT_LANGUAGE_SELECT_PREFIX: 'profile:edit-language:select:',
   BOOKING_STATUS: 'profile:booking-status',
   BOOKING_STATUS_VIEW_ALL: 'profile:booking-status:view-all',
   BOOKING_STATUS_OPEN_ITEM_PREFIX: 'profile:booking-status:item:',
@@ -56,6 +57,7 @@ export const PROFILE_BOOKING_RESCHEDULE_ACTION_REGEX = /^profile:booking-status:
 export const PROFILE_BOOKING_CANCEL_ACTION_REGEX = /^profile:booking-status:cancel:(\d+)$/;
 export const PROFILE_BOOKING_CANCEL_CONFIRM_ACTION_REGEX =
   /^profile:booking-status:cancel:confirm:(\d+)$/;
+export const PROFILE_EDIT_LANGUAGE_SELECT_ACTION_REGEX = /^profile:edit-language:select:(uk|en|cs)$/;
 
 export function makeProfileBookingOpenItemAction(appointmentId: string): string {
   return `${PROFILE_ACTION.BOOKING_STATUS_OPEN_ITEM_PREFIX}${appointmentId}`;
@@ -71,4 +73,8 @@ export function makeProfileBookingCancelAction(appointmentId: string): string {
 
 export function makeProfileBookingCancelConfirmAction(appointmentId: string): string {
   return `${PROFILE_ACTION.BOOKING_STATUS_CANCEL_CONFIRM_PREFIX}${appointmentId}`;
+}
+
+export function makeProfileEditLanguageSelectAction(language: 'uk' | 'en' | 'cs'): string {
+  return `${PROFILE_ACTION.EDIT_LANGUAGE_SELECT_PREFIX}${language}`;
 }

@@ -14,7 +14,6 @@ import { sendProfileCard } from '../../helpers/bot/profile-view.bot.js';
 import { sendClientBookingCreatedEmail } from '../../helpers/email/booking-email.helper.js';
 import {
   BOOKING_ACTION,
-  BOOKING_BUTTON_TEXT,
   BOOKING_DATE_ACTION_REGEX,
   BOOKING_MASTER_ACTION_REGEX,
   BOOKING_SERVICE_ACTION_REGEX,
@@ -23,6 +22,8 @@ import {
 import type { ServicesCatalogItem } from '../../types/db-helpers/db-services.types.js';
 import type { MasterBookingOption } from '../../types/db-helpers/db-masters.types.js';
 import { ValidationError } from '../../utils/error.utils.js';
+import { resolveBotUiLanguage, tBot } from '../../helpers/bot/i18n.bot.js';
+import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 import {
   buildBookingDateOptions,
   buildBookingTimeOptions,
@@ -50,6 +51,7 @@ import {
 export const BOOKING_SCENE_ID = 'booking-scene';
 
 type BookingSceneState = {
+  language: BotUiLanguage;
   clientId: string | null;
   studioId: string | null;
   profileName: string;
@@ -80,9 +82,9 @@ function getMessageText(ctx: MyContext): string | null {
   return ctx.message.text.trim();
 }
 
-function formatProfileName(firstName: string, lastName?: string | null): string {
+function formatProfileName(firstName: string, language: BotUiLanguage, lastName?: string | null): string {
   const fullName = `${firstName}${lastName ? ` ${lastName}` : ''}`.trim();
-  return fullName.length > 0 ? fullName : 'Клієнт';
+  return fullName.length > 0 ? fullName : tBot(language, 'BOOKING_CLIENT_FALLBACK');
 }
 
 function formatDateCodeLabel(dateCode: string): string {
@@ -126,11 +128,11 @@ function getAvailableTimeOptions(dateCode: string): string[] {
   });
 }
 
-function createTextStepNavKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+function createTextStepNavKeyboard(language: BotUiLanguage): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
-      Markup.button.callback(BOOKING_BUTTON_TEXT.BACK, BOOKING_ACTION.BACK),
-      Markup.button.callback(BOOKING_BUTTON_TEXT.CANCEL_BOOKING, BOOKING_ACTION.CANCEL),
+      Markup.button.callback(tBot(language, 'COMMON_BACK'), BOOKING_ACTION.BACK),
+      Markup.button.callback(tBot(language, 'BOOKING_BTN_CANCEL'), BOOKING_ACTION.CANCEL),
     ],
   ]);
 }
@@ -200,8 +202,8 @@ async function renderServiceStep(ctx: MyContext, preferEdit: boolean): Promise<v
 
   await renderView(
     ctx,
-    formatBookingServiceStepText(state.services),
-    createBookingServiceKeyboard(state.services),
+    formatBookingServiceStepText(state.services, state.language),
+    createBookingServiceKeyboard(state.services, state.language),
     preferEdit,
   );
 }
@@ -215,8 +217,8 @@ async function renderDateStep(ctx: MyContext, preferEdit: boolean): Promise<void
 
   await renderView(
     ctx,
-    formatBookingDateStepText(state.serviceName),
-    createBookingDateKeyboard(buildBookingDateOptions(7)),
+    formatBookingDateStepText(state.serviceName, state.language),
+    createBookingDateKeyboard(buildBookingDateOptions(7), state.language),
     preferEdit,
   );
 }
@@ -231,11 +233,18 @@ async function renderTimeStep(ctx: MyContext, preferEdit: boolean): Promise<void
   const availableTimeOptions = getAvailableTimeOptions(state.dateCode);
   const text =
     availableTimeOptions.length > 0
-      ? formatBookingTimeStepText(state.serviceName, formatDateCodeLabel(state.dateCode))
-      : formatBookingTimeStepText(state.serviceName, formatDateCodeLabel(state.dateCode)) +
-        '\n\n⚠️ На цю дату вже немає доступних слотів. Оберіть іншу дату.';
+      ? formatBookingTimeStepText(
+          state.serviceName,
+          formatDateCodeLabel(state.dateCode),
+          state.language,
+        )
+      : formatBookingTimeStepText(
+          state.serviceName,
+          formatDateCodeLabel(state.dateCode),
+          state.language,
+        ) + `\n\n${tBot(state.language, 'BOOKING_NO_SLOTS')}`;
 
-  await renderView(ctx, text, createBookingTimeKeyboard(availableTimeOptions), preferEdit);
+  await renderView(ctx, text, createBookingTimeKeyboard(availableTimeOptions, state.language), preferEdit);
 }
 
 async function renderMasterStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
@@ -257,8 +266,9 @@ async function renderMasterStep(ctx: MyContext, preferEdit: boolean): Promise<vo
       formatDateCodeLabel(state.dateCode),
       formatTimeCodeLabel(state.timeCode),
       state.masters,
+      state.language,
     ),
-    createBookingMasterKeyboard(state.masters),
+    createBookingMasterKeyboard(state.masters, state.language),
     preferEdit,
   );
 }
@@ -272,8 +282,8 @@ async function renderPhoneStep(ctx: MyContext, intro?: string): Promise<void> {
 
   if (!state.profilePhone) {
     await ctx.reply(
-      `${intro ? `${intro}\n\n` : ''}${formatBookingPhoneStepText(state.attendeeName)}`,
-      createTextStepNavKeyboard(),
+      `${intro ? `${intro}\n\n` : ''}${formatBookingPhoneStepText(state.attendeeName, state.language)}`,
+      createTextStepNavKeyboard(state.language),
     );
     return;
   }
@@ -285,8 +295,8 @@ async function renderPhoneStep(ctx: MyContext, intro?: string): Promise<void> {
         formatBookingPhoneUnverifiedStepText({
           name: state.attendeeName,
           phone: state.profilePhone,
-        }),
-      createBookingPhoneUnverifiedKeyboard(),
+        }, state.language),
+      createBookingPhoneUnverifiedKeyboard(state.language),
       ctx.updateType === 'callback_query',
     );
     return;
@@ -318,15 +328,16 @@ async function renderConfirmStep(ctx: MyContext, preferEdit: boolean): Promise<v
       startAt: toStartAt(state.dateCode, state.timeCode),
       attendeeName: state.attendeeName,
       attendeePhone: state.attendeePhone,
-    }),
-    createBookingConfirmKeyboard(),
+    }, state.language),
+    createBookingConfirmKeyboard(state.language),
     preferEdit,
   );
 }
 
 async function handleCancel(ctx: MyContext): Promise<void> {
+  const state = getSceneState(ctx);
   await ctx.scene.leave();
-  await ctx.reply('Бронювання скасовано.');
+  await ctx.reply(tBot(state.language ?? 'uk', 'BOOKING_CANCELLED'));
   await sendClientMainMenu(ctx);
 }
 
@@ -337,9 +348,10 @@ export function createBookingScene(): Scenes.WizardScene<MyContext> {
       const state = getSceneState(ctx);
       const user = await getOrCreateUser(ctx);
 
+      state.language = resolveBotUiLanguage(user.preferredLanguage);
       state.clientId = user.id;
       state.studioId = user.studioId;
-      state.profileName = formatProfileName(user.firstName, user.lastName);
+      state.profileName = formatProfileName(user.firstName, state.language, user.lastName);
       state.profileEmail = user.email;
       state.profilePhone = user.phoneE164;
       state.isProfilePhoneVerified = Boolean(user.phoneE164 && user.phoneVerifiedAt);
@@ -376,19 +388,19 @@ export function createBookingScene(): Scenes.WizardScene<MyContext> {
       if (state.profilePhone && !state.isProfilePhoneVerified) {
         await renderPhoneStep(
           ctx,
-          text ? 'Використайте кнопки нижче, щоб продовжити.' : undefined,
+          text ? tBot(state.language, 'BOOKING_TEXT_USE_BUTTONS') : undefined,
         );
         return;
       }
 
       if (!text) {
-        await renderPhoneStep(ctx, 'Я очікую текстове повідомлення з номером телефону.');
+        await renderPhoneStep(ctx, tBot(state.language, 'BOOKING_TEXT_EXPECT_PHONE'));
         return;
       }
 
       const parsedPhone = bookingClientPhoneSchema.safeParse(text);
       if (!parsedPhone.success) {
-        await renderPhoneStep(ctx, '⚠️ Некоректний номер. Приклад: +420123456789');
+        await renderPhoneStep(ctx, tBot(state.language, 'BOOKING_TEXT_INVALID_PHONE'));
         return;
       }
 
@@ -509,7 +521,7 @@ export function createBookingScene(): Scenes.WizardScene<MyContext> {
 
     const state = getSceneState(ctx);
     if (!state.profilePhone) {
-      await renderPhoneStep(ctx, 'У профілі немає номера телефону.');
+      await renderPhoneStep(ctx, tBot(state.language, 'BOOKING_TEXT_PHONE_NOT_IN_PROFILE'));
       return;
     }
 
@@ -556,7 +568,7 @@ export function createBookingScene(): Scenes.WizardScene<MyContext> {
       });
 
       await ctx.scene.leave();
-      await ctx.reply(formatBookingSuccessText(result));
+      await ctx.reply(formatBookingSuccessText(result, state.language));
 
       if (state.profileEmail) {
         const emailSent = await sendClientBookingCreatedEmail({
@@ -570,10 +582,7 @@ export function createBookingScene(): Scenes.WizardScene<MyContext> {
         });
 
         if (emailSent) {
-          await ctx.reply(
-            '📧 Ми надіслали лист на ваш email: запис створено і очікує підтвердження.\n' +
-              'Після підтвердження майстром ви отримаєте ще один лист.',
-          );
+          await ctx.reply(tBot(state.language, 'BOOKING_EMAIL_SENT'));
         }
       }
 
@@ -658,7 +667,7 @@ export function createBookingScene(): Scenes.WizardScene<MyContext> {
 
     if (isPhoneStepRequired(getSceneState(ctx))) {
       ctx.wizard.selectStep(5);
-      await renderPhoneStep(ctx, '⬅️ Повертаємося до попереднього кроку.');
+      await renderPhoneStep(ctx, tBot(getSceneState(ctx).language, 'BOOKING_TEXT_BACK_STEP'));
       return;
     }
 

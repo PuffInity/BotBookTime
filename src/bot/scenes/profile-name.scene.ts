@@ -23,6 +23,8 @@ import {
   sendProfileNameValidationError,
 } from '../../helpers/bot/profile-view.bot.js';
 import { bookingClientNameSchema } from '../../validator/booking-input.schema.js';
+import { resolveBotUiLanguage } from '../../helpers/bot/i18n.bot.js';
+import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 
 /**
  * @file profile-name.scene.ts
@@ -35,6 +37,7 @@ const MAX_INVALID_NAME_ATTEMPTS = 3;
 
 type ProfileNameSceneState = {
   invalidAttempts: number;
+  language: BotUiLanguage;
 };
 
 function getSceneState(ctx: MyContext): ProfileNameSceneState {
@@ -57,57 +60,60 @@ export function createProfileNameScene(): Scenes.WizardScene<MyContext> {
     PROFILE_NAME_SCENE_ID,
     async (ctx) => {
       const telegramId = ctx.from?.id;
+      const state = getSceneState(ctx);
       if (!telegramId) {
         await sendProfileNameBlockedMessage(ctx);
         await ctx.scene.leave();
         return;
       }
 
+      const user = await getOrCreateUser(ctx);
+      state.language = resolveBotUiLanguage(user.preferredLanguage);
+
       if (await isNameChangeBlocked(telegramId)) {
-        await sendProfileNameBlockedMessage(ctx);
+        await sendProfileNameBlockedMessage(ctx, state.language);
         await ctx.scene.leave();
         return;
       }
 
       if (await isNameChangeCooldownActive(telegramId)) {
-        await sendProfileNameCooldownMessage(ctx);
+        await sendProfileNameCooldownMessage(ctx, state.language);
         await ctx.scene.leave();
         return;
       }
 
-      const state = getSceneState(ctx);
       state.invalidAttempts = 0;
 
-      await sendProfileNamePrompt(ctx);
+      await sendProfileNamePrompt(ctx, state.language);
       return ctx.wizard.next();
     },
     async (ctx) => {
       const telegramId = ctx.from?.id;
+      const state = getSceneState(ctx);
       if (!telegramId) {
-        await sendProfileNameBlockedMessage(ctx);
+        await sendProfileNameBlockedMessage(ctx, state.language ?? 'uk');
         await ctx.scene.leave();
         return;
       }
 
       const text = getMessageText(ctx);
       if (!text) {
-        await sendProfileNameValidationError(ctx);
+        await sendProfileNameValidationError(ctx, state.language);
         return;
       }
 
       const parsedName = bookingClientNameSchema.safeParse(text);
       if (!parsedName.success) {
-        const state = getSceneState(ctx);
         state.invalidAttempts += 1;
 
         if (state.invalidAttempts >= MAX_INVALID_NAME_ATTEMPTS) {
           await setNameChangeBlocked(telegramId);
-          await sendProfileNameBlockedMessage(ctx);
+          await sendProfileNameBlockedMessage(ctx, state.language);
           await ctx.scene.leave();
           return;
         }
 
-        await sendProfileNameValidationError(ctx);
+        await sendProfileNameValidationError(ctx, state.language);
         return;
       }
 
@@ -117,16 +123,17 @@ export function createProfileNameScene(): Scenes.WizardScene<MyContext> {
       });
 
       await setNameChangeCooldown(telegramId);
-      await sendProfileNameUpdatedMessage(ctx, updatedUser.firstName);
+      await sendProfileNameUpdatedMessage(ctx, updatedUser.firstName, state.language);
       await ctx.scene.leave();
       return;
     },
   );
 
   scene.action(PROFILE_ACTION.EDIT_NAME_CANCEL, async (ctx) => {
+    const state = getSceneState(ctx);
     await ctx.answerCbQuery();
     await ctx.scene.leave();
-    await sendProfileNameCancelledMessage(ctx);
+    await sendProfileNameCancelledMessage(ctx, state.language);
     await sendFreshProfileCard(ctx);
   });
 
