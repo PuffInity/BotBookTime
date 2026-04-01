@@ -17,6 +17,7 @@ import { getOrCreateUser } from '../../helpers/db/db-profile.helper.js';
 import type { MasterCatalogItem } from '../../types/db-helpers/db-masters.types.js';
 import { resolveBotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
+import { translateMasterCatalogDetails } from '../../helpers/translate/translate-db-content.helper.js';
 
 /**
  * @file masters.scene.ts
@@ -116,9 +117,11 @@ export function createMastersScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
+    const translatedDetails = await translateMasterCatalogDetails(details, state.language);
+
     await renderView(
       ctx,
-      formatMasterDetailsText(details, state.language),
+      formatMasterDetailsText(translatedDetails, state.language),
       createMasterDetailsKeyboard(state.language),
       true,
     );

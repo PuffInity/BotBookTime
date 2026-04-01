@@ -25,6 +25,10 @@ import { ValidationError } from '../../utils/error.utils.js';
 import { resolveBotUiLanguage, tBot } from '../../helpers/bot/i18n.bot.js';
 import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 import {
+  translateBookingMetaForUser,
+  translateServicesCatalogItems,
+} from '../../helpers/translate/translate-db-content.helper.js';
+import {
   buildBookingDateOptions,
   buildBookingTimeOptions,
   createBookingConfirmKeyboard,
@@ -198,7 +202,8 @@ async function renderView(
 
 async function renderServiceStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
-  state.services = await listActiveServicesCatalog({ studioId: state.studioId });
+  const rawServices = await listActiveServicesCatalog({ studioId: state.studioId });
+  state.services = await translateServicesCatalogItems(rawServices, state.language);
 
   await renderView(
     ctx,
@@ -567,8 +572,17 @@ export function createBookingScene(): Scenes.WizardScene<MyContext> {
         startAt: toStartAt(state.dateCode, state.timeCode),
       });
 
+      const translatedMeta = await translateBookingMetaForUser(result.meta, state.language);
       await ctx.scene.leave();
-      await ctx.reply(formatBookingSuccessText(result, state.language));
+      await ctx.reply(
+        formatBookingSuccessText(
+          {
+            ...result,
+            meta: translatedMeta,
+          },
+          state.language,
+        ),
+      );
 
       if (state.profileEmail) {
         const emailSent = await sendClientBookingCreatedEmail({

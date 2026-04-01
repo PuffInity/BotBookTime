@@ -14,6 +14,10 @@ import { getFaqCatalogItemById, listFaqCatalog } from '../../helpers/db/db-faq.h
 import type { FaqCatalogItem } from '../../types/db-helpers/db-faq.types.js';
 import type { LanguageCode } from '../../types/db/index.js';
 import { resolveBotUiLanguage } from '../../helpers/bot/i18n.bot.js';
+import {
+  translateFaqCatalogItem,
+  translateFaqCatalogItems,
+} from '../../helpers/translate/translate-db-content.helper.js';
 
 /**
  * @file faq.scene.ts
@@ -57,10 +61,12 @@ async function renderView(
 }
 
 async function loadFaqCatalogForState(state: FaqSceneState): Promise<FaqCatalogItem[]> {
-  return listFaqCatalog({
+  const items = await listFaqCatalog({
     studioId: state.studioId,
     language: state.language,
   });
+
+  return translateFaqCatalogItems(items, state.language);
 }
 
 async function renderCatalog(ctx: MyContext, preferEdit: boolean): Promise<void> {
@@ -120,12 +126,14 @@ export function createFaqScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
+    const translatedItem = await translateFaqCatalogItem(item, state.language);
+
     const indexInList = state.items.findIndex((entry) => entry.id === item.id);
     const displayIndex = indexInList >= 0 ? indexInList : item.sortOrder - 1;
 
     await renderView(
       ctx,
-      formatFaqItemText(item, displayIndex, state.language),
+      formatFaqItemText(translatedItem, displayIndex, state.language),
       createFaqItemKeyboard(state.language),
       true,
     );

@@ -17,6 +17,10 @@ import { getOrCreateUser } from '../../helpers/db/db-profile.helper.js';
 import type { ServicesCatalogItem } from '../../types/db-helpers/db-services.types.js';
 import { resolveBotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
+import {
+  translateServicesCatalogDetails,
+  translateServicesCatalogItems,
+} from '../../helpers/translate/translate-db-content.helper.js';
 
 /**
  * @file services.scene.ts
@@ -74,7 +78,8 @@ async function renderCatalog(
 
 async function loadAndRenderCatalog(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
-  const services = await listActiveServicesCatalog({ studioId: state.studioId });
+  const servicesRaw = await listActiveServicesCatalog({ studioId: state.studioId });
+  const services = await translateServicesCatalogItems(servicesRaw, state.language);
   await renderCatalog(ctx, services, preferEdit);
 }
 
@@ -116,9 +121,11 @@ export function createServicesScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
+    const translatedDetails = await translateServicesCatalogDetails(details, state.language);
+
     await renderView(
       ctx,
-      formatServiceDetailsText(details, state.language),
+      formatServiceDetailsText(translatedDetails, state.language),
       createServiceDetailsKeyboard(state.language),
       true,
     );

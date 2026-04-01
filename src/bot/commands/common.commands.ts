@@ -49,6 +49,7 @@ import {
 } from '../../helpers/bot/profile-booking-status.bot.js';
 import type { ProfileBookingStatusItem } from '../../types/db-helpers/db-profile-booking.types.js';
 import { resolveBotUiLanguage, tBot, tBotTemplate } from '../../helpers/bot/i18n.bot.js';
+import { translateProfileBookingStatusData } from '../../helpers/translate/translate-db-content.helper.js';
 
 /**
  * @file common.commands.ts
@@ -87,13 +88,13 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
   }> {
     const appointmentId = getActionIdFromCallbackData(ctx, regex);
     const user = await getOrCreateUser(ctx);
-    const bookingStatus = await getProfileBookingStatus(user.id, 20);
+    const language = resolveBotUiLanguage(user.preferredLanguage);
+    const bookingStatusRaw = await getProfileBookingStatus(user.id, 20);
+    const bookingStatus = await translateProfileBookingStatusData(bookingStatusRaw, language);
     const available = [bookingStatus.upcoming, ...getHistoryItems(bookingStatus)].filter(
       (item): item is ProfileBookingStatusItem => Boolean(item),
     );
     const selected = available.find((item) => item.appointmentId === appointmentId) ?? null;
-
-    const language = resolveBotUiLanguage(user.preferredLanguage);
 
     if (!selected) {
       await sendProfileBookingActionStub(ctx, tBot(language, 'PROFILE_BOOKING_NOT_FOUND'), language);
@@ -280,7 +281,8 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
       await ctx.answerCbQuery();
       const user = await getOrCreateUser(ctx);
       const language = resolveBotUiLanguage(user.preferredLanguage);
-      const bookingStatus = await getProfileBookingStatus(user.id);
+      const bookingStatusRaw = await getProfileBookingStatus(user.id);
+      const bookingStatus = await translateProfileBookingStatusData(bookingStatusRaw, language);
       await sendProfileBookingStatus(ctx, bookingStatus, language);
     }),
   );
@@ -291,7 +293,8 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
       await ctx.answerCbQuery();
       const user = await getOrCreateUser(ctx);
       const language = resolveBotUiLanguage(user.preferredLanguage);
-      const bookingStatus = await getProfileBookingStatus(user.id, 20);
+      const bookingStatusRaw = await getProfileBookingStatus(user.id, 20);
+      const bookingStatus = await translateProfileBookingStatusData(bookingStatusRaw, language);
       await sendProfileBookingHistory(ctx, bookingStatus, language);
     }),
   );
