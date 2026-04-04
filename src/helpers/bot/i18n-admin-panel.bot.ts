@@ -236,6 +236,67 @@ export const ADMIN_PANEL_DICTIONARY = {
     ADMIN_PANEL_MASTERS_EDIT_FIELD_STARTED_ON: 'Дата початку роботи',
     ADMIN_PANEL_MASTERS_EDIT_FIELD_PROCEDURES_DONE_TOTAL: 'Кількість процедур',
     ADMIN_PANEL_MASTERS_EDIT_FIELD_PROFILE: 'Поле профілю',
+    ADMIN_PANEL_MASTERS_CATALOG_EMPTY: 'Поки що немає активних майстрів.',
+    ADMIN_PANEL_MASTERS_CATALOG_EMPTY_HINT:
+      'Додайте майстра або активуйте існуючий профіль.',
+    ADMIN_PANEL_MASTERS_CATALOG_PICK:
+      'Оберіть майстра зі списку, щоб відкрити деталі:',
+    ADMIN_PANEL_MASTERS_CATALOG_EXPERIENCE_NOT_SET: 'Досвід не вказано',
+    ADMIN_PANEL_MASTERS_CATALOG_EXPERIENCE_YEARS: '{years} років досвіду',
+    ADMIN_PANEL_MASTERS_CATALOG_BOOKABLE_YES: '🟢 Доступний',
+    ADMIN_PANEL_MASTERS_CATALOG_BOOKABLE_NO: '⚪ Не приймає запис',
+    ADMIN_PANEL_MASTERS_DETAILS_TITLE: '👩‍🎨 Профіль майстра',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_NAME: '👤 Ім’я: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_ID: '🪪 ID майстра: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_PROFESSIONAL:
+      '📊 Професійна інформація',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_RATING: '⭐ Рейтинг: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_EXPERIENCE: '🗓 Досвід: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_PROCEDURES:
+      '📈 Виконано процедур: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_SPECIALIZATION: '💼 Спеціалізація',
+    ADMIN_PANEL_MASTERS_DETAILS_SPECIALIZATION_EMPTY:
+      '• Послуги ще не призначені',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_SCHEDULE: '🕒 Робочий графік',
+    ADMIN_PANEL_MASTERS_DETAILS_SCHEDULE_EMPTY: '• Графік ще не заповнений',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_ADDITIONAL: '📍 Додаткова інформація',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_BIO: '📝 Bio: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_MATERIALS: '🧴 Матеріали: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_PHONE: '📱 Телефон: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_EMAIL: '✉️ Email: {value}',
+    ADMIN_PANEL_MASTERS_DELETE_INPUT_TEXT:
+      '❌ Видалення майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Щоб видалити майстра з системи, надішліть його Telegram ID.\n\n' +
+      '📌 Формат: тільки цифри (5..15 символів)\n' +
+      'Приклад: 548732119',
+    ADMIN_PANEL_MASTERS_DELETE_CONFIRM_TEXT:
+      '⚠️ Підтвердження видалення майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Майстер: {masterName}\n' +
+      '🆔 Telegram ID: {telegramUserId}\n\n' +
+      'Після видалення:\n' +
+      '• майстер втратить доступ до панелі майстра\n' +
+      '• клієнти не зможуть створювати нові записи до цього майстра\n' +
+      '• активні послуги майстра будуть вимкнені',
+    ADMIN_PANEL_MASTERS_STATS_STUB_TEXT:
+      '⚠️ Розділ тимчасово недоступний.\n' +
+      'На наступному кроці тут будуть показники продуктивності, завантаженості та фінансів майстра.',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_TITLE: '💼 Керування послугами майстра',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_ACTIVE_TITLE: '📋 Активні послуги:',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_EMPTY:
+      '• У майстра ще немає активних послуг.',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_ACTION_HINT: 'Оберіть дію нижче.',
+    ADMIN_PANEL_MASTERS_SERVICES_ADD_TITLE: '➕ Додати послугу майстру',
+    ADMIN_PANEL_MASTERS_SERVICES_ADD_EMPTY:
+      '✅ Усі доступні послуги вже призначені майстру.',
+    ADMIN_PANEL_MASTERS_SERVICES_ADD_PICK:
+      'Оберіть послугу для додавання:',
+    ADMIN_PANEL_MASTERS_SERVICES_REMOVE_TITLE: '➖ Видалити послугу майстра',
+    ADMIN_PANEL_MASTERS_SERVICES_REMOVE_EMPTY:
+      '📭 Немає активних послуг для вимкнення.',
+    ADMIN_PANEL_MASTERS_SERVICES_REMOVE_PICK:
+      'Оберіть послугу для вимкнення:',
     ADMIN_PANEL_MASTERS_WEEKDAY_1: 'Пн',
     ADMIN_PANEL_MASTERS_WEEKDAY_2: 'Вт',
     ADMIN_PANEL_MASTERS_WEEKDAY_3: 'Ср',
@@ -900,6 +961,66 @@ export const ADMIN_PANEL_DICTIONARY = {
     ADMIN_PANEL_MASTERS_EDIT_FIELD_STARTED_ON: 'Start date',
     ADMIN_PANEL_MASTERS_EDIT_FIELD_PROCEDURES_DONE_TOTAL: 'Procedures count',
     ADMIN_PANEL_MASTERS_EDIT_FIELD_PROFILE: 'Profile field',
+    ADMIN_PANEL_MASTERS_CATALOG_EMPTY: 'There are no active masters yet.',
+    ADMIN_PANEL_MASTERS_CATALOG_EMPTY_HINT:
+      'Add a master or activate an existing profile.',
+    ADMIN_PANEL_MASTERS_CATALOG_PICK:
+      'Select a master from the list to open details:',
+    ADMIN_PANEL_MASTERS_CATALOG_EXPERIENCE_NOT_SET: 'Experience not specified',
+    ADMIN_PANEL_MASTERS_CATALOG_EXPERIENCE_YEARS: '{years} years of experience',
+    ADMIN_PANEL_MASTERS_CATALOG_BOOKABLE_YES: '🟢 Available',
+    ADMIN_PANEL_MASTERS_CATALOG_BOOKABLE_NO: '⚪ Not accepting bookings',
+    ADMIN_PANEL_MASTERS_DETAILS_TITLE: '👩‍🎨 Master profile',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_NAME: '👤 Name: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_ID: '🪪 Master ID: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_PROFESSIONAL:
+      '📊 Professional information',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_RATING: '⭐ Rating: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_EXPERIENCE: '🗓 Experience: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_PROCEDURES:
+      '📈 Completed procedures: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_SPECIALIZATION: '💼 Specialization',
+    ADMIN_PANEL_MASTERS_DETAILS_SPECIALIZATION_EMPTY:
+      '• Services are not assigned yet',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_SCHEDULE: '🕒 Working schedule',
+    ADMIN_PANEL_MASTERS_DETAILS_SCHEDULE_EMPTY: '• Schedule is not filled yet',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_ADDITIONAL: '📍 Additional information',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_BIO: '📝 Bio: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_MATERIALS: '🧴 Materials: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_PHONE: '📱 Phone: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_EMAIL: '✉️ Email: {value}',
+    ADMIN_PANEL_MASTERS_DELETE_INPUT_TEXT:
+      '❌ Delete master\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'To delete a master from the system, send their Telegram ID.\n\n' +
+      '📌 Format: digits only (5..15 symbols)\n' +
+      'Example: 548732119',
+    ADMIN_PANEL_MASTERS_DELETE_CONFIRM_TEXT:
+      '⚠️ Confirm master deletion\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Master: {masterName}\n' +
+      '🆔 Telegram ID: {telegramUserId}\n\n' +
+      'After deletion:\n' +
+      '• master will lose access to master panel\n' +
+      '• clients will not be able to create new bookings for this master\n' +
+      '• active master services will be disabled',
+    ADMIN_PANEL_MASTERS_STATS_STUB_TEXT:
+      '⚠️ Section is temporarily unavailable.\n' +
+      'On the next step this block will show productivity, workload and finance metrics.',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_TITLE: '💼 Manage master services',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_ACTIVE_TITLE: '📋 Active services:',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_EMPTY:
+      '• This master has no active services yet.',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_ACTION_HINT: 'Choose action below.',
+    ADMIN_PANEL_MASTERS_SERVICES_ADD_TITLE: '➕ Add service to master',
+    ADMIN_PANEL_MASTERS_SERVICES_ADD_EMPTY:
+      '✅ All available services are already assigned.',
+    ADMIN_PANEL_MASTERS_SERVICES_ADD_PICK: 'Select service to add:',
+    ADMIN_PANEL_MASTERS_SERVICES_REMOVE_TITLE: '➖ Remove master service',
+    ADMIN_PANEL_MASTERS_SERVICES_REMOVE_EMPTY:
+      '📭 No active services to disable.',
+    ADMIN_PANEL_MASTERS_SERVICES_REMOVE_PICK:
+      'Select service to disable:',
     ADMIN_PANEL_MASTERS_WEEKDAY_1: 'Mon',
     ADMIN_PANEL_MASTERS_WEEKDAY_2: 'Tue',
     ADMIN_PANEL_MASTERS_WEEKDAY_3: 'Wed',
@@ -1575,6 +1696,66 @@ export const ADMIN_PANEL_DICTIONARY = {
     ADMIN_PANEL_MASTERS_EDIT_FIELD_STARTED_ON: 'Datum začátku',
     ADMIN_PANEL_MASTERS_EDIT_FIELD_PROCEDURES_DONE_TOTAL: 'Počet procedur',
     ADMIN_PANEL_MASTERS_EDIT_FIELD_PROFILE: 'Pole profilu',
+    ADMIN_PANEL_MASTERS_CATALOG_EMPTY: 'Zatím nejsou žádní aktivní mistři.',
+    ADMIN_PANEL_MASTERS_CATALOG_EMPTY_HINT:
+      'Přidejte mistra nebo aktivujte existující profil.',
+    ADMIN_PANEL_MASTERS_CATALOG_PICK:
+      'Vyberte mistra ze seznamu pro otevření detailu:',
+    ADMIN_PANEL_MASTERS_CATALOG_EXPERIENCE_NOT_SET: 'Praxe neuvedena',
+    ADMIN_PANEL_MASTERS_CATALOG_EXPERIENCE_YEARS: '{years} let praxe',
+    ADMIN_PANEL_MASTERS_CATALOG_BOOKABLE_YES: '🟢 Dostupný',
+    ADMIN_PANEL_MASTERS_CATALOG_BOOKABLE_NO: '⚪ Nepřijímá rezervace',
+    ADMIN_PANEL_MASTERS_DETAILS_TITLE: '👩‍🎨 Profil mistra',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_NAME: '👤 Jméno: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_ID: '🪪 ID mistra: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_PROFESSIONAL:
+      '📊 Profesní informace',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_RATING: '⭐ Hodnocení: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_EXPERIENCE: '🗓 Praxe: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_PROCEDURES:
+      '📈 Provedené procedury: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_SPECIALIZATION: '💼 Specializace',
+    ADMIN_PANEL_MASTERS_DETAILS_SPECIALIZATION_EMPTY:
+      '• Služby ještě nejsou přiřazeny',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_SCHEDULE: '🕒 Pracovní rozvrh',
+    ADMIN_PANEL_MASTERS_DETAILS_SCHEDULE_EMPTY: '• Rozvrh ještě není vyplněn',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_ADDITIONAL: '📍 Doplňující informace',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_BIO: '📝 Bio: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_MATERIALS: '🧴 Materiály: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_PHONE: '📱 Telefon: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_EMAIL: '✉️ Email: {value}',
+    ADMIN_PANEL_MASTERS_DELETE_INPUT_TEXT:
+      '❌ Smazat mistra\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Pro smazání mistra ze systému pošlete jeho Telegram ID.\n\n' +
+      '📌 Formát: pouze číslice (5..15 znaků)\n' +
+      'Příklad: 548732119',
+    ADMIN_PANEL_MASTERS_DELETE_CONFIRM_TEXT:
+      '⚠️ Potvrzení smazání mistra\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Mistr: {masterName}\n' +
+      '🆔 Telegram ID: {telegramUserId}\n\n' +
+      'Po smazání:\n' +
+      '• mistr ztratí přístup do panelu mistra\n' +
+      '• klienti nebudou moci vytvářet nové rezervace k tomuto mistrovi\n' +
+      '• aktivní služby mistra budou vypnuty',
+    ADMIN_PANEL_MASTERS_STATS_STUB_TEXT:
+      '⚠️ Sekce je dočasně nedostupná.\n' +
+      'V dalším kroku zde budou metriky produktivity, vytíženosti a financí.',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_TITLE: '💼 Správa služeb mistra',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_ACTIVE_TITLE: '📋 Aktivní služby:',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_EMPTY:
+      '• Tento mistr zatím nemá aktivní služby.',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_ACTION_HINT: 'Vyberte akci níže.',
+    ADMIN_PANEL_MASTERS_SERVICES_ADD_TITLE: '➕ Přidat službu mistrovi',
+    ADMIN_PANEL_MASTERS_SERVICES_ADD_EMPTY:
+      '✅ Všechny dostupné služby jsou již přiřazeny.',
+    ADMIN_PANEL_MASTERS_SERVICES_ADD_PICK: 'Vyberte službu k přidání:',
+    ADMIN_PANEL_MASTERS_SERVICES_REMOVE_TITLE: '➖ Odebrat službu mistra',
+    ADMIN_PANEL_MASTERS_SERVICES_REMOVE_EMPTY:
+      '📭 Žádné aktivní služby k vypnutí.',
+    ADMIN_PANEL_MASTERS_SERVICES_REMOVE_PICK:
+      'Vyberte službu k vypnutí:',
     ADMIN_PANEL_MASTERS_WEEKDAY_1: 'Po',
     ADMIN_PANEL_MASTERS_WEEKDAY_2: 'Út',
     ADMIN_PANEL_MASTERS_WEEKDAY_3: 'St',

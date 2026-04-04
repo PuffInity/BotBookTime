@@ -138,10 +138,20 @@ function formatDateTimeRange(
   return `${date} • ${startTime}–${endTime}`;
 }
 
-function formatMasterCatalogLine(master: MasterCatalogItem, index: number): string {
+function formatMasterCatalogLine(
+  master: MasterCatalogItem,
+  index: number,
+  language: BotUiLanguage,
+): string {
   const experience =
-    master.experienceYears == null ? 'Досвід не вказано' : `${master.experienceYears} років досвіду`;
-  const bookable = master.isBookable ? '🟢 Доступний' : '⚪ Не приймає запис';
+    master.experienceYears == null
+      ? tBot(language, 'ADMIN_PANEL_MASTERS_CATALOG_EXPERIENCE_NOT_SET')
+      : tBotTemplate(language, 'ADMIN_PANEL_MASTERS_CATALOG_EXPERIENCE_YEARS', {
+          years: master.experienceYears,
+        });
+  const bookable = master.isBookable
+    ? tBot(language, 'ADMIN_PANEL_MASTERS_CATALOG_BOOKABLE_YES')
+    : tBot(language, 'ADMIN_PANEL_MASTERS_CATALOG_BOOKABLE_NO');
   return (
     `${getNumberBadge(index)} 👩‍🎨 ${master.displayName}\n` +
     `⭐ ${master.ratingAvg} (${master.ratingCount}) • ${experience}\n` +
@@ -161,16 +171,16 @@ export function formatAdminMastersCatalogText(
     return (
       `${title}\n` +
       '━━━━━━━━━━━━━━\n\n' +
-      'Поки що немає активних майстрів.\n' +
-      'Додайте майстра або активуйте існуючий профіль.'
+      `${tBot(language, 'ADMIN_PANEL_MASTERS_CATALOG_EMPTY')}\n` +
+      tBot(language, 'ADMIN_PANEL_MASTERS_CATALOG_EMPTY_HINT')
     );
   }
 
   return (
     `${title}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Оберіть майстра зі списку, щоб відкрити деталі:\n\n' +
-    masters.map(formatMasterCatalogLine).join('\n\n')
+    `${tBot(language, 'ADMIN_PANEL_MASTERS_CATALOG_PICK')}\n\n` +
+    masters.map((master, index) => formatMasterCatalogLine(master, index, language)).join('\n\n')
   );
 }
 
@@ -547,7 +557,7 @@ export function formatAdminMasterDetailsText(
   const specializations =
     details.specializations.length > 0
       ? details.specializations.map(formatSpecializationLine).join('\n')
-      : '• Послуги ще не призначені';
+      : tBot(language, 'ADMIN_PANEL_MASTERS_DETAILS_SPECIALIZATION_EMPTY');
 
   const weeklySchedule =
     details.weeklySchedule.length > 0
@@ -556,29 +566,44 @@ export function formatAdminMasterDetailsText(
           .sort((a, b) => a.weekday - b.weekday)
           .map((item) => `• ${formatWeekdayLabel(language, item.weekday)}: ${formatWorkingRange(language, item)}`)
           .join('\n')
-      : '• Графік ще не заповнений';
+      : tBot(language, 'ADMIN_PANEL_MASTERS_DETAILS_SCHEDULE_EMPTY');
 
-  const bio = details.master.bio?.trim() ? details.master.bio.trim() : 'Не вказано';
-  const materials = details.materialsInfo?.trim() ? details.materialsInfo.trim() : 'Не вказано';
+  const notSpecified = tBot(language, 'ADMIN_PANEL_MASTERS_LABEL_NOT_SPECIFIED');
+  const bio = details.master.bio?.trim() ? details.master.bio.trim() : notSpecified;
+  const materials = details.materialsInfo?.trim() ? details.materialsInfo.trim() : notSpecified;
+  const experience =
+    details.master.experienceYears == null ? notSpecified : details.master.experienceYears;
+  const phone = details.contactPhoneE164 ?? notSpecified;
+  const email = details.contactEmail ?? notSpecified;
 
   return (
-    '👩‍🎨 Профіль майстра\n' +
+    `${tBot(language, 'ADMIN_PANEL_MASTERS_DETAILS_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👤 Ім’я: ${details.master.displayName}\n` +
-    `🪪 ID майстра: ${details.master.userId}\n\n` +
-    '📊 Професійна інформація\n' +
-    `⭐ Рейтинг: ${details.master.ratingAvg} (${details.master.ratingCount})\n` +
-    `🗓 Досвід: ${details.master.experienceYears ?? 'Не вказано'}\n` +
-    `📈 Виконано процедур: ${details.master.proceduresDoneTotal}\n\n` +
-    '💼 Спеціалізація\n' +
+    `${tBotTemplate(language, 'ADMIN_PANEL_MASTERS_DETAILS_LABEL_NAME', {
+      value: details.master.displayName,
+    })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_MASTERS_DETAILS_LABEL_ID', {
+      value: details.master.userId,
+    })}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_MASTERS_DETAILS_SECTION_PROFESSIONAL')}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_MASTERS_DETAILS_LABEL_RATING', {
+      value: `${details.master.ratingAvg} (${details.master.ratingCount})`,
+    })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_MASTERS_DETAILS_LABEL_EXPERIENCE', {
+      value: experience,
+    })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_MASTERS_DETAILS_LABEL_PROCEDURES', {
+      value: details.master.proceduresDoneTotal,
+    })}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_MASTERS_DETAILS_SECTION_SPECIALIZATION')}\n` +
     `${specializations}\n\n` +
-    '🕒 Робочий графік\n' +
+    `${tBot(language, 'ADMIN_PANEL_MASTERS_DETAILS_SECTION_SCHEDULE')}\n` +
     `${weeklySchedule}\n\n` +
-    '📍 Додаткова інформація\n' +
-    `📝 Bio: ${bio}\n` +
-    `🧴 Матеріали: ${materials}\n` +
-    `📱 Телефон: ${details.contactPhoneE164 ?? 'Не вказано'}\n` +
-    `✉️ Email: ${details.contactEmail ?? 'Не вказано'}`
+    `${tBot(language, 'ADMIN_PANEL_MASTERS_DETAILS_SECTION_ADDITIONAL')}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_MASTERS_DETAILS_LABEL_BIO', { value: bio })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_MASTERS_DETAILS_LABEL_MATERIALS', { value: materials })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_MASTERS_DETAILS_LABEL_PHONE', { value: phone })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_MASTERS_DETAILS_LABEL_EMAIL', { value: email })}`
   );
 }
 
@@ -615,14 +640,10 @@ export function createAdminMasterDetailsKeyboard(
 /**
  * @summary Форматує екран введення Telegram ID для видалення майстра.
  */
-export function formatAdminMasterDeleteInputText(): string {
-  return (
-    '❌ Видалення майстра\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    'Щоб видалити майстра з системи, надішліть його Telegram ID.\n\n' +
-    '📌 Формат: тільки цифри (5..15 символів)\n' +
-    'Приклад: 548732119'
-  );
+export function formatAdminMasterDeleteInputText(
+  language: BotUiLanguage = 'uk',
+): string {
+  return tBot(language, 'ADMIN_PANEL_MASTERS_DELETE_INPUT_TEXT');
 }
 
 /**
@@ -643,17 +664,12 @@ export function createAdminMasterDeleteInputKeyboard(
 export function formatAdminMasterDeleteConfirmText(
   masterName: string,
   telegramUserId: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '⚠️ Підтвердження видалення майстра\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `👩‍🎨 Майстер: ${masterName}\n` +
-    `🆔 Telegram ID: ${telegramUserId}\n\n` +
-    'Після видалення:\n' +
-    '• майстер втратить доступ до панелі майстра\n' +
-    '• клієнти не зможуть створювати нові записи до цього майстра\n' +
-    '• активні послуги майстра будуть вимкнені'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_MASTERS_DELETE_CONFIRM_TEXT', {
+    masterName,
+    telegramUserId,
+  });
 }
 
 /**
@@ -835,13 +851,15 @@ export function createAdminMasterBookingCardKeyboard(
 /**
  * @summary Stub-текст для підблоку "Статистика майстра".
  */
-export function formatAdminMasterStatsStubText(masterName: string): string {
+export function formatAdminMasterStatsStubText(
+  masterName: string,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '📊 Статистика майстра\n' +
+    `${tBot(language, 'ADMIN_PANEL_MASTERS_BTN_OPEN_STATS')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
     `👩‍🎨 Майстер: ${masterName}\n\n` +
-    '⚠️ Розділ тимчасово недоступний.\n' +
-    'На наступному кроці тут будуть показники продуктивності, завантаженості та фінансів майстра.'
+    tBot(language, 'ADMIN_PANEL_MASTERS_STATS_STUB_TEXT')
   );
 }
 
@@ -949,10 +967,11 @@ export function createAdminMasterEditMenuKeyboard(
 export function formatAdminMasterEditServicesMenuText(
   masterName: string,
   services: MasterOwnProfileServiceManageItem[],
+  language: BotUiLanguage = 'uk',
 ): string {
   const list =
     services.length === 0
-      ? '• У майстра ще немає активних послуг.'
+      ? tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_MENU_EMPTY')
       : services
           .filter((item) => item.isActive)
           .map((item, index) => {
@@ -964,12 +983,12 @@ export function formatAdminMasterEditServicesMenuText(
           .join('\n\n');
 
   return (
-    '💼 Керування послугами майстра\n' +
+    `${tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_MENU_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
     `👩‍🎨 Майстер: ${masterName}\n\n` +
-    '📋 Активні послуги:\n' +
-    `${list || '• У майстра ще немає активних послуг.'}\n\n` +
-    'Оберіть дію нижче.'
+    `${tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_MENU_ACTIVE_TITLE')}\n` +
+    `${list || tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_MENU_EMPTY')}\n\n` +
+    tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_MENU_ACTION_HINT')
   );
 }
 
@@ -992,13 +1011,14 @@ export function createAdminMasterEditServicesMenuKeyboard(
 export function formatAdminMasterEditServicesAddCandidatesText(
   masterName: string,
   candidates: MasterOwnProfileServiceManageItem[],
+  language: BotUiLanguage = 'uk',
 ): string {
   if (candidates.length === 0) {
     return (
-      '➕ Додати послугу майстру\n' +
+      `${tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_ADD_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
       `👩‍🎨 Майстер: ${masterName}\n\n` +
-      '✅ Усі доступні послуги вже призначені майстру.'
+      tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_ADD_EMPTY')
     );
   }
 
@@ -1012,10 +1032,10 @@ export function formatAdminMasterEditServicesAddCandidatesText(
     .join('\n\n');
 
   return (
-    '➕ Додати послугу майстру\n' +
+    `${tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_ADD_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
     `👩‍🎨 Майстер: ${masterName}\n\n` +
-    'Оберіть послугу для додавання:\n\n' +
+    `${tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_ADD_PICK')}\n\n` +
     list
   );
 }
@@ -1046,13 +1066,14 @@ export function createAdminMasterEditServicesAddCandidatesKeyboard(
 export function formatAdminMasterEditServicesRemoveCandidatesText(
   masterName: string,
   candidates: MasterOwnProfileServiceManageItem[],
+  language: BotUiLanguage = 'uk',
 ): string {
   if (candidates.length === 0) {
     return (
-      '➖ Видалити послугу майстра\n' +
+      `${tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_REMOVE_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
       `👩‍🎨 Майстер: ${masterName}\n\n` +
-      '📭 Немає активних послуг для вимкнення.'
+      tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_REMOVE_EMPTY')
     );
   }
 
@@ -1066,10 +1087,10 @@ export function formatAdminMasterEditServicesRemoveCandidatesText(
     .join('\n\n');
 
   return (
-    '➖ Видалити послугу майстра\n' +
+    `${tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_REMOVE_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
     `👩‍🎨 Майстер: ${masterName}\n\n` +
-    'Оберіть послугу для вимкнення:\n\n' +
+    `${tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_REMOVE_PICK')}\n\n` +
     list
   );
 }

@@ -1630,7 +1630,7 @@ async function renderAdminMasterDeleteInput(
     targetDisplayName: null,
   };
 
-  const text = formatAdminMasterDeleteInputText();
+  const text = formatAdminMasterDeleteInputText(state.language);
   const keyboard = createAdminMasterDeleteInputKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
@@ -1654,6 +1654,7 @@ async function renderAdminMasterDeleteConfirm(
   const text = formatAdminMasterDeleteConfirmText(
     draft.targetDisplayName ?? '—',
     draft.telegramUserId ?? '—',
+    state.language,
   );
   const keyboard = createAdminMasterDeleteConfirmKeyboard(state.language);
 
@@ -2209,7 +2210,11 @@ async function renderAdminMasterEditServicesMenu(
     items,
   };
 
-  const text = formatAdminMasterEditServicesMenuText(details.master.displayName, items);
+  const text = formatAdminMasterEditServicesMenuText(
+    details.master.displayName,
+    items,
+    state.language,
+  );
   const keyboard = createAdminMasterEditServicesMenuKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
@@ -2248,6 +2253,7 @@ async function renderAdminMasterEditServicesAddCandidates(
   const text = formatAdminMasterEditServicesAddCandidatesText(
     details.master.displayName,
     candidates,
+    state.language,
   );
   const keyboard = createAdminMasterEditServicesAddCandidatesKeyboard(candidates, state.language);
 
@@ -2287,6 +2293,7 @@ async function renderAdminMasterEditServicesRemoveCandidates(
   const text = formatAdminMasterEditServicesRemoveCandidatesText(
     details.master.displayName,
     candidates,
+    state.language,
   );
   const keyboard = createAdminMasterEditServicesRemoveCandidatesKeyboard(candidates, state.language);
 
