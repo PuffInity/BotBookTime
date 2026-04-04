@@ -1577,12 +1577,12 @@ async function renderAdminMasterDetails(
   const state = getSceneState(ctx);
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const details = await getMasterCatalogDetailsById({ masterId, studioId });
   if (!details) {
-    await replyAdminWarning(ctx, 'Майстра не знайдено або профіль вже неактивний.');
+    await replyAdminWarning(ctx, tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_DETAILS_NOT_FOUND'));
     await renderAdminMastersCatalog(ctx, false);
     return;
   }
@@ -1652,8 +1652,8 @@ async function renderAdminMasterDeleteConfirm(
 ): Promise<void> {
   const state = getSceneState(ctx);
   const text = formatAdminMasterDeleteConfirmText(
-    draft.targetDisplayName ?? '—',
-    draft.telegramUserId ?? '—',
+    draft.targetDisplayName ?? tBot(state.language, 'ADMIN_PANEL_MASTERS_LABEL_PLACEHOLDER_DASH'),
+    draft.telegramUserId ?? tBot(state.language, 'ADMIN_PANEL_MASTERS_LABEL_PLACEHOLDER_DASH'),
     state.language,
   );
   const keyboard = createAdminMasterDeleteConfirmKeyboard(state.language);
@@ -1676,24 +1676,25 @@ async function ensureAdminMasterEditableAccess(
 ): Promise<MasterCatalogDetails> {
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const details = await getMasterCatalogDetailsById({ masterId, studioId });
   if (!details) {
-    throw new ValidationError('Майстра не знайдено або профіль вже неактивний');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_DETAILS_NOT_FOUND'));
   }
 
   return details;
 }
 
-function formatAdminMasterDateForText(value: Date | null): string {
-  return value ? formatDateLabel(value) : 'Не вказано';
+function formatAdminMasterDateForText(value: Date | null, language: BotUiLanguage): string {
+  return value ? formatDateLabel(value) : tBot(language, 'ADMIN_PANEL_MASTERS_LABEL_NOT_SPECIFIED');
 }
 
 async function resolveAdminMasterEditableCurrentValue(
   masterId: string,
   field: AdminMasterEditableField,
+  language: BotUiLanguage,
 ): Promise<string> {
   const profile = await getMasterOwnProfile(masterId);
 
@@ -1701,25 +1702,28 @@ async function resolveAdminMasterEditableCurrentValue(
     case 'display_name':
       return profile.displayName;
     case 'bio':
-      return profile.bio?.trim() ? profile.bio.trim() : 'Не вказано';
+      return profile.bio?.trim() ? profile.bio.trim() : tBot(language, 'ADMIN_PANEL_MASTERS_LABEL_NOT_SPECIFIED');
     case 'materials':
-      return profile.materialsInfo?.trim() ? profile.materialsInfo.trim() : 'Не вказано';
+      return profile.materialsInfo?.trim()
+        ? profile.materialsInfo.trim()
+        : tBot(language, 'ADMIN_PANEL_MASTERS_LABEL_NOT_SPECIFIED');
     case 'phone':
-      return profile.contactPhoneE164 ?? 'Не вказано';
+      return profile.contactPhoneE164 ?? tBot(language, 'ADMIN_PANEL_MASTERS_LABEL_NOT_SPECIFIED');
     case 'email':
-      return profile.contactEmail ?? 'Не вказано';
+      return profile.contactEmail ?? tBot(language, 'ADMIN_PANEL_MASTERS_LABEL_NOT_SPECIFIED');
     case 'started_on':
-      return formatAdminMasterDateForText(profile.startedOn);
+      return formatAdminMasterDateForText(profile.startedOn, language);
     case 'procedures_done_total':
       return String(profile.proceduresDoneTotal);
     default:
-      throw new ValidationError('Некоректне поле профілю майстра');
+      throw new ValidationError(tBot(language, 'ADMIN_PANEL_MASTERS_MSG_INVALID_EDIT_FIELD'));
   }
 }
 
 function normalizeAdminMasterFieldValue(
   field: AdminMasterEditableField,
   value: string,
+  language: BotUiLanguage,
 ): string {
   switch (field) {
     case 'display_name':
@@ -1740,7 +1744,7 @@ function normalizeAdminMasterFieldValue(
       return `${day}.${month}.${year}`;
     }
     default:
-      throw new ValidationError('Некоректне поле профілю майстра');
+      throw new ValidationError(tBot(language, 'ADMIN_PANEL_MASTERS_MSG_INVALID_EDIT_FIELD'));
   }
 }
 
@@ -1748,6 +1752,7 @@ async function persistAdminMasterFieldValue(
   masterId: string,
   field: AdminMasterEditableField,
   value: string,
+  language: BotUiLanguage,
 ): Promise<void> {
   switch (field) {
     case 'display_name':
@@ -1775,7 +1780,7 @@ async function persistAdminMasterFieldValue(
       await updateMasterOwnProfileStartedOn({ masterId, startedOn: value });
       return;
     default:
-      throw new ValidationError('Некоректне поле профілю майстра');
+      throw new ValidationError(tBot(language, 'ADMIN_PANEL_MASTERS_MSG_INVALID_EDIT_FIELD'));
   }
 }
 
@@ -1790,7 +1795,8 @@ function parseAdminMasterEditFieldAction(ctx: MyContext): {
   const masterId = match?.[1] ?? '';
   const field = match?.[2] as AdminMasterEditableField | undefined;
   if (!masterId || !field) {
-    throw new ValidationError('Некоректна callback-дія редагування майстра');
+    const state = getSceneState(ctx);
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_INVALID_EDIT_CALLBACK'));
   }
 
   return { masterId, field };
@@ -1807,24 +1813,24 @@ function getDefaultMasterCreateScheduleDays(): AdminMasterCreateScheduleDayInput
   }));
 }
 
-function normalizeAdminMasterCreateExperienceInput(value: string): number {
+function normalizeAdminMasterCreateExperienceInput(value: string, language: BotUiLanguage): number {
   const normalized = value.trim();
   if (!/^\d+$/.test(normalized)) {
-    throw new ValidationError('Досвід роботи має бути цілим числом');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_MASTERS_MSG_EXPERIENCE_INTEGER'));
   }
 
   const parsed = Number(normalized);
   if (!Number.isInteger(parsed) || parsed < 0 || parsed > 50) {
-    throw new ValidationError('Досвід роботи має бути в діапазоні 0..50 років');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_MASTERS_MSG_EXPERIENCE_RANGE'));
   }
 
   return parsed;
 }
 
-function normalizeAdminMasterCreateTelegramIdInput(value: string): string {
+function normalizeAdminMasterCreateTelegramIdInput(value: string, language: BotUiLanguage): string {
   const normalized = value.trim();
   if (!/^\d{5,15}$/.test(normalized)) {
-    throw new ValidationError('Telegram ID має містити тільки цифри (5..15 символів)');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_MASTERS_MSG_TELEGRAM_ID_FORMAT'));
   }
   return normalized;
 }
@@ -1858,6 +1864,7 @@ function isMasterCreateScheduleReady(days: AdminMasterCreateScheduleDayInput[]):
 
 function buildAdminMasterCreateConfirmData(
   draft: AdminMasterCreateDraft,
+  language: BotUiLanguage,
 ): AdminMasterCreateConfirmViewData {
   if (
     !draft.displayName ||
@@ -1870,10 +1877,10 @@ function buildAdminMasterCreateConfirmData(
     !draft.contactPhoneE164 ||
     !draft.contactEmail
   ) {
-    throw new ValidationError('Профіль майстра заповнено не повністю');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_MASTERS_MSG_PROFILE_INCOMPLETE'));
   }
   if (!isMasterCreateScheduleReady(draft.scheduleDays)) {
-    throw new ValidationError('Потрібно заповнити графік майстра щонайменше з одним робочим днем');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_MASTERS_MSG_SCHEDULE_REQUIRED'));
   }
 
   const selectedServiceNames = draft.availableServices
@@ -1898,7 +1905,7 @@ async function renderAdminMasterCreateStart(ctx: MyContext, preferEdit: boolean)
   const state = getSceneState(ctx);
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const availableServices = await listActiveServicesCatalog({ studioId, limit: 100 });
@@ -1975,7 +1982,7 @@ async function renderAdminMasterCreateTextStep(
       break;
     case 'awaiting_schedule_from': {
       if (!draft.scheduleSelectedWeekday) {
-        throw new ValidationError('Спочатку оберіть день тижня для графіку');
+        throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_PICK_WEEKDAY_FIRST'));
       }
       text = formatAdminMasterCreateScheduleFromInputText(
         draft.scheduleSelectedWeekday,
@@ -1985,7 +1992,7 @@ async function renderAdminMasterCreateTextStep(
     }
     case 'awaiting_schedule_to': {
       if (!draft.scheduleSelectedWeekday || !draft.schedulePendingFromTime) {
-        throw new ValidationError('Спочатку вкажіть час початку робочого дня');
+        throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_PICK_DAY_AND_FROM_FIRST'));
       }
       text = formatAdminMasterCreateScheduleToInputText(
         draft.scheduleSelectedWeekday,
@@ -1995,7 +2002,7 @@ async function renderAdminMasterCreateTextStep(
       break;
     }
     default:
-      throw new ValidationError('Некоректний крок створення майстра');
+      throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_INVALID_CREATE_STEP'));
   }
 
   const keyboard =
@@ -2079,7 +2086,7 @@ async function renderAdminMasterCreateConfirmStep(
   preferEdit: boolean,
 ): Promise<void> {
   const state = getSceneState(ctx);
-  const confirmData = buildAdminMasterCreateConfirmData(draft);
+  const confirmData = buildAdminMasterCreateConfirmData(draft, state.language);
   const text = formatAdminMasterCreateConfirmText(confirmData, state.language);
   const keyboard = createAdminMasterCreateConfirmKeyboard(state.language);
 
@@ -2132,7 +2139,7 @@ async function renderAdminMasterEditInput(
 ): Promise<void> {
   const state = getSceneState(ctx);
   await ensureAdminMasterEditableAccess(state, masterId);
-  const currentValue = await resolveAdminMasterEditableCurrentValue(masterId, field);
+  const currentValue = await resolveAdminMasterEditableCurrentValue(masterId, field, state.language);
 
   state.mastersCurrentSection = 'edit';
   state.mastersSelectedMasterId = masterId;
@@ -2318,12 +2325,12 @@ async function renderAdminMasterBookingsList(
   const state = getSceneState(ctx);
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const details = await getMasterCatalogDetailsById({ masterId, studioId });
   if (!details) {
-    await replyAdminWarning(ctx, 'Майстра не знайдено або профіль вже неактивний.');
+    await replyAdminWarning(ctx, tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_DETAILS_NOT_FOUND'));
     await renderAdminMastersCatalog(ctx, false);
     return;
   }
@@ -2369,14 +2376,17 @@ async function renderAdminMasterBookingCard(
   const state = getSceneState(ctx);
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const fromFeed =
     state.mastersBookingsFeed?.items.find((item) => item.appointmentId === appointmentId) ?? null;
   const booking = fromFeed ?? (await getAdminBookingCardById({ studioId, appointmentId }));
   if (!booking || booking.masterId !== masterId) {
-    await replyAdminWarning(ctx, 'Запис не знайдено в контексті цього майстра.');
+    await replyAdminWarning(
+      ctx,
+      tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_BOOKING_NOT_FOUND_IN_MASTER_CONTEXT'),
+    );
     await renderAdminMasterBookingsList(ctx, masterId, state.mastersBookingsFeed?.offset ?? 0, false);
     return;
   }
@@ -4078,19 +4088,19 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
           if (mastersCreateDraft.mode === 'awaiting_telegram_id') {
             if (!access?.studioId) {
-              throw new ValidationError('Не вдалося визначити студію адміністратора');
+              throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
             }
-            const telegramId = normalizeAdminMasterCreateTelegramIdInput(text);
+            const telegramId = normalizeAdminMasterCreateTelegramIdInput(text, state.language);
             const candidate = await findAdminMasterCandidateByTelegramId({
               studioId: access.studioId,
               telegramId,
             });
 
             if (!candidate) {
-              throw new ValidationError('Користувача з таким Telegram ID не знайдено в цьому салоні');
+              throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_USER_NOT_FOUND_IN_STUDIO'));
             }
             if (candidate.isMaster) {
-              throw new ValidationError('Цей користувач уже має профіль майстра');
+              throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_USER_ALREADY_MASTER'));
             }
 
             mastersCreateDraft.telegramUserId = telegramId;
@@ -4101,7 +4111,10 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           }
 
           if (mastersCreateDraft.mode === 'awaiting_experience_years') {
-            mastersCreateDraft.experienceYears = normalizeAdminMasterCreateExperienceInput(text);
+            mastersCreateDraft.experienceYears = normalizeAdminMasterCreateExperienceInput(
+              text,
+              state.language,
+            );
             mastersCreateDraft.mode = 'awaiting_procedures_done_total';
             await renderAdminMasterCreateTextStep(ctx, mastersCreateDraft, false);
             return;
@@ -4280,7 +4293,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           }
 
           if (mastersDeleteDraft.mode === 'awaiting_telegram_id') {
-            const telegramId = normalizeAdminMasterCreateTelegramIdInput(text);
+            const telegramId = normalizeAdminMasterCreateTelegramIdInput(text, state.language);
             const candidate = await findAdminMasterCandidateByTelegramId({
               studioId: access.studioId,
               telegramId,
@@ -4701,7 +4714,11 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       const mastersEditDraft = state.mastersEditDraft;
       if (mastersEditDraft?.mode === 'awaiting_value') {
         try {
-          const normalizedValue = normalizeAdminMasterFieldValue(mastersEditDraft.field, text);
+          const normalizedValue = normalizeAdminMasterFieldValue(
+            mastersEditDraft.field,
+            text,
+            state.language,
+          );
           mastersEditDraft.mode = 'awaiting_confirm';
           mastersEditDraft.value = normalizedValue;
 
@@ -4710,7 +4727,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           const err =
             error instanceof ValidationError
               ? error
-              : new ValidationError('Виникла помилка перевірки значення');
+              : new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_EDIT_VALUE_VALIDATION_FAILED'));
 
           await ctx.reply(
             `⚠️ ${err.message}`,
@@ -4722,7 +4739,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
       if (mastersEditDraft?.mode === 'awaiting_confirm') {
         await ctx.reply(
-          'ℹ️ Для завершення редагування використовуйте кнопки підтвердження під повідомленням.',
+          tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_USE_EDIT_CONFIRM_BUTTONS'),
           createAdminMasterEditConfirmKeyboard(mastersEditDraft.masterId, state.language),
         );
         return;
@@ -4730,7 +4747,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
       if (state.mastersCurrentSection === 'edit' && state.mastersSelectedMasterId) {
         await ctx.reply(
-          'ℹ️ Для редагування профілю майстра використовуйте кнопки під повідомленням.',
+          tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_USE_EDIT_MENU_BUTTONS'),
           createAdminMasterEditMenuKeyboard(state.mastersSelectedMasterId, state.language),
         );
         return;
@@ -4747,7 +4764,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
             : createAdminMasterEditServicesMenuKeyboard(state.language);
 
         await ctx.reply(
-          'ℹ️ Для керування послугами майстра використовуйте кнопки під повідомленням.',
+          tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_USE_SERVICES_MANAGE_BUTTONS'),
           keyboard,
         );
         return;
@@ -4759,7 +4776,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
             ? createAdminMasterDeleteConfirmKeyboard(state.language)
             : createAdminMasterDeleteInputKeyboard(state.language);
         await ctx.reply(
-          'ℹ️ Для видалення майстра використовуйте кнопки під повідомленням.',
+          tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_USE_DELETE_BUTTONS'),
           keyboard,
         );
         return;
@@ -5982,7 +5999,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     if (draft.mode === 'awaiting_schedule_pick') {
       try {
-        buildAdminMasterCreateConfirmData(draft);
+        buildAdminMasterCreateConfirmData(draft, state.language);
       } catch (error) {
         const err =
           error instanceof ValidationError
@@ -6003,7 +6020,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    const confirmData = buildAdminMasterCreateConfirmData(draft);
+    const confirmData = buildAdminMasterCreateConfirmData(draft, state.language);
     if (!draft.targetUserId) {
       await replyAdminWarning(ctx, tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_TARGET_USER_NOT_SET'));
       draft.mode = 'awaiting_telegram_id';
@@ -6380,7 +6397,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     try {
       await ensureAdminMasterEditableAccess(state, draft.masterId);
-      await persistAdminMasterFieldValue(draft.masterId, draft.field, draft.value);
+      await persistAdminMasterFieldValue(draft.masterId, draft.field, draft.value, state.language);
     } catch (error) {
       if (error instanceof ValidationError) {
         await replyAdminWarning(ctx, error.message);
@@ -7541,7 +7558,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const masterId = parseNumericIdFromAction(
       ctx,
       ADMIN_PANEL_STATS_MASTERS_OPEN_ACTION_REGEX,
-      'id майстра',
+      tBot(state.language, 'ADMIN_PANEL_MASTERS_LABEL_MASTER_ID'),
     );
 
     try {

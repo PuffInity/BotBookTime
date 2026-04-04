@@ -94,6 +94,8 @@ export const ADMIN_PANEL_DICTIONARY = {
     ADMIN_PANEL_MASTERS_MSG_CREATION_CANCELLED: 'Створення майстра скасовано.',
     ADMIN_PANEL_MASTERS_MSG_PROFILE_INCOMPLETE:
       'Профіль майстра заповнено не повністю.',
+    ADMIN_PANEL_MASTERS_MSG_SCHEDULE_REQUIRED:
+      'Потрібно заповнити графік майстра щонайменше з одним робочим днем.',
     ADMIN_PANEL_MASTERS_MSG_TARGET_USER_NOT_SET:
       'Не задано користувача для створення майстра.',
     ADMIN_PANEL_MASTERS_MSG_CREATED_SUCCESS:
@@ -114,6 +116,25 @@ export const ADMIN_PANEL_DICTIONARY = {
       'ℹ️ Для керування послугами майстра використовуйте кнопки під повідомленням.',
     ADMIN_PANEL_MASTERS_MSG_USE_DELETE_BUTTONS:
       'ℹ️ Для видалення майстра використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_MASTERS_MSG_DETAILS_NOT_FOUND:
+      'Майстра не знайдено або профіль вже неактивний.',
+    ADMIN_PANEL_MASTERS_MSG_BOOKING_NOT_FOUND_IN_MASTER_CONTEXT:
+      'Запис не знайдено в контексті цього майстра.',
+    ADMIN_PANEL_MASTERS_MSG_INVALID_EDIT_FIELD:
+      'Некоректне поле профілю майстра.',
+    ADMIN_PANEL_MASTERS_MSG_INVALID_EDIT_CALLBACK:
+      'Некоректна callback-дія редагування майстра.',
+    ADMIN_PANEL_MASTERS_MSG_EXPERIENCE_INTEGER:
+      'Досвід роботи має бути цілим числом.',
+    ADMIN_PANEL_MASTERS_MSG_EXPERIENCE_RANGE:
+      'Досвід роботи має бути в діапазоні 0..50 років.',
+    ADMIN_PANEL_MASTERS_MSG_TELEGRAM_ID_FORMAT:
+      'Telegram ID має містити тільки цифри (5..15 символів).',
+    ADMIN_PANEL_MASTERS_MSG_INVALID_CREATE_STEP:
+      'Некоректний крок створення майстра.',
+    ADMIN_PANEL_MASTERS_MSG_USER_ALREADY_MASTER:
+      'Цей користувач уже має профіль майстра.',
+    ADMIN_PANEL_MASTERS_LABEL_PLACEHOLDER_DASH: '—',
     ADMIN_PANEL_MASTERS_LABEL_SERVICE_ID: 'id послуги',
     ADMIN_PANEL_MASTERS_LABEL_WEEKDAY: 'день тижня',
     ADMIN_PANEL_MASTERS_LABEL_MASTER_ID: 'id майстра',
@@ -819,6 +840,8 @@ export const ADMIN_PANEL_DICTIONARY = {
     ADMIN_PANEL_MASTERS_MSG_CREATION_CANCELLED: 'Master creation canceled.',
     ADMIN_PANEL_MASTERS_MSG_PROFILE_INCOMPLETE:
       'Master profile is not fully completed.',
+    ADMIN_PANEL_MASTERS_MSG_SCHEDULE_REQUIRED:
+      'Master schedule must include at least one working day.',
     ADMIN_PANEL_MASTERS_MSG_TARGET_USER_NOT_SET:
       'Target user for master creation is not set.',
     ADMIN_PANEL_MASTERS_MSG_CREATED_SUCCESS:
@@ -839,6 +862,25 @@ export const ADMIN_PANEL_DICTIONARY = {
       'ℹ️ Use buttons below the message to manage master services.',
     ADMIN_PANEL_MASTERS_MSG_USE_DELETE_BUTTONS:
       'ℹ️ Use buttons below the message to delete master.',
+    ADMIN_PANEL_MASTERS_MSG_DETAILS_NOT_FOUND:
+      'Master not found or profile is already inactive.',
+    ADMIN_PANEL_MASTERS_MSG_BOOKING_NOT_FOUND_IN_MASTER_CONTEXT:
+      'Booking not found in this master context.',
+    ADMIN_PANEL_MASTERS_MSG_INVALID_EDIT_FIELD:
+      'Invalid master profile field.',
+    ADMIN_PANEL_MASTERS_MSG_INVALID_EDIT_CALLBACK:
+      'Invalid master edit callback action.',
+    ADMIN_PANEL_MASTERS_MSG_EXPERIENCE_INTEGER:
+      'Work experience must be an integer.',
+    ADMIN_PANEL_MASTERS_MSG_EXPERIENCE_RANGE:
+      'Work experience must be in range 0..50 years.',
+    ADMIN_PANEL_MASTERS_MSG_TELEGRAM_ID_FORMAT:
+      'Telegram ID must contain digits only (5..15 symbols).',
+    ADMIN_PANEL_MASTERS_MSG_INVALID_CREATE_STEP:
+      'Invalid master creation step.',
+    ADMIN_PANEL_MASTERS_MSG_USER_ALREADY_MASTER:
+      'This user already has a master profile.',
+    ADMIN_PANEL_MASTERS_LABEL_PLACEHOLDER_DASH: '—',
     ADMIN_PANEL_MASTERS_LABEL_SERVICE_ID: 'service id',
     ADMIN_PANEL_MASTERS_LABEL_WEEKDAY: 'weekday',
     ADMIN_PANEL_MASTERS_LABEL_MASTER_ID: 'master id',
@@ -1554,6 +1596,8 @@ export const ADMIN_PANEL_DICTIONARY = {
       'Vytváření mistra bylo zrušeno.',
     ADMIN_PANEL_MASTERS_MSG_PROFILE_INCOMPLETE:
       'Profil mistra není vyplněn kompletně.',
+    ADMIN_PANEL_MASTERS_MSG_SCHEDULE_REQUIRED:
+      'Rozvrh mistra musí obsahovat alespoň jeden pracovní den.',
     ADMIN_PANEL_MASTERS_MSG_TARGET_USER_NOT_SET:
       'Není nastaven uživatel pro vytvoření mistra.',
     ADMIN_PANEL_MASTERS_MSG_CREATED_SUCCESS:
@@ -1574,6 +1618,25 @@ export const ADMIN_PANEL_DICTIONARY = {
       'ℹ️ Pro správu služeb mistra použijte tlačítka pod zprávou.',
     ADMIN_PANEL_MASTERS_MSG_USE_DELETE_BUTTONS:
       'ℹ️ Pro smazání mistra použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_MASTERS_MSG_DETAILS_NOT_FOUND:
+      'Mistr nebyl nalezen nebo je profil již neaktivní.',
+    ADMIN_PANEL_MASTERS_MSG_BOOKING_NOT_FOUND_IN_MASTER_CONTEXT:
+      'Rezervace nebyla nalezena v kontextu tohoto mistra.',
+    ADMIN_PANEL_MASTERS_MSG_INVALID_EDIT_FIELD:
+      'Neplatné pole profilu mistra.',
+    ADMIN_PANEL_MASTERS_MSG_INVALID_EDIT_CALLBACK:
+      'Neplatná callback akce úpravy mistra.',
+    ADMIN_PANEL_MASTERS_MSG_EXPERIENCE_INTEGER:
+      'Praxe musí být celé číslo.',
+    ADMIN_PANEL_MASTERS_MSG_EXPERIENCE_RANGE:
+      'Praxe musí být v rozsahu 0..50 let.',
+    ADMIN_PANEL_MASTERS_MSG_TELEGRAM_ID_FORMAT:
+      'Telegram ID musí obsahovat pouze číslice (5..15 znaků).',
+    ADMIN_PANEL_MASTERS_MSG_INVALID_CREATE_STEP:
+      'Neplatný krok vytváření mistra.',
+    ADMIN_PANEL_MASTERS_MSG_USER_ALREADY_MASTER:
+      'Tento uživatel už má profil mistra.',
+    ADMIN_PANEL_MASTERS_LABEL_PLACEHOLDER_DASH: '—',
     ADMIN_PANEL_MASTERS_LABEL_SERVICE_ID: 'id služby',
     ADMIN_PANEL_MASTERS_LABEL_WEEKDAY: 'den týdne',
     ADMIN_PANEL_MASTERS_LABEL_MASTER_ID: 'id mistra',
