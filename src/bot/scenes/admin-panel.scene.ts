@@ -2960,8 +2960,8 @@ async function renderRecordsCategoryStub(
   });
   state.recordsLastCategory = category;
 
-  const text = formatAdminBookingsFeedText(state.recordsFeed);
-  const keyboard = createAdminBookingsFeedKeyboard(state.recordsFeed);
+  const text = formatAdminBookingsFeedText(state.recordsFeed, state.language);
+  const keyboard = createAdminBookingsFeedKeyboard(state.recordsFeed, state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -3103,8 +3103,8 @@ async function renderAdminBookingCard(ctx: MyContext, item: AdminBookingItem): P
   try {
     const state = getSceneState(ctx);
     state.recordsOpenedAppointmentId = item.appointmentId;
-    const text = formatAdminBookingDetailsCardText(item);
-    const keyboard = createAdminBookingDetailsCardKeyboard(item);
+    const text = formatAdminBookingDetailsCardText(item, state.language);
+    const keyboard = createAdminBookingDetailsCardKeyboard(item, state.language);
 
     try {
       await ctx.editMessageText(text, keyboard);
@@ -3134,8 +3134,9 @@ async function renderAdminBookingClientContact(
   item: AdminBookingItem,
   preferEdit: boolean,
 ): Promise<void> {
-  const text = formatAdminBookingContactClientText(item);
-  const keyboard = createAdminBookingContactClientKeyboard(item);
+  const language = getSceneState(ctx).language;
+  const text = formatAdminBookingContactClientText(item, language);
+  const keyboard = createAdminBookingContactClientKeyboard(item, language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -3154,8 +3155,9 @@ async function renderAdminBookingClientProfile(
   item: AdminBookingItem,
   preferEdit: boolean,
 ): Promise<void> {
-  const text = formatAdminBookingClientProfileText(item);
-  const keyboard = createAdminBookingClientProfileKeyboard(item);
+  const language = getSceneState(ctx).language;
+  const text = formatAdminBookingClientProfileText(item, language);
+  const keyboard = createAdminBookingClientProfileKeyboard(item, language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -3188,7 +3190,7 @@ async function renderAdminBookingMasterProfile(
   }
 
   const text = formatAdminMasterDetailsText(details);
-  const keyboard = createAdminBookingMasterProfileKeyboard(item);
+  const keyboard = createAdminBookingMasterProfileKeyboard(item, state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -3234,8 +3236,9 @@ async function renderRecordsFallback(ctx: MyContext, preferEdit: boolean): Promi
 }
 
 async function renderAdminCancelBookingConfirm(ctx: MyContext, item: AdminBookingItem): Promise<void> {
-  const text = formatAdminCancelBookingConfirmText(item);
-  const keyboard = createAdminCancelBookingConfirmKeyboard(item);
+  const language = getSceneState(ctx).language;
+  const text = formatAdminCancelBookingConfirmText(item, language);
+  const keyboard = createAdminCancelBookingConfirmKeyboard(item, language);
 
   try {
     await ctx.editMessageText(text, keyboard);
@@ -3248,8 +3251,9 @@ async function renderAdminHardDeleteBookingConfirm(
   ctx: MyContext,
   item: AdminBookingItem,
 ): Promise<void> {
-  const text = formatAdminHardDeleteBookingConfirmText(item);
-  const keyboard = createAdminHardDeleteBookingConfirmKeyboard(item);
+  const language = getSceneState(ctx).language;
+  const text = formatAdminHardDeleteBookingConfirmText(item, language);
+  const keyboard = createAdminHardDeleteBookingConfirmKeyboard(item, language);
 
   try {
     await ctx.editMessageText(text, keyboard);
@@ -3263,8 +3267,9 @@ async function renderAdminClearCanceledConfirm(
   total: number,
   preferEdit: boolean,
 ): Promise<void> {
-  const text = formatAdminClearCanceledBookingsConfirmText(total);
-  const keyboard = createAdminClearCanceledBookingsConfirmKeyboard();
+  const language = getSceneState(ctx).language;
+  const text = formatAdminClearCanceledBookingsConfirmText(total, language);
+  const keyboard = createAdminClearCanceledBookingsConfirmKeyboard(language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -3310,8 +3315,8 @@ async function renderRescheduleDateStep(ctx: MyContext, preferEdit: boolean): Pr
     return;
   }
 
-  const text = formatAdminRescheduleDateStepText(item);
-  const keyboard = createAdminRescheduleDateKeyboard(buildBookingDateOptions(7));
+  const text = formatAdminRescheduleDateStepText(item, state.language);
+  const keyboard = createAdminRescheduleDateKeyboard(buildBookingDateOptions(7), state.language);
 
   try {
     if (preferEdit) {
@@ -3334,12 +3339,12 @@ async function renderRescheduleTimeStep(ctx: MyContext, preferEdit: boolean): Pr
   }
 
   const timeCodes = getAvailableRescheduleTimeCodes(draft.dateCode);
-  const baseText = formatAdminRescheduleTimeStepText(item, draft.dateCode);
+  const baseText = formatAdminRescheduleTimeStepText(item, draft.dateCode, state.language);
   const text =
     timeCodes.length > 0
       ? baseText
-      : `${baseText}\n\n⚠️ На цю дату вже немає доступного часу. Оберіть іншу дату.`;
-  const keyboard = createAdminRescheduleTimeKeyboard(timeCodes);
+      : `${baseText}\n\n${tBot(state.language, 'ADMIN_PANEL_RECORDS_RESCHEDULE_NO_TIMES')}`;
+  const keyboard = createAdminRescheduleTimeKeyboard(timeCodes, state.language);
 
   try {
     if (preferEdit) {
@@ -3376,8 +3381,8 @@ async function renderRescheduleConfirmStep(ctx: MyContext, preferEdit: boolean):
 
   const durationMs = currentEndAt.getTime() - currentStartAt.getTime();
   const newEndAt = new Date(newStartAt.getTime() + durationMs);
-  const text = formatAdminRescheduleConfirmText(item, newStartAt, newEndAt);
-  const keyboard = createAdminRescheduleConfirmKeyboard();
+  const text = formatAdminRescheduleConfirmText(item, newStartAt, newEndAt, state.language);
+  const keyboard = createAdminRescheduleConfirmKeyboard(state.language);
 
   try {
     if (preferEdit) {
@@ -3415,8 +3420,8 @@ async function renderChangeMasterSelectStep(ctx: MyContext, preferEdit: boolean)
     return;
   }
 
-  const text = formatAdminChangeMasterStepText(item, draft.candidates);
-  const keyboard = createAdminChangeMasterSelectKeyboard(item, draft.candidates);
+  const text = formatAdminChangeMasterStepText(item, draft.candidates, state.language);
+  const keyboard = createAdminChangeMasterSelectKeyboard(item, draft.candidates, state.language);
   try {
     if (preferEdit) {
       await ctx.editMessageText(text, keyboard);
@@ -3443,8 +3448,8 @@ async function renderChangeMasterConfirmStep(ctx: MyContext, preferEdit: boolean
     return;
   }
 
-  const text = formatAdminChangeMasterConfirmText(item, draft.selectedMasterName);
-  const keyboard = createAdminChangeMasterConfirmKeyboard();
+  const text = formatAdminChangeMasterConfirmText(item, draft.selectedMasterName, state.language);
+  const keyboard = createAdminChangeMasterConfirmKeyboard(state.language);
   try {
     if (preferEdit) {
       await ctx.editMessageText(text, keyboard);

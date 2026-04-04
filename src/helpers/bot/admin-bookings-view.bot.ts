@@ -7,7 +7,6 @@ import type {
 import type { MasterBookingOption } from '../../types/db-helpers/db-masters.types.js';
 import {
   ADMIN_PANEL_ACTION,
-  ADMIN_PANEL_BUTTON_TEXT,
   makeAdminPanelRecordsCancelConfirmAction,
   makeAdminPanelRecordsCancelRequestAction,
   makeAdminPanelRecordsChangeMasterAction,
@@ -24,6 +23,8 @@ import {
   makeAdminPanelRecordsViewClientProfileAction,
   makeAdminPanelRecordsViewMasterProfileAction,
 } from '../../types/bot-admin-panel.types.js';
+import { tBot, tBotTemplate } from './i18n.bot.js';
+import type { BotUiLanguage } from './i18n.bot.js';
 
 /**
  * @file admin-bookings-view.bot.ts
@@ -38,24 +39,35 @@ function toSafeDate(value: Date | string): Date | null {
   return parsed;
 }
 
-function formatUiDate(value: Date | string): string {
+const DATE_LOCALE_BY_LANGUAGE: Record<BotUiLanguage, string> = {
+  uk: 'uk-UA',
+  en: 'en-US',
+  cs: 'cs-CZ',
+};
+
+function formatUiDate(value: Date | string, language: BotUiLanguage): string {
   const parsed = toSafeDate(value);
-  if (!parsed) return '—';
-  return parsed.toLocaleDateString('uk-UA');
+  if (!parsed) return tBot(language, 'ADMIN_PANEL_RECORDS_EMPTY_VALUE');
+  return parsed.toLocaleDateString(DATE_LOCALE_BY_LANGUAGE[language]);
 }
 
-function formatUiTime(value: Date | string): string {
+function formatUiTime(value: Date | string, language: BotUiLanguage): string {
   const parsed = toSafeDate(value);
-  if (!parsed) return '—';
-  return parsed.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+  if (!parsed) return tBot(language, 'ADMIN_PANEL_RECORDS_EMPTY_VALUE');
+  return parsed.toLocaleTimeString(DATE_LOCALE_BY_LANGUAGE[language], { hour: '2-digit', minute: '2-digit' });
 }
 
-function formatDateTimeRange(startAt: Date | string, endAt: Date | string): string {
-  const date = formatUiDate(startAt);
-  const startTime = formatUiTime(startAt);
-  const endTime = formatUiTime(endAt);
-  if (date === '—' || startTime === '—' || endTime === '—') {
-    return 'Некоректна дата/час';
+function formatDateTimeRange(
+  startAt: Date | string,
+  endAt: Date | string,
+  language: BotUiLanguage,
+): string {
+  const date = formatUiDate(startAt, language);
+  const startTime = formatUiTime(startAt, language);
+  const endTime = formatUiTime(endAt, language);
+  const emptyValue = tBot(language, 'ADMIN_PANEL_RECORDS_EMPTY_VALUE');
+  if (date === emptyValue || startTime === emptyValue || endTime === emptyValue) {
+    return tBot(language, 'ADMIN_PANEL_RECORDS_INVALID_DATETIME');
   }
   return `${date} • ${startTime}–${endTime}`;
 }
@@ -65,87 +77,95 @@ function formatPrice(price: string, currencyCode: string): string {
   return `${normalized} ${currencyCode}`;
 }
 
-function formatClientDisplayName(item: AdminBookingItem): string {
+function formatClientDisplayName(item: AdminBookingItem, language: BotUiLanguage): string {
   if (item.attendeeName && item.attendeeName.trim().length > 0) {
     return item.attendeeName;
   }
 
   const fullName = `${item.clientFirstName}${item.clientLastName ? ` ${item.clientLastName}` : ''}`.trim();
-  return fullName || 'Клієнт';
+  return fullName || tBot(language, 'ADMIN_PANEL_RECORDS_CLIENT_FALLBACK');
 }
 
-function formatBookingStatusLabel(status: AdminBookingItem['status']): string {
+function formatBookingStatusLabel(status: AdminBookingItem['status'], language: BotUiLanguage): string {
   switch (status) {
     case 'pending':
-      return '🟡 Очікує підтвердження';
+      return tBot(language, 'ADMIN_PANEL_RECORDS_STATUS_PENDING');
     case 'confirmed':
-      return '🟢 Підтверджено';
+      return tBot(language, 'ADMIN_PANEL_RECORDS_STATUS_CONFIRMED');
     case 'completed':
-      return '⚪ Завершено';
+      return tBot(language, 'ADMIN_PANEL_RECORDS_STATUS_COMPLETED');
     case 'canceled':
-      return '🔴 Скасовано';
+      return tBot(language, 'ADMIN_PANEL_RECORDS_STATUS_CANCELED');
     case 'transferred':
-      return '🟣 Перенесено';
+      return tBot(language, 'ADMIN_PANEL_RECORDS_STATUS_TRANSFERRED');
     default:
       return status;
   }
 }
 
-function formatTelegramHandle(username: string | null): string {
-  if (!username) return 'Не вказано';
+function formatTelegramHandle(username: string | null, language: BotUiLanguage): string {
+  if (!username) return tBot(language, 'ADMIN_PANEL_RECORDS_NOT_SET');
   return `@${username}`;
 }
 
-function buildContactChannelsLines(item: AdminBookingItem): string {
+function buildContactChannelsLines(item: AdminBookingItem, language: BotUiLanguage): string {
   const lines: string[] = [];
   if (item.clientTelegramUsername) {
-    lines.push(`• Telegram: ${formatTelegramHandle(item.clientTelegramUsername)}`);
+    lines.push(`• Telegram: ${formatTelegramHandle(item.clientTelegramUsername, language)}`);
   }
   if (item.attendeePhoneE164) {
-    lines.push(`• Телефон: ${item.attendeePhoneE164}`);
+    lines.push(
+      tBotTemplate(language, 'ADMIN_PANEL_RECORDS_CONTACT_PHONE_LINE', {
+        phone: item.attendeePhoneE164,
+      }),
+    );
   }
   if (item.attendeeEmail) {
-    lines.push(`• Email: ${item.attendeeEmail}`);
+    lines.push(
+      tBotTemplate(language, 'ADMIN_PANEL_RECORDS_CONTACT_EMAIL_LINE', {
+        email: item.attendeeEmail,
+      }),
+    );
   }
 
   if (lines.length === 0) {
-    return '• Контактні дані не вказано';
+    return tBot(language, 'ADMIN_PANEL_RECORDS_CONTACT_EMPTY');
   }
 
   return lines.join('\n');
 }
 
-function categoryTitle(category: AdminBookingsCategory): string {
+function categoryTitle(category: AdminBookingsCategory, language: BotUiLanguage): string {
   switch (category) {
     case 'pending':
-      return '🆕 Нові записи (очікують підтвердження)';
+      return tBot(language, 'ADMIN_PANEL_RECORDS_CATEGORY_PENDING');
     case 'today':
-      return '📍 Записи на сьогодні';
+      return tBot(language, 'ADMIN_PANEL_RECORDS_FEED_TITLE_TODAY');
     case 'tomorrow':
-      return '📆 Записи на завтра';
+      return tBot(language, 'ADMIN_PANEL_RECORDS_FEED_TITLE_TOMORROW');
     case 'all':
-      return '🗂 Усі записи';
+      return tBot(language, 'ADMIN_PANEL_RECORDS_FEED_TITLE_ALL');
     case 'canceled':
-      return '❌ Скасовані записи';
+      return tBot(language, 'ADMIN_PANEL_RECORDS_FEED_TITLE_CANCELED');
     default:
-      return '📅 Записи';
+      return tBot(language, 'ADMIN_PANEL_RECORDS_MENU_TITLE');
   }
 }
 
-function categoryEmptyText(category: AdminBookingsCategory): string {
+function categoryEmptyText(category: AdminBookingsCategory, language: BotUiLanguage): string {
   switch (category) {
     case 'pending':
-      return '📭 Наразі нових записів, що очікують підтвердження, немає.';
+      return tBot(language, 'ADMIN_PANEL_RECORDS_EMPTY_PENDING');
     case 'today':
-      return '📭 На сьогодні записів немає.';
+      return tBot(language, 'ADMIN_PANEL_RECORDS_EMPTY_TODAY');
     case 'tomorrow':
-      return '📭 На завтра записів немає.';
+      return tBot(language, 'ADMIN_PANEL_RECORDS_EMPTY_TOMORROW');
     case 'all':
-      return '📭 Записів не знайдено.';
+      return tBot(language, 'ADMIN_PANEL_RECORDS_EMPTY_ALL');
     case 'canceled':
-      return '📭 Скасованих записів не знайдено.';
+      return tBot(language, 'ADMIN_PANEL_RECORDS_EMPTY_CANCELED');
     default:
-      return '📭 Записів не знайдено.';
+      return tBot(language, 'ADMIN_PANEL_RECORDS_EMPTY_ALL');
   }
 }
 
@@ -153,49 +173,55 @@ function cardIndexLabel(index: number): string {
   return `${index + 1}️⃣`;
 }
 
-function formatDateLabel(date: Date): string {
-  const weekday = date.toLocaleDateString('uk-UA', { weekday: 'short' });
+function formatDateLabel(date: Date, language: BotUiLanguage): string {
+  const weekday = date.toLocaleDateString(DATE_LOCALE_BY_LANGUAGE[language], { weekday: 'short' });
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   return `${weekday} ${day}.${month}`;
 }
 
-function formatDateCodeLabel(dateCode: string): string {
+function formatDateCodeLabel(dateCode: string, language: BotUiLanguage): string {
   const year = Number(dateCode.slice(0, 4));
   const month = Number(dateCode.slice(4, 6));
   const day = Number(dateCode.slice(6, 8));
-  return new Date(year, month - 1, day).toLocaleDateString('uk-UA');
+  return new Date(year, month - 1, day).toLocaleDateString(DATE_LOCALE_BY_LANGUAGE[language]);
 }
 
 /**
  * @summary Форматує текст списку записів по категорії.
  */
-export function formatAdminBookingsFeedText(page: AdminBookingsFeedPage): string {
-  const title = categoryTitle(page.category);
+export function formatAdminBookingsFeedText(
+  page: AdminBookingsFeedPage,
+  language: BotUiLanguage = 'uk',
+): string {
+  const title = categoryTitle(page.category, language);
   if (page.items.length === 0) {
-    return `${title}\n━━━━━━━━━━━━━━\n\n${categoryEmptyText(page.category)}`;
+    return `${title}\n━━━━━━━━━━━━━━\n\n${categoryEmptyText(page.category, language)}`;
   }
 
   const lines = page.items.map((item, index) => {
-    const dateLabel = formatUiDate(item.startAt);
-    const startTime = formatUiTime(item.startAt);
-    const endTime = formatUiTime(item.endAt);
+    const dateLabel = formatUiDate(item.startAt, language);
+    const startTime = formatUiTime(item.startAt, language);
+    const endTime = formatUiTime(item.endAt, language);
     return (
       `${cardIndexLabel(index)}\n\n` +
-      `👤 ${formatClientDisplayName(item)}\n` +
+      `👤 ${formatClientDisplayName(item, language)}\n` +
       `💼 ${item.serviceName}\n` +
       `👩‍🎨 ${item.masterName}\n` +
-      `💰 Ціна: ${formatPrice(item.priceAmount, item.currencyCode)}\n` +
+      `${tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_PRICE', { price: formatPrice(item.priceAmount, item.currencyCode) })}\n` +
       `📅 ${dateLabel}\n` +
       `⏰ ${startTime}–${endTime}\n` +
-      `${formatBookingStatusLabel(item.status)}`
+      `${formatBookingStatusLabel(item.status, language)}`
     );
   });
 
   const pageNumber = Math.floor(page.offset / page.limit) + 1;
   const totalPages = Math.max(1, Math.ceil(page.total / page.limit));
 
-  return `${title}\n━━━━━━━━━━━━━━\n\n${lines.join('\n\n⸻\n\n')}\n\n📄 Сторінка ${pageNumber} з ${totalPages}`;
+  return (
+    `${title}\n━━━━━━━━━━━━━━\n\n${lines.join('\n\n⸻\n\n')}\n\n` +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_PAGE', { page: pageNumber, total: totalPages })
+  );
 }
 
 /**
@@ -203,6 +229,7 @@ export function formatAdminBookingsFeedText(page: AdminBookingsFeedPage): string
  */
 export function createAdminBookingsFeedKeyboard(
   page: AdminBookingsFeedPage,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const numberButtons = page.items.map((item, index) =>
     Markup.button.callback(`${index + 1}`, makeAdminPanelRecordsOpenCardAction(item.appointmentId)),
@@ -216,12 +243,12 @@ export function createAdminBookingsFeedKeyboard(
   const paginationRow: ReturnType<typeof Markup.button.callback>[] = [];
   if (page.hasPrevPage) {
     paginationRow.push(
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_PREV_PAGE, ADMIN_PANEL_ACTION.RECORDS_LIST_PREV_PAGE),
+      Markup.button.callback(tBot(language, 'ADMIN_PANEL_BTN_PREV'), ADMIN_PANEL_ACTION.RECORDS_LIST_PREV_PAGE),
     );
   }
   if (page.hasNextPage) {
     paginationRow.push(
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_NEXT_PAGE, ADMIN_PANEL_ACTION.RECORDS_LIST_NEXT_PAGE),
+      Markup.button.callback(tBot(language, 'ADMIN_PANEL_BTN_NEXT'), ADMIN_PANEL_ACTION.RECORDS_LIST_NEXT_PAGE),
     );
   }
 
@@ -229,44 +256,53 @@ export function createAdminBookingsFeedKeyboard(
     ...numberRows,
     ...(paginationRow.length > 0 ? [paginationRow] : []),
     ...(page.category === 'canceled' && page.total > 0
-      ? [[Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CLEAR_CANCELED, ADMIN_PANEL_ACTION.RECORDS_CLEAR_CANCELED_REQUEST)]]
+      ? [[Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_CLEAR_CANCELED'), ADMIN_PANEL_ACTION.RECORDS_CLEAR_CANCELED_REQUEST)]]
       : []),
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_MENU, ADMIN_PANEL_ACTION.OPEN_RECORDS)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK, ADMIN_PANEL_ACTION.RECORDS_BACK)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.HOME, ADMIN_PANEL_ACTION.HOME)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_BACK_TO_MENU'), ADMIN_PANEL_ACTION.OPEN_RECORDS)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_BACK'), ADMIN_PANEL_ACTION.RECORDS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_HOME'), ADMIN_PANEL_ACTION.HOME)],
   ]);
 }
 
 /**
  * @summary Форматує текст детальної картки запису.
  */
-export function formatAdminBookingDetailsCardText(item: AdminBookingItem): string {
+export function formatAdminBookingDetailsCardText(
+  item: AdminBookingItem,
+  language: BotUiLanguage = 'uk',
+): string {
   const comment = item.clientComment?.trim();
-  const commentBlock = comment ? `\n\n📝 Коментар клієнта:\n${comment}` : '';
+  const commentBlock = comment ? `\n\n${tBot(language, 'ADMIN_PANEL_RECORDS_LABEL_COMMENT')}\n${comment}` : '';
   let stateHint = '';
   if (item.status === 'canceled') {
-    stateHint = '\n\n⚠️ Цей запис уже скасований.\nДоступний перегляд або видалення назавжди.';
+    stateHint = `\n\n${tBot(language, 'ADMIN_PANEL_RECORDS_HINT_CANCELED')}`;
   } else if (item.status === 'completed') {
-    stateHint = '\n\n⚠️ Цей запис уже завершений.\nДоступний перегляд або видалення назавжди.';
+    stateHint = `\n\n${tBot(language, 'ADMIN_PANEL_RECORDS_HINT_COMPLETED')}`;
   } else if (item.status === 'transferred') {
-    stateHint = '\n\n⚠️ Цей запис позначено як перенесений.\nДоступний перегляд або видалення назавжди.';
+    stateHint = `\n\n${tBot(language, 'ADMIN_PANEL_RECORDS_HINT_TRANSFERRED')}`;
   } else if (item.status === 'pending') {
-    stateHint = '\n\nℹ️ Доступні дії: підтвердити, скасувати, перенести, змінити майстра.';
+    stateHint = `\n\n${tBot(language, 'ADMIN_PANEL_RECORDS_HINT_PENDING')}`;
   } else if (item.status === 'confirmed') {
-    stateHint = '\n\nℹ️ Доступні дії: скасувати, перенести, змінити майстра.';
+    stateHint = `\n\n${tBot(language, 'ADMIN_PANEL_RECORDS_HINT_CONFIRMED')}`;
   }
 
   return (
-    '📄 Картка запису\n' +
+    `${tBot(language, 'ADMIN_PANEL_RECORDS_CARD_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
-    `📱 Телефон: ${item.attendeePhoneE164 ?? 'Не вказано'}\n` +
-    `✉️ Email: ${item.attendeeEmail ?? 'Не вказано'}\n\n` +
-    `💼 Послуга: ${item.serviceName}\n` +
-    `👩‍🎨 Майстер: ${item.masterName}\n` +
-    `🕒 Час: ${formatDateTimeRange(item.startAt, item.endAt)}\n` +
-    `💰 Ціна: ${formatPrice(item.priceAmount, item.currencyCode)}\n` +
-    `📌 Статус: ${formatBookingStatusLabel(item.status)}` +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_CLIENT', {
+      client: formatClientDisplayName(item, language),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_PHONE', {
+      phone: item.attendeePhoneE164 ?? tBot(language, 'ADMIN_PANEL_RECORDS_NOT_SET'),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_EMAIL', {
+      email: item.attendeeEmail ?? tBot(language, 'ADMIN_PANEL_RECORDS_NOT_SET'),
+    }) + '\n\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_SERVICE', { service: item.serviceName }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_MASTER', { master: item.masterName }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_TIME', { time: formatDateTimeRange(item.startAt, item.endAt, language) }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_PRICE', { price: formatPrice(item.priceAmount, item.currencyCode) }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_STATUS', { status: formatBookingStatusLabel(item.status, language) }) +
     commentBlock +
     stateHint
   );
@@ -277,29 +313,30 @@ export function formatAdminBookingDetailsCardText(item: AdminBookingItem): strin
  */
 export function createAdminBookingDetailsCardKeyboard(
   item: AdminBookingItem,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const actionRows: ReturnType<typeof Markup.button.callback>[][] = [];
   actionRows.push([
     Markup.button.callback(
-      ADMIN_PANEL_BUTTON_TEXT.RECORDS_CONTACT_CLIENT,
+      tBot(language, 'ADMIN_PANEL_RECORDS_BTN_CONTACT_CLIENT'),
       makeAdminPanelRecordsContactClientAction(item.appointmentId),
     ),
   ]);
   actionRows.push([
     Markup.button.callback(
-      ADMIN_PANEL_BUTTON_TEXT.RECORDS_VIEW_CLIENT_PROFILE,
+      tBot(language, 'ADMIN_PANEL_RECORDS_BTN_VIEW_CLIENT_PROFILE'),
       makeAdminPanelRecordsViewClientProfileAction(item.appointmentId),
     ),
   ]);
   actionRows.push([
     Markup.button.callback(
-      ADMIN_PANEL_BUTTON_TEXT.RECORDS_VIEW_MASTER_PROFILE,
+      tBot(language, 'ADMIN_PANEL_RECORDS_BTN_VIEW_MASTER_PROFILE'),
       makeAdminPanelRecordsViewMasterProfileAction(item.appointmentId),
     ),
   ]);
   actionRows.push([
     Markup.button.callback(
-      ADMIN_PANEL_BUTTON_TEXT.RECORDS_NEXT_PENDING,
+      tBot(language, 'ADMIN_PANEL_RECORDS_BTN_NEXT_PENDING'),
       makeAdminPanelRecordsNextPendingAction(item.appointmentId),
     ),
   ]);
@@ -307,38 +344,38 @@ export function createAdminBookingDetailsCardKeyboard(
   if (item.status === 'pending') {
     actionRows.push([
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.RECORDS_CONFIRM,
+        tBot(language, 'ADMIN_PANEL_RECORDS_BTN_CONFIRM'),
         makeAdminPanelRecordsConfirmAction(item.appointmentId),
       ),
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.RECORDS_CANCEL,
+        tBot(language, 'ADMIN_PANEL_RECORDS_BTN_CANCEL'),
         makeAdminPanelRecordsCancelRequestAction(item.appointmentId),
       ),
     ]);
     actionRows.push([
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.RECORDS_RESCHEDULE,
+        tBot(language, 'ADMIN_PANEL_RECORDS_BTN_RESCHEDULE'),
         makeAdminPanelRecordsRescheduleAction(item.appointmentId),
       ),
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.RECORDS_CHANGE_MASTER,
+        tBot(language, 'ADMIN_PANEL_RECORDS_BTN_CHANGE_MASTER'),
         makeAdminPanelRecordsChangeMasterAction(item.appointmentId),
       ),
     ]);
   } else if (item.status === 'confirmed') {
     actionRows.push([
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.RECORDS_RESCHEDULE,
+        tBot(language, 'ADMIN_PANEL_RECORDS_BTN_RESCHEDULE'),
         makeAdminPanelRecordsRescheduleAction(item.appointmentId),
       ),
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.RECORDS_CANCEL,
+        tBot(language, 'ADMIN_PANEL_RECORDS_BTN_CANCEL'),
         makeAdminPanelRecordsCancelRequestAction(item.appointmentId),
       ),
     ]);
     actionRows.push([
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.RECORDS_CHANGE_MASTER,
+        tBot(language, 'ADMIN_PANEL_RECORDS_BTN_CHANGE_MASTER'),
         makeAdminPanelRecordsChangeMasterAction(item.appointmentId),
       ),
     ]);
@@ -347,7 +384,7 @@ export function createAdminBookingDetailsCardKeyboard(
   if (item.status === 'canceled' || item.status === 'completed' || item.status === 'transferred') {
     actionRows.push([
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.RECORDS_HARD_DELETE,
+        tBot(language, 'ADMIN_PANEL_RECORDS_BTN_HARD_DELETE'),
         makeAdminPanelRecordsHardDeleteRequestAction(item.appointmentId),
       ),
     ]);
@@ -355,27 +392,30 @@ export function createAdminBookingDetailsCardKeyboard(
 
   return Markup.inlineKeyboard([
     ...actionRows,
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_LIST, ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_MENU, ADMIN_PANEL_ACTION.OPEN_RECORDS)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK, ADMIN_PANEL_ACTION.RECORDS_BACK)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.HOME, ADMIN_PANEL_ACTION.HOME)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_BACK_TO_LIST'), ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_BACK_TO_MENU'), ADMIN_PANEL_ACTION.OPEN_RECORDS)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_BACK'), ADMIN_PANEL_ACTION.RECORDS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_HOME'), ADMIN_PANEL_ACTION.HOME)],
   ]);
 }
 
 /**
  * @summary Текст підтвердження видалення запису назавжди.
  */
-export function formatAdminHardDeleteBookingConfirmText(item: AdminBookingItem): string {
+export function formatAdminHardDeleteBookingConfirmText(
+  item: AdminBookingItem,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '⚠️ Підтвердження видалення запису\n' +
+    `${tBot(language, 'ADMIN_PANEL_RECORDS_HARD_DELETE_CONFIRM_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Ви впевнені, що хочете видалити цей запис назавжди?\n\n' +
-    `👤 ${formatClientDisplayName(item)}\n` +
+    `${tBot(language, 'ADMIN_PANEL_RECORDS_HARD_DELETE_CONFIRM_BODY')}\n\n` +
+    `👤 ${formatClientDisplayName(item, language)}\n` +
     `💼 ${item.serviceName}\n` +
     `👩‍🎨 ${item.masterName}\n` +
-    `🕒 ${formatDateTimeRange(item.startAt, item.endAt)}\n` +
-    `📌 ${formatBookingStatusLabel(item.status)}\n\n` +
-    'Після видалення запис буде безповоротно стертий із системи.'
+    `🕒 ${formatDateTimeRange(item.startAt, item.endAt, language)}\n` +
+    `📌 ${formatBookingStatusLabel(item.status, language)}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_RECORDS_HARD_DELETE_CONFIRM_HINT')}`
   );
 }
 
@@ -384,53 +424,62 @@ export function formatAdminHardDeleteBookingConfirmText(item: AdminBookingItem):
  */
 export function createAdminHardDeleteBookingConfirmKeyboard(
   item: AdminBookingItem,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.RECORDS_HARD_DELETE_CONFIRM,
+        tBot(language, 'ADMIN_PANEL_RECORDS_BTN_HARD_DELETE_CONFIRM'),
         makeAdminPanelRecordsHardDeleteConfirmAction(item.appointmentId),
       ),
     ],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CANCEL_ACTION, ADMIN_PANEL_ACTION.RECORDS_HARD_DELETE_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_LIST, ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_CANCEL_ACTION'), ADMIN_PANEL_ACTION.RECORDS_HARD_DELETE_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_BACK_TO_LIST'), ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
   ]);
 }
 
 /**
  * @summary Текст підтвердження очищення списку скасованих записів.
  */
-export function formatAdminClearCanceledBookingsConfirmText(total: number): string {
+export function formatAdminClearCanceledBookingsConfirmText(
+  total: number,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '⚠️ Підтвердження очищення скасованих записів\n' +
+    `${tBot(language, 'ADMIN_PANEL_RECORDS_CLEAR_CANCELED_CONFIRM_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `Ви дійсно хочете очистити список скасованих записів?\n` +
-    `До видалення: ${total}\n\n` +
-    'Після підтвердження всі скасовані записи буде видалено назавжди.'
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_CLEAR_CANCELED_CONFIRM_BODY', {
+      total,
+    })
   );
 }
 
 /**
  * @summary Клавіатура підтвердження очищення скасованих записів.
  */
-export function createAdminClearCanceledBookingsConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminClearCanceledBookingsConfirmKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CLEAR_CANCELED_CONFIRM, ADMIN_PANEL_ACTION.RECORDS_CLEAR_CANCELED_CONFIRM)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CANCEL_ACTION, ADMIN_PANEL_ACTION.RECORDS_CLEAR_CANCELED_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_MENU, ADMIN_PANEL_ACTION.OPEN_RECORDS)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_CLEAR_CANCELED_CONFIRM'), ADMIN_PANEL_ACTION.RECORDS_CLEAR_CANCELED_CONFIRM)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_CANCEL_ACTION'), ADMIN_PANEL_ACTION.RECORDS_CLEAR_CANCELED_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_BACK_TO_MENU'), ADMIN_PANEL_ACTION.OPEN_RECORDS)],
   ]);
 }
 
 /**
  * @summary Текст контактів клієнта для швидкого звʼязку.
  */
-export function formatAdminBookingContactClientText(item: AdminBookingItem): string {
+export function formatAdminBookingContactClientText(
+  item: AdminBookingItem,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '📞 Контакти клієнта\n' +
+    `${tBot(language, 'ADMIN_PANEL_RECORDS_CONTACT_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👤 ${formatClientDisplayName(item)}\n` +
-    `${buildContactChannelsLines(item)}\n\n` +
-    'Використайте один із каналів для звʼязку з клієнтом.'
+    `👤 ${formatClientDisplayName(item, language)}\n` +
+    `${buildContactChannelsLines(item, language)}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_RECORDS_CONTACT_HINT')}`
   );
 }
 
@@ -439,12 +488,15 @@ export function formatAdminBookingContactClientText(item: AdminBookingItem): str
  */
 export function createAdminBookingContactClientKeyboard(
   item: AdminBookingItem,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
-  const rows: ReturnType<typeof Markup.button.callback | typeof Markup.button.url>[][] = [];
+  const rows: Array<
+    Array<ReturnType<typeof Markup.button.callback> | ReturnType<typeof Markup.button.url>>
+  > = [];
   if (item.clientTelegramUsername) {
     rows.push([
       Markup.button.url(
-        `💬 ${formatTelegramHandle(item.clientTelegramUsername)}`,
+        `💬 ${formatTelegramHandle(item.clientTelegramUsername, language)}`,
         `https://t.me/${item.clientTelegramUsername}`,
       ),
     ]);
@@ -460,35 +512,50 @@ export function createAdminBookingContactClientKeyboard(
 
   return Markup.inlineKeyboard([
     ...rows,
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_LIST, ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_BACK_TO_LIST'), ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.RECORDS_VIEW_CLIENT_PROFILE,
+        tBot(language, 'ADMIN_PANEL_RECORDS_BTN_VIEW_CLIENT_PROFILE'),
         makeAdminPanelRecordsViewClientProfileAction(item.appointmentId),
       ),
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.RECORDS_NEXT_PENDING,
+        tBot(language, 'ADMIN_PANEL_RECORDS_BTN_NEXT_PENDING'),
         makeAdminPanelRecordsNextPendingAction(item.appointmentId),
       ),
     ],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_MENU, ADMIN_PANEL_ACTION.OPEN_RECORDS)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_BACK_TO_MENU'), ADMIN_PANEL_ACTION.OPEN_RECORDS)],
   ]);
 }
 
 /**
  * @summary Текст профілю клієнта з картки запису.
  */
-export function formatAdminBookingClientProfileText(item: AdminBookingItem): string {
+export function formatAdminBookingClientProfileText(
+  item: AdminBookingItem,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '👤 Профіль клієнта\n' +
+    `${tBot(language, 'ADMIN_PANEL_RECORDS_CLIENT_PROFILE_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `🪪 ID клієнта: ${item.clientId}\n` +
-    `👤 Імʼя: ${formatClientDisplayName(item)}\n` +
-    `💬 Telegram: ${formatTelegramHandle(item.clientTelegramUsername)}\n` +
-    `📱 Телефон: ${item.attendeePhoneE164 ?? 'Не вказано'}\n` +
-    `✉️ Email: ${item.attendeeEmail ?? 'Не вказано'}\n\n` +
-    `🕒 Найближчий запис: ${formatDateTimeRange(item.startAt, item.endAt)}\n` +
-    `📌 Поточний статус: ${formatBookingStatusLabel(item.status)}`
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_CLIENT_PROFILE_ID', { id: item.clientId }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_CLIENT_PROFILE_NAME', {
+      name: formatClientDisplayName(item, language),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_CLIENT_PROFILE_TELEGRAM', {
+      telegram: formatTelegramHandle(item.clientTelegramUsername, language),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_PHONE', {
+      phone: item.attendeePhoneE164 ?? tBot(language, 'ADMIN_PANEL_RECORDS_NOT_SET'),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_EMAIL', {
+      email: item.attendeeEmail ?? tBot(language, 'ADMIN_PANEL_RECORDS_NOT_SET'),
+    }) + '\n\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_CLIENT_PROFILE_NEAREST', {
+      time: formatDateTimeRange(item.startAt, item.endAt, language),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_CLIENT_PROFILE_STATUS', {
+      status: formatBookingStatusLabel(item.status, language),
+    })
   );
 }
 
@@ -497,26 +564,27 @@ export function formatAdminBookingClientProfileText(item: AdminBookingItem): str
  */
 export function createAdminBookingClientProfileKeyboard(
   item: AdminBookingItem,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.RECORDS_CONTACT_CLIENT,
+        tBot(language, 'ADMIN_PANEL_RECORDS_BTN_CONTACT_CLIENT'),
         makeAdminPanelRecordsContactClientAction(item.appointmentId),
       ),
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.RECORDS_NEXT_PENDING,
+        tBot(language, 'ADMIN_PANEL_RECORDS_BTN_NEXT_PENDING'),
         makeAdminPanelRecordsNextPendingAction(item.appointmentId),
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.RECORDS_VIEW_MASTER_PROFILE,
+        tBot(language, 'ADMIN_PANEL_RECORDS_BTN_VIEW_MASTER_PROFILE'),
         makeAdminPanelRecordsViewMasterProfileAction(item.appointmentId),
       ),
     ],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_LIST, ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_MENU, ADMIN_PANEL_ACTION.OPEN_RECORDS)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_BACK_TO_LIST'), ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_BACK_TO_MENU'), ADMIN_PANEL_ACTION.OPEN_RECORDS)],
   ]);
 }
 
@@ -525,40 +593,48 @@ export function createAdminBookingClientProfileKeyboard(
  */
 export function createAdminBookingMasterProfileKeyboard(
   item: AdminBookingItem,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.RECORDS_VIEW_CLIENT_PROFILE,
+        tBot(language, 'ADMIN_PANEL_RECORDS_BTN_VIEW_CLIENT_PROFILE'),
         makeAdminPanelRecordsViewClientProfileAction(item.appointmentId),
       ),
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.RECORDS_NEXT_PENDING,
+        tBot(language, 'ADMIN_PANEL_RECORDS_BTN_NEXT_PENDING'),
         makeAdminPanelRecordsNextPendingAction(item.appointmentId),
       ),
     ],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_LIST, ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_MENU, ADMIN_PANEL_ACTION.OPEN_RECORDS)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_BACK_TO_LIST'), ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_BACK_TO_MENU'), ADMIN_PANEL_ACTION.OPEN_RECORDS)],
   ]);
 }
 
 /**
  * @summary Текст підтвердження скасування запису адміністратором.
  */
-export function formatAdminCancelBookingConfirmText(item: AdminBookingItem): string {
+export function formatAdminCancelBookingConfirmText(
+  item: AdminBookingItem,
+  language: BotUiLanguage = 'uk',
+): string {
   const warning =
     item.status === 'confirmed'
-      ? '\n\n⚠️ Ви скасовуєте вже підтверджений запис.\nПереконайтесь, що все узгоджено з клієнтом.'
+      ? `\n\n${tBot(language, 'ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_WARNING_CONFIRMED')}`
       : '';
 
   return (
-    '⚠️ Підтвердження скасування\n' +
+    `${tBot(language, 'ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Ви дійсно хочете скасувати цей запис?\n\n' +
-    `👤 ${formatClientDisplayName(item)}\n` +
-    `💼 ${item.serviceName}\n` +
-    `👩‍🎨 ${item.masterName}\n` +
-    `🕒 ${formatDateTimeRange(item.startAt, item.endAt)}` +
+    `${tBot(language, 'ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_ASK')}\n\n` +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_CLIENT', {
+      client: formatClientDisplayName(item, language),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_SERVICE', { service: item.serviceName }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_MASTER', { master: item.masterName }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_TIME', {
+      time: formatDateTimeRange(item.startAt, item.endAt, language),
+    }) +
     warning
   );
 }
@@ -568,31 +644,39 @@ export function formatAdminCancelBookingConfirmText(item: AdminBookingItem): str
  */
 export function createAdminCancelBookingConfirmKeyboard(
   item: AdminBookingItem,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.RECORDS_CONFIRM_CANCEL,
+        tBot(language, 'ADMIN_PANEL_RECORDS_BTN_CONFIRM_CANCEL'),
         makeAdminPanelRecordsCancelConfirmAction(item.appointmentId),
       ),
     ],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_LIST, ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK, ADMIN_PANEL_ACTION.RECORDS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_BACK_TO_LIST'), ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_BACK'), ADMIN_PANEL_ACTION.RECORDS_BACK)],
   ]);
 }
 
 /**
  * @summary Текст кроку вибору дати для перенесення.
  */
-export function formatAdminRescheduleDateStepText(item: AdminBookingItem): string {
+export function formatAdminRescheduleDateStepText(
+  item: AdminBookingItem,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '🔄 Перенесення запису — крок 1/3\n' +
+    `${tBot(language, 'ADMIN_PANEL_RECORDS_RESCHEDULE_STEP_DATE_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
-    `💼 Послуга: ${item.serviceName}\n` +
-    `👩‍🎨 Майстер: ${item.masterName}\n` +
-    `🕒 Поточний час: ${formatDateTimeRange(item.startAt, item.endAt)}\n\n` +
-    'Оберіть нову дату для перенесення.'
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_CLIENT', {
+      client: formatClientDisplayName(item, language),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_SERVICE', { service: item.serviceName }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_MASTER', { master: item.masterName }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_TIME', {
+      time: formatDateTimeRange(item.startAt, item.endAt, language),
+    }) + '\n\n' +
+    tBot(language, 'ADMIN_PANEL_RECORDS_RESCHEDULE_SELECT_DATE')
   );
 }
 
@@ -601,6 +685,7 @@ export function formatAdminRescheduleDateStepText(item: AdminBookingItem): strin
  */
 export function createAdminRescheduleDateKeyboard(
   dates: Date[],
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     ...dates.map((date) => {
@@ -610,13 +695,13 @@ export function createAdminRescheduleDateKeyboard(
       const code = `${year}${month}${day}`;
       return [
         Markup.button.callback(
-          formatDateLabel(date),
+          formatDateLabel(date, language),
           makeAdminPanelRecordsRescheduleDateAction(code),
         ),
       ];
     }),
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CANCEL_ACTION, ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK, ADMIN_PANEL_ACTION.RECORDS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_CANCEL_ACTION'), ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_BACK'), ADMIN_PANEL_ACTION.RECORDS_BACK)],
   ]);
 }
 
@@ -626,15 +711,18 @@ export function createAdminRescheduleDateKeyboard(
 export function formatAdminRescheduleTimeStepText(
   item: AdminBookingItem,
   dateCode: string,
+  language: BotUiLanguage = 'uk',
 ): string {
   return (
-    '🔄 Перенесення запису — крок 2/3\n' +
+    `${tBot(language, 'ADMIN_PANEL_RECORDS_RESCHEDULE_STEP_TIME_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
-    `💼 Послуга: ${item.serviceName}\n` +
-    `👩‍🎨 Майстер: ${item.masterName}\n` +
-    `📆 Нова дата: ${formatDateCodeLabel(dateCode)}\n\n` +
-    'Оберіть новий час.'
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_CLIENT', {
+      client: formatClientDisplayName(item, language),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_SERVICE', { service: item.serviceName }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_MASTER', { master: item.masterName }) + '\n' +
+    `📆 ${formatDateCodeLabel(dateCode, language)}\n\n` +
+    tBot(language, 'ADMIN_PANEL_RECORDS_RESCHEDULE_SELECT_TIME')
   );
 }
 
@@ -643,6 +731,7 @@ export function formatAdminRescheduleTimeStepText(
  */
 export function createAdminRescheduleTimeKeyboard(
   timeCodes: string[],
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const rows: ReturnType<typeof Markup.button.callback>[][] = [];
 
@@ -663,8 +752,8 @@ export function createAdminRescheduleTimeKeyboard(
   return Markup.inlineKeyboard([
     ...rows,
     [
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_DATE, ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_BACK_TO_DATE),
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CANCEL_ACTION, ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_CANCEL),
+      Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_BACK_TO_DATE'), ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_BACK_TO_DATE),
+      Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_CANCEL_ACTION'), ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_CANCEL),
     ],
   ]);
 }
@@ -676,28 +765,37 @@ export function formatAdminRescheduleConfirmText(
   item: AdminBookingItem,
   newStartAt: Date,
   newEndAt: Date,
+  language: BotUiLanguage = 'uk',
 ): string {
   return (
-    '🔄 Перенесення запису — крок 3/3\n' +
+    `${tBot(language, 'ADMIN_PANEL_RECORDS_RESCHEDULE_STEP_CONFIRM_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
-    `💼 Послуга: ${item.serviceName}\n` +
-    `👩‍🎨 Майстер: ${item.masterName}\n\n` +
-    `🕒 Було: ${formatDateTimeRange(item.startAt, item.endAt)}\n` +
-    `🕒 Стане: ${formatDateTimeRange(newStartAt, newEndAt)}\n\n` +
-    'Підтвердіть перенесення запису.'
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_CLIENT', {
+      client: formatClientDisplayName(item, language),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_SERVICE', { service: item.serviceName }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_MASTER', { master: item.masterName }) + '\n\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_RESCHEDULE_PREVIOUS_TIME', {
+      time: formatDateTimeRange(item.startAt, item.endAt, language),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_RESCHEDULE_NEW_TIME', {
+      time: formatDateTimeRange(newStartAt, newEndAt, language),
+    }) + '\n\n' +
+    tBot(language, 'ADMIN_PANEL_RECORDS_RESCHEDULE_CONFIRM_ASK')
   );
 }
 
 /**
  * @summary Клавіатура підтвердження перенесення.
  */
-export function createAdminRescheduleConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminRescheduleConfirmKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CONFIRM_RESCHEDULE, ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_CONFIRM)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_CONFIRM_RESCHEDULE'), ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_CONFIRM)],
     [
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_TIME, ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_BACK_TO_TIME),
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CANCEL_ACTION, ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_CANCEL),
+      Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_BACK_TO_TIME'), ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_BACK_TO_TIME),
+      Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_CANCEL_ACTION'), ADMIN_PANEL_ACTION.RECORDS_RESCHEDULE_CANCEL),
     ],
   ]);
 }
@@ -708,19 +806,24 @@ export function createAdminRescheduleConfirmKeyboard(): ReturnType<typeof Markup
 export function formatAdminChangeMasterStepText(
   item: AdminBookingItem,
   masters: MasterBookingOption[],
+  language: BotUiLanguage = 'uk',
 ): string {
   const emptyHint =
     masters.length === 0
-      ? '\n\n⚠️ Немає доступних майстрів для цієї послуги.'
-      : '\n\nОберіть нового майстра:';
+      ? `\n\n${tBot(language, 'ADMIN_PANEL_RECORDS_CHANGE_MASTER_NO_CANDIDATES')}`
+      : `\n\n${tBot(language, 'ADMIN_PANEL_RECORDS_CHANGE_MASTER_PICK')}`;
 
   return (
-    '👩‍🎨 Зміна майстра\n' +
+    `${tBot(language, 'ADMIN_PANEL_RECORDS_CHANGE_MASTER_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
-    `💼 Послуга: ${item.serviceName}\n` +
-    `👩‍🎨 Поточний майстер: ${item.masterName}\n` +
-    `🕒 Час: ${formatDateTimeRange(item.startAt, item.endAt)}` +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_CLIENT', {
+      client: formatClientDisplayName(item, language),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_SERVICE', { service: item.serviceName }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_MASTER', { master: item.masterName }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_TIME', {
+      time: formatDateTimeRange(item.startAt, item.endAt, language),
+    }) +
     emptyHint
   );
 }
@@ -731,6 +834,7 @@ export function formatAdminChangeMasterStepText(
 export function createAdminChangeMasterSelectKeyboard(
   item: AdminBookingItem,
   masters: MasterBookingOption[],
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const rows = masters.map((master, index) => {
     const ratingSuffix = master.ratingCount > 0 ? ` ⭐ ${master.ratingAvg}` : '';
@@ -744,9 +848,9 @@ export function createAdminChangeMasterSelectKeyboard(
 
   return Markup.inlineKeyboard([
     ...rows,
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_LIST, ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CANCEL_ACTION, ADMIN_PANEL_ACTION.RECORDS_CHANGE_MASTER_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK, ADMIN_PANEL_ACTION.RECORDS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_BACK_TO_LIST'), ADMIN_PANEL_ACTION.RECORDS_BACK_TO_LIST)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_CANCEL_ACTION'), ADMIN_PANEL_ACTION.RECORDS_CHANGE_MASTER_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_BACK'), ADMIN_PANEL_ACTION.RECORDS_BACK)],
   ]);
 }
 
@@ -756,28 +860,39 @@ export function createAdminChangeMasterSelectKeyboard(
 export function formatAdminChangeMasterConfirmText(
   item: AdminBookingItem,
   newMasterDisplayName: string,
+  language: BotUiLanguage = 'uk',
 ): string {
   return (
-    '👩‍🎨 Підтвердження зміни майстра\n' +
+    `${tBot(language, 'ADMIN_PANEL_RECORDS_CHANGE_MASTER_CONFIRM_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
-    `💼 Послуга: ${item.serviceName}\n` +
-    `🕒 Час: ${formatDateTimeRange(item.startAt, item.endAt)}\n\n` +
-    `👩‍🎨 Було: ${item.masterName}\n` +
-    `👩‍🎨 Стане: ${newMasterDisplayName}\n\n` +
-    'Підтвердіть зміну майстра.'
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_CLIENT', {
+      client: formatClientDisplayName(item, language),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_SERVICE', { service: item.serviceName }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_LABEL_TIME', {
+      time: formatDateTimeRange(item.startAt, item.endAt, language),
+    }) + '\n\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_CHANGE_MASTER_PREVIOUS', {
+      master: item.masterName,
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_RECORDS_CHANGE_MASTER_NEW', {
+      master: newMasterDisplayName,
+    }) + '\n\n' +
+    tBot(language, 'ADMIN_PANEL_RECORDS_CHANGE_MASTER_CONFIRM_ASK')
   );
 }
 
 /**
  * @summary Клавіатура підтвердження зміни майстра.
  */
-export function createAdminChangeMasterConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminChangeMasterConfirmKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CONFIRM_CHANGE_MASTER, ADMIN_PANEL_ACTION.RECORDS_CHANGE_MASTER_CONFIRM)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_CONFIRM_CHANGE_MASTER'), ADMIN_PANEL_ACTION.RECORDS_CHANGE_MASTER_CONFIRM)],
     [
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CHANGE_MASTER, ADMIN_PANEL_ACTION.RECORDS_CHANGE_MASTER_BACK),
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.RECORDS_CANCEL_ACTION, ADMIN_PANEL_ACTION.RECORDS_CHANGE_MASTER_CANCEL),
+      Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_CHANGE_MASTER'), ADMIN_PANEL_ACTION.RECORDS_CHANGE_MASTER_BACK),
+      Markup.button.callback(tBot(language, 'ADMIN_PANEL_RECORDS_BTN_CANCEL_ACTION'), ADMIN_PANEL_ACTION.RECORDS_CHANGE_MASTER_CANCEL),
     ],
   ]);
 }
