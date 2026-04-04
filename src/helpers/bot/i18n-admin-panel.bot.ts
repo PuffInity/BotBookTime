@@ -118,6 +118,124 @@ export const ADMIN_PANEL_DICTIONARY = {
     ADMIN_PANEL_MASTERS_LABEL_WEEKDAY: 'день тижня',
     ADMIN_PANEL_MASTERS_LABEL_MASTER_ID: 'id майстра',
     ADMIN_PANEL_MASTERS_LABEL_BOOKING_ID: 'id запису',
+    ADMIN_PANEL_MASTERS_CREATE_START_TEXT:
+      '➕ Створення нового майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Ви запускаєте майстер створення нового профілю майстра.\n\n' +
+      'Потрібно послідовно заповнити:\n' +
+      '• імʼя майстра\n' +
+      '• Telegram ID користувача\n' +
+      '• послуги майстра\n' +
+      '• професійні та контактні дані\n' +
+      '• тижневий графік роботи',
+    ADMIN_PANEL_MASTERS_CREATE_DISPLAY_NAME_INPUT_TEXT:
+      '👩‍🎨 Імʼя майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Введіть імʼя майстра для відображення у профілі клієнтів.\n\n' +
+      'Формат: 2..30 символів, тільки літери.',
+    ADMIN_PANEL_MASTERS_CREATE_TELEGRAM_INPUT_TEXT:
+      '🆔 Telegram ID майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Майстер: {displayName}\n\n' +
+      'Введіть Telegram ID користувача (тільки цифри).',
+    ADMIN_PANEL_MASTERS_CREATE_SERVICES_EMPTY:
+      '• У студії немає активних послуг для призначення.',
+    ADMIN_PANEL_MASTERS_CREATE_SERVICES_TITLE: '💼 Послуги майстра',
+    ADMIN_PANEL_MASTERS_CREATE_SERVICES_SELECTED:
+      'Обрано послуг: {count}',
+    ADMIN_PANEL_MASTERS_CREATE_EXPERIENCE_INPUT_TEXT:
+      '🎓 Досвід роботи\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Введіть досвід роботи майстра у роках.\n\n' +
+      'Формат: ціле число від 0 до 50.',
+    ADMIN_PANEL_MASTERS_CREATE_PROCEDURES_INPUT_TEXT:
+      '📊 Виконано процедур\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Введіть кількість виконаних процедур за весь час.\n\n' +
+      'Формат: ціле число від 0 до 100000.',
+    ADMIN_PANEL_MASTERS_CREATE_BIO_INPUT_TEXT:
+      '📝 Опис майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Введіть короткий професійний опис майстра для профілю клієнтів.\n\n' +
+      'Рекомендація: 10..1000 символів.',
+    ADMIN_PANEL_MASTERS_CREATE_MATERIALS_INPUT_TEXT:
+      '🧴 Додаткова інформація\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Введіть інформацію про матеріали/особливості роботи майстра.\n\n' +
+      'Рекомендація: 2..500 символів.',
+    ADMIN_PANEL_MASTERS_CREATE_PHONE_INPUT_TEXT:
+      '📞 Телефон майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Введіть телефон майстра у форматі +420123456789.',
+    ADMIN_PANEL_MASTERS_CREATE_EMAIL_INPUT_TEXT:
+      '✉️ Email майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Введіть email майстра у форматі name@example.com.',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_NO_DATA:
+      '• Графік ще не налаштовано.',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_TITLE: '🕒 Налаштування графіку',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_PICK_HINT:
+      'Оберіть день тижня для редагування. Після заповнення всіх днів підтвердіть створення.',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_FROM_INPUT_TEXT:
+      '🕒 {weekday} • Час початку\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Введіть час початку у форматі HH:MM.\n' +
+      'Приклад: 9:00 або 09:00',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_TO_INPUT_TEXT:
+      '🕒 {weekday} • Час завершення\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Початок: {fromTime}\n\n' +
+      'Введіть час завершення у форматі HH:MM.',
+    ADMIN_PANEL_MASTERS_CREATE_CONFIRM_NO_SERVICES:
+      '• Послуги не обрані',
+    ADMIN_PANEL_MASTERS_CREATE_CONFIRM_TEXT:
+      '⚠️ Підтвердження створення майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Імʼя: {displayName}\n' +
+      '🆔 Telegram ID: {telegramUserId}\n' +
+      '🎓 Досвід: {experienceYears} років\n' +
+      '📊 Процедур: {proceduresDoneTotal}\n' +
+      '📞 Телефон: {contactPhoneE164}\n' +
+      '✉️ Email: {contactEmail}\n\n' +
+      '📝 Опис:\n{bio}\n\n' +
+      '🧴 Додаткова інформація:\n{materialsInfo}\n\n' +
+      '💼 Послуги:\n{servicesList}\n\n' +
+      '🕒 Графік:\n{scheduleList}',
+    ADMIN_PANEL_MASTERS_EDIT_MENU_TEXT:
+      '✏️ Редагування профілю майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Майстер: {masterName}\n\n' +
+      'Оберіть поле, яке потрібно оновити:',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_PHONE: '\n\nФормат: +420123456789',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_EMAIL: '\n\nФормат: name@example.com',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_STARTED_ON: '\n\nФормат: ДД.ММ.РРРР',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_PROCEDURES:
+      '\n\nВкажіть ціле число від 0 до 100000',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_TEXT:
+      '✏️ Редагування поля\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Поле: {label}\n\n' +
+      'Поточне значення:\n{currentValue}\n\n' +
+      'Введіть нове значення повідомленням.{hint}',
+    ADMIN_PANEL_MASTERS_EDIT_CONFIRM_TEXT:
+      '⚠️ Підтвердження змін\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Поле: {label}\n\n' +
+      'Було:\n{previousValue}\n\n' +
+      'Стане:\n{nextValue}\n\n' +
+      'Підтвердіть збереження.',
+    ADMIN_PANEL_MASTERS_EDIT_SUCCESS_TEXT:
+      '✅ Профіль майстра оновлено\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '{label}:\n{value}',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_DISPLAY_NAME: 'Імʼя майстра',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_BIO: 'Опис майстра',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_MATERIALS: 'Додаткова інформація',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_PHONE: 'Телефон майстра',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_EMAIL: 'Email майстра',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_STARTED_ON: 'Дата початку роботи',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_PROCEDURES_DONE_TOTAL: 'Кількість процедур',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_PROFILE: 'Поле профілю',
     ADMIN_PANEL_MASTERS_WEEKDAY_1: 'Пн',
     ADMIN_PANEL_MASTERS_WEEKDAY_2: 'Вт',
     ADMIN_PANEL_MASTERS_WEEKDAY_3: 'Ср',
@@ -664,6 +782,124 @@ export const ADMIN_PANEL_DICTIONARY = {
     ADMIN_PANEL_MASTERS_LABEL_WEEKDAY: 'weekday',
     ADMIN_PANEL_MASTERS_LABEL_MASTER_ID: 'master id',
     ADMIN_PANEL_MASTERS_LABEL_BOOKING_ID: 'booking id',
+    ADMIN_PANEL_MASTERS_CREATE_START_TEXT:
+      '➕ Create new master\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'You are starting the flow to create a new master profile.\n\n' +
+      'You need to fill in:\n' +
+      '• master name\n' +
+      '• user Telegram ID\n' +
+      '• master services\n' +
+      '• professional and contact data\n' +
+      '• weekly schedule',
+    ADMIN_PANEL_MASTERS_CREATE_DISPLAY_NAME_INPUT_TEXT:
+      '👩‍🎨 Master name\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Enter master name for customer profile display.\n\n' +
+      'Format: 2..30 characters, letters only.',
+    ADMIN_PANEL_MASTERS_CREATE_TELEGRAM_INPUT_TEXT:
+      '🆔 Master Telegram ID\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Master: {displayName}\n\n' +
+      'Enter user Telegram ID (digits only).',
+    ADMIN_PANEL_MASTERS_CREATE_SERVICES_EMPTY:
+      '• The studio has no active services to assign.',
+    ADMIN_PANEL_MASTERS_CREATE_SERVICES_TITLE: '💼 Master services',
+    ADMIN_PANEL_MASTERS_CREATE_SERVICES_SELECTED:
+      'Selected services: {count}',
+    ADMIN_PANEL_MASTERS_CREATE_EXPERIENCE_INPUT_TEXT:
+      '🎓 Work experience\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Enter master work experience in years.\n\n' +
+      'Format: integer from 0 to 50.',
+    ADMIN_PANEL_MASTERS_CREATE_PROCEDURES_INPUT_TEXT:
+      '📊 Completed procedures\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Enter total completed procedures.\n\n' +
+      'Format: integer from 0 to 100000.',
+    ADMIN_PANEL_MASTERS_CREATE_BIO_INPUT_TEXT:
+      '📝 Master description\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Enter a short professional description for customers.\n\n' +
+      'Recommendation: 10..1000 characters.',
+    ADMIN_PANEL_MASTERS_CREATE_MATERIALS_INPUT_TEXT:
+      '🧴 Additional info\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Enter materials/work specifics info.\n\n' +
+      'Recommendation: 2..500 characters.',
+    ADMIN_PANEL_MASTERS_CREATE_PHONE_INPUT_TEXT:
+      '📞 Master phone\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Enter phone in format +420123456789.',
+    ADMIN_PANEL_MASTERS_CREATE_EMAIL_INPUT_TEXT:
+      '✉️ Master email\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Enter email in format name@example.com.',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_NO_DATA:
+      '• Schedule is not configured yet.',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_TITLE: '🕒 Schedule setup',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_PICK_HINT:
+      'Select weekday to edit. After all days are filled, confirm creation.',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_FROM_INPUT_TEXT:
+      '🕒 {weekday} • Start time\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Enter start time in HH:MM format.\n' +
+      'Example: 9:00 or 09:00',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_TO_INPUT_TEXT:
+      '🕒 {weekday} • End time\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Start: {fromTime}\n\n' +
+      'Enter end time in HH:MM format.',
+    ADMIN_PANEL_MASTERS_CREATE_CONFIRM_NO_SERVICES:
+      '• No services selected',
+    ADMIN_PANEL_MASTERS_CREATE_CONFIRM_TEXT:
+      '⚠️ Confirm master creation\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Name: {displayName}\n' +
+      '🆔 Telegram ID: {telegramUserId}\n' +
+      '🎓 Experience: {experienceYears} years\n' +
+      '📊 Procedures: {proceduresDoneTotal}\n' +
+      '📞 Phone: {contactPhoneE164}\n' +
+      '✉️ Email: {contactEmail}\n\n' +
+      '📝 Description:\n{bio}\n\n' +
+      '🧴 Additional info:\n{materialsInfo}\n\n' +
+      '💼 Services:\n{servicesList}\n\n' +
+      '🕒 Schedule:\n{scheduleList}',
+    ADMIN_PANEL_MASTERS_EDIT_MENU_TEXT:
+      '✏️ Edit master profile\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Master: {masterName}\n\n' +
+      'Select field to update:',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_PHONE: '\n\nFormat: +420123456789',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_EMAIL: '\n\nFormat: name@example.com',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_STARTED_ON: '\n\nFormat: DD.MM.YYYY',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_PROCEDURES:
+      '\n\nEnter integer from 0 to 100000',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_TEXT:
+      '✏️ Edit field\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Field: {label}\n\n' +
+      'Current value:\n{currentValue}\n\n' +
+      'Send new value as a message.{hint}',
+    ADMIN_PANEL_MASTERS_EDIT_CONFIRM_TEXT:
+      '⚠️ Confirm changes\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Field: {label}\n\n' +
+      'Before:\n{previousValue}\n\n' +
+      'After:\n{nextValue}\n\n' +
+      'Confirm save.',
+    ADMIN_PANEL_MASTERS_EDIT_SUCCESS_TEXT:
+      '✅ Master profile updated\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '{label}:\n{value}',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_DISPLAY_NAME: 'Master name',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_BIO: 'Master description',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_MATERIALS: 'Additional info',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_PHONE: 'Master phone',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_EMAIL: 'Master email',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_STARTED_ON: 'Start date',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_PROCEDURES_DONE_TOTAL: 'Procedures count',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_PROFILE: 'Profile field',
     ADMIN_PANEL_MASTERS_WEEKDAY_1: 'Mon',
     ADMIN_PANEL_MASTERS_WEEKDAY_2: 'Tue',
     ADMIN_PANEL_MASTERS_WEEKDAY_3: 'Wed',
@@ -1221,6 +1457,124 @@ export const ADMIN_PANEL_DICTIONARY = {
     ADMIN_PANEL_MASTERS_LABEL_WEEKDAY: 'den týdne',
     ADMIN_PANEL_MASTERS_LABEL_MASTER_ID: 'id mistra',
     ADMIN_PANEL_MASTERS_LABEL_BOOKING_ID: 'id rezervace',
+    ADMIN_PANEL_MASTERS_CREATE_START_TEXT:
+      '➕ Vytvoření nového mistra\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Spouštíte průvodce vytvořením nového profilu mistra.\n\n' +
+      'Je potřeba vyplnit:\n' +
+      '• jméno mistra\n' +
+      '• Telegram ID uživatele\n' +
+      '• služby mistra\n' +
+      '• profesní a kontaktní údaje\n' +
+      '• týdenní rozvrh',
+    ADMIN_PANEL_MASTERS_CREATE_DISPLAY_NAME_INPUT_TEXT:
+      '👩‍🎨 Jméno mistra\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Zadejte jméno mistra pro zobrazení klientům.\n\n' +
+      'Formát: 2..30 znaků, pouze písmena.',
+    ADMIN_PANEL_MASTERS_CREATE_TELEGRAM_INPUT_TEXT:
+      '🆔 Telegram ID mistra\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Mistr: {displayName}\n\n' +
+      'Zadejte Telegram ID uživatele (pouze číslice).',
+    ADMIN_PANEL_MASTERS_CREATE_SERVICES_EMPTY:
+      '• Ve studiu nejsou aktivní služby k přiřazení.',
+    ADMIN_PANEL_MASTERS_CREATE_SERVICES_TITLE: '💼 Služby mistra',
+    ADMIN_PANEL_MASTERS_CREATE_SERVICES_SELECTED:
+      'Vybrané služby: {count}',
+    ADMIN_PANEL_MASTERS_CREATE_EXPERIENCE_INPUT_TEXT:
+      '🎓 Praxe\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Zadejte délku praxe v letech.\n\n' +
+      'Formát: celé číslo 0 až 50.',
+    ADMIN_PANEL_MASTERS_CREATE_PROCEDURES_INPUT_TEXT:
+      '📊 Provedené procedury\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Zadejte celkový počet provedených procedur.\n\n' +
+      'Formát: celé číslo 0 až 100000.',
+    ADMIN_PANEL_MASTERS_CREATE_BIO_INPUT_TEXT:
+      '📝 Popis mistra\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Zadejte krátký profesionální popis pro klienty.\n\n' +
+      'Doporučení: 10..1000 znaků.',
+    ADMIN_PANEL_MASTERS_CREATE_MATERIALS_INPUT_TEXT:
+      '🧴 Doplňující informace\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Zadejte informace o materiálech/specifikách práce.\n\n' +
+      'Doporučení: 2..500 znaků.',
+    ADMIN_PANEL_MASTERS_CREATE_PHONE_INPUT_TEXT:
+      '📞 Telefon mistra\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Zadejte telefon ve formátu +420123456789.',
+    ADMIN_PANEL_MASTERS_CREATE_EMAIL_INPUT_TEXT:
+      '✉️ Email mistra\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Zadejte email ve formátu name@example.com.',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_NO_DATA:
+      '• Rozvrh ještě není nastaven.',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_TITLE: '🕒 Nastavení rozvrhu',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_PICK_HINT:
+      'Vyberte den týdne pro úpravu. Po vyplnění všech dnů potvrďte vytvoření.',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_FROM_INPUT_TEXT:
+      '🕒 {weekday} • Začátek\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Zadejte čas začátku ve formátu HH:MM.\n' +
+      'Příklad: 9:00 nebo 09:00',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_TO_INPUT_TEXT:
+      '🕒 {weekday} • Konec\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Začátek: {fromTime}\n\n' +
+      'Zadejte čas konce ve formátu HH:MM.',
+    ADMIN_PANEL_MASTERS_CREATE_CONFIRM_NO_SERVICES:
+      '• Nejsou vybrány služby',
+    ADMIN_PANEL_MASTERS_CREATE_CONFIRM_TEXT:
+      '⚠️ Potvrzení vytvoření mistra\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Jméno: {displayName}\n' +
+      '🆔 Telegram ID: {telegramUserId}\n' +
+      '🎓 Praxe: {experienceYears} let\n' +
+      '📊 Procedury: {proceduresDoneTotal}\n' +
+      '📞 Telefon: {contactPhoneE164}\n' +
+      '✉️ Email: {contactEmail}\n\n' +
+      '📝 Popis:\n{bio}\n\n' +
+      '🧴 Doplňující informace:\n{materialsInfo}\n\n' +
+      '💼 Služby:\n{servicesList}\n\n' +
+      '🕒 Rozvrh:\n{scheduleList}',
+    ADMIN_PANEL_MASTERS_EDIT_MENU_TEXT:
+      '✏️ Úprava profilu mistra\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Mistr: {masterName}\n\n' +
+      'Vyberte pole k úpravě:',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_PHONE: '\n\nFormát: +420123456789',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_EMAIL: '\n\nFormát: name@example.com',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_STARTED_ON: '\n\nFormát: DD.MM.RRRR',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_PROCEDURES:
+      '\n\nZadejte celé číslo od 0 do 100000',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_TEXT:
+      '✏️ Úprava pole\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Pole: {label}\n\n' +
+      'Aktuální hodnota:\n{currentValue}\n\n' +
+      'Pošlete novou hodnotu zprávou.{hint}',
+    ADMIN_PANEL_MASTERS_EDIT_CONFIRM_TEXT:
+      '⚠️ Potvrzení změn\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Pole: {label}\n\n' +
+      'Původně:\n{previousValue}\n\n' +
+      'Nově:\n{nextValue}\n\n' +
+      'Potvrďte uložení.',
+    ADMIN_PANEL_MASTERS_EDIT_SUCCESS_TEXT:
+      '✅ Profil mistra byl aktualizován\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '{label}:\n{value}',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_DISPLAY_NAME: 'Jméno mistra',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_BIO: 'Popis mistra',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_MATERIALS: 'Doplňující informace',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_PHONE: 'Telefon mistra',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_EMAIL: 'Email mistra',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_STARTED_ON: 'Datum začátku',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_PROCEDURES_DONE_TOTAL: 'Počet procedur',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_PROFILE: 'Pole profilu',
     ADMIN_PANEL_MASTERS_WEEKDAY_1: 'Po',
     ADMIN_PANEL_MASTERS_WEEKDAY_2: 'Út',
     ADMIN_PANEL_MASTERS_WEEKDAY_3: 'St',

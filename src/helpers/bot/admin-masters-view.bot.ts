@@ -220,18 +220,10 @@ export type AdminMasterCreateConfirmViewData = {
 /**
  * @summary Екран старту створення нового майстра.
  */
-export function formatAdminMasterCreateStartText(): string {
-  return (
-    '➕ Створення нового майстра\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    'Ви запускаєте майстер створення нового профілю майстра.\n\n' +
-    'Потрібно послідовно заповнити:\n' +
-    '• імʼя майстра\n' +
-    '• Telegram ID користувача\n' +
-    '• послуги майстра\n' +
-    '• професійні та контактні дані\n' +
-    '• тижневий графік роботи'
-  );
+export function formatAdminMasterCreateStartText(
+  language: BotUiLanguage = 'uk',
+): string {
+  return tBot(language, 'ADMIN_PANEL_MASTERS_CREATE_START_TEXT');
 }
 
 /**
@@ -260,25 +252,22 @@ export function createAdminMasterCreateInputKeyboard(
 /**
  * @summary Екран вводу імені майстра.
  */
-export function formatAdminMasterCreateDisplayNameInputText(): string {
-  return (
-    '👩‍🎨 Імʼя майстра\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    'Введіть імʼя майстра для відображення у профілі клієнтів.\n\n' +
-    'Формат: 2..30 символів, тільки літери.'
-  );
+export function formatAdminMasterCreateDisplayNameInputText(
+  language: BotUiLanguage = 'uk',
+): string {
+  return tBot(language, 'ADMIN_PANEL_MASTERS_CREATE_DISPLAY_NAME_INPUT_TEXT');
 }
 
 /**
  * @summary Екран вводу Telegram ID майстра.
  */
-export function formatAdminMasterCreateTelegramInputText(displayName: string): string {
-  return (
-    '🆔 Telegram ID майстра\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `👩‍🎨 Майстер: ${displayName}\n\n` +
-    'Введіть Telegram ID користувача (тільки цифри).'
-  );
+export function formatAdminMasterCreateTelegramInputText(
+  displayName: string,
+  language: BotUiLanguage = 'uk',
+): string {
+  return tBotTemplate(language, 'ADMIN_PANEL_MASTERS_CREATE_TELEGRAM_INPUT_TEXT', {
+    displayName,
+  });
 }
 
 /**
@@ -288,11 +277,12 @@ export function formatAdminMasterCreateServicesText(
   displayName: string,
   services: ServicesCatalogItem[],
   selectedServiceIds: string[],
+  language: BotUiLanguage = 'uk',
 ): string {
   const selected = new Set(selectedServiceIds);
   const lines =
     services.length === 0
-      ? '• У студії немає активних послуг для призначення.'
+      ? tBot(language, 'ADMIN_PANEL_MASTERS_CREATE_SERVICES_EMPTY')
       : services
           .map((service, index) => {
             const marker = selected.has(service.id) ? '✅' : '▫️';
@@ -301,11 +291,13 @@ export function formatAdminMasterCreateServicesText(
           .join('\n');
 
   return (
-    '💼 Послуги майстра\n' +
+    `${tBot(language, 'ADMIN_PANEL_MASTERS_CREATE_SERVICES_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👩‍🎨 Майстер: ${displayName}\n\n` +
+    `👩‍🎨 ${displayName}\n\n` +
     `${lines}\n\n` +
-    `Обрано послуг: ${selected.size}`
+    tBotTemplate(language, 'ADMIN_PANEL_MASTERS_CREATE_SERVICES_SELECTED', {
+      count: selected.size,
+    })
   );
 }
 
@@ -338,71 +330,49 @@ export function createAdminMasterCreateServicesKeyboard(
 /**
  * @summary Екран вводу досвіду майстра.
  */
-export function formatAdminMasterCreateExperienceYearsInputText(): string {
-  return (
-    '🎓 Досвід роботи\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    'Введіть досвід роботи майстра у роках.\n\n' +
-    'Формат: ціле число від 0 до 50.'
-  );
+export function formatAdminMasterCreateExperienceYearsInputText(
+  language: BotUiLanguage = 'uk',
+): string {
+  return tBot(language, 'ADMIN_PANEL_MASTERS_CREATE_EXPERIENCE_INPUT_TEXT');
 }
 
 /**
  * @summary Екран вводу кількості виконаних процедур.
  */
-export function formatAdminMasterCreateProceduresInputText(): string {
-  return (
-    '📊 Виконано процедур\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    'Введіть кількість виконаних процедур за весь час.\n\n' +
-    'Формат: ціле число від 0 до 100000.'
-  );
+export function formatAdminMasterCreateProceduresInputText(
+  language: BotUiLanguage = 'uk',
+): string {
+  return tBot(language, 'ADMIN_PANEL_MASTERS_CREATE_PROCEDURES_INPUT_TEXT');
 }
 
 /**
  * @summary Екран вводу опису майстра.
  */
-export function formatAdminMasterCreateBioInputText(): string {
-  return (
-    '📝 Опис майстра\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    'Введіть короткий професійний опис майстра для профілю клієнтів.\n\n' +
-    'Рекомендація: 10..1000 символів.'
-  );
+export function formatAdminMasterCreateBioInputText(language: BotUiLanguage = 'uk'): string {
+  return tBot(language, 'ADMIN_PANEL_MASTERS_CREATE_BIO_INPUT_TEXT');
 }
 
 /**
  * @summary Екран вводу додаткової інформації.
  */
-export function formatAdminMasterCreateMaterialsInputText(): string {
-  return (
-    '🧴 Додаткова інформація\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    'Введіть інформацію про матеріали/особливості роботи майстра.\n\n' +
-    'Рекомендація: 2..500 символів.'
-  );
+export function formatAdminMasterCreateMaterialsInputText(
+  language: BotUiLanguage = 'uk',
+): string {
+  return tBot(language, 'ADMIN_PANEL_MASTERS_CREATE_MATERIALS_INPUT_TEXT');
 }
 
 /**
  * @summary Екран вводу контактного телефону майстра.
  */
-export function formatAdminMasterCreatePhoneInputText(): string {
-  return (
-    '📞 Телефон майстра\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    'Введіть телефон майстра у форматі +420123456789.'
-  );
+export function formatAdminMasterCreatePhoneInputText(language: BotUiLanguage = 'uk'): string {
+  return tBot(language, 'ADMIN_PANEL_MASTERS_CREATE_PHONE_INPUT_TEXT');
 }
 
 /**
  * @summary Екран вводу контактного email майстра.
  */
-export function formatAdminMasterCreateEmailInputText(): string {
-  return (
-    '✉️ Email майстра\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    'Введіть email майстра у форматі name@example.com.'
-  );
+export function formatAdminMasterCreateEmailInputText(language: BotUiLanguage = 'uk'): string {
+  return tBot(language, 'ADMIN_PANEL_MASTERS_CREATE_EMAIL_INPUT_TEXT');
 }
 
 function formatSchedulePreviewLine(item: AdminMasterCreateScheduleDayView, language: BotUiLanguage): string {
@@ -422,7 +392,7 @@ export function formatAdminMasterCreateSchedulePickText(
 ): string {
   const lines =
     scheduleDays.length === 0
-      ? '• Графік ще не налаштовано.'
+      ? tBot(language, 'ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_NO_DATA')
       : scheduleDays
           .slice()
           .sort((a, b) => a.weekday - b.weekday)
@@ -430,11 +400,11 @@ export function formatAdminMasterCreateSchedulePickText(
           .join('\n');
 
   return (
-    '🕒 Налаштування графіку\n' +
+    `${tBot(language, 'ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
     `👩‍🎨 Майстер: ${displayName}\n\n` +
     `${lines}\n\n` +
-    'Оберіть день тижня для редагування. Після заповнення всіх днів підтвердіть створення.'
+    tBot(language, 'ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_PICK_HINT')
   );
 }
 
@@ -503,12 +473,9 @@ export function formatAdminMasterCreateScheduleFromInputText(
   weekday: number,
   language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    `🕒 ${formatWeekdayLabel(language, weekday)} • Час початку\n` +
-    '━━━━━━━━━━━━━━\n\n' +
-    'Введіть час початку у форматі HH:MM.\n' +
-    'Приклад: 9:00 або 09:00'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_FROM_INPUT_TEXT', {
+    weekday: formatWeekdayLabel(language, weekday),
+  });
 }
 
 /**
@@ -519,12 +486,10 @@ export function formatAdminMasterCreateScheduleToInputText(
   fromTime: string,
   language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    `🕒 ${formatWeekdayLabel(language, weekday)} • Час завершення\n` +
-    '━━━━━━━━━━━━━━\n\n' +
-    `Початок: ${fromTime}\n\n` +
-    'Введіть час завершення у форматі HH:MM.'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_TO_INPUT_TEXT', {
+    weekday: formatWeekdayLabel(language, weekday),
+    fromTime,
+  });
 }
 
 /**
@@ -537,7 +502,7 @@ export function formatAdminMasterCreateConfirmText(
   const servicesList =
     data.selectedServiceNames.length > 0
       ? data.selectedServiceNames.map((name, index) => `${getNumberBadge(index)} ${name}`).join('\n')
-      : '• Послуги не обрані';
+      : tBot(language, 'ADMIN_PANEL_MASTERS_CREATE_CONFIRM_NO_SERVICES');
 
   const scheduleList = data.scheduleDays
     .slice()
@@ -545,20 +510,18 @@ export function formatAdminMasterCreateConfirmText(
     .map((item) => formatSchedulePreviewLine(item, language))
     .join('\n');
 
-  return (
-    '⚠️ Підтвердження створення майстра\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `👩‍🎨 Імʼя: ${data.displayName}\n` +
-    `🆔 Telegram ID: ${data.telegramUserId}\n` +
-    `🎓 Досвід: ${data.experienceYears} років\n` +
-    `📊 Процедур: ${data.proceduresDoneTotal}\n` +
-    `📞 Телефон: ${data.contactPhoneE164}\n` +
-    `✉️ Email: ${data.contactEmail}\n\n` +
-    `📝 Опис:\n${data.bio}\n\n` +
-    `🧴 Додаткова інформація:\n${data.materialsInfo}\n\n` +
-    `💼 Послуги:\n${servicesList}\n\n` +
-    `🕒 Графік:\n${scheduleList}`
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_MASTERS_CREATE_CONFIRM_TEXT', {
+    displayName: data.displayName,
+    telegramUserId: data.telegramUserId,
+    experienceYears: data.experienceYears,
+    proceduresDoneTotal: data.proceduresDoneTotal,
+    contactPhoneE164: data.contactPhoneE164,
+    contactEmail: data.contactEmail,
+    bio: data.bio,
+    materialsInfo: data.materialsInfo,
+    servicesList,
+    scheduleList,
+  });
 }
 
 /**
@@ -891,37 +854,38 @@ export type AdminMasterEditableField =
   | 'started_on'
   | 'procedures_done_total';
 
-function getEditableFieldLabel(field: AdminMasterEditableField): string {
+function getEditableFieldLabel(
+  field: AdminMasterEditableField,
+  language: BotUiLanguage = 'uk',
+): string {
   switch (field) {
     case 'display_name':
-      return 'Імʼя майстра';
+      return tBot(language, 'ADMIN_PANEL_MASTERS_EDIT_FIELD_DISPLAY_NAME');
     case 'bio':
-      return 'Опис майстра';
+      return tBot(language, 'ADMIN_PANEL_MASTERS_EDIT_FIELD_BIO');
     case 'materials':
-      return 'Додаткова інформація';
+      return tBot(language, 'ADMIN_PANEL_MASTERS_EDIT_FIELD_MATERIALS');
     case 'phone':
-      return 'Телефон майстра';
+      return tBot(language, 'ADMIN_PANEL_MASTERS_EDIT_FIELD_PHONE');
     case 'email':
-      return 'Email майстра';
+      return tBot(language, 'ADMIN_PANEL_MASTERS_EDIT_FIELD_EMAIL');
     case 'started_on':
-      return 'Дата початку роботи';
+      return tBot(language, 'ADMIN_PANEL_MASTERS_EDIT_FIELD_STARTED_ON');
     case 'procedures_done_total':
-      return 'Кількість процедур';
+      return tBot(language, 'ADMIN_PANEL_MASTERS_EDIT_FIELD_PROCEDURES_DONE_TOTAL');
     default:
-      return 'Поле профілю';
+      return tBot(language, 'ADMIN_PANEL_MASTERS_EDIT_FIELD_PROFILE');
   }
 }
 
 /**
  * @summary Форматує екран меню редагування профілю майстра.
  */
-export function formatAdminMasterEditMenuText(masterName: string): string {
-  return (
-    '✏️ Редагування профілю майстра\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `👩‍🎨 Майстер: ${masterName}\n\n` +
-    'Оберіть поле, яке потрібно оновити:'
-  );
+export function formatAdminMasterEditMenuText(
+  masterName: string,
+  language: BotUiLanguage = 'uk',
+): string {
+  return tBotTemplate(language, 'ADMIN_PANEL_MASTERS_EDIT_MENU_TEXT', { masterName });
 }
 
 /**
@@ -1136,27 +1100,25 @@ export function createAdminMasterEditServicesRemoveCandidatesKeyboard(
 export function formatAdminMasterEditInputText(
   field: AdminMasterEditableField,
   currentValue: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  const label = getEditableFieldLabel(field);
+  const label = getEditableFieldLabel(field, language);
   const hint =
     field === 'phone'
-      ? '\n\nФормат: +420123456789'
+      ? tBot(language, 'ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_PHONE')
       : field === 'email'
-        ? '\n\nФормат: name@example.com'
+        ? tBot(language, 'ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_EMAIL')
         : field === 'started_on'
-          ? '\n\nФормат: ДД.ММ.РРРР'
+          ? tBot(language, 'ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_STARTED_ON')
           : field === 'procedures_done_total'
-            ? '\n\nВкажіть ціле число від 0 до 100000'
+            ? tBot(language, 'ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_PROCEDURES')
             : '';
 
-  return (
-    '✏️ Редагування поля\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `Поле: ${label}\n\n` +
-    `Поточне значення:\n${currentValue}\n\n` +
-    'Введіть нове значення повідомленням.' +
-    hint
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_MASTERS_EDIT_INPUT_TEXT', {
+    label,
+    currentValue,
+    hint,
+  });
 }
 
 /**
@@ -1179,16 +1141,14 @@ export function formatAdminMasterEditConfirmText(
   field: AdminMasterEditableField,
   previousValue: string,
   nextValue: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  const label = getEditableFieldLabel(field);
-  return (
-    '⚠️ Підтвердження змін\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `Поле: ${label}\n\n` +
-    `Було:\n${previousValue}\n\n` +
-    `Стане:\n${nextValue}\n\n` +
-    'Підтвердіть збереження.'
-  );
+  const label = getEditableFieldLabel(field, language);
+  return tBotTemplate(language, 'ADMIN_PANEL_MASTERS_EDIT_CONFIRM_TEXT', {
+    label,
+    previousValue,
+    nextValue,
+  });
 }
 
 /**
@@ -1211,10 +1171,10 @@ export function createAdminMasterEditConfirmKeyboard(
 export function formatAdminMasterEditSuccessText(
   field: AdminMasterEditableField,
   value: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✅ Профіль майстра оновлено\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `${getEditableFieldLabel(field)}:\n${value}`
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_MASTERS_EDIT_SUCCESS_TEXT', {
+    label: getEditableFieldLabel(field, language),
+    value,
+  });
 }

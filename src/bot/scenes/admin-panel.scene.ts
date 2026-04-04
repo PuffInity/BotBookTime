@@ -1925,7 +1925,7 @@ async function renderAdminMasterCreateStart(ctx: MyContext, preferEdit: boolean)
     schedulePendingFromTime: null,
   };
 
-  const text = formatAdminMasterCreateStartText();
+  const text = formatAdminMasterCreateStartText(state.language);
   const keyboard = createAdminMasterCreateStartKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
@@ -1949,28 +1949,28 @@ async function renderAdminMasterCreateTextStep(
   let text = '';
   switch (draft.mode) {
     case 'awaiting_display_name':
-      text = formatAdminMasterCreateDisplayNameInputText();
+      text = formatAdminMasterCreateDisplayNameInputText(state.language);
       break;
     case 'awaiting_telegram_id':
-      text = formatAdminMasterCreateTelegramInputText(draft.displayName ?? '—');
+      text = formatAdminMasterCreateTelegramInputText(draft.displayName ?? '—', state.language);
       break;
     case 'awaiting_experience_years':
-      text = formatAdminMasterCreateExperienceYearsInputText();
+      text = formatAdminMasterCreateExperienceYearsInputText(state.language);
       break;
     case 'awaiting_procedures_done_total':
-      text = formatAdminMasterCreateProceduresInputText();
+      text = formatAdminMasterCreateProceduresInputText(state.language);
       break;
     case 'awaiting_bio':
-      text = formatAdminMasterCreateBioInputText();
+      text = formatAdminMasterCreateBioInputText(state.language);
       break;
     case 'awaiting_materials':
-      text = formatAdminMasterCreateMaterialsInputText();
+      text = formatAdminMasterCreateMaterialsInputText(state.language);
       break;
     case 'awaiting_phone':
-      text = formatAdminMasterCreatePhoneInputText();
+      text = formatAdminMasterCreatePhoneInputText(state.language);
       break;
     case 'awaiting_email':
-      text = formatAdminMasterCreateEmailInputText();
+      text = formatAdminMasterCreateEmailInputText(state.language);
       break;
     case 'awaiting_schedule_from': {
       if (!draft.scheduleSelectedWeekday) {
@@ -2024,6 +2024,7 @@ async function renderAdminMasterCreateServicesStep(
     draft.displayName ?? '—',
     draft.availableServices,
     draft.selectedServiceIds,
+    state.language,
   );
   const keyboard = createAdminMasterCreateServicesKeyboard(
     draft.availableServices,
@@ -2107,7 +2108,7 @@ async function renderAdminMasterEditMenu(
   state.mastersServicesDraft = null;
   state.mastersDeleteDraft = null;
 
-  const text = formatAdminMasterEditMenuText(details.master.displayName);
+  const text = formatAdminMasterEditMenuText(details.master.displayName, state.language);
   const keyboard = createAdminMasterEditMenuKeyboard(masterId, state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
@@ -2145,7 +2146,7 @@ async function renderAdminMasterEditInput(
   state.mastersServicesDraft = null;
   state.mastersDeleteDraft = null;
 
-  const text = formatAdminMasterEditInputText(field, currentValue);
+  const text = formatAdminMasterEditInputText(field, currentValue, state.language);
   const keyboard = createAdminMasterEditInputKeyboard(masterId, state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
@@ -2167,7 +2168,12 @@ async function renderAdminMasterEditConfirm(
 ): Promise<void> {
   const state = getSceneState(ctx);
   const nextValue = draft.value ?? draft.currentValue;
-  const text = formatAdminMasterEditConfirmText(draft.field, draft.currentValue, nextValue);
+  const text = formatAdminMasterEditConfirmText(
+    draft.field,
+    draft.currentValue,
+    nextValue,
+    state.language,
+  );
   const keyboard = createAdminMasterEditConfirmKeyboard(draft.masterId, state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
@@ -6378,7 +6384,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     state.mastersEditDraft = null;
-    await ctx.reply(formatAdminMasterEditSuccessText(draft.field, draft.value));
+    await ctx.reply(formatAdminMasterEditSuccessText(draft.field, draft.value, state.language));
     await renderAdminMasterEditMenu(ctx, draft.masterId, false);
   });
 
