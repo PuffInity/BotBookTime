@@ -5,7 +5,6 @@ import type {
 } from '../../types/db-helpers/db-admin-schedule.types.js';
 import {
   ADMIN_PANEL_ACTION,
-  ADMIN_PANEL_BUTTON_TEXT,
   makeAdminPanelScheduleConfigureDayOffAction,
   makeAdminPanelScheduleConfigureDayWeekdayAction,
   makeAdminPanelScheduleDayOffDeleteRequestAction,
@@ -14,20 +13,24 @@ import {
   makeAdminPanelScheduleTemporaryDayOffAction,
   makeAdminPanelScheduleTemporaryDeleteRequestAction,
 } from '../../types/bot-admin-panel.types.js';
+import { tBot, tBotTemplate } from './i18n.bot.js';
+import type { BotUiLanguage } from './i18n.bot.js';
 
 /**
  * @file admin-schedule-view.bot.ts
  * @summary UI/helper-и для блоку "Розклад" в адмін-панелі.
  */
 
-const WEEKDAY_LABELS: Record<number, string> = {
-  1: 'Пн',
-  2: 'Вт',
-  3: 'Ср',
-  4: 'Чт',
-  5: 'Пт',
-  6: 'Сб',
-  7: 'Нд',
+const WEEKDAY_LABELS: Record<BotUiLanguage, Record<number, string>> = {
+  uk: { 1: 'Пн', 2: 'Вт', 3: 'Ср', 4: 'Чт', 5: 'Пт', 6: 'Сб', 7: 'Нд' },
+  en: { 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat', 7: 'Sun' },
+  cs: { 1: 'Po', 2: 'Út', 3: 'St', 4: 'Čt', 5: 'Pá', 6: 'So', 7: 'Ne' },
+};
+
+const DATE_LOCALE_BY_LANGUAGE: Record<BotUiLanguage, string> = {
+  uk: 'uk-UA',
+  en: 'en-US',
+  cs: 'cs-CZ',
 };
 
 const TEMPORARY_WEEKDAY_ROWS = [
@@ -41,17 +44,38 @@ function toSafeDate(value: Date | string): Date | null {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
-function formatDate(date: Date | string): string {
+function formatDate(date: Date | string, language: BotUiLanguage): string {
   const parsed = toSafeDate(date);
-  if (!parsed) return 'невідома дата';
-  return parsed.toLocaleDateString('uk-UA');
+  if (!parsed) return tBot(language, 'ADMIN_PANEL_SCHEDULE_UNKNOWN_DATE');
+  return parsed.toLocaleDateString(DATE_LOCALE_BY_LANGUAGE[language]);
 }
 
-function formatWeeklyLine(weekday: number, isOpen: boolean, openTime: string | null, closeTime: string | null): string {
-  const day = WEEKDAY_LABELS[weekday] ?? `День ${weekday}`;
-  if (!isOpen) return `• ${day}: вихідний`;
-  if (!openTime || !closeTime) return `• ${day}: графік не заповнено`;
-  return `• ${day}: ${openTime}–${closeTime}`;
+function weekdayLabel(weekday: number, language: BotUiLanguage): string {
+  return (
+    WEEKDAY_LABELS[language][weekday] ??
+    tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_WEEKDAY_FALLBACK', { day: weekday })
+  );
+}
+
+function formatWeeklyLine(
+  weekday: number,
+  isOpen: boolean,
+  openTime: string | null,
+  closeTime: string | null,
+  language: BotUiLanguage,
+): string {
+  const day = weekdayLabel(weekday, language);
+  if (!isOpen) {
+    return tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_WEEKLY_LINE_OFF', { day });
+  }
+  if (!openTime || !closeTime) {
+    return tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_WEEKLY_LINE_EMPTY', { day });
+  }
+  return tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_WEEKLY_LINE_OPEN', {
+    day,
+    from: openTime,
+    to: closeTime,
+  });
 }
 
 function dateToCode(date: Date | string): string | null {
@@ -67,56 +91,73 @@ function dateToCode(date: Date | string): string | null {
 /**
  * @summary Текст меню розкладу адмін-панелі.
  */
-export function formatAdminScheduleMenuText(): string {
+export function formatAdminScheduleMenuText(language: BotUiLanguage = 'uk'): string {
   return (
-    '🕒 Розклад студії\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_MENU_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Тут ви можете переглядати й оновлювати робочий графік студії.\n' +
-    'Оберіть потрібний підрозділ:'
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_MENU_DESCRIPTION')}\n` +
+    tBot(language, 'ADMIN_PANEL_SCHEDULE_MENU_PICK_SECTION')
   );
 }
 
 /**
  * @summary Клавіатура меню розкладу.
  */
-export function createAdminScheduleMenuKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminScheduleMenuKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_OVERVIEW, ADMIN_PANEL_ACTION.SCHEDULE_OPEN_OVERVIEW)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CONFIGURE_DAY, ADMIN_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_OVERVIEW'), ADMIN_PANEL_ACTION.SCHEDULE_OPEN_OVERVIEW)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_CONFIGURE_DAY'), ADMIN_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY)],
     [
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_DAYS_OFF, ADMIN_PANEL_ACTION.SCHEDULE_OPEN_DAYS_OFF),
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_HOLIDAYS, ADMIN_PANEL_ACTION.SCHEDULE_OPEN_HOLIDAYS),
+      Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_DAYS_OFF'), ADMIN_PANEL_ACTION.SCHEDULE_OPEN_DAYS_OFF),
+      Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_HOLIDAYS'), ADMIN_PANEL_ACTION.SCHEDULE_OPEN_HOLIDAYS),
     ],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_TEMPORARY, ADMIN_PANEL_ACTION.SCHEDULE_OPEN_TEMPORARY)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK, ADMIN_PANEL_ACTION.SCHEDULE_BACK)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.HOME, ADMIN_PANEL_ACTION.HOME)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_TEMPORARY'), ADMIN_PANEL_ACTION.SCHEDULE_OPEN_TEMPORARY)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_BACK'), ADMIN_PANEL_ACTION.SCHEDULE_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_HOME'), ADMIN_PANEL_ACTION.HOME)],
   ]);
 }
 
 /**
  * @summary Текст екрану "Огляд розкладу".
  */
-export function formatAdminScheduleOverviewText(data: AdminStudioScheduleData): string {
-  const weekly = data.weeklyHours
-    .sort((a, b) => a.weekday - b.weekday)
-    .map((item) => formatWeeklyLine(item.weekday, item.isOpen, item.openTime, item.closeTime))
-    .join('\n') || '• Графік студії ще не заповнено';
+export function formatAdminScheduleOverviewText(
+  data: AdminStudioScheduleData,
+  language: BotUiLanguage = 'uk',
+): string {
+  const weekly =
+    data.weeklyHours
+      .sort((a, b) => a.weekday - b.weekday)
+      .map((item) =>
+        formatWeeklyLine(item.weekday, item.isOpen, item.openTime, item.closeTime, language),
+      )
+      .join('\n') || tBot(language, 'ADMIN_PANEL_SCHEDULE_OVERVIEW_WEEKLY_EMPTY');
 
   return (
-    '📋 Огляд розкладу студії\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_OVERVIEW_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    '🗓 Тижневий графік:\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_OVERVIEW_WEEKLY_TITLE')}\n` +
     `${weekly}\n\n` +
-    `📅 Вихідні (майбутні): ${data.upcomingDaysOff.length}\n` +
-    `🎉 Свята (майбутні): ${data.upcomingHolidays.length}\n` +
-    `🕒 Тимчасові зміни: ${data.upcomingTemporaryHours.length}`
+    tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_OVERVIEW_DAYS_OFF_COUNT', {
+      count: data.upcomingDaysOff.length,
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_OVERVIEW_HOLIDAYS_COUNT', {
+      count: data.upcomingHolidays.length,
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_OVERVIEW_TEMPORARY_COUNT', {
+      count: data.upcomingTemporaryHours.length,
+    })
   );
 }
 
 /**
  * @summary Текст екрану налаштування тижневого графіка студії.
  */
-export function formatAdminScheduleConfigureDayText(data: AdminStudioScheduleData): string {
+export function formatAdminScheduleConfigureDayText(
+  data: AdminStudioScheduleData,
+  language: BotUiLanguage = 'uk',
+): string {
   const mapped = new Map(data.weeklyHours.map((item) => [item.weekday, item]));
   const lines: string[] = [];
 
@@ -128,14 +169,15 @@ export function formatAdminScheduleConfigureDayText(data: AdminStudioScheduleDat
         current?.isOpen ?? false,
         current?.openTime ?? null,
         current?.closeTime ?? null,
+        language,
       ),
     );
   }
 
   return (
-    '✏️ Налаштування робочого дня\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_CONFIGURE_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Оберіть день тижня кнопкою нижче, щоб змінити його графік.\n\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_CONFIGURE_PICK_WEEKDAY')}\n\n` +
     `${lines.join('\n')}`
   );
 }
@@ -143,36 +185,42 @@ export function formatAdminScheduleConfigureDayText(data: AdminStudioScheduleDat
 /**
  * @summary Клавіатура екрана налаштування тижневого графіка студії.
  */
-export function createAdminScheduleConfigureDayKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminScheduleConfigureDayKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
-      Markup.button.callback('Пн', makeAdminPanelScheduleConfigureDayWeekdayAction(1)),
-      Markup.button.callback('Вт', makeAdminPanelScheduleConfigureDayWeekdayAction(2)),
-      Markup.button.callback('Ср', makeAdminPanelScheduleConfigureDayWeekdayAction(3)),
+      Markup.button.callback(weekdayLabel(1, language), makeAdminPanelScheduleConfigureDayWeekdayAction(1)),
+      Markup.button.callback(weekdayLabel(2, language), makeAdminPanelScheduleConfigureDayWeekdayAction(2)),
+      Markup.button.callback(weekdayLabel(3, language), makeAdminPanelScheduleConfigureDayWeekdayAction(3)),
     ],
     [
-      Markup.button.callback('Чт', makeAdminPanelScheduleConfigureDayWeekdayAction(4)),
-      Markup.button.callback('Пт', makeAdminPanelScheduleConfigureDayWeekdayAction(5)),
-      Markup.button.callback('Сб', makeAdminPanelScheduleConfigureDayWeekdayAction(6)),
+      Markup.button.callback(weekdayLabel(4, language), makeAdminPanelScheduleConfigureDayWeekdayAction(4)),
+      Markup.button.callback(weekdayLabel(5, language), makeAdminPanelScheduleConfigureDayWeekdayAction(5)),
+      Markup.button.callback(weekdayLabel(6, language), makeAdminPanelScheduleConfigureDayWeekdayAction(6)),
     ],
-    [Markup.button.callback('Нд', makeAdminPanelScheduleConfigureDayWeekdayAction(7))],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_REFRESH, ADMIN_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK, ADMIN_PANEL_ACTION.SCHEDULE_BACK)],
+    [Markup.button.callback(weekdayLabel(7, language), makeAdminPanelScheduleConfigureDayWeekdayAction(7))],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_REFRESH'), ADMIN_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_BACK_TO_MENU'), ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_BACK'), ADMIN_PANEL_ACTION.SCHEDULE_BACK)],
   ]);
 }
 
 /**
  * @summary Текст кроку вводу часу початку для обраного дня.
  */
-export function formatAdminScheduleConfigureDayFromInputText(weekday: number): string {
-  const label = WEEKDAY_LABELS[weekday] ?? `День ${weekday}`;
+export function formatAdminScheduleConfigureDayFromInputText(
+  weekday: number,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '✏️ Налаштування робочого дня\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_CONFIGURE_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `📅 День: ${label}\n\n` +
-    'Введіть час початку у форматі HH:MM\n' +
-    'Приклад: 9:00'
+    tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_LABEL_WEEKDAY', {
+      day: weekdayLabel(weekday, language),
+    }) + '\n\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_INPUT_FROM')}\n` +
+    tBot(language, 'ADMIN_PANEL_SCHEDULE_INPUT_EXAMPLE_FROM')
   );
 }
 
@@ -182,15 +230,19 @@ export function formatAdminScheduleConfigureDayFromInputText(weekday: number): s
 export function formatAdminScheduleConfigureDayToInputText(
   weekday: number,
   fromTime: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  const label = WEEKDAY_LABELS[weekday] ?? `День ${weekday}`;
   return (
-    '✏️ Налаштування робочого дня\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_CONFIGURE_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `📅 День: ${label}\n` +
-    `⏱ Від: ${fromTime}\n\n` +
-    'Введіть час завершення у форматі HH:MM\n' +
-    'Приклад: 18:00'
+    tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_LABEL_WEEKDAY', {
+      day: weekdayLabel(weekday, language),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_LABEL_FROM', {
+      from: fromTime,
+    }) + '\n\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_INPUT_TO')}\n` +
+    tBot(language, 'ADMIN_PANEL_SCHEDULE_INPUT_EXAMPLE_TO')
   );
 }
 
@@ -202,14 +254,23 @@ export function formatAdminScheduleConfigureDaySuccessText(
   isOpen: boolean,
   openTime: string | null,
   closeTime: string | null,
+  language: BotUiLanguage = 'uk',
 ): string {
-  const label = WEEKDAY_LABELS[weekday] ?? `День ${weekday}`;
-  const range = isOpen && openTime && closeTime ? `${openTime} - ${closeTime}` : 'вихідний';
+  const range =
+    isOpen && openTime && closeTime
+      ? tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_RANGE_OPEN', {
+          from: openTime,
+          to: closeTime,
+        })
+      : tBot(language, 'ADMIN_PANEL_SCHEDULE_RANGE_DAY_OFF');
 
   return (
-    '✅ Робочий день оновлено\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_CONFIGURE_SUCCESS_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `📅 ${label}: ${range}`
+    tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_CONFIGURE_SUCCESS_BODY', {
+      day: weekdayLabel(weekday, language),
+      range,
+    })
   );
 }
 
@@ -218,37 +279,44 @@ export function formatAdminScheduleConfigureDaySuccessText(
  */
 export function createAdminScheduleConfigureDayInputKeyboard(
   weekday: number,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_MARK_DAY_OFF,
+        tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_MARK_DAY_OFF'),
         makeAdminPanelScheduleConfigureDayOffAction(weekday),
       ),
     ],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CANCEL_ACTION, ADMIN_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_CANCEL_ACTION'), ADMIN_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_BACK_TO_MENU'), ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
   ]);
 }
 
 /**
  * @summary Текст екрану "Вихідні студії".
  */
-export function formatAdminScheduleDaysOffText(data: AdminStudioScheduleData): string {
+export function formatAdminScheduleDaysOffText(
+  data: AdminStudioScheduleData,
+  language: BotUiLanguage = 'uk',
+): string {
   if (data.upcomingDaysOff.length === 0) {
     return (
-      '📅 Вихідні студії\n' +
+      `${tBot(language, 'ADMIN_PANEL_SCHEDULE_DAYS_OFF_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
-      '📭 Майбутніх вихідних поки немає.'
+      tBot(language, 'ADMIN_PANEL_SCHEDULE_DAYS_OFF_EMPTY')
     );
   }
 
   const lines = data.upcomingDaysOff
-    .map((item) => `• ${formatDate(item.offDate)}${item.reason ? ` — ${item.reason}` : ''}`)
+    .map(
+      (item) =>
+        `• ${formatDate(item.offDate, language)}${item.reason ? ` — ${item.reason}` : ''}`,
+    )
     .join('\n');
 
   return (
-    '📅 Вихідні студії\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_DAYS_OFF_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
     lines
   );
@@ -257,21 +325,24 @@ export function formatAdminScheduleDaysOffText(data: AdminStudioScheduleData): s
 /**
  * @summary Текст екрану "Святкові дні".
  */
-export function formatAdminScheduleHolidaysText(data: AdminStudioScheduleData): string {
+export function formatAdminScheduleHolidaysText(
+  data: AdminStudioScheduleData,
+  language: BotUiLanguage = 'uk',
+): string {
   if (data.upcomingHolidays.length === 0) {
     return (
-      '🎉 Святкові дні\n' +
+      `${tBot(language, 'ADMIN_PANEL_SCHEDULE_HOLIDAYS_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
-      '📭 Майбутніх святкових днів поки немає.'
+      tBot(language, 'ADMIN_PANEL_SCHEDULE_HOLIDAYS_EMPTY')
     );
   }
 
   const lines = data.upcomingHolidays
-    .map((item) => `• ${formatDate(item.holidayDate)} — ${item.holidayName}`)
+    .map((item) => `• ${formatDate(item.holidayDate, language)} — ${item.holidayName}`)
     .join('\n');
 
   return (
-    '🎉 Святкові дні\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_HOLIDAYS_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
     lines
   );
@@ -280,28 +351,31 @@ export function formatAdminScheduleHolidaysText(data: AdminStudioScheduleData): 
 /**
  * @summary Текст екрану "Тимчасові зміни графіку".
  */
-export function formatAdminScheduleTemporaryText(data: AdminStudioScheduleData): string {
+export function formatAdminScheduleTemporaryText(
+  data: AdminStudioScheduleData,
+  language: BotUiLanguage = 'uk',
+): string {
   if (data.upcomingTemporaryHours.length === 0) {
     return (
-      '🕒 Тимчасові зміни графіку\n' +
+      `${tBot(language, 'ADMIN_PANEL_SCHEDULE_TEMPORARY_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
-      '📭 Активних тимчасових змін поки немає.'
+      tBot(language, 'ADMIN_PANEL_SCHEDULE_TEMPORARY_EMPTY')
     );
   }
 
   const lines = data.upcomingTemporaryHours
     .map((item) => {
-      const day = WEEKDAY_LABELS[item.weekday] ?? `День ${item.weekday}`;
+      const day = weekdayLabel(item.weekday, language);
       const range = item.isOpen
         ? `${item.openTime ?? '--:--'}–${item.closeTime ?? '--:--'}`
-        : 'вихідний';
+        : tBot(language, 'ADMIN_PANEL_SCHEDULE_RANGE_DAY_OFF');
       const note = item.note ? ` (${item.note})` : '';
-      return `• ${formatDate(item.dateFrom)}–${formatDate(item.dateTo)}, ${day}: ${range}${note}`;
+      return `• ${formatDate(item.dateFrom, language)}–${formatDate(item.dateTo, language)}, ${day}: ${range}${note}`;
     })
     .join('\n');
 
   return (
-    '🕒 Тимчасові зміни графіку\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_TEMPORARY_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
     lines
   );
@@ -310,11 +384,13 @@ export function formatAdminScheduleTemporaryText(data: AdminStudioScheduleData):
 /**
  * @summary Базова клавіатура розділів розкладу.
  */
-export function createAdminScheduleSectionKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminScheduleSectionKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_REFRESH, ADMIN_PANEL_ACTION.SCHEDULE_REFRESH)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK, ADMIN_PANEL_ACTION.SCHEDULE_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_REFRESH'), ADMIN_PANEL_ACTION.SCHEDULE_REFRESH)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_BACK_TO_MENU'), ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_BACK'), ADMIN_PANEL_ACTION.SCHEDULE_BACK)],
   ]);
 }
 
@@ -323,20 +399,23 @@ export function createAdminScheduleSectionKeyboard(): ReturnType<typeof Markup.i
  */
 export function createAdminScheduleDaysOffKeyboard(
   data: AdminStudioScheduleData,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const deleteRows = data.upcomingDaysOff.map((item, index) => [
     Markup.button.callback(
-      `🗑 Видалити #${index + 1}`,
+      tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_BTN_DELETE_INDEXED', {
+        index: index + 1,
+      }),
       makeAdminPanelScheduleDayOffDeleteRequestAction(item.id),
     ),
   ]);
 
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_ADD_DAY_OFF, ADMIN_PANEL_ACTION.SCHEDULE_DAY_OFF_ADD_OPEN)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_ADD_DAY_OFF'), ADMIN_PANEL_ACTION.SCHEDULE_DAY_OFF_ADD_OPEN)],
     ...deleteRows,
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_REFRESH, ADMIN_PANEL_ACTION.SCHEDULE_OPEN_DAYS_OFF)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK, ADMIN_PANEL_ACTION.SCHEDULE_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_REFRESH'), ADMIN_PANEL_ACTION.SCHEDULE_OPEN_DAYS_OFF)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_BACK_TO_MENU'), ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_BACK'), ADMIN_PANEL_ACTION.SCHEDULE_BACK)],
   ]);
 }
 
@@ -345,134 +424,168 @@ export function createAdminScheduleDaysOffKeyboard(
  */
 export function createAdminScheduleHolidaysKeyboard(
   data: AdminStudioScheduleData,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const deleteRows = data.upcomingHolidays.map((item, index) => [
     Markup.button.callback(
-      `🗑 Видалити #${index + 1}`,
+      tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_BTN_DELETE_INDEXED', {
+        index: index + 1,
+      }),
       makeAdminPanelScheduleHolidayDeleteRequestAction(item.id),
     ),
   ]);
 
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_ADD_HOLIDAY, ADMIN_PANEL_ACTION.SCHEDULE_HOLIDAY_ADD_OPEN)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_ADD_HOLIDAY'), ADMIN_PANEL_ACTION.SCHEDULE_HOLIDAY_ADD_OPEN)],
     ...deleteRows,
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_REFRESH, ADMIN_PANEL_ACTION.SCHEDULE_OPEN_HOLIDAYS)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK, ADMIN_PANEL_ACTION.SCHEDULE_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_REFRESH'), ADMIN_PANEL_ACTION.SCHEDULE_OPEN_HOLIDAYS)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_BACK_TO_MENU'), ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_BACK'), ADMIN_PANEL_ACTION.SCHEDULE_BACK)],
   ]);
 }
 
 /**
  * @summary Текст вводу дати для вихідного дня.
  */
-export function formatAdminScheduleDayOffInputText(): string {
+export function formatAdminScheduleDayOffInputText(language: BotUiLanguage = 'uk'): string {
   return (
-    '📅 Додавання вихідного дня\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_DAY_OFF_ADD_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Введіть дату вихідного дня у форматі ДД.ММ.РРРР\n' +
-    'Наприклад: 25.12.2026'
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_DAY_OFF_ADD_INPUT')}\n` +
+    tBot(language, 'ADMIN_PANEL_SCHEDULE_DAY_OFF_ADD_EXAMPLE')
   );
 }
 
 /**
  * @summary Текст підтвердження створення вихідного дня.
  */
-export function formatAdminScheduleDayOffConfirmText(dateLabel: string): string {
+export function formatAdminScheduleDayOffConfirmText(
+  dateLabel: string,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '⚠️ Підтвердження вихідного дня\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_DAY_OFF_CONFIRM_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `Встановити вихідний день на ${dateLabel}?\n\n` +
-    'У цей день нові записи для клієнтів будуть недоступні.'
+    tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_DAY_OFF_CONFIRM_ASK', {
+      date: dateLabel,
+    }) + '\n\n' +
+    tBot(language, 'ADMIN_PANEL_SCHEDULE_DAY_OFF_CONFIRM_HINT')
   );
 }
 
 /**
  * @summary Клавіатура для вводу вихідного дня.
  */
-export function createAdminScheduleDayOffInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminScheduleDayOffInputKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CANCEL_ACTION, ADMIN_PANEL_ACTION.SCHEDULE_DAY_OFF_ADD_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_CANCEL_ACTION'), ADMIN_PANEL_ACTION.SCHEDULE_DAY_OFF_ADD_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_BACK_TO_MENU'), ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
   ]);
 }
 
 /**
  * @summary Клавіатура підтвердження вихідного дня.
  */
-export function createAdminScheduleDayOffConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminScheduleDayOffConfirmKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CONFIRM, ADMIN_PANEL_ACTION.SCHEDULE_DAY_OFF_ADD_CONFIRM)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CANCEL_ACTION, ADMIN_PANEL_ACTION.SCHEDULE_DAY_OFF_ADD_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_CONFIRM'), ADMIN_PANEL_ACTION.SCHEDULE_DAY_OFF_ADD_CONFIRM)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_CANCEL_ACTION'), ADMIN_PANEL_ACTION.SCHEDULE_DAY_OFF_ADD_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_BACK_TO_MENU'), ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
   ]);
 }
 
 /**
  * @summary Текст кроку вводу дати свята.
  */
-export function formatAdminScheduleHolidayDateInputText(): string {
+export function formatAdminScheduleHolidayDateInputText(language: BotUiLanguage = 'uk'): string {
   return (
-    '🎉 Додавання святкового дня — крок 1/2\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_HOLIDAY_ADD_STEP1_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Введіть дату свята у форматі ДД.ММ.РРРР\n' +
-    'Наприклад: 24.12.2026'
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_HOLIDAY_ADD_STEP1_INPUT')}\n` +
+    tBot(language, 'ADMIN_PANEL_SCHEDULE_HOLIDAY_ADD_STEP1_EXAMPLE')
   );
 }
 
 /**
  * @summary Текст кроку вводу назви свята.
  */
-export function formatAdminScheduleHolidayNameInputText(dateLabel: string): string {
+export function formatAdminScheduleHolidayNameInputText(
+  dateLabel: string,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '🎉 Додавання святкового дня — крок 2/2\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_HOLIDAY_ADD_STEP2_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `📅 Дата: ${dateLabel}\n\n` +
-    'Введіть назву свята.'
+    tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_HOLIDAY_LABEL_DATE', {
+      date: dateLabel,
+    }) + '\n\n' +
+    tBot(language, 'ADMIN_PANEL_SCHEDULE_HOLIDAY_ADD_STEP2_INPUT')
   );
 }
 
 /**
  * @summary Текст підтвердження створення свята.
  */
-export function formatAdminScheduleHolidayConfirmText(dateLabel: string, holidayName: string): string {
+export function formatAdminScheduleHolidayConfirmText(
+  dateLabel: string,
+  holidayName: string,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '⚠️ Підтвердження святкового дня\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_HOLIDAY_CONFIRM_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `📅 Дата: ${dateLabel}\n` +
-    `🎉 Назва: ${holidayName}\n\n` +
-    'Підтвердьте створення святкового дня.'
+    tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_HOLIDAY_LABEL_DATE', {
+      date: dateLabel,
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_HOLIDAY_LABEL_NAME', {
+      name: holidayName,
+    }) + '\n\n' +
+    tBot(language, 'ADMIN_PANEL_SCHEDULE_HOLIDAY_CONFIRM_HINT')
   );
 }
 
 /**
  * @summary Клавіатура вводу свята.
  */
-export function createAdminScheduleHolidayInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminScheduleHolidayInputKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CANCEL_ACTION, ADMIN_PANEL_ACTION.SCHEDULE_HOLIDAY_ADD_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_CANCEL_ACTION'), ADMIN_PANEL_ACTION.SCHEDULE_HOLIDAY_ADD_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_BACK_TO_MENU'), ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
   ]);
 }
 
 /**
  * @summary Клавіатура підтвердження свята.
  */
-export function createAdminScheduleHolidayConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminScheduleHolidayConfirmKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CONFIRM, ADMIN_PANEL_ACTION.SCHEDULE_HOLIDAY_ADD_CONFIRM)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CANCEL_ACTION, ADMIN_PANEL_ACTION.SCHEDULE_HOLIDAY_ADD_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_CONFIRM'), ADMIN_PANEL_ACTION.SCHEDULE_HOLIDAY_ADD_CONFIRM)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_CANCEL_ACTION'), ADMIN_PANEL_ACTION.SCHEDULE_HOLIDAY_ADD_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_BACK_TO_MENU'), ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
   ]);
 }
 
 /**
  * @summary Текст підтвердження видалення вихідного дня.
  */
-export function formatAdminScheduleDeleteDayOffConfirmText(date: Date | string): string {
+export function formatAdminScheduleDeleteDayOffConfirmText(
+  date: Date | string,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '⚠️ Видалення вихідного дня\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_DELETE_DAY_OFF_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `Видалити вихідний день на дату ${formatDate(date)}?`
+    tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_DELETE_DAY_OFF_ASK', {
+      date: formatDate(date, language),
+    })
   );
 }
 
@@ -482,11 +595,15 @@ export function formatAdminScheduleDeleteDayOffConfirmText(date: Date | string):
 export function formatAdminScheduleDeleteHolidayConfirmText(
   date: Date | string,
   holidayName: string,
+  language: BotUiLanguage = 'uk',
 ): string {
   return (
-    '⚠️ Видалення святкового дня\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_DELETE_HOLIDAY_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `Видалити святковий день ${formatDate(date)} — ${holidayName}?`
+    tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_DELETE_HOLIDAY_ASK', {
+      date: formatDate(date, language),
+      name: holidayName,
+    })
   );
 }
 
@@ -495,11 +612,12 @@ export function formatAdminScheduleDeleteHolidayConfirmText(
  */
 export function createAdminScheduleDeleteConfirmKeyboard(
   confirmAction: string,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CONFIRM, confirmAction)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_DELETE_CANCEL, ADMIN_PANEL_ACTION.SCHEDULE_DELETE_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_CONFIRM'), confirmAction)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_DELETE_CANCEL'), ADMIN_PANEL_ACTION.SCHEDULE_DELETE_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_BACK_TO_MENU'), ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
   ]);
 }
 
@@ -542,42 +660,54 @@ function extractTemporaryPeriods(data: AdminStudioScheduleData): TemporaryPeriod
  */
 export function createAdminScheduleTemporaryKeyboard(
   data: AdminStudioScheduleData,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const periods = extractTemporaryPeriods(data).slice(0, 10);
   const deleteRows = periods.map((period, index) => [
     Markup.button.callback(
-      `🗑 Видалити період #${index + 1}`,
+      tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_BTN_DELETE_PERIOD_INDEXED', {
+        index: index + 1,
+      }),
       makeAdminPanelScheduleTemporaryDeleteRequestAction(period.dateFromCode, period.dateToCode),
     ),
   ]);
 
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_ADD_TEMPORARY, ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_OPEN)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_ADD_TEMPORARY'), ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_OPEN)],
     ...deleteRows,
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_REFRESH, ADMIN_PANEL_ACTION.SCHEDULE_OPEN_TEMPORARY)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_MENU, ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK, ADMIN_PANEL_ACTION.SCHEDULE_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_REFRESH'), ADMIN_PANEL_ACTION.SCHEDULE_OPEN_TEMPORARY)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_BACK_TO_MENU'), ADMIN_PANEL_ACTION.SCHEDULE_BACK_TO_MENU)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_BACK'), ADMIN_PANEL_ACTION.SCHEDULE_BACK)],
   ]);
 }
 
 /**
  * @summary Текст старту flow встановлення тимчасового графіку.
  */
-export function formatAdminScheduleTemporarySetPeriodText(): string {
+export function formatAdminScheduleTemporarySetPeriodText(
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '🕒 Встановити тимчасовий графік студії\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_TEMPORARY_SET_PERIOD_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Вкажіть період дії у форматі:\n' +
-    'ДД.ММ.РРРР - ДД.ММ.РРРР\n\n' +
-    'Приклад: 10.03.2026 - 16.03.2026\n\n' +
-    'Мінімальна тривалість періоду: 7 календарних днів.'
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_TEMPORARY_SET_PERIOD_INPUT_FORMAT')}\n` +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_TEMPORARY_SET_PERIOD_EXAMPLE')}\n\n` +
+    tBot(language, 'ADMIN_PANEL_SCHEDULE_TEMPORARY_SET_PERIOD_MIN_DAYS')
   );
 }
 
-function formatTemporaryDayState(day: AdminStudioTemporaryScheduleDayInput | null): string {
-  if (!day) return 'не налаштовано';
-  if (!day.isOpen || !day.openTime || !day.closeTime) return 'вихідний';
-  return `${day.openTime} - ${day.closeTime}`;
+function formatTemporaryDayState(
+  day: AdminStudioTemporaryScheduleDayInput | null,
+  language: BotUiLanguage,
+): string {
+  if (!day) return tBot(language, 'ADMIN_PANEL_SCHEDULE_TEMPORARY_DAY_NOT_CONFIGURED');
+  if (!day.isOpen || !day.openTime || !day.closeTime) {
+    return tBot(language, 'ADMIN_PANEL_SCHEDULE_RANGE_DAY_OFF');
+  }
+  return tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_RANGE_OPEN', {
+    from: day.openTime,
+    to: day.closeTime,
+  });
 }
 
 /**
@@ -587,6 +717,7 @@ export function formatAdminScheduleTemporaryDaysConfigText(
   dateFromLabel: string,
   dateToLabel: string,
   days: AdminStudioTemporaryScheduleDayInput[],
+  language: BotUiLanguage = 'uk',
 ): string {
   const byWeekday = new Map<number, AdminStudioTemporaryScheduleDayInput>(
     days.map((day) => [day.weekday, day]),
@@ -594,32 +725,41 @@ export function formatAdminScheduleTemporaryDaysConfigText(
 
   const lines: string[] = [];
   for (let weekday = 1; weekday <= 7; weekday += 1) {
-    const label = WEEKDAY_LABELS[weekday];
+    const label = weekdayLabel(weekday, language);
     const day = byWeekday.get(weekday) ?? null;
-    lines.push(`${label}: ${formatTemporaryDayState(day)}`);
+    lines.push(`${label}: ${formatTemporaryDayState(day, language)}`);
   }
 
   return (
-    '🕒 Налаштування тимчасового графіку\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_TEMPORARY_CONFIG_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `📅 Період: ${dateFromLabel} - ${dateToLabel}\n` +
-    `✅ Налаштовано днів: ${days.length}/7\n\n` +
+    tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_TEMPORARY_PERIOD_LABEL', {
+      from: dateFromLabel,
+      to: dateToLabel,
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_TEMPORARY_CONFIGURED_DAYS', {
+      count: days.length,
+    }) + '\n\n' +
     `${lines.join('\n')}\n\n` +
-    'Оберіть день кнопкою нижче, потім введіть час "від" та "до".'
+    tBot(language, 'ADMIN_PANEL_SCHEDULE_TEMPORARY_PICK_DAY')
   );
 }
 
 /**
  * @summary Текст кроку вводу часу початку для обраного дня.
  */
-export function formatAdminScheduleTemporaryDayFromInputText(weekday: number): string {
-  const label = WEEKDAY_LABELS[weekday] ?? `День ${weekday}`;
+export function formatAdminScheduleTemporaryDayFromInputText(
+  weekday: number,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '🕒 Налаштування дня\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_TEMPORARY_DAY_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `📅 День: ${label}\n\n` +
-    'Введіть час початку у форматі HH:MM\n' +
-    'Приклад: 10:00'
+    tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_LABEL_WEEKDAY', {
+      day: weekdayLabel(weekday, language),
+    }) + '\n\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_INPUT_FROM')}\n` +
+    tBot(language, 'ADMIN_PANEL_SCHEDULE_INPUT_EXAMPLE_TEMPORARY')
   );
 }
 
@@ -629,27 +769,40 @@ export function formatAdminScheduleTemporaryDayFromInputText(weekday: number): s
 export function formatAdminScheduleTemporaryDayToInputText(
   weekday: number,
   fromTime: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  const label = WEEKDAY_LABELS[weekday] ?? `День ${weekday}`;
   return (
-    '🕒 Налаштування дня\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_TEMPORARY_DAY_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `📅 День: ${label}\n` +
-    `⏱ Від: ${fromTime}\n\n` +
-    'Введіть час завершення у форматі HH:MM\n' +
-    'Приклад: 18:00'
+    tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_LABEL_WEEKDAY', {
+      day: weekdayLabel(weekday, language),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_LABEL_FROM', {
+      from: fromTime,
+    }) + '\n\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_INPUT_TO')}\n` +
+    tBot(language, 'ADMIN_PANEL_SCHEDULE_INPUT_EXAMPLE_TO')
   );
 }
 
-function formatTemporaryPreviewLines(days: AdminStudioTemporaryScheduleDayInput[]): string {
+function formatTemporaryPreviewLines(
+  days: AdminStudioTemporaryScheduleDayInput[],
+  language: BotUiLanguage,
+): string {
   return days
     .sort((a, b) => a.weekday - b.weekday)
     .map((day) => {
-      const label = WEEKDAY_LABELS[day.weekday] ?? `День ${day.weekday}`;
+      const label = weekdayLabel(day.weekday, language);
       if (!day.isOpen || !day.openTime || !day.closeTime) {
-        return `${label}: вихідний`;
+        return tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_TEMPORARY_PREVIEW_OFF', {
+          day: label,
+        });
       }
-      return `${label}: ${day.openTime} - ${day.closeTime}`;
+      return tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_TEMPORARY_PREVIEW_OPEN', {
+        day: label,
+        from: day.openTime,
+        to: day.closeTime,
+      });
     })
     .join('\n');
 }
@@ -661,24 +814,30 @@ export function formatAdminScheduleTemporaryConfirmText(
   dateFromLabel: string,
   dateToLabel: string,
   days: AdminStudioTemporaryScheduleDayInput[],
+  language: BotUiLanguage = 'uk',
 ): string {
   return (
-    '⚠️ Підтвердження\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_TEMPORARY_CONFIRM_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `📅 Період: ${dateFromLabel} - ${dateToLabel}\n\n` +
-    '🕒 Новий тимчасовий графік студії:\n' +
-    `${formatTemporaryPreviewLines(days)}\n\n` +
-    'Після підтвердження цей графік буде діяти лише у вказаний період.'
+    tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_TEMPORARY_PERIOD_LABEL', {
+      from: dateFromLabel,
+      to: dateToLabel,
+    }) + '\n\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_TEMPORARY_CONFIRM_NEW_SCHEDULE')}\n` +
+    `${formatTemporaryPreviewLines(days, language)}\n\n` +
+    tBot(language, 'ADMIN_PANEL_SCHEDULE_TEMPORARY_CONFIRM_HINT')
   );
 }
 
 /**
  * @summary Клавіатура вводу періоду тимчасового графіку.
  */
-export function createAdminScheduleTemporaryPeriodInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminScheduleTemporaryPeriodInputKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CANCEL_ACTION, ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_SECTION, ADMIN_PANEL_ACTION.SCHEDULE_OPEN_TEMPORARY)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_CANCEL_ACTION'), ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_BACK_TO_SECTION'), ADMIN_PANEL_ACTION.SCHEDULE_OPEN_TEMPORARY)],
   ]);
 }
 
@@ -687,6 +846,7 @@ export function createAdminScheduleTemporaryPeriodInputKeyboard(): ReturnType<ty
  */
 export function createAdminScheduleTemporaryDaysConfigKeyboard(
   days: AdminStudioTemporaryScheduleDayInput[],
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const byWeekday = new Map<number, AdminStudioTemporaryScheduleDayInput>(
     days.map((day) => [day.weekday, day]),
@@ -694,21 +854,18 @@ export function createAdminScheduleTemporaryDaysConfigKeyboard(
 
   const dayRows = TEMPORARY_WEEKDAY_ROWS.map((row) =>
     row.map((weekday) => {
-      const label = WEEKDAY_LABELS[weekday];
+      const label = weekdayLabel(weekday, language);
       const day = byWeekday.get(weekday);
       const icon = day ? '✅' : '⚪';
-      return Markup.button.callback(
-        `${icon} ${label}`,
-        makeAdminPanelScheduleTemporaryDayAction(weekday),
-      );
+      return Markup.button.callback(`${icon} ${label}`, makeAdminPanelScheduleTemporaryDayAction(weekday));
     }),
   );
 
   return Markup.inlineKeyboard([
     ...dayRows,
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CONFIRM, ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_CONFIRM)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CANCEL_ACTION, ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_SECTION, ADMIN_PANEL_ACTION.SCHEDULE_OPEN_TEMPORARY)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_CONFIRM'), ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_CONFIRM)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_CANCEL_ACTION'), ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_BACK_TO_SECTION'), ADMIN_PANEL_ACTION.SCHEDULE_OPEN_TEMPORARY)],
   ]);
 }
 
@@ -717,16 +874,17 @@ export function createAdminScheduleTemporaryDaysConfigKeyboard(
  */
 export function createAdminScheduleTemporaryDayInputKeyboard(
   weekday: number,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_MARK_DAY_OFF,
+        tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_MARK_DAY_OFF'),
         makeAdminPanelScheduleTemporaryDayOffAction(weekday),
       ),
     ],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_CANCEL_ACTION, ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SCHEDULE_BACK_TO_SECTION, ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_OPEN)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_CANCEL_ACTION'), ADMIN_PANEL_ACTION.SCHEDULE_TEMPORARY_CREATE_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SCHEDULE_BTN_BACK_TO_SECTION'), ADMIN_PANEL_ACTION.SCHEDULE_OPEN_TEMPORARY)],
   ]);
 }
 
@@ -736,10 +894,14 @@ export function createAdminScheduleTemporaryDayInputKeyboard(
 export function formatAdminScheduleDeleteTemporaryConfirmText(
   dateFrom: Date | string,
   dateTo: Date | string,
+  language: BotUiLanguage = 'uk',
 ): string {
   return (
-    '⚠️ Видалення тимчасового графіку\n' +
+    `${tBot(language, 'ADMIN_PANEL_SCHEDULE_DELETE_TEMPORARY_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `Видалити тимчасовий графік за період ${formatDate(dateFrom)} - ${formatDate(dateTo)}?`
+    tBotTemplate(language, 'ADMIN_PANEL_SCHEDULE_DELETE_TEMPORARY_ASK', {
+      from: formatDate(dateFrom, language),
+      to: formatDate(dateTo, language),
+    })
   );
 }

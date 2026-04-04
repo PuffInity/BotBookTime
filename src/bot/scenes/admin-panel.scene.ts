@@ -1105,8 +1105,9 @@ async function renderRecordsMenu(ctx: MyContext): Promise<void> {
 }
 
 async function renderScheduleMenu(ctx: MyContext): Promise<void> {
-  const text = formatAdminScheduleMenuText();
-  const keyboard = createAdminScheduleMenuKeyboard();
+  const state = getSceneState(ctx);
+  const text = formatAdminScheduleMenuText(state.language);
+  const keyboard = createAdminScheduleMenuKeyboard(state.language);
 
   try {
     await ctx.editMessageText(text, keyboard);
@@ -1129,20 +1130,21 @@ async function loadAdminSchedule(state: AdminPanelSceneState): Promise<AdminStud
 function formatScheduleSectionText(
   section: AdminScheduleSection,
   data: AdminStudioScheduleData,
+  language: BotUiLanguage,
 ): string {
   switch (section) {
     case 'overview':
-      return formatAdminScheduleOverviewText(data);
+      return formatAdminScheduleOverviewText(data, language);
     case 'configure-day':
-      return formatAdminScheduleConfigureDayText(data);
+      return formatAdminScheduleConfigureDayText(data, language);
     case 'days-off':
-      return formatAdminScheduleDaysOffText(data);
+      return formatAdminScheduleDaysOffText(data, language);
     case 'holidays':
-      return formatAdminScheduleHolidaysText(data);
+      return formatAdminScheduleHolidaysText(data, language);
     case 'temporary':
-      return formatAdminScheduleTemporaryText(data);
+      return formatAdminScheduleTemporaryText(data, language);
     default:
-      return formatAdminScheduleOverviewText(data);
+      return formatAdminScheduleOverviewText(data, language);
   }
 }
 
@@ -1155,17 +1157,17 @@ async function renderScheduleSection(
   const data = await loadAdminSchedule(state);
   state.scheduleCurrentSection = section;
 
-  const text = formatScheduleSectionText(section, data);
+  const text = formatScheduleSectionText(section, data, state.language);
   const keyboard =
     section === 'configure-day'
-      ? createAdminScheduleConfigureDayKeyboard()
+      ? createAdminScheduleConfigureDayKeyboard(state.language)
       : section === 'days-off'
-      ? createAdminScheduleDaysOffKeyboard(data)
+      ? createAdminScheduleDaysOffKeyboard(data, state.language)
       : section === 'holidays'
-        ? createAdminScheduleHolidaysKeyboard(data)
+        ? createAdminScheduleHolidaysKeyboard(data, state.language)
         : section === 'temporary'
-          ? createAdminScheduleTemporaryKeyboard(data)
-        : createAdminScheduleSectionKeyboard();
+          ? createAdminScheduleTemporaryKeyboard(data, state.language)
+        : createAdminScheduleSectionKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -3718,17 +3720,17 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           };
 
           await ctx.reply(
-            formatAdminScheduleDayOffConfirmText(formatDateLabel(date)),
-            createAdminScheduleDayOffConfirmKeyboard(),
+            formatAdminScheduleDayOffConfirmText(formatDateLabel(date), state.language),
+            createAdminScheduleDayOffConfirmKeyboard(state.language),
           );
         } catch (error) {
           const err = error instanceof ValidationError
             ? error
-            : new ValidationError('Виникла помилка при перевірці дати');
+            : new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_DATE_FAILED'));
 
           await ctx.reply(
-            `⚠️ ${err.message}\n\nСпробуйте ще раз у форматі ДД.ММ.РРРР.`,
-            createAdminScheduleDayOffInputKeyboard(),
+            `⚠️ ${err.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_DATE_FORMAT')}`,
+            createAdminScheduleDayOffInputKeyboard(state.language),
           );
         }
         return;
@@ -3736,8 +3738,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
       if (dayOffDraft?.mode === 'awaiting_confirm') {
         await ctx.reply(
-          '⚠️ Для завершення дії натисніть "✅ Підтвердити" або "❌ Скасувати дію".',
-          createAdminScheduleDayOffConfirmKeyboard(),
+          tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_FINISH_USE_CONFIRM_BUTTONS'),
+          createAdminScheduleDayOffConfirmKeyboard(state.language),
         );
         return;
       }
@@ -3754,17 +3756,17 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           };
 
           await ctx.reply(
-            formatAdminScheduleHolidayNameInputText(formatDateLabel(date)),
-            createAdminScheduleHolidayInputKeyboard(),
+            formatAdminScheduleHolidayNameInputText(formatDateLabel(date), state.language),
+            createAdminScheduleHolidayInputKeyboard(state.language),
           );
         } catch (error) {
           const err = error instanceof ValidationError
             ? error
-            : new ValidationError('Виникла помилка при перевірці дати');
+            : new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_DATE_FAILED'));
 
           await ctx.reply(
-            `⚠️ ${err.message}\n\nСпробуйте ще раз у форматі ДД.ММ.РРРР.`,
-            createAdminScheduleHolidayInputKeyboard(),
+            `⚠️ ${err.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_DATE_FORMAT')}`,
+            createAdminScheduleHolidayInputKeyboard(state.language),
           );
         }
         return;
@@ -3774,7 +3776,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         try {
           const holidayName = normalizeHolidayName(text);
           if (!holidayDraft.holidayDate || !holidayDraft.holidayDateLabel) {
-            throw new ValidationError('Спочатку вкажіть дату свята');
+            throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_PICK_HOLIDAY_DATE_FIRST'));
           }
 
           state.scheduleHolidayDraft = {
@@ -3785,17 +3787,17 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           };
 
           await ctx.reply(
-            formatAdminScheduleHolidayConfirmText(holidayDraft.holidayDateLabel, holidayName),
-            createAdminScheduleHolidayConfirmKeyboard(),
+            formatAdminScheduleHolidayConfirmText(holidayDraft.holidayDateLabel, holidayName, state.language),
+            createAdminScheduleHolidayConfirmKeyboard(state.language),
           );
         } catch (error) {
           const err = error instanceof ValidationError
             ? error
-            : new ValidationError('Виникла помилка при перевірці назви свята');
+            : new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_HOLIDAY_NAME_FAILED'));
 
           await ctx.reply(
             `⚠️ ${err.message}`,
-            createAdminScheduleHolidayInputKeyboard(),
+            createAdminScheduleHolidayInputKeyboard(state.language),
           );
         }
         return;
@@ -3803,8 +3805,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
       if (holidayDraft?.mode === 'awaiting_confirm') {
         await ctx.reply(
-          '⚠️ Для завершення дії натисніть "✅ Підтвердити" або "❌ Скасувати дію".',
-          createAdminScheduleHolidayConfirmKeyboard(),
+          tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_FINISH_USE_CONFIRM_BUTTONS'),
+          createAdminScheduleHolidayConfirmKeyboard(state.language),
         );
         return;
       }
@@ -3816,7 +3818,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           const rangeDays = countInclusiveDays(dateFrom, dateTo);
           if (rangeDays < MIN_TEMPORARY_SCHEDULE_DAYS) {
             throw new ValidationError(
-              `Тимчасовий графік можна встановити лише на період від ${MIN_TEMPORARY_SCHEDULE_DAYS} днів`,
+              tBotTemplate(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_TEMPORARY_MIN_DAYS', {
+                minDays: MIN_TEMPORARY_SCHEDULE_DAYS,
+              }),
             );
           }
 
@@ -3836,17 +3840,18 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               formatDateLabel(dateFrom),
               formatDateLabel(dateTo),
               [],
+              state.language,
             ),
-            createAdminScheduleTemporaryDaysConfigKeyboard([]),
+            createAdminScheduleTemporaryDaysConfigKeyboard([], state.language),
           );
         } catch (error) {
           const err = error instanceof ValidationError
             ? error
-            : new ValidationError('Виникла помилка при перевірці періоду');
+            : new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_PERIOD_FAILED'));
 
           await ctx.reply(
-            `⚠️ ${err.message}\n\nСпробуйте ще раз у форматі ДД.ММ.РРРР - ДД.ММ.РРРР.`,
-            createAdminScheduleTemporaryPeriodInputKeyboard(),
+            `⚠️ ${err.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_RANGE_FORMAT')}`,
+            createAdminScheduleTemporaryPeriodInputKeyboard(state.language),
           );
         }
         return;
@@ -3856,7 +3861,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         try {
           const weekday = temporaryDraft.selectedWeekday;
           if (!weekday) {
-            throw new ValidationError('Спочатку оберіть день тижня кнопкою');
+            throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_PICK_WEEKDAY_FIRST'));
           }
 
           const fromTime = parseTimeInput(text);
@@ -3867,16 +3872,16 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           };
 
           await ctx.reply(
-            formatAdminScheduleTemporaryDayToInputText(weekday, fromTime),
-            createAdminScheduleTemporaryDayInputKeyboard(weekday),
+            formatAdminScheduleTemporaryDayToInputText(weekday, fromTime, state.language),
+            createAdminScheduleTemporaryDayInputKeyboard(weekday, state.language),
           );
         } catch (error) {
           const err = error instanceof ValidationError
             ? error
-            : new ValidationError('Виникла помилка при перевірці часу початку');
+            : new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_FROM_TIME_FAILED'));
           await ctx.reply(
-            `⚠️ ${err.message}\n\nВведіть коректний час у форматі HH:MM.`,
-            createAdminScheduleTemporaryDayInputKeyboard(temporaryDraft.selectedWeekday ?? 1),
+            `⚠️ ${err.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_TIME_FORMAT')}`,
+            createAdminScheduleTemporaryDayInputKeyboard(temporaryDraft.selectedWeekday ?? 1, state.language),
           );
         }
         return;
@@ -3887,12 +3892,12 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           const weekday = temporaryDraft.selectedWeekday;
           const fromTime = temporaryDraft.pendingFromTime;
           if (!weekday || !fromTime) {
-            throw new ValidationError('Спочатку оберіть день і задайте час початку');
+            throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_PICK_DAY_AND_FROM_FIRST'));
           }
 
           const toTime = parseTimeInput(text);
           if (timeToMinutes(toTime) <= timeToMinutes(fromTime)) {
-            throw new ValidationError('Час завершення має бути пізніше часу початку');
+            throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_TO_AFTER_FROM'));
           }
 
           const updatedDays = upsertTemporaryDay(temporaryDraft.days, {
@@ -3915,16 +3920,17 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               temporaryDraft.dateFromLabel ?? '',
               temporaryDraft.dateToLabel ?? '',
               updatedDays,
+              state.language,
             ),
-            createAdminScheduleTemporaryDaysConfigKeyboard(updatedDays),
+            createAdminScheduleTemporaryDaysConfigKeyboard(updatedDays, state.language),
           );
         } catch (error) {
           const err = error instanceof ValidationError
             ? error
-            : new ValidationError('Виникла помилка при перевірці часу завершення');
+            : new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_TO_TIME_FAILED'));
           await ctx.reply(
-            `⚠️ ${err.message}\n\nВведіть коректний час у форматі HH:MM.`,
-            createAdminScheduleTemporaryDayInputKeyboard(temporaryDraft.selectedWeekday ?? 1),
+            `⚠️ ${err.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_TIME_FORMAT')}`,
+            createAdminScheduleTemporaryDayInputKeyboard(temporaryDraft.selectedWeekday ?? 1, state.language),
           );
         }
         return;
@@ -3932,7 +3938,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
       if (temporaryDraft?.mode === 'awaiting_confirm' || temporaryDraft?.mode === 'configuring_days') {
         await ctx.reply(
-          '⚠️ Для завершення дії використовуйте кнопки під повідомленням.',
+          tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_FINISH_USE_INLINE_BUTTONS'),
         );
         return;
       }
@@ -3942,7 +3948,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         try {
           const weekday = configureDayDraft.weekday;
           if (!weekday) {
-            throw new ValidationError('Спочатку оберіть день тижня кнопкою');
+            throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_PICK_WEEKDAY_FIRST'));
           }
 
           const fromTime = parseTimeInput(text);
@@ -3954,18 +3960,18 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           };
 
           await ctx.reply(
-            formatAdminScheduleConfigureDayToInputText(weekday, fromTime),
-            createAdminScheduleConfigureDayInputKeyboard(weekday),
+            formatAdminScheduleConfigureDayToInputText(weekday, fromTime, state.language),
+            createAdminScheduleConfigureDayInputKeyboard(weekday, state.language),
           );
         } catch (error) {
           const err =
             error instanceof ValidationError
               ? error
-              : new ValidationError('Виникла помилка при перевірці часу початку');
+              : new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_FROM_TIME_FAILED'));
 
           await ctx.reply(
-            `⚠️ ${err.message}\n\nВведіть коректний час у форматі HH:MM.`,
-            createAdminScheduleConfigureDayInputKeyboard(configureDayDraft.weekday ?? 1),
+            `⚠️ ${err.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_TIME_FORMAT')}`,
+            createAdminScheduleConfigureDayInputKeyboard(configureDayDraft.weekday ?? 1, state.language),
           );
         }
         return;
@@ -3977,7 +3983,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           const weekday = configureDayDraft.weekday;
           const fromTime = configureDayDraft.fromTime;
           if (!weekday || !fromTime) {
-            throw new ValidationError('Спочатку оберіть день і задайте час початку');
+            throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_PICK_DAY_AND_FROM_FIRST'));
           }
           if (!access?.studioId) {
             throw new ValidationError('Не вдалося визначити студію адміністратора');
@@ -3985,7 +3991,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
           const toTime = parseTimeInput(text);
           if (timeToMinutes(toTime) <= timeToMinutes(fromTime)) {
-            throw new ValidationError('Час завершення має бути пізніше часу початку');
+            throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_TO_AFTER_FROM'));
           }
 
           const updated = await upsertAdminStudioWeeklyDay({
@@ -4014,6 +4020,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               updated.isOpen,
               updated.openTime,
               updated.closeTime,
+              state.language,
             ),
           );
           await renderScheduleSection(ctx, 'configure-day', false);
@@ -4021,11 +4028,11 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           const err =
             error instanceof ValidationError
               ? error
-              : new ValidationError('Виникла помилка при перевірці часу завершення');
+              : new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_TO_TIME_FAILED'));
 
           await ctx.reply(
-            `⚠️ ${err.message}\n\nВведіть коректний час у форматі HH:MM.`,
-            createAdminScheduleConfigureDayInputKeyboard(configureDayDraft.weekday ?? 1),
+            `⚠️ ${err.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_TIME_FORMAT')}`,
+            createAdminScheduleConfigureDayInputKeyboard(configureDayDraft.weekday ?? 1, state.language),
           );
         }
         return;
@@ -5028,13 +5035,13 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     try {
       await ctx.editMessageText(
-        formatAdminScheduleConfigureDayFromInputText(weekday),
-        createAdminScheduleConfigureDayInputKeyboard(weekday),
+        formatAdminScheduleConfigureDayFromInputText(weekday, state.language),
+        createAdminScheduleConfigureDayInputKeyboard(weekday, state.language),
       );
     } catch {
       await ctx.reply(
-        formatAdminScheduleConfigureDayFromInputText(weekday),
-        createAdminScheduleConfigureDayInputKeyboard(weekday),
+        formatAdminScheduleConfigureDayFromInputText(weekday, state.language),
+        createAdminScheduleConfigureDayInputKeyboard(weekday, state.language),
       );
     }
   });
@@ -5072,6 +5079,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         updated.isOpen,
         updated.openTime,
         updated.closeTime,
+        state.language,
       ),
     );
     await renderScheduleSection(ctx, 'configure-day', false);
@@ -5092,13 +5100,13 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     try {
       await ctx.editMessageText(
-        formatAdminScheduleDayOffInputText(),
-        createAdminScheduleDayOffInputKeyboard(),
+        formatAdminScheduleDayOffInputText(state.language),
+        createAdminScheduleDayOffInputKeyboard(state.language),
       );
     } catch {
       await ctx.reply(
-        formatAdminScheduleDayOffInputText(),
-        createAdminScheduleDayOffInputKeyboard(),
+        formatAdminScheduleDayOffInputText(state.language),
+        createAdminScheduleDayOffInputKeyboard(state.language),
       );
     }
   });
@@ -5116,8 +5124,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       };
 
       await ctx.reply(
-        formatAdminScheduleDayOffInputText(),
-        createAdminScheduleDayOffInputKeyboard(),
+        formatAdminScheduleDayOffInputText(state.language),
+        createAdminScheduleDayOffInputKeyboard(state.language),
       );
       return;
     }
@@ -5136,8 +5144,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           offDateLabel: null,
         };
         await ctx.reply(
-          `⚠️ ${error.message}\n\nВведіть іншу дату у форматі ДД.ММ.РРРР.`,
-          createAdminScheduleDayOffInputKeyboard(),
+          `⚠️ ${error.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_DATE_FORMAT')}`,
+          createAdminScheduleDayOffInputKeyboard(state.language),
         );
         return;
       }
@@ -5153,7 +5161,12 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 	      },
 	      access,
 	    );
-	    await replyAdminSuccess(ctx, `Вихідний день на ${draft.offDateLabel} успішно додано.`);
+	    await replyAdminSuccess(
+	      ctx,
+	      tBotTemplate(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_DAY_OFF_ADDED', {
+	        date: draft.offDateLabel,
+	      }),
+	    );
 	    await renderScheduleSection(ctx, 'days-off', false);
   });
 
@@ -5194,16 +5207,18 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     try {
       await ctx.editMessageText(
-        formatAdminScheduleDeleteDayOffConfirmText(target.offDate),
+        formatAdminScheduleDeleteDayOffConfirmText(target.offDate, state.language),
         createAdminScheduleDeleteConfirmKeyboard(
           makeAdminPanelScheduleDayOffDeleteConfirmAction(dayOffId),
+          state.language,
         ),
       );
     } catch {
       await ctx.reply(
-        formatAdminScheduleDeleteDayOffConfirmText(target.offDate),
+        formatAdminScheduleDeleteDayOffConfirmText(target.offDate, state.language),
         createAdminScheduleDeleteConfirmKeyboard(
           makeAdminPanelScheduleDayOffDeleteConfirmAction(dayOffId),
+          state.language,
         ),
       );
     }
@@ -5239,7 +5254,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 	      },
 	      access,
 	    );
-	    await replyAdminSuccess(ctx, 'Вихідний день успішно видалено.');
+	    await replyAdminSuccess(ctx, tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_DAY_OFF_DELETED'));
 	    await renderScheduleSection(ctx, 'days-off', false);
   });
 
@@ -5259,13 +5274,13 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     try {
       await ctx.editMessageText(
-        formatAdminScheduleHolidayDateInputText(),
-        createAdminScheduleHolidayInputKeyboard(),
+        formatAdminScheduleHolidayDateInputText(state.language),
+        createAdminScheduleHolidayInputKeyboard(state.language),
       );
     } catch {
       await ctx.reply(
-        formatAdminScheduleHolidayDateInputText(),
-        createAdminScheduleHolidayInputKeyboard(),
+        formatAdminScheduleHolidayDateInputText(state.language),
+        createAdminScheduleHolidayInputKeyboard(state.language),
       );
     }
   });
@@ -5290,8 +5305,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         holidayName: null,
       };
       await ctx.reply(
-        formatAdminScheduleHolidayDateInputText(),
-        createAdminScheduleHolidayInputKeyboard(),
+        formatAdminScheduleHolidayDateInputText(state.language),
+        createAdminScheduleHolidayInputKeyboard(state.language),
       );
       return;
     }
@@ -5312,8 +5327,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           holidayName: null,
         };
         await ctx.reply(
-          `⚠️ ${error.message}\n\nСпробуйте ще раз.`,
-          createAdminScheduleHolidayInputKeyboard(),
+          `⚠️ ${error.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_TRY_AGAIN')}`,
+          createAdminScheduleHolidayInputKeyboard(state.language),
         );
         return;
       }
@@ -5330,7 +5345,13 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 	      },
 	      access,
 	    );
-	    await replyAdminSuccess(ctx, `Свято "${draft.holidayName}" на ${draft.holidayDateLabel} успішно додано.`);
+	    await replyAdminSuccess(
+	      ctx,
+	      tBotTemplate(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_HOLIDAY_ADDED', {
+	        name: draft.holidayName,
+	        date: draft.holidayDateLabel,
+	      }),
+	    );
 	    await renderScheduleSection(ctx, 'holidays', false);
   });
 
@@ -5371,16 +5392,18 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     try {
       await ctx.editMessageText(
-        formatAdminScheduleDeleteHolidayConfirmText(target.holidayDate, target.holidayName),
+        formatAdminScheduleDeleteHolidayConfirmText(target.holidayDate, target.holidayName, state.language),
         createAdminScheduleDeleteConfirmKeyboard(
           makeAdminPanelScheduleHolidayDeleteConfirmAction(holidayId),
+          state.language,
         ),
       );
     } catch {
       await ctx.reply(
-        formatAdminScheduleDeleteHolidayConfirmText(target.holidayDate, target.holidayName),
+        formatAdminScheduleDeleteHolidayConfirmText(target.holidayDate, target.holidayName, state.language),
         createAdminScheduleDeleteConfirmKeyboard(
           makeAdminPanelScheduleHolidayDeleteConfirmAction(holidayId),
+          state.language,
         ),
       );
     }
@@ -5416,7 +5439,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 	      },
 	      access,
 	    );
-	    await replyAdminSuccess(ctx, 'Святковий день успішно видалено.');
+	    await replyAdminSuccess(ctx, tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_HOLIDAY_DELETED'));
 	    await renderScheduleSection(ctx, 'holidays', false);
   });
 
@@ -5454,13 +5477,13 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     try {
       await ctx.editMessageText(
-        formatAdminScheduleTemporarySetPeriodText(),
-        createAdminScheduleTemporaryPeriodInputKeyboard(),
+        formatAdminScheduleTemporarySetPeriodText(state.language),
+        createAdminScheduleTemporaryPeriodInputKeyboard(state.language),
       );
     } catch {
       await ctx.reply(
-        formatAdminScheduleTemporarySetPeriodText(),
-        createAdminScheduleTemporaryPeriodInputKeyboard(),
+        formatAdminScheduleTemporarySetPeriodText(state.language),
+        createAdminScheduleTemporaryPeriodInputKeyboard(state.language),
       );
     }
   });
@@ -5494,13 +5517,13 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     try {
       await ctx.editMessageText(
-        formatAdminScheduleTemporaryDayFromInputText(weekday),
-        createAdminScheduleTemporaryDayInputKeyboard(weekday),
+        formatAdminScheduleTemporaryDayFromInputText(weekday, state.language),
+        createAdminScheduleTemporaryDayInputKeyboard(weekday, state.language),
       );
     } catch {
       await ctx.reply(
-        formatAdminScheduleTemporaryDayFromInputText(weekday),
-        createAdminScheduleTemporaryDayInputKeyboard(weekday),
+        formatAdminScheduleTemporaryDayFromInputText(weekday, state.language),
+        createAdminScheduleTemporaryDayInputKeyboard(weekday, state.language),
       );
     }
   });
@@ -5545,8 +5568,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         draft.dateFromLabel,
         draft.dateToLabel,
         updatedDays,
+        state.language,
       ),
-      createAdminScheduleTemporaryDaysConfigKeyboard(updatedDays),
+      createAdminScheduleTemporaryDaysConfigKeyboard(updatedDays, state.language),
     );
   });
 
@@ -5569,11 +5593,18 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     if (draft.days.length < 7) {
       await ctx.reply(
-        `⚠️ Потрібно налаштувати всі 7 днів тижня. Зараз налаштовано: ${draft.days.length}/7.`,
+        tBotTemplate(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_TEMPORARY_NEED_ALL_DAYS', {
+          configured: draft.days.length,
+        }),
       );
       await ctx.reply(
-        formatAdminScheduleTemporaryDaysConfigText(draft.dateFromLabel, draft.dateToLabel, draft.days),
-        createAdminScheduleTemporaryDaysConfigKeyboard(draft.days),
+        formatAdminScheduleTemporaryDaysConfigText(
+          draft.dateFromLabel,
+          draft.dateToLabel,
+          draft.days,
+          state.language,
+        ),
+        createAdminScheduleTemporaryDaysConfigKeyboard(draft.days, state.language),
       );
       return;
     }
@@ -5584,8 +5615,13 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         mode: 'awaiting_confirm',
       };
       await ctx.reply(
-        formatAdminScheduleTemporaryConfirmText(draft.dateFromLabel, draft.dateToLabel, draft.days),
-        createAdminScheduleTemporaryDaysConfigKeyboard(draft.days),
+        formatAdminScheduleTemporaryConfirmText(
+          draft.dateFromLabel,
+          draft.dateToLabel,
+          draft.days,
+          state.language,
+        ),
+        createAdminScheduleTemporaryDaysConfigKeyboard(draft.days, state.language),
       );
       return;
     }
@@ -5602,7 +5638,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       if (error instanceof ValidationError) {
         await ctx.reply(
           `⚠️ ${error.message}`,
-          createAdminScheduleTemporaryDaysConfigKeyboard(draft.days),
+          createAdminScheduleTemporaryDaysConfigKeyboard(draft.days, state.language),
         );
         return;
       }
@@ -5621,7 +5657,10 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 	      access,
 	    );
 	    await ctx.reply(
-	      `✅ Тимчасовий графік студії успішно встановлено на період ${draft.dateFromLabel} - ${draft.dateToLabel}.`,
+	      tBotTemplate(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_TEMPORARY_CREATED', {
+	        from: draft.dateFromLabel,
+	        to: draft.dateToLabel,
+	      }),
 	    );
     await renderScheduleSection(ctx, 'temporary', false);
   });
@@ -5667,16 +5706,18 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     try {
       await ctx.editMessageText(
-        formatAdminScheduleDeleteTemporaryConfirmText(dateFrom, dateTo),
+        formatAdminScheduleDeleteTemporaryConfirmText(dateFrom, dateTo, state.language),
         createAdminScheduleDeleteConfirmKeyboard(
           makeAdminPanelScheduleTemporaryDeleteConfirmAction(dateFromCode, dateToCode),
+          state.language,
         ),
       );
     } catch {
       await ctx.reply(
-        formatAdminScheduleDeleteTemporaryConfirmText(dateFrom, dateTo),
+        formatAdminScheduleDeleteTemporaryConfirmText(dateFrom, dateTo, state.language),
         createAdminScheduleDeleteConfirmKeyboard(
           makeAdminPanelScheduleTemporaryDeleteConfirmAction(dateFromCode, dateToCode),
+          state.language,
         ),
       );
     }
@@ -5731,7 +5772,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 	      },
 	      access,
 	    );
-	    await replyAdminSuccess(ctx, 'Тимчасовий графік за обраний період успішно видалено.');
+	    await replyAdminSuccess(ctx, tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_TEMPORARY_DELETED'));
 	    await renderScheduleSection(ctx, 'temporary', false);
   });
 
