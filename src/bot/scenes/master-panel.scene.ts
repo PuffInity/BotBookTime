@@ -1319,8 +1319,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
           await renderView(
             ctx,
-            formatMasterScheduleConfigureDayToInputText(weekday, fromTime),
-            createMasterScheduleConfigureDayInputKeyboard(weekday),
+            formatMasterScheduleConfigureDayToInputText(weekday, fromTime, state.language),
+            createMasterScheduleConfigureDayInputKeyboard(weekday, state.language),
             false,
           );
         } catch (error) {
@@ -1330,7 +1330,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
           await ctx.reply(
             `⚠️ ${err.message}\n\nВведіть коректний час у форматі HH:MM.`,
-            createMasterScheduleConfigureDayInputKeyboard(configureDayDraft.weekday ?? 1),
+            createMasterScheduleConfigureDayInputKeyboard(configureDayDraft.weekday ?? 1, state.language),
           );
         }
         return;
@@ -1371,15 +1371,16 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
               updated.isWorking,
               updated.openTime,
               updated.closeTime,
+              state.language,
             ),
-            createMasterScheduleSectionKeyboard(),
+            createMasterScheduleSectionKeyboard(state.language),
           );
 
           const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
           await renderView(
             ctx,
-            formatMasterScheduleConfigureDayText(schedule),
-            createMasterScheduleConfigureDayKeyboard(),
+            formatMasterScheduleConfigureDayText(schedule, state.language),
+            createMasterScheduleConfigureDayKeyboard(state.language),
             false,
           );
         } catch (error) {
@@ -1389,7 +1390,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
           await ctx.reply(
             `⚠️ ${err.message}\n\nВведіть коректний час у форматі HH:MM.`,
-            createMasterScheduleConfigureDayInputKeyboard(configureDayDraft.weekday ?? 1),
+            createMasterScheduleConfigureDayInputKeyboard(configureDayDraft.weekday ?? 1, state.language),
           );
         }
         return;
@@ -1410,8 +1411,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
           await renderView(
             ctx,
-            formatMasterScheduleSetDayOffConfirmText(offDateLabel),
-            createMasterScheduleSetDayOffConfirmKeyboard(),
+            formatMasterScheduleSetDayOffConfirmText(offDateLabel, state.language),
+            createMasterScheduleSetDayOffConfirmKeyboard(state.language),
             false,
           );
         } catch (error) {
@@ -1421,7 +1422,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
           await ctx.reply(
             `⚠️ ${err.message}\n\nСпробуйте ще раз у форматі ДД.ММ.РРРР (приклад: 12.03.2026).`,
-            createMasterScheduleSetDayOffInputKeyboard(),
+            createMasterScheduleSetDayOffInputKeyboard(state.language),
           );
         }
         return;
@@ -1446,8 +1447,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
           await renderView(
             ctx,
-            formatMasterScheduleVacationConfirmText(dateFromLabel, dateToLabel),
-            createMasterScheduleVacationConfirmKeyboard(),
+            formatMasterScheduleVacationConfirmText(dateFromLabel, dateToLabel, state.language),
+            createMasterScheduleVacationConfirmKeyboard(state.language),
             false,
           );
         } catch (error) {
@@ -1457,7 +1458,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
           await ctx.reply(
             `⚠️ ${err.message}\n\nСпробуйте ще раз у форматі ДД.ММ.РРРР - ДД.ММ.РРРР.`,
-            createMasterScheduleVacationInputKeyboard(),
+            createMasterScheduleVacationInputKeyboard(state.language),
           );
         }
         return;
@@ -1492,8 +1493,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
           await renderView(
             ctx,
-            formatMasterScheduleTemporaryDaysConfigText(dateFromLabel, dateToLabel, []),
-            createMasterScheduleTemporaryDaysConfigKeyboard([]),
+            formatMasterScheduleTemporaryDaysConfigText(dateFromLabel, dateToLabel, [], state.language),
+            createMasterScheduleTemporaryDaysConfigKeyboard([], state.language),
             false,
           );
         } catch (error) {
@@ -1503,7 +1504,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
           await ctx.reply(
             `⚠️ ${err.message}\n\nСпробуйте ще раз у форматі ДД.ММ.РРРР - ДД.ММ.РРРР.`,
-            createMasterScheduleTemporaryPeriodInputKeyboard(),
+            createMasterScheduleTemporaryPeriodInputKeyboard(state.language),
           );
         }
         return;
@@ -1530,8 +1531,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
           await renderView(
             ctx,
-            formatMasterScheduleTemporaryDayToInputText(weekday, fromTime),
-            createMasterScheduleTemporaryDayInputKeyboard(weekday),
+            formatMasterScheduleTemporaryDayToInputText(weekday, fromTime, state.language),
+            createMasterScheduleTemporaryDayInputKeyboard(weekday, state.language),
             false,
           );
         } catch (error) {
@@ -1541,7 +1542,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
           await ctx.reply(
             `⚠️ ${err.message}\n\nВведіть коректний час у форматі HH:MM.`,
-            createMasterScheduleTemporaryDayInputKeyboard(temporaryDraft.selectedWeekday ?? 1),
+            createMasterScheduleTemporaryDayInputKeyboard(temporaryDraft.selectedWeekday ?? 1, state.language),
           );
         }
         return;
@@ -1585,8 +1586,9 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
               temporaryDraft.dateFromLabel ?? '',
               temporaryDraft.dateToLabel ?? '',
               days,
+              state.language,
             ),
-            createMasterScheduleTemporaryDaysConfigKeyboard(days),
+            createMasterScheduleTemporaryDaysConfigKeyboard(days, state.language),
             false,
           );
         } catch (error) {
@@ -1596,7 +1598,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
           await ctx.reply(
             `⚠️ ${err.message}\n\nВведіть коректний час у форматі HH:MM.`,
-            createMasterScheduleTemporaryDayInputKeyboard(temporaryDraft.selectedWeekday ?? 1),
+            createMasterScheduleTemporaryDayInputKeyboard(temporaryDraft.selectedWeekday ?? 1, state.language),
           );
         }
         return;
@@ -2432,7 +2434,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     const schedule = await getMasterScheduleTranslated(state.access.masterId, 5, state.language);
-    await renderView(ctx, formatMasterScheduleText(schedule), createMasterScheduleKeyboard(), true);
+    await renderView(ctx, formatMasterScheduleText(schedule, state.language), createMasterScheduleKeyboard(state.language), true);
   });
 
   scene.action(MASTER_PANEL_ACTION.OPEN_STATS, async (ctx) => {
@@ -2505,8 +2507,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     const schedule = await getMasterScheduleTranslated(state.access.masterId, 10, state.language);
     await renderView(
       ctx,
-      formatMasterScheduleConfigureDayText(schedule),
-      createMasterScheduleConfigureDayKeyboard(),
+      formatMasterScheduleConfigureDayText(schedule, state.language),
+      createMasterScheduleConfigureDayKeyboard(state.language),
       true,
     );
   });
@@ -2534,8 +2536,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterScheduleConfigureDayFromInputText(weekday),
-      createMasterScheduleConfigureDayInputKeyboard(weekday),
+      formatMasterScheduleConfigureDayFromInputText(weekday, state.language),
+      createMasterScheduleConfigureDayInputKeyboard(weekday, state.language),
       true,
     );
   });
@@ -2570,15 +2572,16 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
         updated.isWorking,
         updated.openTime,
         updated.closeTime,
+        state.language,
       ),
-      createMasterScheduleSectionKeyboard(),
+      createMasterScheduleSectionKeyboard(state.language),
     );
 
     const schedule = await getMasterScheduleTranslated(state.access.masterId, 10, state.language);
     await renderView(
       ctx,
-      formatMasterScheduleConfigureDayText(schedule),
-      createMasterScheduleConfigureDayKeyboard(),
+      formatMasterScheduleConfigureDayText(schedule, state.language),
+      createMasterScheduleConfigureDayKeyboard(state.language),
       false,
     );
   });
@@ -2598,8 +2601,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterScheduleSetDayOffText(),
-      createMasterScheduleSetDayOffInputKeyboard(),
+      formatMasterScheduleSetDayOffText(state.language),
+      createMasterScheduleSetDayOffInputKeyboard(state.language),
       true,
     );
   });
@@ -2619,8 +2622,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
       await renderView(
         ctx,
-        formatMasterScheduleSetDayOffText(),
-        createMasterScheduleSetDayOffInputKeyboard(),
+        formatMasterScheduleSetDayOffText(state.language),
+        createMasterScheduleSetDayOffInputKeyboard(state.language),
         true,
       );
       return;
@@ -2646,7 +2649,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
         await ctx.reply(
           `⚠️ ${error.message}${hint}`,
-          createMasterScheduleSetDayOffInputKeyboard(),
+          createMasterScheduleSetDayOffInputKeyboard(state.language),
         );
         return;
       }
@@ -2659,10 +2662,10 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleTemporaryDraft(state);
     resetScheduleConfigureDayDraft(state);
 
-    await ctx.reply(formatMasterScheduleSetDayOffSuccessText(successDate), createMasterScheduleSectionKeyboard());
+    await ctx.reply(formatMasterScheduleSetDayOffSuccessText(successDate, state.language), createMasterScheduleSectionKeyboard(state.language));
 
     const schedule = await getMasterScheduleTranslated(access.masterId, 5, state.language);
-    await renderView(ctx, formatMasterScheduleText(schedule), createMasterScheduleKeyboard(), false);
+    await renderView(ctx, formatMasterScheduleText(schedule, state.language), createMasterScheduleKeyboard(state.language), false);
   });
 
   scene.action(MASTER_PANEL_ACTION.SCHEDULE_SET_DAY_OFF_CANCEL, async (ctx) => {
@@ -2682,7 +2685,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     const schedule = await getMasterScheduleTranslated(access.masterId, 5, state.language);
-    await renderView(ctx, formatMasterScheduleText(schedule), createMasterScheduleKeyboard(), true);
+    await renderView(ctx, formatMasterScheduleText(schedule, state.language), createMasterScheduleKeyboard(state.language), true);
   });
 
   scene.action(MASTER_PANEL_ACTION.SCHEDULE_LIST_DAYS_OFF, async (ctx) => {
@@ -2702,8 +2705,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     const schedule = await getMasterScheduleTranslated(state.access.masterId, 10, state.language);
     await renderView(
       ctx,
-      formatMasterScheduleDaysOffListText(schedule),
-      createMasterScheduleDaysOffListKeyboard(schedule),
+      formatMasterScheduleDaysOffListText(schedule, state.language),
+      createMasterScheduleDaysOffListKeyboard(schedule, state.language),
       true,
     );
   });
@@ -2735,8 +2738,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       resetScheduleDeleteDraft(state);
       await renderView(
         ctx,
-        formatMasterScheduleDaysOffListText(schedule),
-        createMasterScheduleDaysOffListKeyboard(schedule),
+        formatMasterScheduleDaysOffListText(schedule, state.language),
+        createMasterScheduleDaysOffListKeyboard(schedule, state.language),
         true,
       );
       return;
@@ -2752,9 +2755,10 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterScheduleDeleteDayOffConfirmText(target.offDate),
+      formatMasterScheduleDeleteDayOffConfirmText(target.offDate, state.language),
       createMasterScheduleDeleteConfirmKeyboard(
         makeMasterPanelScheduleDayOffDeleteConfirmAction(dayOffId),
+        state.language,
       ),
       true,
     );
@@ -2783,8 +2787,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       resetScheduleDeleteDraft(state);
       await renderView(
         ctx,
-        formatMasterScheduleDaysOffListText(schedule),
-        createMasterScheduleDaysOffListKeyboard(schedule),
+        formatMasterScheduleDaysOffListText(schedule, state.language),
+        createMasterScheduleDaysOffListKeyboard(schedule, state.language),
         true,
       );
       return;
@@ -2801,8 +2805,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
     await renderView(
       ctx,
-      formatMasterScheduleDaysOffListText(schedule),
-      createMasterScheduleDaysOffListKeyboard(schedule),
+      formatMasterScheduleDaysOffListText(schedule, state.language),
+      createMasterScheduleDaysOffListKeyboard(schedule, state.language),
       false,
     );
   });
@@ -2824,8 +2828,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     const schedule = await getMasterScheduleTranslated(state.access.masterId, 10, state.language);
     await renderView(
       ctx,
-      formatMasterScheduleVacationsText(schedule),
-      createMasterScheduleVacationsListKeyboard(schedule),
+      formatMasterScheduleVacationsText(schedule, state.language),
+      createMasterScheduleVacationsListKeyboard(schedule, state.language),
       true,
     );
   });
@@ -2857,8 +2861,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       resetScheduleDeleteDraft(state);
       await renderView(
         ctx,
-        formatMasterScheduleVacationsText(schedule),
-        createMasterScheduleVacationsListKeyboard(schedule),
+        formatMasterScheduleVacationsText(schedule, state.language),
+        createMasterScheduleVacationsListKeyboard(schedule, state.language),
         true,
       );
       return;
@@ -2874,9 +2878,10 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterScheduleDeleteVacationConfirmText(target.dateFrom, target.dateTo),
+      formatMasterScheduleDeleteVacationConfirmText(target.dateFrom, target.dateTo, state.language),
       createMasterScheduleDeleteConfirmKeyboard(
         makeMasterPanelScheduleVacationDeleteConfirmAction(vacationId),
+        state.language,
       ),
       true,
     );
@@ -2905,8 +2910,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       resetScheduleDeleteDraft(state);
       await renderView(
         ctx,
-        formatMasterScheduleVacationsText(schedule),
-        createMasterScheduleVacationsListKeyboard(schedule),
+        formatMasterScheduleVacationsText(schedule, state.language),
+        createMasterScheduleVacationsListKeyboard(schedule, state.language),
         true,
       );
       return;
@@ -2923,8 +2928,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
     await renderView(
       ctx,
-      formatMasterScheduleVacationsText(schedule),
-      createMasterScheduleVacationsListKeyboard(schedule),
+      formatMasterScheduleVacationsText(schedule, state.language),
+      createMasterScheduleVacationsListKeyboard(schedule, state.language),
       false,
     );
   });
@@ -2944,8 +2949,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterScheduleVacationSetText(),
-      createMasterScheduleVacationInputKeyboard(),
+      formatMasterScheduleVacationSetText(state.language),
+      createMasterScheduleVacationInputKeyboard(state.language),
       true,
     );
   });
@@ -2975,8 +2980,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
       await renderView(
         ctx,
-        formatMasterScheduleVacationSetText(),
-        createMasterScheduleVacationInputKeyboard(),
+        formatMasterScheduleVacationSetText(state.language),
+        createMasterScheduleVacationInputKeyboard(state.language),
         true,
       );
       return;
@@ -3001,7 +3006,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
         await ctx.reply(
           `⚠️ ${error.message}\n\nСпробуйте ще раз у форматі ДД.ММ.РРРР - ДД.ММ.РРРР.`,
-          createMasterScheduleVacationInputKeyboard(),
+          createMasterScheduleVacationInputKeyboard(state.language),
         );
         return;
       }
@@ -3015,15 +3020,15 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleConfigureDayDraft(state);
 
     await ctx.reply(
-      formatMasterScheduleVacationSuccessText(successFrom, successTo),
-      createMasterScheduleSectionKeyboard(),
+      formatMasterScheduleVacationSuccessText(successFrom, successTo, state.language),
+      createMasterScheduleSectionKeyboard(state.language),
     );
 
     const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
     await renderView(
       ctx,
-      formatMasterScheduleVacationsText(schedule),
-      createMasterScheduleVacationsListKeyboard(schedule),
+      formatMasterScheduleVacationsText(schedule, state.language),
+      createMasterScheduleVacationsListKeyboard(schedule, state.language),
       false,
     );
   });
@@ -3047,8 +3052,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
     await renderView(
       ctx,
-      formatMasterScheduleVacationsText(schedule),
-      createMasterScheduleVacationsListKeyboard(schedule),
+      formatMasterScheduleVacationsText(schedule, state.language),
+      createMasterScheduleVacationsListKeyboard(schedule, state.language),
       true,
     );
   });
@@ -3070,8 +3075,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     const schedule = await getMasterScheduleTranslated(state.access.masterId, 10, state.language);
     await renderView(
       ctx,
-      formatMasterScheduleTemporaryHoursText(schedule),
-      createMasterScheduleTemporaryHoursListKeyboard(schedule),
+      formatMasterScheduleTemporaryHoursText(schedule, state.language),
+      createMasterScheduleTemporaryHoursListKeyboard(schedule, state.language),
       true,
     );
   });
@@ -3106,12 +3111,13 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterScheduleDeleteTemporaryConfirmText(parseSqlDate(dateFrom), parseSqlDate(dateTo)),
+      formatMasterScheduleDeleteTemporaryConfirmText(parseSqlDate(dateFrom), parseSqlDate(dateTo), state.language),
       createMasterScheduleDeleteConfirmKeyboard(
         makeMasterPanelScheduleTemporaryDeleteConfirmAction(
           formatDateToCode(parseSqlDate(dateFrom)),
           formatDateToCode(parseSqlDate(dateTo)),
         ),
+        state.language,
       ),
       true,
     );
@@ -3144,8 +3150,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       resetScheduleDeleteDraft(state);
       await renderView(
         ctx,
-        formatMasterScheduleTemporaryHoursText(schedule),
-        createMasterScheduleTemporaryHoursListKeyboard(schedule),
+        formatMasterScheduleTemporaryHoursText(schedule, state.language),
+        createMasterScheduleTemporaryHoursListKeyboard(schedule, state.language),
         true,
       );
       return;
@@ -3163,8 +3169,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
     await renderView(
       ctx,
-      formatMasterScheduleTemporaryHoursText(schedule),
-      createMasterScheduleTemporaryHoursListKeyboard(schedule),
+      formatMasterScheduleTemporaryHoursText(schedule, state.language),
+      createMasterScheduleTemporaryHoursListKeyboard(schedule, state.language),
       false,
     );
   });
@@ -3186,8 +3192,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     if (draftType === 'day_off') {
       await renderView(
         ctx,
-        formatMasterScheduleDaysOffListText(schedule),
-        createMasterScheduleDaysOffListKeyboard(schedule),
+        formatMasterScheduleDaysOffListText(schedule, state.language),
+        createMasterScheduleDaysOffListKeyboard(schedule, state.language),
         true,
       );
       return;
@@ -3196,8 +3202,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     if (draftType === 'vacation') {
       await renderView(
         ctx,
-        formatMasterScheduleVacationsText(schedule),
-        createMasterScheduleVacationsListKeyboard(schedule),
+        formatMasterScheduleVacationsText(schedule, state.language),
+        createMasterScheduleVacationsListKeyboard(schedule, state.language),
         true,
       );
       return;
@@ -3206,14 +3212,14 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     if (draftType === 'temporary_period') {
       await renderView(
         ctx,
-        formatMasterScheduleTemporaryHoursText(schedule),
-        createMasterScheduleTemporaryHoursListKeyboard(schedule),
+        formatMasterScheduleTemporaryHoursText(schedule, state.language),
+        createMasterScheduleTemporaryHoursListKeyboard(schedule, state.language),
         true,
       );
       return;
     }
 
-    await renderView(ctx, formatMasterScheduleText(schedule), createMasterScheduleKeyboard(), true);
+    await renderView(ctx, formatMasterScheduleText(schedule, state.language), createMasterScheduleKeyboard(state.language), true);
   });
 
   scene.action(MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CREATE, async (ctx) => {
@@ -3243,8 +3249,9 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
           draft.dateFromLabel,
           draft.dateToLabel,
           draft.days,
+          state.language,
         ),
-        createMasterScheduleTemporaryDaysConfigKeyboard(draft.days),
+        createMasterScheduleTemporaryDaysConfigKeyboard(draft.days, state.language),
         true,
       );
       return;
@@ -3263,8 +3270,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterScheduleTemporarySetPeriodText(),
-      createMasterScheduleTemporaryPeriodInputKeyboard(),
+      formatMasterScheduleTemporarySetPeriodText(state.language),
+      createMasterScheduleTemporaryPeriodInputKeyboard(state.language),
       true,
     );
   });
@@ -3284,8 +3291,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     ) {
       await renderView(
         ctx,
-        formatMasterScheduleTemporarySetPeriodText(),
-        createMasterScheduleTemporaryPeriodInputKeyboard(),
+        formatMasterScheduleTemporarySetPeriodText(state.language),
+        createMasterScheduleTemporaryPeriodInputKeyboard(state.language),
         true,
       );
       return;
@@ -3301,8 +3308,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterScheduleTemporaryDayFromInputText(weekday),
-      createMasterScheduleTemporaryDayInputKeyboard(weekday),
+      formatMasterScheduleTemporaryDayFromInputText(weekday, state.language),
+      createMasterScheduleTemporaryDayInputKeyboard(weekday, state.language),
       true,
     );
   });
@@ -3322,8 +3329,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     ) {
       await renderView(
         ctx,
-        formatMasterScheduleTemporarySetPeriodText(),
-        createMasterScheduleTemporaryPeriodInputKeyboard(),
+        formatMasterScheduleTemporarySetPeriodText(state.language),
+        createMasterScheduleTemporaryPeriodInputKeyboard(state.language),
         true,
       );
       return;
@@ -3347,8 +3354,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterScheduleTemporaryDaysConfigText(draft.dateFromLabel, draft.dateToLabel, days),
-      createMasterScheduleTemporaryDaysConfigKeyboard(days),
+      formatMasterScheduleTemporaryDaysConfigText(draft.dateFromLabel, draft.dateToLabel, days, state.language),
+      createMasterScheduleTemporaryDaysConfigKeyboard(days, state.language),
       true,
     );
   });
@@ -3374,7 +3381,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       if (draft.days.length < 7) {
         await ctx.reply(
           `⚠️ Потрібно налаштувати всі 7 днів тижня. Зараз налаштовано ${draft.days.length}/7.`,
-          createMasterScheduleTemporaryDaysConfigKeyboard(draft.days),
+          createMasterScheduleTemporaryDaysConfigKeyboard(draft.days, state.language),
         );
         return;
       }
@@ -3392,8 +3399,9 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
           draft.dateFromLabel,
           draft.dateToLabel,
           draft.days,
+          state.language,
         ),
-        createMasterScheduleTemporaryConfirmKeyboard(),
+        createMasterScheduleTemporaryConfirmKeyboard(state.language),
         true,
       );
       return;
@@ -3421,8 +3429,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
       await renderView(
         ctx,
-        formatMasterScheduleTemporarySetPeriodText(),
-        createMasterScheduleTemporaryPeriodInputKeyboard(),
+        formatMasterScheduleTemporarySetPeriodText(state.language),
+        createMasterScheduleTemporaryPeriodInputKeyboard(state.language),
         true,
       );
       return;
@@ -3440,7 +3448,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       if (error instanceof ValidationError) {
         await ctx.reply(
           `⚠️ ${error.message}\n\nСкоригуйте налаштування і підтвердіть ще раз.`,
-          createMasterScheduleTemporaryDaysConfigKeyboard(draft.days),
+          createMasterScheduleTemporaryDaysConfigKeyboard(draft.days, state.language),
         );
         state.scheduleTemporaryDraft = {
           ...draft,
@@ -3460,15 +3468,15 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleConfigureDayDraft(state);
 
     await ctx.reply(
-      formatMasterScheduleTemporarySuccessText(successFrom, successTo, successDays),
-      createMasterScheduleSectionKeyboard(),
+      formatMasterScheduleTemporarySuccessText(successFrom, successTo, successDays, state.language),
+      createMasterScheduleSectionKeyboard(state.language),
     );
 
     const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
     await renderView(
       ctx,
-      formatMasterScheduleTemporaryHoursText(schedule),
-      createMasterScheduleTemporaryHoursListKeyboard(schedule),
+      formatMasterScheduleTemporaryHoursText(schedule, state.language),
+      createMasterScheduleTemporaryHoursListKeyboard(schedule, state.language),
       false,
     );
   });
@@ -3492,8 +3500,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
     await renderView(
       ctx,
-      formatMasterScheduleTemporaryHoursText(schedule),
-      createMasterScheduleTemporaryHoursListKeyboard(schedule),
+      formatMasterScheduleTemporaryHoursText(schedule, state.language),
+      createMasterScheduleTemporaryHoursListKeyboard(schedule, state.language),
       true,
     );
   });

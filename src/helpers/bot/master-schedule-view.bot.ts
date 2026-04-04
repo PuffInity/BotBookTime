@@ -7,7 +7,6 @@ import type {
 } from '../../types/db-helpers/db-master-schedule.types.js';
 import {
   MASTER_PANEL_ACTION,
-  MASTER_PANEL_BUTTON_TEXT,
   makeMasterPanelScheduleDayOffDeleteRequestAction,
   makeMasterPanelScheduleConfigureDayOffAction,
   makeMasterPanelScheduleConfigureDayWeekdayAction,
@@ -16,24 +15,59 @@ import {
   makeMasterPanelTemporaryHoursDayAction,
   makeMasterPanelTemporaryHoursDayOffAction,
 } from '../../types/bot-master-panel.types.js';
+import { tBot, tBotTemplate } from './i18n.bot.js';
+import type { BotUiLanguage } from './i18n.bot.js';
 
 /**
  * @file master-schedule-view.bot.ts
  * @summary UI/helper-и для екрану "Мій розклад" у панелі майстра.
  */
 
-const WEEKDAY_LABELS: Record<number, string> = {
-  1: 'Пн',
-  2: 'Вт',
-  3: 'Ср',
-  4: 'Чт',
-  5: 'Пт',
-  6: 'Сб',
-  7: 'Нд',
+const WEEKDAY_LABELS: Record<BotUiLanguage, Record<number, string>> = {
+  uk: {
+    1: 'Пн',
+    2: 'Вт',
+    3: 'Ср',
+    4: 'Чт',
+    5: 'Пт',
+    6: 'Сб',
+    7: 'Нд',
+  },
+  en: {
+    1: 'Mon',
+    2: 'Tue',
+    3: 'Wed',
+    4: 'Thu',
+    5: 'Fri',
+    6: 'Sat',
+    7: 'Sun',
+  },
+  cs: {
+    1: 'Po',
+    2: 'Út',
+    3: 'St',
+    4: 'Čt',
+    5: 'Pá',
+    6: 'So',
+    7: 'Ne',
+  },
 };
 
-function dateLabel(date: Date): string {
-  return date.toLocaleDateString('uk-UA');
+const DATE_LOCALE_BY_LANGUAGE: Record<BotUiLanguage, string> = {
+  uk: 'uk-UA',
+  en: 'en-US',
+  cs: 'cs-CZ',
+};
+
+function getWeekdayLabel(weekday: number, language: BotUiLanguage): string {
+  return (
+    WEEKDAY_LABELS[language]?.[weekday] ??
+    tBotTemplate(language, 'MASTERS_WEEKDAY_FALLBACK', { weekday })
+  );
+}
+
+function dateLabel(date: Date, language: BotUiLanguage): string {
+  return date.toLocaleDateString(DATE_LOCALE_BY_LANGUAGE[language]);
 }
 
 function dateCode(date: Date): string {
@@ -43,24 +77,24 @@ function dateCode(date: Date): string {
   return `${year}${month}${day}`;
 }
 
-function timeRangeLabel(item: MasterScheduleWeeklyItem): string {
+function timeRangeLabel(item: MasterScheduleWeeklyItem, language: BotUiLanguage): string {
   if (!item.isWorking || !item.openTime || !item.closeTime) {
-    return '🚫 вихідний';
+    return `🚫 ${tBot(language, 'MASTER_PANEL_SCHEDULE_DAY_OFF')}`;
   }
 
   return `${item.openTime.slice(0, 5)}–${item.closeTime.slice(0, 5)}`;
 }
 
-function tempTimeRangeLabel(item: MasterScheduleTemporaryHoursItem): string {
+function tempTimeRangeLabel(item: MasterScheduleTemporaryHoursItem, language: BotUiLanguage): string {
   if (!item.isWorking || !item.openTime || !item.closeTime) {
-    return '🚫 вихідний';
+    return `🚫 ${tBot(language, 'MASTER_PANEL_SCHEDULE_DAY_OFF')}`;
   }
   return `${item.openTime.slice(0, 5)}–${item.closeTime.slice(0, 5)}`;
 }
 
-function formatWeeklyBlock(data: MasterPanelScheduleData): string {
+function formatWeeklyBlock(data: MasterPanelScheduleData, language: BotUiLanguage): string {
   if (data.weeklyHours.length === 0) {
-    return '⚠️ Базовий тижневий графік ще не налаштовано.';
+    return tBot(language, 'MASTER_PANEL_SCHEDULE_WEEKLY_NOT_CONFIGURED');
   }
 
   const mapped = new Map(data.weeklyHours.map((item) => [item.weekday, item]));
@@ -68,96 +102,96 @@ function formatWeeklyBlock(data: MasterPanelScheduleData): string {
 
   for (let weekday = 1; weekday <= 7; weekday += 1) {
     const current = mapped.get(weekday);
-    const label = WEEKDAY_LABELS[weekday];
+    const label = getWeekdayLabel(weekday, language);
 
     if (!current) {
-      lines.push(`${label}: не налаштовано`);
+      lines.push(`${label}: ${tBot(language, 'MASTER_PANEL_SCHEDULE_DAY_NOT_CONFIGURED')}`);
       continue;
     }
 
-    lines.push(`${label}: ${timeRangeLabel(current)}`);
+    lines.push(`${label}: ${timeRangeLabel(current, language)}`);
   }
 
   return lines.join('\n');
 }
 
-function formatTemporaryBlock(data: MasterPanelScheduleData): string {
+function formatTemporaryBlock(data: MasterPanelScheduleData, language: BotUiLanguage): string {
   if (data.upcomingTemporaryHours.length === 0) {
-    return 'немає';
+    return tBot(language, 'MASTER_PANEL_SCHEDULE_LIST_EMPTY');
   }
 
   return data.upcomingTemporaryHours
     .slice(0, 3)
     .map((item, index) => {
-      const day = WEEKDAY_LABELS[item.weekday] ?? `День ${item.weekday}`;
+      const day = getWeekdayLabel(item.weekday, language);
       const note = item.note?.trim() ? ` • ${item.note.trim()}` : '';
       return (
-        `${index + 1}️⃣ ${dateLabel(item.dateFrom)}–${dateLabel(item.dateTo)} (${day})\n` +
-        `${tempTimeRangeLabel(item)}${note}`
+        `${index + 1}️⃣ ${dateLabel(item.dateFrom, language)}–${dateLabel(item.dateTo, language)} (${day})\n` +
+        `${tempTimeRangeLabel(item, language)}${note}`
       );
     })
     .join('\n\n');
 }
 
-function formatDaysOffBlock(data: MasterPanelScheduleData): string {
+function formatDaysOffBlock(data: MasterPanelScheduleData, language: BotUiLanguage): string {
   if (data.upcomingDaysOff.length === 0) {
-    return 'немає';
+    return tBot(language, 'MASTER_PANEL_SCHEDULE_LIST_EMPTY');
   }
 
   return data.upcomingDaysOff
     .slice(0, 3)
     .map((item, index) => {
       const reason = item.reason?.trim() ? ` • ${item.reason.trim()}` : '';
-      return `${index + 1}️⃣ ${dateLabel(item.offDate)}${reason}`;
+      return `${index + 1}️⃣ ${dateLabel(item.offDate, language)}${reason}`;
     })
     .join('\n');
 }
 
-function formatVacationsBlock(data: MasterPanelScheduleData): string {
+function formatVacationsBlock(data: MasterPanelScheduleData, language: BotUiLanguage): string {
   if (data.upcomingVacations.length === 0) {
-    return 'немає';
+    return tBot(language, 'MASTER_PANEL_SCHEDULE_LIST_EMPTY');
   }
 
   return data.upcomingVacations
     .slice(0, 3)
     .map((item, index) => {
       const reason = item.reason?.trim() ? ` • ${item.reason.trim()}` : '';
-      return `${index + 1}️⃣ ${dateLabel(item.dateFrom)}–${dateLabel(item.dateTo)}${reason}`;
+      return `${index + 1}️⃣ ${dateLabel(item.dateFrom, language)}–${dateLabel(item.dateTo, language)}${reason}`;
     })
     .join('\n');
 }
 
-function formatDaysOffList(data: MasterPanelScheduleData): string {
+function formatDaysOffList(data: MasterPanelScheduleData, language: BotUiLanguage): string {
   if (data.upcomingDaysOff.length === 0) {
-    return '📭 Найближчих вихідних дат не знайдено.';
+    return tBot(language, 'MASTER_PANEL_SCHEDULE_DAYS_OFF_LIST_EMPTY');
   }
 
   return data.upcomingDaysOff
     .slice(0, 10)
     .map((item, index) => {
-      const reason = item.reason?.trim() ? `\n📝 Причина: ${item.reason.trim()}` : '';
-      return `${index + 1}️⃣ ${dateLabel(item.offDate)}\n🚫 Вихідний день${reason}`;
+      const reason = item.reason?.trim() ? `\n📝 ${item.reason.trim()}` : '';
+      return `${index + 1}️⃣ ${dateLabel(item.offDate, language)}\n🚫 ${tBot(language, 'MASTER_PANEL_SCHEDULE_DAY_OFF')}${reason}`;
     })
     .join('\n\n');
 }
 
-function formatVacationsList(data: MasterPanelScheduleData): string {
+function formatVacationsList(data: MasterPanelScheduleData, language: BotUiLanguage): string {
   if (data.upcomingVacations.length === 0) {
-    return '📭 Найближчих періодів відпустки не знайдено.';
+    return tBot(language, 'MASTER_PANEL_SCHEDULE_VACATION_LIST_EMPTY');
   }
 
   return data.upcomingVacations
     .slice(0, 10)
     .map((item, index) => {
-      const reason = item.reason?.trim() ? `\n📝 Причина: ${item.reason.trim()}` : '';
-      return `${index + 1}️⃣ ${dateLabel(item.dateFrom)}–${dateLabel(item.dateTo)}${reason}`;
+      const reason = item.reason?.trim() ? `\n📝 ${item.reason.trim()}` : '';
+      return `${index + 1}️⃣ ${dateLabel(item.dateFrom, language)}–${dateLabel(item.dateTo, language)}${reason}`;
     })
     .join('\n\n');
 }
 
-function formatTemporaryHoursList(data: MasterPanelScheduleData): string {
+function formatTemporaryHoursList(data: MasterPanelScheduleData, language: BotUiLanguage): string {
   if (data.upcomingTemporaryHours.length === 0) {
-    return '📭 Тимчасових змін графіка не знайдено.';
+    return tBot(language, 'MASTER_PANEL_SCHEDULE_TEMPORARY_LIST_EMPTY');
   }
 
   const periodMap = new Map<string, MasterScheduleTemporaryHoursItem[]>();
@@ -178,12 +212,12 @@ function formatTemporaryHoursList(data: MasterPanelScheduleData): string {
       const first = items[0];
       const daysText = items
         .map((item) => {
-          const day = WEEKDAY_LABELS[item.weekday] ?? `День ${item.weekday}`;
-          return `${day}: ${tempTimeRangeLabel(item)}`;
+          const day = getWeekdayLabel(item.weekday, language);
+          return `${day}: ${tempTimeRangeLabel(item, language)}`;
         })
         .join('\n');
       return (
-        `${index + 1}️⃣ ${dateLabel(first.dateFrom)}–${dateLabel(first.dateTo)}\n` +
+        `${index + 1}️⃣ ${dateLabel(first.dateFrom, language)}–${dateLabel(first.dateTo, language)}\n` +
         `${daysText}`
       );
     })
@@ -221,20 +255,21 @@ function extractTemporaryPeriods(data: MasterPanelScheduleData): MasterTemporary
  */
 export function createMasterScheduleDaysOffListKeyboard(
   data: MasterPanelScheduleData,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const rows = data.upcomingDaysOff
     .slice(0, 10)
     .map((item, index) => [
       Markup.button.callback(
-        `🗑 Видалити ${index + 1}️⃣`,
+        tBotTemplate(language, 'MASTER_PANEL_SCHEDULE_BTN_DELETE_BY_INDEX', { index: index + 1 }),
         makeMasterPanelScheduleDayOffDeleteRequestAction(item.id),
       ),
     ]);
 
   return Markup.inlineKeyboard([
     ...rows,
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_SCHEDULE'), MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_PANEL'), MASTER_PANEL_ACTION.BACK_TO_PANEL)],
   ]);
 }
 
@@ -243,21 +278,22 @@ export function createMasterScheduleDaysOffListKeyboard(
  */
 export function createMasterScheduleVacationsListKeyboard(
   data: MasterPanelScheduleData,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const rows = data.upcomingVacations
     .slice(0, 10)
     .map((item, index) => [
       Markup.button.callback(
-        `🗑 Видалити ${index + 1}️⃣`,
+        tBotTemplate(language, 'MASTER_PANEL_SCHEDULE_BTN_DELETE_BY_INDEX', { index: index + 1 }),
         makeMasterPanelScheduleVacationDeleteRequestAction(item.id),
       ),
     ]);
 
   return Markup.inlineKeyboard([
-    [Markup.button.callback('➕ Встановити період відпустки', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS_CREATE)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_SET_VACATION_PERIOD'), MASTER_PANEL_ACTION.SCHEDULE_VACATIONS_CREATE)],
     ...rows,
-    [Markup.button.callback('🔄 Оновити список', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_REFRESH_LIST'), MASTER_PANEL_ACTION.SCHEDULE_VACATIONS)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_SCHEDULE'), MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
   ]);
 }
 
@@ -266,138 +302,151 @@ export function createMasterScheduleVacationsListKeyboard(
  */
 export function createMasterScheduleTemporaryHoursListKeyboard(
   data: MasterPanelScheduleData,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const periods = extractTemporaryPeriods(data).slice(0, 10);
   const rows = periods.map((period, index) => [
     Markup.button.callback(
-      `🗑 Видалити період ${index + 1}️⃣`,
+      tBotTemplate(language, 'MASTER_PANEL_SCHEDULE_BTN_DELETE_PERIOD_BY_INDEX', { index: index + 1 }),
       makeMasterPanelScheduleTemporaryDeleteRequestAction(period.dateFromCode, period.dateToCode),
     ),
   ]);
 
   return periods.length > 0
     ? Markup.inlineKeyboard([
-        [Markup.button.callback('➕ Встановити тимчасовий графік', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CREATE)],
+        [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_SET_TEMPORARY_PERIOD'), MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CREATE)],
         ...rows,
-        [Markup.button.callback('🔄 Оновити список', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS)],
-        [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
+        [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_REFRESH_LIST'), MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS)],
+        [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_SCHEDULE'), MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
       ])
     : Markup.inlineKeyboard([
-        [Markup.button.callback('➕ Встановити тимчасовий графік', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CREATE)],
-        [Markup.button.callback('🔄 Оновити список', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS)],
-        [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
+        [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_SET_TEMPORARY_PERIOD'), MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CREATE)],
+        [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_REFRESH_LIST'), MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS)],
+        [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_SCHEDULE'), MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
       ]);
 }
 
 /**
  * @summary Формує текст екрану "Мій розклад".
  */
-export function formatMasterScheduleText(data: MasterPanelScheduleData): string {
+export function formatMasterScheduleText(
+  data: MasterPanelScheduleData,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '🕒 Мій розклад\n' +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    '📅 Поточний тижневий графік:\n' +
-    `${formatWeeklyBlock(data)}\n\n` +
-    '📌 Тимчасові зміни графіку:\n' +
-    `${formatTemporaryBlock(data)}\n\n` +
-    '🏝 Найближчі вихідні:\n' +
-    `${formatDaysOffBlock(data)}\n\n` +
-    '🏖 Найближчі відпустки:\n' +
-    `${formatVacationsBlock(data)}\n\n` +
-    'Оберіть дію кнопками нижче.'
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_SECTION_WEEKLY')}\n` +
+    `${formatWeeklyBlock(data, language)}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_SECTION_TEMPORARY')}\n` +
+    `${formatTemporaryBlock(data, language)}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_SECTION_DAYS_OFF')}\n` +
+    `${formatDaysOffBlock(data, language)}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_SECTION_VACATIONS')}\n` +
+    `${formatVacationsBlock(data, language)}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_ACTION_PROMPT')}`
   );
 }
 
 /**
  * @summary Клавіатура екрану "Мій розклад".
  */
-export function createMasterScheduleKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterScheduleKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        MASTER_PANEL_BUTTON_TEXT.SCHEDULE_CONFIGURE_DAY,
+        tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_CONFIGURE_DAY'),
         MASTER_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY,
       ),
     ],
     [
       Markup.button.callback(
-        MASTER_PANEL_BUTTON_TEXT.SCHEDULE_SET_DAY_OFF,
+        tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_SET_DAY_OFF'),
         MASTER_PANEL_ACTION.SCHEDULE_SET_DAY_OFF,
       ),
       Markup.button.callback(
-        MASTER_PANEL_BUTTON_TEXT.SCHEDULE_LIST_DAYS_OFF,
+        tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_LIST_DAYS_OFF'),
         MASTER_PANEL_ACTION.SCHEDULE_LIST_DAYS_OFF,
       ),
     ],
     [
-      Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_VACATIONS, MASTER_PANEL_ACTION.SCHEDULE_VACATIONS),
+      Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_VACATIONS'), MASTER_PANEL_ACTION.SCHEDULE_VACATIONS),
       Markup.button.callback(
-        MASTER_PANEL_BUTTON_TEXT.SCHEDULE_TEMPORARY_HOURS,
+        tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_TEMPORARY_HOURS'),
         MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS,
       ),
     ],
-    [Markup.button.callback('🔄 Оновити розклад', MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_REFRESH'), MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_PANEL'), MASTER_PANEL_ACTION.BACK_TO_PANEL)],
   ]);
 }
 
 /**
  * @summary Текст екрану налаштування робочого дня.
  */
-export function formatMasterScheduleConfigureDayText(data: MasterPanelScheduleData): string {
+export function formatMasterScheduleConfigureDayText(
+  data: MasterPanelScheduleData,
+  language: BotUiLanguage = 'uk',
+): string {
   const mapped = new Map(data.weeklyHours.map((item) => [item.weekday, item]));
   const lines: string[] = [];
 
   for (let weekday = 1; weekday <= 7; weekday += 1) {
-    const label = WEEKDAY_LABELS[weekday];
+    const label = getWeekdayLabel(weekday, language);
     const item = mapped.get(weekday);
     if (!item) {
-      lines.push(`${label}: не налаштовано`);
+      lines.push(`${label}: ${tBot(language, 'MASTER_PANEL_SCHEDULE_DAY_NOT_CONFIGURED')}`);
       continue;
     }
-    lines.push(`${label}: ${timeRangeLabel(item)}`);
+    lines.push(`${label}: ${timeRangeLabel(item, language)}`);
   }
 
   return (
-    '👩‍🎨 Налаштування робочого дня\n' +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_CONFIGURE_DAY_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
     `${lines.join('\n')}\n\n` +
-    'Оберіть день тижня кнопкою нижче.'
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_CONFIGURE_DAY_SELECT_WEEKDAY')}`
   );
 }
 
 /**
  * @summary Клавіатура екрану налаштування робочого дня.
  */
-export function createMasterScheduleConfigureDayKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterScheduleConfigureDayKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
-      Markup.button.callback('Пн', makeMasterPanelScheduleConfigureDayWeekdayAction(1)),
-      Markup.button.callback('Вт', makeMasterPanelScheduleConfigureDayWeekdayAction(2)),
-      Markup.button.callback('Ср', makeMasterPanelScheduleConfigureDayWeekdayAction(3)),
+      Markup.button.callback(getWeekdayLabel(1, language), makeMasterPanelScheduleConfigureDayWeekdayAction(1)),
+      Markup.button.callback(getWeekdayLabel(2, language), makeMasterPanelScheduleConfigureDayWeekdayAction(2)),
+      Markup.button.callback(getWeekdayLabel(3, language), makeMasterPanelScheduleConfigureDayWeekdayAction(3)),
     ],
     [
-      Markup.button.callback('Чт', makeMasterPanelScheduleConfigureDayWeekdayAction(4)),
-      Markup.button.callback('Пт', makeMasterPanelScheduleConfigureDayWeekdayAction(5)),
-      Markup.button.callback('Сб', makeMasterPanelScheduleConfigureDayWeekdayAction(6)),
+      Markup.button.callback(getWeekdayLabel(4, language), makeMasterPanelScheduleConfigureDayWeekdayAction(4)),
+      Markup.button.callback(getWeekdayLabel(5, language), makeMasterPanelScheduleConfigureDayWeekdayAction(5)),
+      Markup.button.callback(getWeekdayLabel(6, language), makeMasterPanelScheduleConfigureDayWeekdayAction(6)),
     ],
-    [Markup.button.callback('Нд', makeMasterPanelScheduleConfigureDayWeekdayAction(7))],
-    [Markup.button.callback('🔄 Оновити', MASTER_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
+    [Markup.button.callback(getWeekdayLabel(7, language), makeMasterPanelScheduleConfigureDayWeekdayAction(7))],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_REFRESH_SHORT'), MASTER_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_SCHEDULE'), MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
   ]);
 }
 
 /**
  * @summary Текст кроку вводу часу початку для робочого дня.
  */
-export function formatMasterScheduleConfigureDayFromInputText(weekday: number): string {
-  const label = WEEKDAY_LABELS[weekday] ?? `День ${weekday}`;
+export function formatMasterScheduleConfigureDayFromInputText(
+  weekday: number,
+  language: BotUiLanguage = 'uk',
+): string {
+  const label = getWeekdayLabel(weekday, language);
   return (
-    '🕒 Налаштування робочого дня\n' +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_CONFIGURE_DAY_INPUT_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `📅 День: ${label}\n\n` +
-    'Введіть час початку у форматі HH:MM\n' +
-    'Приклад: 8:00'
+    `📅 ${label}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_CONFIGURE_DAY_INPUT_FROM')}`
   );
 }
 
@@ -407,15 +456,15 @@ export function formatMasterScheduleConfigureDayFromInputText(weekday: number): 
 export function formatMasterScheduleConfigureDayToInputText(
   weekday: number,
   fromTime: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  const label = WEEKDAY_LABELS[weekday] ?? `День ${weekday}`;
+  const label = getWeekdayLabel(weekday, language);
   return (
-    '🕒 Налаштування робочого дня\n' +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_CONFIGURE_DAY_INPUT_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `📅 День: ${label}\n` +
-    `⏱ Від: ${fromTime}\n\n` +
-    'Введіть час завершення у форматі HH:MM\n' +
-    'Приклад: 17:00'
+    `📅 ${label}\n` +
+    `⏱ ${fromTime}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_CONFIGURE_DAY_INPUT_TO')}`
   );
 }
 
@@ -427,11 +476,15 @@ export function formatMasterScheduleConfigureDaySuccessText(
   isWorking: boolean,
   openTime: string | null,
   closeTime: string | null,
+  language: BotUiLanguage = 'uk',
 ): string {
-  const label = WEEKDAY_LABELS[weekday] ?? `День ${weekday}`;
-  const range = !isWorking || !openTime || !closeTime ? '🚫 вихідний' : `${openTime} - ${closeTime}`;
+  const label = getWeekdayLabel(weekday, language);
+  const range =
+    !isWorking || !openTime || !closeTime
+      ? `🚫 ${tBot(language, 'MASTER_PANEL_SCHEDULE_DAY_OFF')}`
+      : `${openTime} - ${closeTime}`;
   return (
-    '✅ Робочий день оновлено\n' +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_CONFIGURE_DAY_SUCCESS_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
     `📅 ${label}: ${range}`
   );
@@ -442,106 +495,120 @@ export function formatMasterScheduleConfigureDaySuccessText(
  */
 export function createMasterScheduleConfigureDayInputKeyboard(
   weekday: number,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('🚫 Зробити вихідним', makeMasterPanelScheduleConfigureDayOffAction(weekday))],
-    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_MAKE_DAY_OFF'), makeMasterPanelScheduleConfigureDayOffAction(weekday))],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_CANCEL_ACTION'), MASTER_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY)],
   ]);
 }
 
 /**
  * @summary Текст екрану встановлення вихідного дня (інфо-крок).
  */
-export function formatMasterScheduleSetDayOffText(): string {
+export function formatMasterScheduleSetDayOffText(language: BotUiLanguage = 'uk'): string {
   return (
-    '📅 Встановити вихідний день\n' +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_SET_DAY_OFF_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Оберіть дату, на яку потрібно встановити вихідний день.\n\n' +
-    'У цей день нові записи для клієнтів будуть недоступні.\n\n' +
-    'Якщо на дату вже є активні записи, система попросить спочатку перенести або скасувати їх.\n\n' +
-    '⸻\n\n' +
-    'Формат дати: ДД.ММ.РРРР\n' +
-    'Приклад: 12.03.2026'
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_SET_DAY_OFF_GUIDE')}`
   );
 }
 
 /**
  * @summary Текст списку найближчих вихідних днів.
  */
-export function formatMasterScheduleDaysOffListText(data: MasterPanelScheduleData): string {
+export function formatMasterScheduleDaysOffListText(
+  data: MasterPanelScheduleData,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '📋 Ваші вихідні дні\n' +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_DAYS_OFF_LIST_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `${formatDaysOffList(data)}`
+    `${formatDaysOffList(data, language)}`
   );
 }
 
 /**
  * @summary Текст списку найближчих відпусток.
  */
-export function formatMasterScheduleVacationsText(data: MasterPanelScheduleData): string {
+export function formatMasterScheduleVacationsText(
+  data: MasterPanelScheduleData,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '🏖 Ваші періоди відпустки\n' +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_VACATION_LIST_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `${formatVacationsList(data)}\n\n` +
-    'Кнопками нижче можна встановити новий період відпустки.'
+    `${formatVacationsList(data, language)}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_SET_VACATION_PERIOD')}`
   );
 }
 
 /**
  * @summary Текст списку тимчасових змін графіка.
  */
-export function formatMasterScheduleTemporaryHoursText(data: MasterPanelScheduleData): string {
+export function formatMasterScheduleTemporaryHoursText(
+  data: MasterPanelScheduleData,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '🕒 Тимчасові зміни графіку\n' +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_TEMPORARY_LIST_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `${formatTemporaryHoursList(data)}\n\n` +
-    'Кнопками нижче можна встановити новий період тимчасового графіку.'
+    `${formatTemporaryHoursList(data, language)}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_SET_TEMPORARY_PERIOD')}`
   );
 }
 
 /**
  * @summary Базова клавіатура для вкладених екранів розкладу.
  */
-export function createMasterScheduleSectionKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterScheduleSectionKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_SCHEDULE'), MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_PANEL'), MASTER_PANEL_ACTION.BACK_TO_PANEL)],
   ]);
 }
 
 /**
  * @summary Клавіатура секції "Відпустка".
  */
-export function createMasterScheduleVacationsKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterScheduleVacationsKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('➕ Встановити період відпустки', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS_CREATE)],
-    [Markup.button.callback('🔄 Оновити список', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_SET_VACATION_PERIOD'), MASTER_PANEL_ACTION.SCHEDULE_VACATIONS_CREATE)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_REFRESH_LIST'), MASTER_PANEL_ACTION.SCHEDULE_VACATIONS)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_SCHEDULE'), MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
   ]);
 }
 
 /**
  * @summary Клавіатура секції "Тимчасова зміна графіку".
  */
-export function createMasterScheduleTemporaryHoursKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterScheduleTemporaryHoursKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('➕ Встановити тимчасовий графік', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CREATE)],
-    [Markup.button.callback('🔄 Оновити список', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_SET_TEMPORARY_PERIOD'), MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CREATE)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_REFRESH_LIST'), MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_SCHEDULE'), MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
   ]);
 }
 
 /**
  * @summary Текст підтвердження видалення вихідного дня.
  */
-export function formatMasterScheduleDeleteDayOffConfirmText(dateValue: Date): string {
+export function formatMasterScheduleDeleteDayOffConfirmText(
+  dateValue: Date,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '⚠️ Підтвердження видалення\n' +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_DELETE_CONFIRM_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Ви впевнені, що хочете видалити вихідний день?\n\n' +
-    `📅 Дата: ${dateLabel(dateValue)}\n\n` +
-    'Після видалення майстер знову стане доступним для запису у цей день.'
+    tBotTemplate(language, 'MASTER_PANEL_SCHEDULE_DELETE_DAY_OFF_BODY', {
+      date: dateLabel(dateValue, language),
+    })
   );
 }
 
@@ -551,13 +618,15 @@ export function formatMasterScheduleDeleteDayOffConfirmText(dateValue: Date): st
 export function formatMasterScheduleDeleteVacationConfirmText(
   dateFromValue: Date,
   dateToValue: Date,
+  language: BotUiLanguage = 'uk',
 ): string {
   return (
-    '⚠️ Підтвердження видалення\n' +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_DELETE_CONFIRM_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Ви впевнені, що хочете видалити період відпустки?\n\n' +
-    `📅 Період: ${dateLabel(dateFromValue)} - ${dateLabel(dateToValue)}\n\n` +
-    'Після видалення ви знову станете доступним для запису у цей період.'
+    tBotTemplate(language, 'MASTER_PANEL_SCHEDULE_DELETE_VACATION_BODY', {
+      dateFrom: dateLabel(dateFromValue, language),
+      dateTo: dateLabel(dateToValue, language),
+    })
   );
 }
 
@@ -567,13 +636,15 @@ export function formatMasterScheduleDeleteVacationConfirmText(
 export function formatMasterScheduleDeleteTemporaryConfirmText(
   dateFromValue: Date,
   dateToValue: Date,
+  language: BotUiLanguage = 'uk',
 ): string {
   return (
-    '⚠️ Підтвердження видалення\n' +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_DELETE_CONFIRM_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Ви впевнені, що хочете видалити тимчасову зміну графіку?\n\n' +
-    `📅 Період: ${dateLabel(dateFromValue)} - ${dateLabel(dateToValue)}\n\n` +
-    'Після видалення для цього періоду знову діятиме базовий тижневий графік.'
+    tBotTemplate(language, 'MASTER_PANEL_SCHEDULE_DELETE_TEMPORARY_BODY', {
+      dateFrom: dateLabel(dateFromValue, language),
+      dateTo: dateLabel(dateToValue, language),
+    })
   );
 }
 
@@ -582,71 +653,76 @@ export function formatMasterScheduleDeleteTemporaryConfirmText(
  */
 export function createMasterScheduleDeleteConfirmKeyboard(
   confirmAction: string,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('✅ Підтвердити видалення', confirmAction)],
-    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_DELETE_CANCEL)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_CONFIRM_DELETE'), confirmAction)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_CANCEL_ACTION'), MASTER_PANEL_ACTION.SCHEDULE_DELETE_CANCEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_SCHEDULE'), MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
   ]);
 }
 
 /**
  * @summary Текст підтвердження встановлення вихідного дня.
  */
-export function formatMasterScheduleSetDayOffConfirmText(dateLabelValue: string): string {
+export function formatMasterScheduleSetDayOffConfirmText(
+  dateLabelValue: string,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '⚠️ Підтвердження\n' +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_SET_DAY_OFF_CONFIRM_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Ви впевнені, що хочете встановити вихідний день на дату:\n\n' +
-    `📅 ${dateLabelValue}\n\n` +
-    'У цей день нові записи для клієнтів будуть недоступні.'
+    tBotTemplate(language, 'MASTER_PANEL_SCHEDULE_SET_DAY_OFF_CONFIRM_BODY', {
+      date: `📅 ${dateLabelValue}`,
+    })
   );
 }
 
 /**
  * @summary Повідомлення про успішне встановлення вихідного дня.
  */
-export function formatMasterScheduleSetDayOffSuccessText(dateLabelValue: string): string {
-  return (
-    '✅ Вихідний день встановлено\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `📅 Дата: ${dateLabelValue}\n\n` +
-    'У цей день клієнти не зможуть записатися на процедури.'
-  );
+export function formatMasterScheduleSetDayOffSuccessText(
+  dateLabelValue: string,
+  language: BotUiLanguage = 'uk',
+): string {
+  return tBotTemplate(language, 'MASTER_PANEL_SCHEDULE_SET_DAY_OFF_SUCCESS', {
+    date: dateLabelValue,
+  });
 }
 
 /**
  * @summary Клавіатура для кроку вводу дати вихідного дня.
  */
-export function createMasterScheduleSetDayOffInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterScheduleSetDayOffInputKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_SET_DAY_OFF_CANCEL)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_CANCEL_ACTION'), MASTER_PANEL_ACTION.SCHEDULE_SET_DAY_OFF_CANCEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_SCHEDULE'), MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
   ]);
 }
 
 /**
  * @summary Клавіатура для підтвердження встановлення вихідного дня.
  */
-export function createMasterScheduleSetDayOffConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterScheduleSetDayOffConfirmKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('✅ Підтвердити', MASTER_PANEL_ACTION.SCHEDULE_SET_DAY_OFF_CONFIRM)],
-    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_SET_DAY_OFF_CANCEL)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.SCHEDULE_BACK, MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_CONFIRM'), MASTER_PANEL_ACTION.SCHEDULE_SET_DAY_OFF_CONFIRM)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_CANCEL_ACTION'), MASTER_PANEL_ACTION.SCHEDULE_SET_DAY_OFF_CANCEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_SCHEDULE'), MASTER_PANEL_ACTION.OPEN_SCHEDULE)],
   ]);
 }
 
 /**
  * @summary Текст старту flow встановлення відпустки.
  */
-export function formatMasterScheduleVacationSetText(): string {
+export function formatMasterScheduleVacationSetText(language: BotUiLanguage = 'uk'): string {
   return (
-    '🏖 Встановити період відпустки\n' +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_VACATION_SET_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Вкажіть період відпустки у форматі:\n' +
-    'ДД.ММ.РРРР - ДД.ММ.РРРР\n\n' +
-    'Приклад: 15.07.2026 - 25.07.2026\n\n' +
-    'У цей період нові записи для клієнтів будуть недоступні.'
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_VACATION_SET_GUIDE')}`
   );
 }
 
@@ -656,14 +732,12 @@ export function formatMasterScheduleVacationSetText(): string {
 export function formatMasterScheduleVacationConfirmText(
   dateFromLabel: string,
   dateToLabel: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '⚠️ Підтвердження\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    'Ви впевнені, що хочете встановити період відпустки:\n\n' +
-    `📅 ${dateFromLabel} - ${dateToLabel}\n\n` +
-    'У цей період нові записи для клієнтів будуть недоступні.'
-  );
+  return tBotTemplate(language, 'MASTER_PANEL_SCHEDULE_VACATION_CONFIRM_BODY', {
+    dateFrom: dateFromLabel,
+    dateTo: dateToLabel,
+  });
 }
 
 /**
@@ -672,59 +746,51 @@ export function formatMasterScheduleVacationConfirmText(
 export function formatMasterScheduleVacationSuccessText(
   dateFromLabel: string,
   dateToLabel: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✅ Відпустку успішно встановлено\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `📅 Період: ${dateFromLabel} - ${dateToLabel}\n\n` +
-    'У цей період ви будете недоступні для нових записів.'
-  );
+  return tBotTemplate(language, 'MASTER_PANEL_SCHEDULE_VACATION_SUCCESS_BODY', {
+    dateFrom: dateFromLabel,
+    dateTo: dateToLabel,
+  });
 }
 
 /**
  * @summary Клавіатура кроку вводу періоду відпустки.
  */
-export function createMasterScheduleVacationInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterScheduleVacationInputKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS_CANCEL)],
-    [Markup.button.callback('⬅️ До відпустки', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_CANCEL_ACTION'), MASTER_PANEL_ACTION.SCHEDULE_VACATIONS_CANCEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_BACK_TO_VACATIONS'), MASTER_PANEL_ACTION.SCHEDULE_VACATIONS)],
   ]);
 }
 
 /**
  * @summary Клавіатура підтвердження періоду відпустки.
  */
-export function createMasterScheduleVacationConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterScheduleVacationConfirmKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('✅ Підтвердити', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS_CONFIRM)],
-    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS_CANCEL)],
-    [Markup.button.callback('⬅️ До відпустки', MASTER_PANEL_ACTION.SCHEDULE_VACATIONS)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_CONFIRM'), MASTER_PANEL_ACTION.SCHEDULE_VACATIONS_CONFIRM)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_CANCEL_ACTION'), MASTER_PANEL_ACTION.SCHEDULE_VACATIONS_CANCEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_BACK_TO_VACATIONS'), MASTER_PANEL_ACTION.SCHEDULE_VACATIONS)],
   ]);
 }
 
 /**
  * @summary Текст старту flow встановлення тимчасового графіку.
  */
-export function formatMasterScheduleTemporarySetPeriodText(): string {
+export function formatMasterScheduleTemporarySetPeriodText(
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '🕒 Встановити тимчасовий графік\n' +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_TEMPORARY_SET_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Вкажіть період дії у форматі:\n' +
-    'ДД.ММ.РРРР - ДД.ММ.РРРР\n\n' +
-    'Приклад: 10.03.2026 - 16.03.2026\n\n' +
-    'Мінімальна тривалість періоду: 7 календарних днів.'
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_TEMPORARY_SET_GUIDE')}`
   );
 }
-
-const TEMPORARY_WEEKDAY_LABELS: Record<number, string> = {
-  1: 'Пн',
-  2: 'Вт',
-  3: 'Ср',
-  4: 'Чт',
-  5: 'Пт',
-  6: 'Сб',
-  7: 'Нд',
-};
 
 type TemporaryPreviewDay = {
   weekday: number;
@@ -733,25 +799,28 @@ type TemporaryPreviewDay = {
   closeTime: string | null;
 };
 
-function formatTemporaryPreviewLines(days: TemporaryPreviewDay[]): string {
+function formatTemporaryPreviewLines(days: TemporaryPreviewDay[], language: BotUiLanguage): string {
   return days
     .sort((a, b) => a.weekday - b.weekday)
     .map((day) => {
-      const label = TEMPORARY_WEEKDAY_LABELS[day.weekday] ?? `День ${day.weekday}`;
+      const label = getWeekdayLabel(day.weekday, language);
       if (!day.isWorking || !day.openTime || !day.closeTime) {
-        return `${label}: вихідний`;
+        return `${label}: ${tBot(language, 'MASTER_PANEL_SCHEDULE_DAY_OFF')}`;
       }
       return `${label}: ${day.openTime} - ${day.closeTime}`;
     })
     .join('\n');
 }
 
-function formatTemporaryDayState(day: MasterTemporaryScheduleDayInput | null): string {
+function formatTemporaryDayState(
+  day: MasterTemporaryScheduleDayInput | null,
+  language: BotUiLanguage,
+): string {
   if (!day) {
-    return 'не налаштовано';
+    return tBot(language, 'MASTER_PANEL_SCHEDULE_DAY_NOT_CONFIGURED');
   }
   if (!day.isWorking || !day.openTime || !day.closeTime) {
-    return 'вихідний';
+    return tBot(language, 'MASTER_PANEL_SCHEDULE_DAY_OFF');
   }
   return `${day.openTime} - ${day.closeTime}`;
 }
@@ -763,6 +832,7 @@ export function formatMasterScheduleTemporaryDaysConfigText(
   dateFromLabel: string,
   dateToLabel: string,
   days: MasterTemporaryScheduleDayInput[],
+  language: BotUiLanguage = 'uk',
 ): string {
   const byWeekday = new Map<number, MasterTemporaryScheduleDayInput>(
     days.map((day) => [day.weekday, day]),
@@ -770,34 +840,36 @@ export function formatMasterScheduleTemporaryDaysConfigText(
 
   const lines: string[] = [];
   for (let weekday = 1; weekday <= 7; weekday += 1) {
-    const label = TEMPORARY_WEEKDAY_LABELS[weekday];
+    const label = getWeekdayLabel(weekday, language);
     const day = byWeekday.get(weekday) ?? null;
-    lines.push(`${label}: ${formatTemporaryDayState(day)}`);
+    lines.push(`${label}: ${formatTemporaryDayState(day, language)}`);
   }
 
   const configuredDays = days.length;
 
   return (
-    '🕒 Налаштування тимчасового графіку\n' +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_TEMPORARY_CONFIG_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `📅 Період: ${dateFromLabel} - ${dateToLabel}\n` +
-    `✅ Налаштовано днів: ${configuredDays}/7\n\n` +
+    `📅 ${dateFromLabel} - ${dateToLabel}\n` +
+    `✅ ${configuredDays}/7\n\n` +
     `${lines.join('\n')}\n\n` +
-    'Оберіть день кнопкою нижче, потім введіть час "від" та "до".'
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_TEMPORARY_CONFIG_HINT')}`
   );
 }
 
 /**
  * @summary Текст кроку вводу часу початку для обраного дня.
  */
-export function formatMasterScheduleTemporaryDayFromInputText(weekday: number): string {
-  const label = TEMPORARY_WEEKDAY_LABELS[weekday] ?? `День ${weekday}`;
+export function formatMasterScheduleTemporaryDayFromInputText(
+  weekday: number,
+  language: BotUiLanguage = 'uk',
+): string {
+  const label = getWeekdayLabel(weekday, language);
   return (
-    '🕒 Налаштування дня\n' +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_TEMPORARY_DAY_INPUT_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `📅 День: ${label}\n\n` +
-    'Введіть час початку у форматі HH:MM\n' +
-    'Приклад: 10:00'
+    `📅 ${label}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_TEMPORARY_DAY_INPUT_FROM')}`
   );
 }
 
@@ -807,15 +879,15 @@ export function formatMasterScheduleTemporaryDayFromInputText(weekday: number): 
 export function formatMasterScheduleTemporaryDayToInputText(
   weekday: number,
   fromTime: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  const label = TEMPORARY_WEEKDAY_LABELS[weekday] ?? `День ${weekday}`;
+  const label = getWeekdayLabel(weekday, language);
   return (
-    '🕒 Налаштування дня\n' +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_TEMPORARY_DAY_INPUT_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `📅 День: ${label}\n` +
-    `⏱ Від: ${fromTime}\n\n` +
-    'Введіть час завершення у форматі HH:MM\n' +
-    'Приклад: 18:00'
+    `📅 ${label}\n` +
+    `⏱ ${fromTime}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_SCHEDULE_TEMPORARY_DAY_INPUT_TO')}`
   );
 }
 
@@ -826,15 +898,13 @@ export function formatMasterScheduleTemporaryConfirmText(
   dateFromLabel: string,
   dateToLabel: string,
   days: TemporaryPreviewDay[],
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '⚠️ Підтвердження\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `📅 Період: ${dateFromLabel} - ${dateToLabel}\n\n` +
-    '🕒 Новий тимчасовий графік:\n' +
-    `${formatTemporaryPreviewLines(days)}\n\n` +
-    'Після підтвердження цей графік буде діяти лише у вказаний період.'
-  );
+  return tBotTemplate(language, 'MASTER_PANEL_SCHEDULE_TEMPORARY_CONFIRM_BODY', {
+    dateFrom: dateFromLabel,
+    dateTo: dateToLabel,
+    schedule: formatTemporaryPreviewLines(days, language),
+  });
 }
 
 /**
@@ -844,23 +914,24 @@ export function formatMasterScheduleTemporarySuccessText(
   dateFromLabel: string,
   dateToLabel: string,
   days: TemporaryPreviewDay[],
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✅ Тимчасовий графік успішно встановлено\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `📅 Період дії: ${dateFromLabel} - ${dateToLabel}\n\n` +
-    '🕒 Графік:\n' +
-    `${formatTemporaryPreviewLines(days)}`
-  );
+  return tBotTemplate(language, 'MASTER_PANEL_SCHEDULE_TEMPORARY_SUCCESS_BODY', {
+    dateFrom: dateFromLabel,
+    dateTo: dateToLabel,
+    schedule: formatTemporaryPreviewLines(days, language),
+  });
 }
 
 /**
  * @summary Клавіатура кроку вводу періоду тимчасового графіку.
  */
-export function createMasterScheduleTemporaryPeriodInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterScheduleTemporaryPeriodInputKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CANCEL)],
-    [Markup.button.callback('⬅️ До тимчасового графіку', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_CANCEL_ACTION'), MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CANCEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_BACK_TO_TEMPORARY'), MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS)],
   ]);
 }
 
@@ -869,6 +940,7 @@ export function createMasterScheduleTemporaryPeriodInputKeyboard(): ReturnType<t
  */
 export function createMasterScheduleTemporaryDaysConfigKeyboard(
   days: MasterTemporaryScheduleDayInput[],
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const byWeekday = new Map<number, MasterTemporaryScheduleDayInput>(
     days.map((day) => [day.weekday, day]),
@@ -882,7 +954,7 @@ export function createMasterScheduleTemporaryDaysConfigKeyboard(
 
   const dayRows = rows.map((row) =>
     row.map((weekday) => {
-      const label = TEMPORARY_WEEKDAY_LABELS[weekday];
+      const label = getWeekdayLabel(weekday, language);
       const day = byWeekday.get(weekday);
       const icon = day ? '✅' : '⚪';
       return Markup.button.callback(
@@ -894,9 +966,9 @@ export function createMasterScheduleTemporaryDaysConfigKeyboard(
 
   return Markup.inlineKeyboard([
     ...dayRows,
-    [Markup.button.callback('✅ Підтвердити графік', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CONFIRM)],
-    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CANCEL)],
-    [Markup.button.callback('⬅️ До тимчасового графіку', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_CONFIRM_SCHEDULE'), MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CONFIRM)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_CANCEL_ACTION'), MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CANCEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_BACK_TO_TEMPORARY'), MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS)],
   ]);
 }
 
@@ -905,21 +977,24 @@ export function createMasterScheduleTemporaryDaysConfigKeyboard(
  */
 export function createMasterScheduleTemporaryDayInputKeyboard(
   weekday: number,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('🚫 Зробити вихідним', makeMasterPanelTemporaryHoursDayOffAction(weekday))],
-    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CANCEL)],
-    [Markup.button.callback('⬅️ До налаштування днів', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CREATE)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_MAKE_DAY_OFF'), makeMasterPanelTemporaryHoursDayOffAction(weekday))],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_CANCEL_ACTION'), MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CANCEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_BACK_TO_DAYS_CONFIG'), MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CREATE)],
   ]);
 }
 
 /**
  * @summary Клавіатура підтвердження тимчасового графіку.
  */
-export function createMasterScheduleTemporaryConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterScheduleTemporaryConfirmKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('✅ Підтвердити', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CONFIRM)],
-    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CANCEL)],
-    [Markup.button.callback('⬅️ До налаштування днів', MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CREATE)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_CONFIRM'), MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CONFIRM)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_CANCEL_ACTION'), MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CANCEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_SCHEDULE_BTN_BACK_TO_DAYS_CONFIG'), MASTER_PANEL_ACTION.SCHEDULE_TEMPORARY_HOURS_CREATE)],
   ]);
 }
