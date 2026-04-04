@@ -9,7 +9,7 @@ import type {
 } from '../../types/db-helpers/db-master-bookings.types.js';
 import type { MasterTemporaryScheduleDayInput } from '../../types/db-helpers/db-master-schedule.types.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
-import { resolveBotUiLanguage, tBot } from '../../helpers/bot/i18n.bot.js';
+import { resolveBotUiLanguage, tBot, tBotTemplate } from '../../helpers/bot/i18n.bot.js';
 import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 import {
   createMasterPanelRootKeyboard,
@@ -720,8 +720,8 @@ async function renderMasterProfileSectionByField(
   if (isProfessionalProfileField(field)) {
     await renderView(
       ctx,
-      formatMasterOwnProfileProfessionalText(state.ownProfile),
-      createMasterOwnProfileProfessionalKeyboard(),
+      formatMasterOwnProfileProfessionalText(state.ownProfile, state.language),
+      createMasterOwnProfileProfessionalKeyboard(state.language),
       preferEdit,
     );
     return;
@@ -729,78 +729,83 @@ async function renderMasterProfileSectionByField(
 
   await renderView(
     ctx,
-    formatMasterOwnProfileAdditionalText(state.ownProfile),
-    createMasterOwnProfileAdditionalKeyboard(),
+    formatMasterOwnProfileAdditionalText(state.ownProfile, state.language),
+    createMasterOwnProfileAdditionalKeyboard(state.language),
     preferEdit,
   );
 }
 
 async function renderMasterServicesManage(
   ctx: MyContext,
+  language: BotUiLanguage,
   masterId: string,
   preferEdit: boolean,
 ): Promise<void> {
   const services = await listMasterOwnServicesManage(masterId);
   await renderView(
     ctx,
-    formatMasterOwnProfileServicesText(services),
-    createMasterOwnProfileServicesKeyboard(services),
+    formatMasterOwnProfileServicesText(services, language),
+    createMasterOwnProfileServicesKeyboard(services, language),
     preferEdit,
   );
 }
 
 async function renderMasterServicesAddCandidates(
   ctx: MyContext,
+  language: BotUiLanguage,
   masterId: string,
   preferEdit: boolean,
 ): Promise<void> {
   const services = await listMasterOwnServicesAddCandidates(masterId);
   await renderView(
     ctx,
-    formatMasterOwnProfileServicesAddText(services),
-    createMasterOwnProfileServicesAddKeyboard(services),
+    formatMasterOwnProfileServicesAddText(services, language),
+    createMasterOwnProfileServicesAddKeyboard(services, language),
     preferEdit,
   );
 }
 
 async function renderMasterServicesRemoveCandidates(
   ctx: MyContext,
+  language: BotUiLanguage,
   masterId: string,
   preferEdit: boolean,
 ): Promise<void> {
   const services = await listMasterOwnServicesRemoveCandidates(masterId);
   await renderView(
     ctx,
-    formatMasterOwnProfileServicesRemoveText(services),
-    createMasterOwnProfileServicesRemoveKeyboard(services),
+    formatMasterOwnProfileServicesRemoveText(services, language),
+    createMasterOwnProfileServicesRemoveKeyboard(services, language),
     preferEdit,
   );
 }
 
 async function renderMasterCertificatesManage(
   ctx: MyContext,
+  language: BotUiLanguage,
   masterId: string,
   preferEdit: boolean,
 ): Promise<void> {
   const certificates = await listMasterOwnCertificatesManage(masterId);
   await renderView(
     ctx,
-    formatMasterOwnProfileCertificatesText(certificates),
-    createMasterOwnProfileCertificatesKeyboard(),
+    formatMasterOwnProfileCertificatesText(certificates, language),
+    createMasterOwnProfileCertificatesKeyboard(language),
     preferEdit,
   );
 }
 
 async function renderMasterCertificatesDeleteList(
   ctx: MyContext,
+  language: BotUiLanguage,
   masterId: string,
   preferEdit: boolean,
 ): Promise<void> {
   const certificates = await listMasterOwnCertificatesManage(masterId);
   await renderView(
     ctx,
-    formatMasterOwnProfileCertificateDeleteListText(certificates),
-    createMasterOwnProfileCertificateDeleteListKeyboard(certificates),
+    formatMasterOwnProfileCertificateDeleteListText(certificates, language),
+    createMasterOwnProfileCertificateDeleteListKeyboard(certificates, language),
     preferEdit,
   );
 }
@@ -1201,8 +1206,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
           await renderView(
             ctx,
-            formatMasterOwnProfileEditConfirmText(profileEditDraft.field, nextValue),
-            createMasterOwnProfileEditConfirmKeyboard(),
+            formatMasterOwnProfileEditConfirmText(profileEditDraft.field, nextValue, state.language),
+            createMasterOwnProfileEditConfirmKeyboard(state.language),
             false,
           );
         } catch (error) {
@@ -1212,7 +1217,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
           await ctx.reply(
             `⚠️ ${err.message}`,
-            createMasterOwnProfileEditInputKeyboard(),
+            createMasterOwnProfileEditInputKeyboard(state.language),
           );
         }
         return;
@@ -1221,7 +1226,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       if (profileEditDraft?.mode === 'awaiting_confirm') {
         await ctx.reply(
           '⚠️ Щоб завершити редагування, натисніть "✅ Зберегти" або "❌ Скасувати".',
-          createMasterOwnProfileEditConfirmKeyboard(),
+          createMasterOwnProfileEditConfirmKeyboard(state.language),
         );
         return;
       }
@@ -1237,8 +1242,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
           await renderView(
             ctx,
-            formatMasterOwnProfileCertificateConfirmText(title),
-            createMasterOwnProfileCertificateConfirmKeyboard(),
+            formatMasterOwnProfileCertificateConfirmText(title, state.language),
+            createMasterOwnProfileCertificateConfirmKeyboard(state.language),
             false,
           );
         } catch (error) {
@@ -1248,7 +1253,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
           await ctx.reply(
             `⚠️ ${err.message}`,
-            createMasterOwnProfileCertificateInputKeyboard(),
+            createMasterOwnProfileCertificateInputKeyboard(state.language),
           );
         }
         return;
@@ -1257,7 +1262,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       if (certificateAddDraft?.mode === 'awaiting_confirm') {
         await ctx.reply(
           '⚠️ Для завершення додавання документа натисніть "✅ Додати документ" або "❌ Скасувати дію".',
-          createMasterOwnProfileCertificateConfirmKeyboard(),
+          createMasterOwnProfileCertificateConfirmKeyboard(state.language),
         );
         return;
       }
@@ -1591,8 +1596,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterOwnProfileMainText(ownProfile),
-      createMasterOwnProfileMainKeyboard(),
+      formatMasterOwnProfileMainText(ownProfile, state.language),
+      createMasterOwnProfileMainKeyboard(state.language),
       true,
     );
   });
@@ -1608,7 +1613,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    await renderMasterServicesManage(ctx, access.masterId, true);
+    await renderMasterServicesManage(ctx, state.language, access.masterId, true);
   });
 
   scene.action(MASTER_PANEL_ACTION.PROFILE_SERVICE_ADD_OPEN, async (ctx) => {
@@ -1622,7 +1627,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    await renderMasterServicesAddCandidates(ctx, access.masterId, true);
+    await renderMasterServicesAddCandidates(ctx, state.language, access.masterId, true);
   });
 
   scene.action(MASTER_PANEL_ACTION.PROFILE_SERVICE_REMOVE_OPEN, async (ctx) => {
@@ -1636,7 +1641,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    await renderMasterServicesRemoveCandidates(ctx, access.masterId, true);
+    await renderMasterServicesRemoveCandidates(ctx, state.language, access.masterId, true);
   });
 
   scene.action(MASTER_PANEL_PROFILE_SERVICE_ADD_ACTION_REGEX, async (ctx) => {
@@ -1655,8 +1660,13 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       serviceId,
     });
 
-    await safeAnswerCbQuery(ctx, `Послугу "${added.serviceName}" додано до профілю`);
-    await renderMasterServicesAddCandidates(ctx, access.masterId, true);
+    await safeAnswerCbQuery(
+      ctx,
+      tBotTemplate(state.language, 'MASTER_PANEL_OWN_PROFILE_CB_SERVICE_ADDED', {
+        name: added.serviceName,
+      }),
+    );
+    await renderMasterServicesAddCandidates(ctx, state.language, access.masterId, true);
   });
 
   scene.action(MASTER_PANEL_PROFILE_SERVICE_REMOVE_ACTION_REGEX, async (ctx) => {
@@ -1675,8 +1685,13 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       serviceId,
     });
 
-    await safeAnswerCbQuery(ctx, `Послугу "${removed.serviceName}" вимкнено`);
-    await renderMasterServicesRemoveCandidates(ctx, access.masterId, true);
+    await safeAnswerCbQuery(
+      ctx,
+      tBotTemplate(state.language, 'MASTER_PANEL_OWN_PROFILE_CB_SERVICE_DISABLED', {
+        name: removed.serviceName,
+      }),
+    );
+    await renderMasterServicesRemoveCandidates(ctx, state.language, access.masterId, true);
   });
 
   scene.action(MASTER_PANEL_PROFILE_SERVICE_TOGGLE_ACTION_REGEX, async (ctx) => {
@@ -1699,13 +1714,17 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     await safeAnswerCbQuery(
       ctx,
       toggled.isActive
-        ? `Послуга "${toggled.serviceName}" увімкнена`
-        : `Послуга "${toggled.serviceName}" вимкнена`,
+        ? tBotTemplate(state.language, 'MASTER_PANEL_OWN_PROFILE_CB_SERVICE_ENABLED', {
+            name: toggled.serviceName,
+          })
+        : tBotTemplate(state.language, 'MASTER_PANEL_OWN_PROFILE_CB_SERVICE_DISABLED', {
+            name: toggled.serviceName,
+          }),
     );
     await renderView(
       ctx,
-      formatMasterOwnProfileServicesText(services),
-      createMasterOwnProfileServicesKeyboard(services),
+      formatMasterOwnProfileServicesText(services, state.language),
+      createMasterOwnProfileServicesKeyboard(services, state.language),
       true,
     );
   });
@@ -1729,8 +1748,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterOwnProfileProfessionalText(ownProfile),
-      createMasterOwnProfileProfessionalKeyboard(),
+      formatMasterOwnProfileProfessionalText(ownProfile, state.language),
+      createMasterOwnProfileProfessionalKeyboard(state.language),
       true,
     );
   });
@@ -1746,7 +1765,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    await renderMasterCertificatesManage(ctx, access.masterId, true);
+    await renderMasterCertificatesManage(ctx, state.language, access.masterId, true);
   });
 
   scene.action(MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_ADD_OPEN, async (ctx) => {
@@ -1766,8 +1785,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterOwnProfileCertificateInputText(),
-      createMasterOwnProfileCertificateInputKeyboard(),
+      formatMasterOwnProfileCertificateInputText(state.language),
+      createMasterOwnProfileCertificateInputKeyboard(state.language),
       true,
     );
   });
@@ -1785,7 +1804,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     if (!draft || draft.mode !== 'awaiting_confirm' || !draft.title) {
       resetProfileDrafts(state);
-      await renderMasterCertificatesManage(ctx, access.masterId, true);
+      await renderMasterCertificatesManage(ctx, state.language, access.masterId, true);
       return;
     }
 
@@ -1794,9 +1813,13 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       title: draft.title,
     });
 
-    await ctx.reply(`✅ Документ "${added.title}" додано.`);
+    await ctx.reply(
+      tBotTemplate(state.language, 'MASTER_PANEL_OWN_PROFILE_CERTS_MSG_ADDED', {
+        title: added.title,
+      }),
+    );
     resetProfileDrafts(state);
-    await renderMasterCertificatesManage(ctx, access.masterId, false);
+    await renderMasterCertificatesManage(ctx, state.language, access.masterId, false);
   });
 
   scene.action(MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_ADD_CANCEL, async (ctx) => {
@@ -1810,7 +1833,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     resetProfileDrafts(state);
-    await renderMasterCertificatesManage(ctx, access.masterId, true);
+    await renderMasterCertificatesManage(ctx, state.language, access.masterId, true);
   });
 
   scene.action(MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_DELETE_OPEN, async (ctx) => {
@@ -1824,7 +1847,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    await renderMasterCertificatesDeleteList(ctx, access.masterId, true);
+    await renderMasterCertificatesDeleteList(ctx, state.language, access.masterId, true);
   });
 
   scene.action(MASTER_PANEL_PROFILE_CERTIFICATE_DELETE_REQUEST_ACTION_REGEX, async (ctx) => {
@@ -1845,7 +1868,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     );
     const title = await getMasterCertificateTitleById(access.masterId, certificateId);
     if (!title) {
-      await renderMasterCertificatesDeleteList(ctx, access.masterId, true);
+      await renderMasterCertificatesDeleteList(ctx, state.language, access.masterId, true);
       return;
     }
 
@@ -1856,8 +1879,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterOwnProfileCertificateDeleteConfirmText(title),
-      createMasterOwnProfileCertificateDeleteConfirmKeyboard(certificateId),
+      formatMasterOwnProfileCertificateDeleteConfirmText(title, state.language),
+      createMasterOwnProfileCertificateDeleteConfirmKeyboard(certificateId, state.language),
       true,
     );
   });
@@ -1880,7 +1903,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     const draft = state.certificateDeleteDraft;
     if (!draft || draft.certificateId !== certificateIdFromAction || !draft.title) {
       resetCertificateDeleteDraft(state);
-      await renderMasterCertificatesDeleteList(ctx, access.masterId, true);
+      await renderMasterCertificatesDeleteList(ctx, state.language, access.masterId, true);
       return;
     }
 
@@ -1889,8 +1912,12 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       certificateId: draft.certificateId,
     });
     resetCertificateDeleteDraft(state);
-    await ctx.reply(`✅ Документ "${deleted.title}" видалено.`);
-    await renderMasterCertificatesDeleteList(ctx, access.masterId, false);
+    await ctx.reply(
+      tBotTemplate(state.language, 'MASTER_PANEL_OWN_PROFILE_CERTS_MSG_DELETED', {
+        title: deleted.title,
+      }),
+    );
+    await renderMasterCertificatesDeleteList(ctx, state.language, access.masterId, false);
   });
 
   scene.action(MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_DELETE_CANCEL, async (ctx) => {
@@ -1904,7 +1931,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     resetCertificateDeleteDraft(state);
-    await renderMasterCertificatesManage(ctx, access.masterId, true);
+    await renderMasterCertificatesManage(ctx, state.language, access.masterId, true);
   });
 
   scene.action(MASTER_PANEL_ACTION.OPEN_PROFILE_ADDITIONAL, async (ctx) => {
@@ -1926,8 +1953,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterOwnProfileAdditionalText(ownProfile),
-      createMasterOwnProfileAdditionalKeyboard(),
+      formatMasterOwnProfileAdditionalText(ownProfile, state.language),
+      createMasterOwnProfileAdditionalKeyboard(state.language),
       true,
     );
   });
@@ -1956,8 +1983,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterOwnProfileEditInputText('bio', ownProfile.bio),
-      createMasterOwnProfileEditInputKeyboard(),
+      formatMasterOwnProfileEditInputText('bio', ownProfile.bio, state.language),
+      createMasterOwnProfileEditInputKeyboard(state.language),
       true,
     );
   });
@@ -1986,8 +2013,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterOwnProfileEditInputText('materials', ownProfile.materialsInfo),
-      createMasterOwnProfileEditInputKeyboard(),
+      formatMasterOwnProfileEditInputText('materials', ownProfile.materialsInfo, state.language),
+      createMasterOwnProfileEditInputKeyboard(state.language),
       true,
     );
   });
@@ -2016,8 +2043,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterOwnProfileEditInputText('phone', ownProfile.contactPhoneE164),
-      createMasterOwnProfileEditInputKeyboard(),
+      formatMasterOwnProfileEditInputText('phone', ownProfile.contactPhoneE164, state.language),
+      createMasterOwnProfileEditInputKeyboard(state.language),
       true,
     );
   });
@@ -2046,8 +2073,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterOwnProfileEditInputText('email', ownProfile.contactEmail),
-      createMasterOwnProfileEditInputKeyboard(),
+      formatMasterOwnProfileEditInputText('email', ownProfile.contactEmail, state.language),
+      createMasterOwnProfileEditInputKeyboard(state.language),
       true,
     );
   });
@@ -2076,8 +2103,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterOwnProfileEditInputText('display_name', ownProfile.displayName),
-      createMasterOwnProfileEditInputKeyboard(),
+      formatMasterOwnProfileEditInputText('display_name', ownProfile.displayName, state.language),
+      createMasterOwnProfileEditInputKeyboard(state.language),
       true,
     );
   });
@@ -2109,8 +2136,9 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       formatMasterOwnProfileEditInputText(
         'started_on',
         ownProfile.startedOn ? formatDayOffDateLabel(ownProfile.startedOn) : null,
+        state.language,
       ),
-      createMasterOwnProfileEditInputKeyboard(),
+      createMasterOwnProfileEditInputKeyboard(state.language),
       true,
     );
   });
@@ -2142,8 +2170,9 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       formatMasterOwnProfileEditInputText(
         'procedures_done_total',
         String(ownProfile.proceduresDoneTotal),
+        state.language,
       ),
-      createMasterOwnProfileEditInputKeyboard(),
+      createMasterOwnProfileEditInputKeyboard(state.language),
       true,
     );
   });
@@ -2169,14 +2198,19 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       }
 
       resetProfileDrafts(state);
-      await renderView(ctx, formatMasterOwnProfileMainText(ownProfile), createMasterOwnProfileMainKeyboard(), true);
+      await renderView(
+        ctx,
+        formatMasterOwnProfileMainText(ownProfile, state.language),
+        createMasterOwnProfileMainKeyboard(state.language),
+        true,
+      );
       return;
     }
 
     const savedField = draft.field;
     await persistMasterProfileField(access.masterId, draft.field, draft.value);
     await loadOwnProfileIntoState(state);
-    await ctx.reply(formatMasterOwnProfileEditSuccessText(draft.field));
+    await ctx.reply(formatMasterOwnProfileEditSuccessText(draft.field, state.language));
 
     resetProfileDrafts(state);
 
@@ -2382,7 +2416,12 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     const stats = await getMasterPanelStats(state.access.masterId);
-    await renderView(ctx, formatMasterStatsText(stats), createMasterStatsKeyboard(), true);
+    await renderView(
+      ctx,
+      formatMasterStatsText(stats, state.language),
+      createMasterStatsKeyboard(state.language),
+      true,
+    );
   });
 
   scene.action(MASTER_PANEL_ACTION.OPEN_STATS_FINANCE, async (ctx) => {
@@ -2402,7 +2441,12 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     const finance = await getMasterPanelFinance(state.access.masterId);
-    await renderView(ctx, formatMasterFinanceText(finance), createMasterFinanceKeyboard(), true);
+    await renderView(
+      ctx,
+      formatMasterFinanceText(finance, state.language),
+      createMasterFinanceKeyboard(state.language),
+      true,
+    );
   });
 
   scene.action(MASTER_PANEL_ACTION.SCHEDULE_CONFIGURE_DAY, async (ctx) => {
@@ -3760,8 +3804,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterClientProfileText(profile),
-      createMasterClientProfileKeyboard(appointmentId),
+      formatMasterClientProfileText(profile, state.language),
+      createMasterClientProfileKeyboard(appointmentId, state.language),
       true,
     );
   });
@@ -3807,8 +3851,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterClientBookingsHistoryText(profile, history),
-      createMasterClientBookingsHistoryKeyboard(appointmentId),
+      formatMasterClientBookingsHistoryText(profile, history, state.language),
+      createMasterClientBookingsHistoryKeyboard(appointmentId, state.language),
       true,
     );
   });

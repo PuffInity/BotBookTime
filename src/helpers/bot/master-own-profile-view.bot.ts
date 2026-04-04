@@ -11,30 +11,57 @@ import {
   makeMasterPanelProfileServiceAddAction,
   makeMasterPanelProfileServiceRemoveAction,
 } from '../../types/bot-master-panel.types.js';
+import { tBot, tBotTemplate, type BotUiLanguage } from './i18n.bot.js';
 
 /**
  * @file master-own-profile-view.bot.ts
  * @summary UI/helper-и блоку "Мій профіль майстра" у master panel.
  */
 
-function formatDate(value: Date | string | null): string {
-  if (!value) return 'Не вказано';
+function localeByLanguage(language: BotUiLanguage): string {
+  if (language === 'en') return 'en-US';
+  if (language === 'cs') return 'cs-CZ';
+  return 'uk-UA';
+}
+
+function formatDate(value: Date | string | null, language: BotUiLanguage): string {
+  if (!value) return tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_INPUT_NOT_SET');
 
   const parsed = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(parsed.getTime())) {
-    return 'Не вказано';
+    return tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_INPUT_NOT_SET');
   }
 
-  return parsed.toLocaleDateString('uk-UA');
+  return parsed.toLocaleDateString(localeByLanguage(language));
 }
 
-function telegramLabel(username: string | null): string {
-  if (!username) return 'Не вказано';
+function telegramLabel(username: string | null, language: BotUiLanguage): string {
+  if (!username) return tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_INPUT_NOT_SET');
   return username.startsWith('@') ? username : `@${username}`;
 }
 
-function statusLabel(isBookable: boolean): string {
-  return isBookable ? '🟢 Доступний для нових записів' : '🟠 Тимчасово недоступний для нових записів';
+function statusLabel(isBookable: boolean, language: BotUiLanguage): string {
+  return isBookable
+    ? tBot(language, 'MASTER_PANEL_PROFILE_STATUS_AVAILABLE_SHORT')
+    : tBot(language, 'MASTER_PANEL_PROFILE_STATUS_UNAVAILABLE_SHORT');
+}
+
+function serviceStatusLabel(isActive: boolean, language: BotUiLanguage): string {
+  return isActive
+    ? tBot(language, 'MASTER_PANEL_OWN_PROFILE_SERVICE_STATUS_ACTIVE')
+    : tBot(language, 'MASTER_PANEL_OWN_PROFILE_SERVICE_STATUS_INACTIVE');
+}
+
+function serviceMetaLabel(
+  service: MasterOwnProfileServiceManageItem,
+  language: BotUiLanguage,
+): string {
+  return tBotTemplate(language, 'MASTER_PANEL_OWN_PROFILE_SERVICE_META', {
+    duration: service.durationMinutes,
+    minutes: tBot(language, 'MASTER_PANEL_OWN_PROFILE_MINUTES_SHORT'),
+    price: service.priceAmount,
+    currency: service.currencyCode,
+  });
 }
 
 export type MasterOwnProfileEditableField =
@@ -46,68 +73,74 @@ export type MasterOwnProfileEditableField =
   | 'started_on'
   | 'procedures_done_total';
 
-function editableFieldLabel(field: MasterOwnProfileEditableField): string {
+function editableFieldLabel(field: MasterOwnProfileEditableField, language: BotUiLanguage): string {
   switch (field) {
     case 'bio':
-      return 'опис профілю';
+      return tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_LABEL_BIO');
     case 'materials':
-      return 'матеріали';
+      return tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_LABEL_MATERIALS');
     case 'phone':
-      return 'контактний телефон';
+      return tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_LABEL_PHONE');
     case 'email':
-      return 'контактний email';
+      return tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_LABEL_EMAIL');
     case 'display_name':
-      return 'ім’я майстра в профілі';
+      return tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_LABEL_DISPLAY_NAME');
     case 'started_on':
-      return 'дата початку роботи';
+      return tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_LABEL_STARTED_ON');
     case 'procedures_done_total':
-      return 'кількість виконаних процедур';
+      return tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_LABEL_PROCEDURES_DONE_TOTAL');
     default:
-      return 'поле профілю';
+      return tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_LABEL_DEFAULT');
   }
 }
 
 /**
  * @summary Головний екран профілю майстра.
  */
-export function formatMasterOwnProfileMainText(profile: MasterOwnProfileData): string {
+export function formatMasterOwnProfileMainText(
+  profile: MasterOwnProfileData,
+  language: BotUiLanguage,
+): string {
   const fullName = `${profile.firstName}${profile.lastName ? ` ${profile.lastName}` : ''}`.trim();
 
   return (
-    '👤 Ваш профіль майстра\n' +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_MAIN_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👩‍🎨 Ім’я в профілі: ${profile.displayName}\n` +
-    `🧾 Повне ім’я: ${fullName}\n` +
-    `💬 Telegram: ${telegramLabel(profile.telegramUsername)}\n\n` +
-    `📌 Статус: ${statusLabel(profile.isBookable)}\n\n` +
-    `🏢 ID студії: ${profile.studioId}\n` +
-    `🪪 ID майстра: ${profile.userId}\n\n` +
-    'Оберіть підрозділ профілю кнопками нижче.'
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_LABEL_DISPLAY_NAME')}: ${profile.displayName}\n` +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_LABEL_FULL_NAME')}: ${fullName}\n` +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_LABEL_TELEGRAM')}: ${telegramLabel(profile.telegramUsername, language)}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_LABEL_STATUS')}: ${statusLabel(profile.isBookable, language)}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_LABEL_STUDIO_ID')}: ${profile.studioId}\n` +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_LABEL_MASTER_ID')}: ${profile.userId}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_MAIN_HINT')}`
   );
 }
 
 /**
  * @summary Екран "Керування послугами" (навігаційний блок).
  */
-export function formatMasterOwnProfileServicesText(services: MasterOwnProfileServiceManageItem[]): string {
+export function formatMasterOwnProfileServicesText(
+  services: MasterOwnProfileServiceManageItem[],
+  language: BotUiLanguage,
+): string {
   const servicesText =
     services.length > 0
       ? services
           .map((service, index) => {
-            const status = service.isActive ? '🟢 Активна' : '⚪️ Вимкнена';
+            const status = serviceStatusLabel(service.isActive, language);
             return (
               `${index + 1}️⃣ ${service.serviceName}\n` +
-              `   • ${service.durationMinutes} хв • ${service.priceAmount} ${service.currencyCode}\n` +
+              `   • ${serviceMetaLabel(service, language)}\n` +
               `   • ${status}`
             );
           })
           .join('\n\n')
-      : 'Послуги поки не додані.';
+      : tBot(language, 'MASTER_PANEL_OWN_PROFILE_SERVICES_EMPTY');
 
   return (
-    '💼 Керування послугами\n' +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_SERVICES_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'У цьому розділі ви можете додавати або вимикати послуги для онлайн-запису.\n\n' +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_SERVICES_HINT')}\n\n` +
     `${servicesText}`
   );
 }
@@ -117,6 +150,7 @@ export function formatMasterOwnProfileServicesText(services: MasterOwnProfileSer
  */
 export function formatMasterOwnProfileServicesAddText(
   services: MasterOwnProfileServiceManageItem[],
+  language: BotUiLanguage,
 ): string {
   const servicesText =
     services.length > 0
@@ -124,15 +158,15 @@ export function formatMasterOwnProfileServicesAddText(
           .map(
             (service, index) =>
               `${index + 1}️⃣ ${service.serviceName}\n` +
-              `   • ${service.durationMinutes} хв • ${service.priceAmount} ${service.currencyCode}`,
+              `   • ${serviceMetaLabel(service, language)}`,
           )
           .join('\n\n')
-      : 'Наразі немає доступних послуг для додавання.';
+      : tBot(language, 'MASTER_PANEL_OWN_PROFILE_SERVICES_ADD_EMPTY');
 
   return (
-    '➕ Додати послугу\n' +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_SERVICES_ADD_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Оберіть послугу, яку хочете додати до свого профілю:\n\n' +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_SERVICES_ADD_HINT')}\n\n` +
     `${servicesText}`
   );
 }
@@ -142,6 +176,7 @@ export function formatMasterOwnProfileServicesAddText(
  */
 export function formatMasterOwnProfileServicesRemoveText(
   services: MasterOwnProfileServiceManageItem[],
+  language: BotUiLanguage,
 ): string {
   const servicesText =
     services.length > 0
@@ -149,15 +184,15 @@ export function formatMasterOwnProfileServicesRemoveText(
           .map(
             (service, index) =>
               `${index + 1}️⃣ ${service.serviceName}\n` +
-              `   • ${service.durationMinutes} хв • ${service.priceAmount} ${service.currencyCode}`,
+              `   • ${serviceMetaLabel(service, language)}`,
           )
           .join('\n\n')
-      : 'Активних послуг для вимкнення немає.';
+      : tBot(language, 'MASTER_PANEL_OWN_PROFILE_SERVICES_REMOVE_EMPTY');
 
   return (
-    '➖ Вимкнути послугу\n' +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_SERVICES_REMOVE_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Оберіть послугу, яку потрібно вимкнути для нових записів:\n\n' +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_SERVICES_REMOVE_HINT')}\n\n` +
     `${servicesText}`
   );
 }
@@ -165,26 +200,31 @@ export function formatMasterOwnProfileServicesRemoveText(
 /**
  * @summary Екран "Професійна інформація" (навігаційний блок).
  */
-export function formatMasterOwnProfileProfessionalText(profile: MasterOwnProfileData): string {
+export function formatMasterOwnProfileProfessionalText(
+  profile: MasterOwnProfileData,
+  language: BotUiLanguage,
+): string {
   const certificatesText =
     profile.certificates.length > 0
       ? profile.certificates
           .slice(0, 5)
           .map((certificate, index) => {
             const issuer = certificate.issuer ? ` (${certificate.issuer})` : '';
-            const issued = certificate.issuedOn ? ` • ${formatDate(certificate.issuedOn)}` : '';
+            const issued = certificate.issuedOn
+              ? ` • ${formatDate(certificate.issuedOn, language)}`
+              : '';
             return `${index + 1}️⃣ ${certificate.title}${issuer}${issued}`;
           })
           .join('\n')
-      : 'Сертифікати поки не додані.';
+      : tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTIFICATES_EMPTY');
 
   return (
-    '🎓 Професійна інформація\n' +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_PROFESSIONAL_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `📅 Дата початку роботи: ${formatDate(profile.startedOn)}\n` +
-    `📈 Виконано процедур: ${profile.proceduresDoneTotal}\n` +
-    `⏳ Досвід (років): ${profile.experienceYears ?? 'Не вказано'}\n\n` +
-    '📜 Сертифікати:\n' +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_PROFESSIONAL_LABEL_STARTED_ON')}: ${formatDate(profile.startedOn, language)}\n` +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_PROFESSIONAL_LABEL_PROCEDURES_DONE')}: ${profile.proceduresDoneTotal}\n` +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_PROFESSIONAL_LABEL_EXPERIENCE')}: ${profile.experienceYears ?? tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_INPUT_NOT_SET')}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_PROFESSIONAL_LABEL_CERTIFICATES')}:\n` +
     `${certificatesText}`
   );
 }
@@ -192,38 +232,45 @@ export function formatMasterOwnProfileProfessionalText(profile: MasterOwnProfile
 /**
  * @summary Екран "Додаткова інформація" (навігаційний блок).
  */
-export function formatMasterOwnProfileAdditionalText(profile: MasterOwnProfileData): string {
+export function formatMasterOwnProfileAdditionalText(
+  profile: MasterOwnProfileData,
+  language: BotUiLanguage,
+): string {
   return (
-    'ℹ️ Додаткова інформація\n' +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_ADDITIONAL_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `🧴 Матеріали: ${profile.materialsInfo ?? 'Не вказано'}\n\n` +
-    `📞 Контактний телефон: ${profile.contactPhoneE164 ?? 'Не вказано'}\n` +
-    `✉️ Контактний email: ${profile.contactEmail ?? 'Не вказано'}\n\n` +
-    `🗓 Профіль створено: ${formatDate(profile.masterCreatedAt)}\n\n` +
-    `📝 Опис профілю:\n${profile.bio ?? 'Не вказано'}\n\n` +
-    'Дані відображаються клієнтам у вашому профілі.'
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_ADDITIONAL_LABEL_MATERIALS')}: ${profile.materialsInfo ?? tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_INPUT_NOT_SET')}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_ADDITIONAL_LABEL_PHONE')}: ${profile.contactPhoneE164 ?? tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_INPUT_NOT_SET')}\n` +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_ADDITIONAL_LABEL_EMAIL')}: ${profile.contactEmail ?? tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_INPUT_NOT_SET')}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_ADDITIONAL_LABEL_CREATED_AT')}: ${formatDate(profile.masterCreatedAt, language)}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_ADDITIONAL_LABEL_BIO')}:\n${profile.bio ?? tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_INPUT_NOT_SET')}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_ADDITIONAL_HINT')}`
   );
 }
 
 /**
  * @summary Клавіатура головного екрану профілю майстра.
  */
-export function createMasterOwnProfileMainKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterOwnProfileMainKeyboard(
+  language: BotUiLanguage,
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('💼 Керування послугами', MASTER_PANEL_ACTION.OPEN_PROFILE_SERVICES)],
-    [Markup.button.callback('🎓 Професійна інформація', MASTER_PANEL_ACTION.OPEN_PROFILE_PROFESSIONAL)],
-    [Markup.button.callback('ℹ️ Додаткова інформація', MASTER_PANEL_ACTION.OPEN_PROFILE_ADDITIONAL)],
-    [Markup.button.callback('⬅️ До панелі майстра', MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_BTN_SERVICES'), MASTER_PANEL_ACTION.OPEN_PROFILE_SERVICES)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_BTN_PROFESSIONAL'), MASTER_PANEL_ACTION.OPEN_PROFILE_PROFESSIONAL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_BTN_ADDITIONAL'), MASTER_PANEL_ACTION.OPEN_PROFILE_ADDITIONAL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_PANEL'), MASTER_PANEL_ACTION.BACK_TO_PANEL)],
   ]);
 }
 
 /**
  * @summary Клавіатура підрозділу профілю майстра.
  */
-export function createMasterOwnProfileSectionKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterOwnProfileSectionKeyboard(
+  language: BotUiLanguage,
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('👤 До профілю майстра', MASTER_PANEL_ACTION.OPEN_PROFILE)],
-    [Markup.button.callback('⬅️ До панелі майстра', MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_BTN_BACK_TO_PROFILE'), MASTER_PANEL_ACTION.OPEN_PROFILE)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_PANEL'), MASTER_PANEL_ACTION.BACK_TO_PANEL)],
   ]);
 }
 
@@ -231,13 +278,14 @@ export function createMasterOwnProfileSectionKeyboard(): ReturnType<typeof Marku
  * @summary Клавіатура екрана "Керування послугами" з діями увімкнення/вимкнення.
  */
 export function createMasterOwnProfileServicesKeyboard(
-  services: MasterOwnProfileServiceManageItem[],
+  _services: MasterOwnProfileServiceManageItem[],
+  language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('➕ Додати послугу', MASTER_PANEL_ACTION.PROFILE_SERVICE_ADD_OPEN)],
-    [Markup.button.callback('➖ Вимкнути послугу', MASTER_PANEL_ACTION.PROFILE_SERVICE_REMOVE_OPEN)],
-    [Markup.button.callback('👤 До профілю майстра', MASTER_PANEL_ACTION.OPEN_PROFILE)],
-    [Markup.button.callback('⬅️ До панелі майстра', MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_SERVICES_ADD_TITLE'), MASTER_PANEL_ACTION.PROFILE_SERVICE_ADD_OPEN)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_SERVICES_REMOVE_TITLE'), MASTER_PANEL_ACTION.PROFILE_SERVICE_REMOVE_OPEN)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_BTN_BACK_TO_PROFILE'), MASTER_PANEL_ACTION.OPEN_PROFILE)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_PANEL'), MASTER_PANEL_ACTION.BACK_TO_PANEL)],
   ]);
 }
 
@@ -246,6 +294,7 @@ export function createMasterOwnProfileServicesKeyboard(
  */
 export function createMasterOwnProfileServicesAddKeyboard(
   services: MasterOwnProfileServiceManageItem[],
+  language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const rows = services.map((service) => [
     Markup.button.callback(
@@ -256,7 +305,7 @@ export function createMasterOwnProfileServicesAddKeyboard(
 
   return Markup.inlineKeyboard([
     ...rows,
-    [Markup.button.callback('⬅️ До керування послугами', MASTER_PANEL_ACTION.OPEN_PROFILE_SERVICES)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_BTN_BACK_TO_SERVICES'), MASTER_PANEL_ACTION.OPEN_PROFILE_SERVICES)],
   ]);
 }
 
@@ -265,6 +314,7 @@ export function createMasterOwnProfileServicesAddKeyboard(
  */
 export function createMasterOwnProfileServicesRemoveKeyboard(
   services: MasterOwnProfileServiceManageItem[],
+  language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const rows = services.map((service) => [
     Markup.button.callback(
@@ -275,26 +325,28 @@ export function createMasterOwnProfileServicesRemoveKeyboard(
 
   return Markup.inlineKeyboard([
     ...rows,
-    [Markup.button.callback('⬅️ До керування послугами', MASTER_PANEL_ACTION.OPEN_PROFILE_SERVICES)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_BTN_BACK_TO_SERVICES'), MASTER_PANEL_ACTION.OPEN_PROFILE_SERVICES)],
   ]);
 }
 
 /**
  * @summary Клавіатура екрана "Професійна інформація" з діями редагування.
  */
-export function createMasterOwnProfileProfessionalKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterOwnProfileProfessionalKeyboard(
+  language: BotUiLanguage,
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('👩‍🎨 Змінити імʼя', MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_DISPLAY_NAME)],
-    [Markup.button.callback('📅 Змінити дату початку роботи', MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_STARTED_ON)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_BTN_EDIT_DISPLAY_NAME'), MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_DISPLAY_NAME)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_BTN_EDIT_STARTED_ON'), MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_STARTED_ON)],
     [
       Markup.button.callback(
-        '📈 Оновити кількість процедур',
+        tBot(language, 'MASTER_PANEL_OWN_PROFILE_BTN_EDIT_PROCEDURES_DONE_TOTAL'),
         MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_PROCEDURES_DONE_TOTAL,
       ),
     ],
-    [Markup.button.callback('🎓 Керувати документами', MASTER_PANEL_ACTION.OPEN_PROFILE_CERTIFICATES)],
-    [Markup.button.callback('👤 До профілю майстра', MASTER_PANEL_ACTION.OPEN_PROFILE)],
-    [Markup.button.callback('⬅️ До панелі майстра', MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_TITLE'), MASTER_PANEL_ACTION.OPEN_PROFILE_CERTIFICATES)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_BTN_BACK_TO_PROFILE'), MASTER_PANEL_ACTION.OPEN_PROFILE)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_PANEL'), MASTER_PANEL_ACTION.BACK_TO_PANEL)],
   ]);
 }
 
@@ -303,20 +355,21 @@ export function createMasterOwnProfileProfessionalKeyboard(): ReturnType<typeof 
  */
 export function formatMasterOwnProfileCertificatesText(
   certificates: MasterOwnProfileCertificateManageItem[],
+  language: BotUiLanguage,
 ): string {
   const certificatesText =
     certificates.length > 0
       ? certificates
           .map((certificate, index) => {
             const issuer = certificate.issuer ? ` (${certificate.issuer})` : '';
-            const issued = certificate.issuedOn ? ` • ${formatDate(certificate.issuedOn)}` : '';
+            const issued = certificate.issuedOn ? ` • ${formatDate(certificate.issuedOn, language)}` : '';
             return `${index + 1}️⃣ ${certificate.title}${issuer}${issued}`;
           })
           .join('\n')
-      : 'Документи поки не додані.';
+      : tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_EMPTY');
 
   return (
-    '🎓 Керування дипломами та сертифікатами\n' +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
     `${certificatesText}`
   );
@@ -325,55 +378,63 @@ export function formatMasterOwnProfileCertificatesText(
 /**
  * @summary Клавіатура екрана керування документами майстра.
  */
-export function createMasterOwnProfileCertificatesKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterOwnProfileCertificatesKeyboard(
+  language: BotUiLanguage,
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('➕ Додати документ', MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_ADD_OPEN)],
-    [Markup.button.callback('➖ Видалити документ', MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_DELETE_OPEN)],
-    [Markup.button.callback('⬅️ До професійної інформації', MASTER_PANEL_ACTION.OPEN_PROFILE_PROFESSIONAL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_BTN_ADD'), MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_ADD_OPEN)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_BTN_DELETE'), MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_DELETE_OPEN)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_BTN_BACK'), MASTER_PANEL_ACTION.OPEN_PROFILE_PROFESSIONAL)],
   ]);
 }
 
 /**
  * @summary Текст кроку введення назви документа.
  */
-export function formatMasterOwnProfileCertificateInputText(): string {
+export function formatMasterOwnProfileCertificateInputText(language: BotUiLanguage): string {
   return (
-    '➕ Додати диплом або сертифікат\n' +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_ADD_INPUT_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Введіть назву документа.\n\n' +
-    'Приклад: Манікюр та моделювання нігтів — Beauty Academy'
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_ADD_INPUT_HINT')}`
   );
 }
 
 /**
  * @summary Клавіатура кроку введення назви документа.
  */
-export function createMasterOwnProfileCertificateInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterOwnProfileCertificateInputKeyboard(
+  language: BotUiLanguage,
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_ADD_CANCEL)],
-    [Markup.button.callback('⬅️ До документів', MASTER_PANEL_ACTION.OPEN_PROFILE_CERTIFICATES)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_BTN_CANCEL_ACTION'), MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_ADD_CANCEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_BTN_BACK_TO_CERTS'), MASTER_PANEL_ACTION.OPEN_PROFILE_CERTIFICATES)],
   ]);
 }
 
 /**
  * @summary Текст підтвердження додавання документа.
  */
-export function formatMasterOwnProfileCertificateConfirmText(title: string): string {
+export function formatMasterOwnProfileCertificateConfirmText(
+  title: string,
+  language: BotUiLanguage,
+): string {
   return (
-    '⚠️ Підтвердження додавання\n' +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_ADD_CONFIRM_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `Документ: ${title}\n\n` +
-    'Підтвердіть, щоб додати документ до профілю.'
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_LABEL_DOCUMENT')}: ${title}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_ADD_CONFIRM_HINT')}`
   );
 }
 
 /**
  * @summary Клавіатура підтвердження додавання документа.
  */
-export function createMasterOwnProfileCertificateConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterOwnProfileCertificateConfirmKeyboard(
+  language: BotUiLanguage,
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('✅ Додати документ', MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_ADD_CONFIRM)],
-    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_ADD_CANCEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_BTN_CONFIRM_ADD'), MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_ADD_CONFIRM)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_BTN_CANCEL_ACTION'), MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_ADD_CANCEL)],
   ]);
 }
 
@@ -382,16 +443,17 @@ export function createMasterOwnProfileCertificateConfirmKeyboard(): ReturnType<t
  */
 export function formatMasterOwnProfileCertificateDeleteListText(
   certificates: MasterOwnProfileCertificateManageItem[],
+  language: BotUiLanguage,
 ): string {
   const items =
     certificates.length > 0
       ? certificates
           .map((certificate, index) => `${index + 1}️⃣ ${certificate.title}`)
           .join('\n')
-      : 'Немає документів для видалення.';
+      : tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_DELETE_LIST_EMPTY');
 
   return (
-    '➖ Видалити диплом або сертифікат\n' +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_DELETE_LIST_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
     `${items}`
   );
@@ -402,6 +464,7 @@ export function formatMasterOwnProfileCertificateDeleteListText(
  */
 export function createMasterOwnProfileCertificateDeleteListKeyboard(
   certificates: MasterOwnProfileCertificateManageItem[],
+  language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const rows = certificates.map((certificate) => [
     Markup.button.callback(
@@ -412,19 +475,22 @@ export function createMasterOwnProfileCertificateDeleteListKeyboard(
 
   return Markup.inlineKeyboard([
     ...rows,
-    [Markup.button.callback('⬅️ До документів', MASTER_PANEL_ACTION.OPEN_PROFILE_CERTIFICATES)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_BTN_BACK_TO_CERTS'), MASTER_PANEL_ACTION.OPEN_PROFILE_CERTIFICATES)],
   ]);
 }
 
 /**
  * @summary Текст підтвердження видалення документа.
  */
-export function formatMasterOwnProfileCertificateDeleteConfirmText(title: string): string {
+export function formatMasterOwnProfileCertificateDeleteConfirmText(
+  title: string,
+  language: BotUiLanguage,
+): string {
   return (
-    '⚠️ Підтвердження видалення\n' +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_DELETE_CONFIRM_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `Документ: ${title}\n\n` +
-    'Ви впевнені, що хочете видалити цей документ?'
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_LABEL_DOCUMENT')}: ${title}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_DELETE_CONFIRM_HINT')}`
   );
 }
 
@@ -433,29 +499,32 @@ export function formatMasterOwnProfileCertificateDeleteConfirmText(title: string
  */
 export function createMasterOwnProfileCertificateDeleteConfirmKeyboard(
   certificateId: string,
+  language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        '🗑 Видалити документ',
+        tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_BTN_CONFIRM_DELETE'),
         makeMasterPanelProfileCertificateDeleteConfirmAction(certificateId),
       ),
     ],
-    [Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_DELETE_CANCEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_CERTS_BTN_CANCEL_ACTION'), MASTER_PANEL_ACTION.PROFILE_CERTIFICATE_DELETE_CANCEL)],
   ]);
 }
 
 /**
  * @summary Клавіатура екрана "Додаткова інформація" з діями редагування.
  */
-export function createMasterOwnProfileAdditionalKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterOwnProfileAdditionalKeyboard(
+  language: BotUiLanguage,
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('📝 Змінити опис', MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_BIO)],
-    [Markup.button.callback('🧴 Змінити матеріали', MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_MATERIALS)],
-    [Markup.button.callback('📞 Змінити телефон', MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_PHONE)],
-    [Markup.button.callback('✉️ Змінити email', MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_EMAIL)],
-    [Markup.button.callback('👤 До профілю майстра', MASTER_PANEL_ACTION.OPEN_PROFILE)],
-    [Markup.button.callback('⬅️ До панелі майстра', MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_BTN_EDIT_BIO'), MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_BIO)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_BTN_EDIT_MATERIALS'), MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_MATERIALS)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_BTN_EDIT_PHONE'), MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_PHONE)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_BTN_EDIT_EMAIL'), MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_EMAIL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_BTN_BACK_TO_PROFILE'), MASTER_PANEL_ACTION.OPEN_PROFILE)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_PANEL'), MASTER_PANEL_ACTION.BACK_TO_PANEL)],
   ]);
 }
 
@@ -465,71 +534,71 @@ export function createMasterOwnProfileAdditionalKeyboard(): ReturnType<typeof Ma
 export function formatMasterOwnProfileEditInputText(
   field: MasterOwnProfileEditableField,
   currentValue: string | null,
+  language: BotUiLanguage,
 ): string {
-  const label = editableFieldLabel(field);
-  const current = currentValue?.trim().length ? currentValue : 'Не вказано';
+  const current = currentValue?.trim().length
+    ? currentValue
+    : tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_INPUT_NOT_SET');
 
   if (field === 'bio') {
     return (
-      '📝 Редагування опису профілю\n' +
+      `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_BIO_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
-      `Поточне значення:\n${current}\n\n` +
-      'Введіть новий опис (мінімум 10 символів).'
+      `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_LABEL_CURRENT_VALUE')}:\n${current}\n\n` +
+      `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_BIO_HINT')}`
     );
   }
 
   if (field === 'materials') {
     return (
-      '🧴 Редагування матеріалів\n' +
+      `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_MATERIALS_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
-      `Поточне значення:\n${current}\n\n` +
-      'Введіть матеріали, з якими ви працюєте.'
+      `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_LABEL_CURRENT_VALUE')}:\n${current}\n\n` +
+      `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_MATERIALS_HINT')}`
     );
   }
 
   if (field === 'phone') {
     return (
-      '📞 Редагування контактного телефону\n' +
+      `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_PHONE_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
-      `Поточне значення: ${current}\n\n` +
-      'Введіть телефон у форматі +420123456789.'
+      `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_LABEL_CURRENT_VALUE')}: ${current}\n\n` +
+      `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_PHONE_HINT')}`
     );
   }
 
   if (field === 'display_name') {
     return (
-      '👩‍🎨 Редагування імені майстра\n' +
+      `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_DISPLAY_NAME_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
-      `Поточне значення: ${current}\n\n` +
-      'Введіть нове імʼя для відображення у профілі.\n' +
-      'Приклад: Анна В.'
+      `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_LABEL_CURRENT_VALUE')}: ${current}\n\n` +
+      `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_DISPLAY_NAME_HINT')}`
     );
   }
 
   if (field === 'started_on') {
     return (
-      '📅 Редагування дати початку роботи\n' +
+      `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_STARTED_ON_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
-      `Поточне значення: ${current}\n\n` +
-      'Введіть нову дату у форматі ДД.ММ.РРРР.\n' +
-      'Приклад: 12.04.2019'
+      `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_LABEL_CURRENT_VALUE')}: ${current}\n\n` +
+      `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_STARTED_ON_HINT')}`
     );
   }
 
   if (field === 'procedures_done_total') {
     return (
-      '📈 Редагування кількості процедур\n' +
+      `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_PROCEDURES_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
-      `Поточне значення: ${current}\n\n` +
-      'Введіть число від 0 до 100000.'
+      `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_LABEL_CURRENT_VALUE')}: ${current}\n\n` +
+      `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_PROCEDURES_HINT')}`
     );
   }
 
   return (
-    '✉️ Редагування контактного email\n' +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_EMAIL_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `Поточне значення: ${current}\n\n` +
-    'Введіть новий email (приклад: name@example.com).'
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_LABEL_CURRENT_VALUE')}: ${current}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_EMAIL_HINT')}`
   );
 }
 
@@ -539,39 +608,49 @@ export function formatMasterOwnProfileEditInputText(
 export function formatMasterOwnProfileEditConfirmText(
   field: MasterOwnProfileEditableField,
   value: string,
+  language: BotUiLanguage,
 ): string {
   return (
-    '⚠️ Підтвердження оновлення\n' +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_CONFIRM_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `Поле: ${editableFieldLabel(field)}\n` +
-    `Нове значення:\n${value}\n\n` +
-    'Підтвердіть, щоб зберегти зміни.'
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_LABEL_FIELD')}: ${editableFieldLabel(field, language)}\n` +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_LABEL_NEW_VALUE')}:\n${value}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_CONFIRM_HINT')}`
   );
 }
 
 /**
  * @summary Повідомлення про успішне оновлення поля профілю майстра.
  */
-export function formatMasterOwnProfileEditSuccessText(field: MasterOwnProfileEditableField): string {
-  return `✅ Поле "${editableFieldLabel(field)}" оновлено.`;
+export function formatMasterOwnProfileEditSuccessText(
+  field: MasterOwnProfileEditableField,
+  language: BotUiLanguage,
+): string {
+  return tBotTemplate(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_SUCCESS', {
+    field: editableFieldLabel(field, language),
+  });
 }
 
 /**
  * @summary Клавіатура для кроку введення нового значення.
  */
-export function createMasterOwnProfileEditInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterOwnProfileEditInputKeyboard(
+  language: BotUiLanguage,
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('❌ Скасувати', MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_CANCEL)],
-    [Markup.button.callback('👤 До профілю майстра', MASTER_PANEL_ACTION.OPEN_PROFILE)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_BTN_CANCEL'), MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_CANCEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_BTN_BACK_TO_PROFILE'), MASTER_PANEL_ACTION.OPEN_PROFILE)],
   ]);
 }
 
 /**
  * @summary Клавіатура для кроку підтвердження змін.
  */
-export function createMasterOwnProfileEditConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterOwnProfileEditConfirmKeyboard(
+  language: BotUiLanguage,
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('✅ Зберегти', MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_CONFIRM)],
-    [Markup.button.callback('❌ Скасувати', MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_CANCEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_BTN_SAVE'), MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_CONFIRM)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_BTN_CANCEL'), MASTER_PANEL_ACTION.OPEN_PROFILE_EDIT_CANCEL)],
   ]);
 }
