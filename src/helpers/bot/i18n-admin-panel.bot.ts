@@ -30,6 +30,499 @@ export const ADMIN_PANEL_DICTIONARY = {
     ADMIN_PANEL_BTN_BACK_TO_PANEL: '⬅️ До адмін-панелі',
     ADMIN_PANEL_BTN_BACK_TO_MENU: '⬅️ До меню',
     ADMIN_PANEL_BTN_BACK_TO_LIST: '⬅️ До списку',
+
+    ADMIN_PANEL_COMMON_MSG_ADMIN_USER_UNRESOLVED:
+      'Не вдалося визначити користувача адміністратора.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_CALLBACK_LANGUAGE_SELECT:
+      'Некоректна callback-дія вибору мови.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_CALLBACK_NOTIFICATION_TOGGLE:
+      'Некоректна callback-дія зміни типу сповіщення.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_CALLBACK_STUDIO_BLOCK_EDIT:
+      'Некоректна callback-дія редагування блоку.',
+    ADMIN_PANEL_COMMON_MSG_STUDIO_TEXT_TOO_SHORT:
+      'Текст занадто короткий (мінімум 10 символів).',
+    ADMIN_PANEL_COMMON_MSG_STUDIO_TEXT_TOO_LONG:
+      'Текст занадто довгий (максимум 4000 символів).',
+    ADMIN_PANEL_COMMON_MSG_INVALID_BOOKING_CALLBACK:
+      'Некоректна callback-дія для запису.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_NUMERIC_FIELD: 'Некоректний {field}.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_WEEKDAY: 'Некоректний день тижня.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_MONTH_CODE: 'Некоректний код місячного звіту.',
+    ADMIN_PANEL_COMMON_MSG_DATE_FORMAT_DDMMYYYY: 'Дата має бути у форматі ДД.ММ.РРРР.',
+    ADMIN_PANEL_COMMON_MSG_DATE_INVALID: 'Введено некоректну дату.',
+    ADMIN_PANEL_COMMON_MSG_DATE_IN_PAST: 'Не можна вказувати дату у минулому.',
+    ADMIN_PANEL_COMMON_MSG_HOLIDAY_NAME_TOO_SHORT:
+      'Назва свята має містити мінімум 2 символи.',
+    ADMIN_PANEL_COMMON_MSG_HOLIDAY_NAME_TOO_LONG:
+      'Назва свята занадто довга (максимум 120 символів).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_NAME_TOO_SHORT:
+      'Назва послуги має містити щонайменше 2 символи.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_NAME_TOO_LONG:
+      'Назва послуги занадто довга (максимум 120 символів).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_GUARANTEE_TOO_SHORT:
+      'Текст гарантії має містити щонайменше 3 символи.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_GUARANTEE_TOO_LONG:
+      'Текст гарантії занадто довгий (максимум 500 символів).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_TITLE_TOO_SHORT:
+      'Назва етапу має містити щонайменше 2 символи.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_TITLE_TOO_LONG:
+      'Назва етапу занадто довга (максимум 120 символів).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_DESCRIPTION_TOO_SHORT:
+      'Опис етапу має містити щонайменше 10 символів.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_DESCRIPTION_TOO_LONG:
+      'Опис етапу занадто довгий (максимум 500 символів).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_RESULT_TOO_SHORT:
+      'Результат послуги має містити щонайменше 10 символів.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_RESULT_TOO_LONG:
+      'Результат послуги занадто довгий (максимум 1200 символів).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DESCRIPTION_TOO_SHORT:
+      'Опис послуги має містити щонайменше 10 символів.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DESCRIPTION_TOO_LONG:
+      'Опис послуги занадто довгий (максимум 1600 символів).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_PRICE_FORMAT:
+      'Ціна має бути числом у форматі 750 або 750.50.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_PRICE_NEGATIVE: 'Ціна не може бути відʼємною.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_PRICE_TOO_HIGH: 'Ціна занадто велика.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DURATION_INTEGER:
+      'Тривалість має бути цілим числом у хвилинах.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DURATION_NUMBER: 'Тривалість має бути числом.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DURATION_RANGE:
+      'Тривалість послуги має бути в діапазоні 5..720 хв.',
+    ADMIN_PANEL_COMMON_MSG_STEP_DURATION_INTEGER:
+      'Тривалість етапу має бути цілим числом у хвилинах.',
+    ADMIN_PANEL_COMMON_MSG_STEP_DURATION_NUMBER: 'Тривалість етапу має бути числом.',
+    ADMIN_PANEL_COMMON_MSG_STEP_DURATION_RANGE:
+      'Тривалість етапу має бути в діапазоні 1..720 хв.',
+    ADMIN_PANEL_COMMON_MSG_DATE_RANGE_FORMAT:
+      'Період має бути у форматі ДД.ММ.РРРР - ДД.ММ.РРРР.',
+    ADMIN_PANEL_COMMON_MSG_DATE_RANGE_INVALID:
+      'Дата завершення не може бути раніше дати початку.',
+    ADMIN_PANEL_COMMON_MSG_TIME_FORMAT:
+      'Час має бути у форматі HH:MM (приклад: 10:00).',
+    ADMIN_PANEL_COMMON_MSG_TIME_HOUR_RANGE: 'Година має бути в діапазоні від 0 до 23.',
+    ADMIN_PANEL_COMMON_MSG_DATE_CODE_INVALID: 'Некоректний код дати.',
+    ADMIN_PANEL_COMMON_MSG_DATE_VALUE_INVALID: 'Некоректна дата.',
+    ADMIN_PANEL_COMMON_LABEL_DAY_OFF_ID: 'id вихідного дня',
+    ADMIN_PANEL_COMMON_LABEL_HOLIDAY_ID: 'id святкового дня',
+    ADMIN_PANEL_COMMON_LABEL_CLIENT_ID: 'id клієнта',
+    ADMIN_PANEL_SCHEDULE_MSG_USE_SECTION_BUTTONS:
+      'Для керування цим розділом використовуйте кнопки під повідомленням.',
+
+
+    ADMIN_PANEL_SERVICES_BTN_CREATE: '➕ Створити нову послугу',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_ADD_ANOTHER: '➕ Додати ще',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_CONTINUE: '➡️ Продовжити',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_CANCEL: '❌ Скасувати створення',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_CONFIRM: '✅ Підтвердити створення',
+    ADMIN_PANEL_SERVICES_BTN_OPEN_STATS: '📊 Статистика послуги',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_OPEN: '✏️ Редагувати послугу',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_NAME: '🪪 Змінити назву',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_PRICE: '💰 Змінити ціну',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_DURATION: '⏱ Змінити тривалість',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_DESCRIPTION: '📝 Змінити опис',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_RESULT: '🎯 Змінити результат',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_STEP: '🧩 Змінити назву етапу',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_STEP_DESCRIPTION: '📝 Змінити опис етапу',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_STEP_DURATION: '⏱ Змінити час етапу',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_GUARANTEE: '🛡 Змінити гарантію',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_DELETE: '🗑 Видалити послугу',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_CONFIRM_DELETE: '🗑 Так, видалити',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_CONFIRM: '✅ Зберегти',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_CANCEL: '❌ Скасувати',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_BACK: '⬅️ До картки послуги',
+    ADMIN_PANEL_SERVICES_BTN_BACK_TO_LIST: '⬅️ До списку послуг',
+    ADMIN_PANEL_SERVICES_BTN_BACK: '⬅️ До адмін-панелі',
+    ADMIN_PANEL_SERVICES_LABEL_NOT_SPECIFIED: 'Не вказано',
+    ADMIN_PANEL_SERVICES_LABEL_ACTIVE: 'Активна',
+    ADMIN_PANEL_SERVICES_LABEL_INACTIVE: 'Неактивна',
+    ADMIN_PANEL_SERVICES_LABEL_MINUTES_SHORT: 'хв',
+    ADMIN_PANEL_SERVICES_LABEL_DAYS_SHORT: 'дн.',
+    ADMIN_PANEL_SERVICES_LABEL_STEP_EMPTY: '🔹 Етапи не вказані',
+    ADMIN_PANEL_SERVICES_LABEL_GUARANTEE_EMPTY: '🔹 Гарантії не вказані',
+    ADMIN_PANEL_SERVICES_CATALOG_TITLE: '💼 Послуги салону',
+    ADMIN_PANEL_SERVICES_CATALOG_EMPTY: 'Поки що немає активних послуг.',
+    ADMIN_PANEL_SERVICES_CATALOG_EMPTY_HINT:
+      'Додайте послуги у студії, щоб вони зʼявилися в цьому розділі.',
+    ADMIN_PANEL_SERVICES_CATALOG_PICK: 'Оберіть послугу для перегляду картки:',
+    ADMIN_PANEL_SERVICES_CREATE_START_TEXT:
+      '➕ Створення нової послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Зараз послідовно заповнимо картку послуги:\n' +
+      '1) Назва\n' +
+      '2) Тривалість\n' +
+      '3) Ціна\n' +
+      '4) Опис\n' +
+      '5) Етапи\n' +
+      '6) Гарантії\n' +
+      '7) Результат\n\n' +
+      'Починаємо з назви.',
+    ADMIN_PANEL_SERVICES_CREATE_NAME_INPUT_TEXT:
+      '💼 Назва нової послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Надішліть назву послуги одним повідомленням.\n' +
+      'Мінімум 2 символи, максимум 120 символів.',
+    ADMIN_PANEL_SERVICES_CREATE_DURATION_INPUT_TEXT:
+      '⏱ Тривалість нової послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      'Вкажіть тривалість у хвилинах.\n' +
+      'Діапазон: 5..720.',
+    ADMIN_PANEL_SERVICES_CREATE_PRICE_INPUT_TEXT:
+      '💰 Ціна нової послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      'Надішліть ціну у форматі 750 або 750.50.',
+    ADMIN_PANEL_SERVICES_CREATE_DESCRIPTION_INPUT_TEXT:
+      '📝 Опис нової послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      'Надішліть опис послуги одним повідомленням.\n' +
+      'Мінімум 10 символів, максимум 1600 символів.',
+    ADMIN_PANEL_SERVICES_CREATE_PREVIEW_TITLE: '📋 Попередній перегляд нової послуги',
+    ADMIN_PANEL_SERVICES_CREATE_PREVIEW_CONFIRM: 'Підтвердьте створення послуги.',
+    ADMIN_PANEL_SERVICES_CREATE_SUCCESS_TITLE: '✅ Нову послугу створено',
+    ADMIN_PANEL_SERVICES_DETAILS_TITLE: '📄 Картка послуги',
+    ADMIN_PANEL_SERVICES_EDIT_MENU_TITLE: '✏️ Редагування послуги',
+    ADMIN_PANEL_SERVICES_EDIT_MENU_PICK: 'Оберіть, що потрібно змінити:',
+    ADMIN_PANEL_SERVICES_EDIT_CONFIRM_TITLE: '✅ Підтвердження оновлення',
+    ADMIN_PANEL_SERVICES_EDIT_CONFIRM_SAVE: 'Підтвердьте збереження змін.',
+    ADMIN_PANEL_SERVICES_DELETE_CONFIRM_TITLE: '⚠️ Підтвердження видалення послуги',
+    ADMIN_PANEL_SERVICES_DELETE_CONFIRM_BODY:
+      'Після підтвердження послуга буде прихована для клієнтів та майстрів.\n' +
+      'Записи в історії залишаться, але нові бронювання для цієї послуги стануть недоступні.\n\n' +
+      'Підтвердьте дію.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_TITLE_INPUT_TEXT:
+      '🧩 Етап №{stepNo}: назва\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Надішліть назву етапу одним повідомленням.\n' +
+      'Мінімум 2 символи, максимум 120 символів.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_DURATION_INPUT_TEXT:
+      '🧩 Етап №{stepNo}: тривалість\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Назва етапу: {stepTitle}\n\n' +
+      'Вкажіть тривалість етапу у хвилинах.\n' +
+      'Діапазон: 1..720.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_DESCRIPTION_INPUT_TEXT:
+      '🧩 Етап №{stepNo}: опис\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Назва етапу: {stepTitle}\n' +
+      'Тривалість: {durationMinutes} {minutesLabel}\n\n' +
+      'Надішліть опис етапу одним повідомленням.\n' +
+      'Мінімум 10 символів, максимум 500 символів.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_ADDED_TEXT:
+      '✅ Етап додано\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Додано етап №{stepNo}: {stepTitle} ({durationMinutes} {minutesLabel})\n' +
+      'Усього етапів: {totalSteps}\n\n' +
+      'Оберіть наступну дію.',
+    ADMIN_PANEL_SERVICES_CREATE_GUARANTEE_INPUT_TEXT:
+      '🛡 Гарантія №{guaranteeNo}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Надішліть текст гарантії одним повідомленням.\n' +
+      'Мінімум 3 символи, максимум 500 символів.',
+    ADMIN_PANEL_SERVICES_CREATE_GUARANTEE_ADDED_TEXT:
+      '✅ Гарантію додано\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Додано гарантію №{guaranteeNo}:\n{guaranteeText}\n\n' +
+      'Усього гарантій: {totalGuarantees}\n\n' +
+      'Оберіть наступну дію.',
+    ADMIN_PANEL_SERVICES_CREATE_RESULT_INPUT_TEXT:
+      '🎯 Результат послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      'Надішліть опис результату для клієнта.\n' +
+      'Мінімум 10 символів, максимум 1200 символів.',
+    ADMIN_PANEL_SERVICES_CREATE_PREVIEW_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Назва: {name}\n' +
+      '⏱ Тривалість: {durationMinutes} {minutesLabel}\n' +
+      '💰 Ціна: {price}\n\n' +
+      '📝 Опис\n{description}\n\n' +
+      '✨ Етапи\n{stepsText}\n\n' +
+      '🛡 Гарантії\n{guaranteesText}\n\n' +
+      '🎯 Результат\n{resultDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_CREATE_SUCCESS_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 {name}\n' +
+      '🪪 ID: {serviceId}\n' +
+      '⏱ Тривалість: {durationMinutes} {minutesLabel}\n' +
+      '💰 Ціна: {price}\n' +
+      '🧩 Етапів: {stepsCount}\n' +
+      '🛡 Гарантій: {guaranteesCount}',
+    ADMIN_PANEL_SERVICES_DETAILS_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Назва: {name}\n' +
+      '🪪 ID: {serviceId}\n' +
+      '⏱ Тривалість: {durationMinutes} {minutesLabel}\n' +
+      '💰 Ціна: {price}\n' +
+      '📌 Статус: {status}\n\n' +
+      '📝 Опис\n{description}\n\n' +
+      '🎯 Результат\n{result}\n\n' +
+      '✨ Етапи процедури\n{stepsText}\n\n' +
+      '🛡 Гарантії\n{guaranteesText}',
+    ADMIN_PANEL_SERVICES_EDIT_MENU_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '⏱ Поточна тривалість: {durationMinutes} {minutesLabel}\n\n' +
+      '💰 Поточна ціна: {price}\n\n' +
+      '📝 Поточний опис:\n{description}\n\n' +
+      '🎯 Поточний результат:\n{resultDescription}\n\n' +
+      '{pickText}',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_SELECT_TEXT:
+      '🛡 Редагування гарантії послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      'Оберіть гарантію, яку потрібно змінити:\n\n' +
+      '{list}',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_BUTTON_LABEL: '{badge} Гарантія №{guaranteeNo}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_PICK_TITLE:
+      'Оберіть етап, назву якого потрібно змінити:',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_PICK_DESCRIPTION:
+      'Оберіть етап, опис якого потрібно змінити:',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_PICK_DURATION:
+      'Оберіть етап, час якого потрібно змінити:',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_TEXT:
+      '🧩 Редагування етапу послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '{modeText}\n\n' +
+      '{list}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_ROW_TEXT:
+      '{badge} Етап №{stepNo} ({durationMinutes} {minutesLabel}) — {title}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_BUTTON_LABEL: '{badge} Етап №{stepNo}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_INPUT_TEXT:
+      '✏️ Оновлення назви етапу\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n' +
+      '🧩 Етап №{stepNo}\n\n' +
+      'Поточна назва:\n{currentStepTitle}\n\n' +
+      'Надішліть нову назву етапу одним повідомленням.\n' +
+      'Мінімум 2 символи, максимум 120 символів.',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n' +
+      '🧩 Етап №{stepNo}\n\n' +
+      'Нова назва:\n{nextStepTitle}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DESCRIPTION_INPUT_TEXT:
+      '✏️ Оновлення опису етапу\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n' +
+      '🧩 Етап №{stepNo}\n\n' +
+      'Поточний опис:\n{currentStepDescription}\n\n' +
+      'Надішліть новий опис етапу одним повідомленням.\n' +
+      'Мінімум 10 символів, максимум 500 символів.',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DESCRIPTION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n' +
+      '🧩 Етап №{stepNo}\n\n' +
+      'Новий опис:\n{nextStepDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DURATION_INPUT_TEXT:
+      '✏️ Оновлення часу етапу\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n' +
+      '🧩 Етап №{stepNo}\n\n' +
+      'Поточний час етапу: {currentStepDurationMinutes} {minutesLabel}\n\n' +
+      'Надішліть нову тривалість етапу в хвилинах.\n' +
+      'Діапазон: 1..720.',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DURATION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n' +
+      '🧩 Етап №{stepNo}\n\n' +
+      'Новий час етапу: {nextStepDurationMinutes} {minutesLabel}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_INPUT_TEXT:
+      '✏️ Оновлення гарантії\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n' +
+      '🛡 Гарантія №{guaranteeNo}\n\n' +
+      'Поточний текст:\n{currentGuaranteeText}\n\n' +
+      'Надішліть новий текст гарантії одним повідомленням.\n' +
+      'Мінімум 3 символи, максимум 500 символів.',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n' +
+      '🛡 Гарантія №{guaranteeNo}\n\n' +
+      'Новий текст:\n{nextGuaranteeText}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_NAME_INPUT_TEXT:
+      '✏️ Оновлення назви послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Поточна назва: {serviceName}\n\n' +
+      'Надішліть нову назву одним повідомленням.\n' +
+      'Мінімум 2 символи, максимум 120 символів.',
+    ADMIN_PANEL_SERVICES_EDIT_DURATION_INPUT_TEXT:
+      '✏️ Оновлення тривалості послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '⏱ Поточна тривалість: {currentDurationMinutes} {minutesLabel}\n\n' +
+      'Надішліть нову тривалість у хвилинах.\n' +
+      'Діапазон: 5..720',
+    ADMIN_PANEL_SERVICES_EDIT_PRICE_INPUT_TEXT:
+      '✏️ Оновлення ціни послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '💰 Поточна ціна: {currentPrice}\n\n' +
+      'Надішліть нову ціну одним повідомленням.\n' +
+      'Формат: 750 або 750.50',
+    ADMIN_PANEL_SERVICES_EDIT_DESCRIPTION_INPUT_TEXT:
+      '✏️ Оновлення опису послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '📝 Поточний опис:\n{currentDescription}\n\n' +
+      'Надішліть новий опис одним повідомленням.\n' +
+      'Мінімум 10 символів, максимум 1600 символів.',
+    ADMIN_PANEL_SERVICES_EDIT_RESULT_INPUT_TEXT:
+      '✏️ Оновлення результату послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '🎯 Поточний результат:\n{currentResultDescription}\n\n' +
+      'Надішліть новий текст результату одним повідомленням.\n' +
+      'Мінімум 10 символів, максимум 1200 символів.',
+    ADMIN_PANEL_SERVICES_EDIT_RESULT_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '🎯 Новий результат:\n{nextResultDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_DESCRIPTION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '📝 Новий опис:\n{nextDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_DURATION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '⏱ Нова тривалість: {nextDurationMinutes} {minutesLabel}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_PRICE_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '💰 Нова ціна: {nextPrice}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_NAME_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '🪪 Нова назва: {nextServiceName}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_DELETE_CONFIRM_TEXT:
+      '{deleteTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '{deleteBody}',
+    ADMIN_PANEL_SERVICES_STATS_STUB_TEXT:
+      '📊 Статистика послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '⚠️ Розділ тимчасово недоступний.\n' +
+      'Після підключення тут будуть фінансові та операційні показники послуги.',
+    ADMIN_PANEL_SERVICES_DEFAULT_NAME: 'Нова послуга',
+    ADMIN_PANEL_SERVICES_MSG_NOT_FOUND_OR_INACTIVE:
+      'Послугу не знайдено або вона неактивна.',
+    ADMIN_PANEL_SERVICES_MSG_NOT_FOUND_FOR_EDIT:
+      'Послугу для редагування не знайдено.',
+    ADMIN_PANEL_SERVICES_MSG_SET_STEP_TITLE_FIRST:
+      'Спочатку вкажіть назву етапу.',
+    ADMIN_PANEL_SERVICES_MSG_SET_STEP_TITLE_AND_DURATION_FIRST:
+      'Спочатку заповніть назву і тривалість етапу.',
+    ADMIN_PANEL_SERVICES_MSG_PREVIEW_BUILD_FAILED:
+      'Не вдалося сформувати дані послуги для попереднього перегляду.',
+    ADMIN_PANEL_SERVICES_MSG_INPUT_VALIDATION_FAILED:
+      'Виникла помилка перевірки введених даних.',
+    ADMIN_PANEL_SERVICES_MSG_USE_STEP_ACTIONS_BUTTONS:
+      'Для продовження створення етапів використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_SERVICES_MSG_USE_GUARANTEE_ACTIONS_BUTTONS:
+      'Для продовження створення гарантій використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_SERVICES_MSG_USE_CREATE_CONFIRM_BUTTONS:
+      'Для завершення створення послуги використовуйте кнопки підтвердження під повідомленням.',
+    ADMIN_PANEL_SERVICES_MSG_SELECT_STEP_FIRST:
+      'Спочатку оберіть етап зі списку.',
+    ADMIN_PANEL_SERVICES_MSG_SELECT_GUARANTEE_FIRST:
+      'Спочатку оберіть гарантію зі списку.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_NAME_FAILED:
+      'Виникла помилка перевірки назви послуги.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_DURATION_FAILED:
+      'Виникла помилка перевірки тривалості послуги.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_PRICE_FAILED:
+      'Виникла помилка перевірки ціни послуги.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_DESCRIPTION_FAILED:
+      'Виникла помилка перевірки опису послуги.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_STEP_TITLE_FAILED:
+      'Виникла помилка перевірки назви етапу.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_STEP_DESCRIPTION_FAILED:
+      'Виникла помилка перевірки опису етапу.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_STEP_DURATION_FAILED:
+      'Виникла помилка перевірки часу етапу.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_GUARANTEE_FAILED:
+      'Виникла помилка перевірки тексту гарантії.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_RESULT_FAILED:
+      'Виникла помилка перевірки тексту результату.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_STEP_BUTTONS:
+      'Для вибору етапу використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_GUARANTEE_BUTTONS:
+      'Для вибору гарантії використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_CONFIRM_BUTTONS:
+      'Для завершення змін використовуйте кнопки підтвердження під повідомленням.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_MENU_BUTTONS:
+      'Для редагування послуги використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_SERVICES_MSG_USE_CREATE_INPUT_OR_BUTTONS:
+      'Для створення послуги використовуйте поточний крок або кнопки під повідомленням.',
+    ADMIN_PANEL_SERVICES_MSG_COMPLETE_CURRENT_STEP_FIRST:
+      'Спочатку завершіть поточний крок створення.',
+    ADMIN_PANEL_SERVICES_MSG_MAX_STEPS_REACHED:
+      'Досягнуто максимальної кількості етапів (20). Перейдіть далі.',
+    ADMIN_PANEL_SERVICES_MSG_ADD_MIN_ONE_STEP:
+      'Додайте щонайменше 1 етап перед переходом до гарантій.',
+    ADMIN_PANEL_SERVICES_MSG_MAX_GUARANTEES_REACHED:
+      'Досягнуто максимальної кількості гарантій (10). Перейдіть далі.',
+    ADMIN_PANEL_SERVICES_MSG_ADD_MIN_ONE_GUARANTEE:
+      'Додайте щонайменше 1 гарантію перед переходом до результату.',
+    ADMIN_PANEL_SERVICES_MSG_INSUFFICIENT_CREATE_DATA:
+      'Недостатньо даних для створення послуги. Перевірте попередні кроки.',
+    ADMIN_PANEL_SERVICES_MSG_STEPS_NOT_FOUND:
+      'Для цієї послуги не знайдено етапів. Спочатку додайте етапи у БД.',
+    ADMIN_PANEL_SERVICES_MSG_GUARANTEES_NOT_FOUND:
+      'Для цієї послуги не знайдено гарантій. Спочатку додайте гарантії у БД.',
+    ADMIN_PANEL_SERVICES_LABEL_STEP_NUMBER: 'номер етапу',
+    ADMIN_PANEL_SERVICES_LABEL_GUARANTEE_NUMBER: 'номер гарантії',
+    ADMIN_PANEL_SERVICES_MSG_STEP_NOT_FOUND:
+      'Обраний етап не знайдено. Спробуйте ще раз.',
+    ADMIN_PANEL_SERVICES_MSG_GUARANTEE_NOT_FOUND:
+      'Обрану гарантію не знайдено. Спробуйте ще раз.',
+    ADMIN_PANEL_SERVICES_MSG_DEACTIVATED_SUCCESS:
+      'Послугу "{serviceName}" успішно видалено зі списку активних.',
+    ADMIN_PANEL_SERVICES_MSG_GUARANTEE_UPDATED_SUCCESS:
+      'Гарантію №{guaranteeNo} для послуги "{serviceName}" успішно оновлено.',
+    ADMIN_PANEL_SERVICES_MSG_STEP_TITLE_UPDATED_SUCCESS:
+      'Назву етапу №{stepNo} для послуги "{serviceName}" успішно оновлено.',
+    ADMIN_PANEL_SERVICES_MSG_STEP_DESCRIPTION_UPDATED_SUCCESS:
+      'Опис етапу №{stepNo} для послуги "{serviceName}" успішно оновлено.',
+    ADMIN_PANEL_SERVICES_MSG_STEP_DURATION_UPDATED_SUCCESS:
+      'Час етапу №{stepNo} для послуги "{serviceName}" успішно оновлено.',
+    ADMIN_PANEL_SERVICES_MSG_NAME_UPDATED_SUCCESS:
+      'Назву послуги "{serviceName}" успішно оновлено.',
+    ADMIN_PANEL_SERVICES_MSG_DURATION_UPDATED_SUCCESS:
+      'Тривалість послуги "{serviceName}" успішно оновлено.',
+    ADMIN_PANEL_SERVICES_MSG_PRICE_UPDATED_SUCCESS:
+      'Ціну послуги "{serviceName}" успішно оновлено.',
+    ADMIN_PANEL_SERVICES_MSG_DESCRIPTION_UPDATED_SUCCESS:
+      'Опис послуги "{serviceName}" успішно оновлено.',
+    ADMIN_PANEL_SERVICES_MSG_RESULT_UPDATED_SUCCESS:
+      'Результат послуги "{serviceName}" успішно оновлено.',
     ADMIN_PANEL_MASTERS_BTN_CREATE_OPEN: '➕ Додати майстра',
     ADMIN_PANEL_MASTERS_BTN_CREATE_START: '✅ Почати створення майстра',
     ADMIN_PANEL_MASTERS_BTN_CREATE_CANCEL: '❌ Скасувати створення',
@@ -605,6 +1098,30 @@ export const ADMIN_PANEL_DICTIONARY = {
       '✅ Роль адміністратора успішно надано.\n\n👤 {user}\n🆔 {telegramId}',
     ADMIN_PANEL_SETTINGS_MSG_ADMIN_REVOKED:
       '✅ Роль адміністратора успішно видалено.\n\n👤 {user}\n🆔 {telegramId}',
+    ADMIN_PANEL_SETTINGS_MSG_USE_LANGUAGE_CONFIRM_BUTTONS:
+      'Для зміни мови використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_LANGUAGE_PICK_BUTTONS:
+      'Для вибору мови використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_SETTINGS_MSG_TELEGRAM_ID_DIGITS_ONLY:
+      'Telegram ID має містити тільки цифри.',
+    ADMIN_PANEL_SETTINGS_MSG_USER_NOT_FOUND_IN_STUDIO:
+      'Користувача з таким Telegram ID не знайдено в цьому салоні.',
+    ADMIN_PANEL_SETTINGS_MSG_USER_ALREADY_ADMIN:
+      'Цей користувач уже має роль адміністратора.',
+    ADMIN_PANEL_SETTINGS_MSG_USER_NOT_ADMIN:
+      'У цього користувача немає ролі адміністратора.',
+    ADMIN_PANEL_SETTINGS_MSG_CANNOT_REVOKE_SELF:
+      'Не можна забрати роль адміністратора у власного профілю.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_ACTION_CONFIRM_BUTTONS:
+      'Для завершення дії використовуйте кнопки підтвердження під повідомленням.',
+    ADMIN_PANEL_SETTINGS_MSG_STUDIO_TEXT_VALIDATE_FAILED:
+      'Помилка перевірки тексту для оновлення.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_STUDIO_CONFIRM_BUTTONS:
+      'Для завершення змін використовуйте кнопки підтвердження під повідомленням.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_NOTIFICATIONS_BUTTONS:
+      'Для керування сповіщеннями використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_SECTION_BUTTONS:
+      'Для керування розділом налаштувань використовуйте кнопки під повідомленням.',
 
     ADMIN_PANEL_RECORDS_MENU_TITLE: '📅 Записи',
     ADMIN_PANEL_RECORDS_MENU_SUBTITLE: 'Оберіть категорію для перегляду записів:',
@@ -776,6 +1293,498 @@ export const ADMIN_PANEL_DICTIONARY = {
     ADMIN_PANEL_BTN_BACK_TO_PANEL: '⬅️ Back to admin panel',
     ADMIN_PANEL_BTN_BACK_TO_MENU: '⬅️ Back to menu',
     ADMIN_PANEL_BTN_BACK_TO_LIST: '⬅️ Back to list',
+
+    ADMIN_PANEL_COMMON_MSG_ADMIN_USER_UNRESOLVED:
+      'Failed to resolve admin user.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_CALLBACK_LANGUAGE_SELECT:
+      'Invalid callback action for language selection.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_CALLBACK_NOTIFICATION_TOGGLE:
+      'Invalid callback action for notification type change.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_CALLBACK_STUDIO_BLOCK_EDIT:
+      'Invalid callback action for studio block editing.',
+    ADMIN_PANEL_COMMON_MSG_STUDIO_TEXT_TOO_SHORT:
+      'Text is too short (minimum 10 characters).',
+    ADMIN_PANEL_COMMON_MSG_STUDIO_TEXT_TOO_LONG:
+      'Text is too long (maximum 4000 characters).',
+    ADMIN_PANEL_COMMON_MSG_INVALID_BOOKING_CALLBACK:
+      'Invalid callback action for booking.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_NUMERIC_FIELD: 'Invalid {field}.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_WEEKDAY: 'Invalid weekday.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_MONTH_CODE: 'Invalid monthly report code.',
+    ADMIN_PANEL_COMMON_MSG_DATE_FORMAT_DDMMYYYY: 'Date must be in DD.MM.YYYY format.',
+    ADMIN_PANEL_COMMON_MSG_DATE_INVALID: 'Invalid date entered.',
+    ADMIN_PANEL_COMMON_MSG_DATE_IN_PAST: 'Past dates are not allowed.',
+    ADMIN_PANEL_COMMON_MSG_HOLIDAY_NAME_TOO_SHORT:
+      'Holiday name must contain at least 2 characters.',
+    ADMIN_PANEL_COMMON_MSG_HOLIDAY_NAME_TOO_LONG:
+      'Holiday name is too long (maximum 120 characters).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_NAME_TOO_SHORT:
+      'Service name must contain at least 2 characters.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_NAME_TOO_LONG:
+      'Service name is too long (maximum 120 characters).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_GUARANTEE_TOO_SHORT:
+      'Guarantee text must contain at least 3 characters.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_GUARANTEE_TOO_LONG:
+      'Guarantee text is too long (maximum 500 characters).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_TITLE_TOO_SHORT:
+      'Step title must contain at least 2 characters.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_TITLE_TOO_LONG:
+      'Step title is too long (maximum 120 characters).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_DESCRIPTION_TOO_SHORT:
+      'Step description must contain at least 10 characters.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_DESCRIPTION_TOO_LONG:
+      'Step description is too long (maximum 500 characters).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_RESULT_TOO_SHORT:
+      'Service result must contain at least 10 characters.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_RESULT_TOO_LONG:
+      'Service result is too long (maximum 1200 characters).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DESCRIPTION_TOO_SHORT:
+      'Service description must contain at least 10 characters.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DESCRIPTION_TOO_LONG:
+      'Service description is too long (maximum 1600 characters).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_PRICE_FORMAT:
+      'Price must be a number in format 750 or 750.50.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_PRICE_NEGATIVE: 'Price cannot be negative.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_PRICE_TOO_HIGH: 'Price is too high.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DURATION_INTEGER:
+      'Duration must be an integer number of minutes.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DURATION_NUMBER: 'Duration must be a number.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DURATION_RANGE:
+      'Service duration must be in range 5..720 minutes.',
+    ADMIN_PANEL_COMMON_MSG_STEP_DURATION_INTEGER:
+      'Step duration must be an integer number of minutes.',
+    ADMIN_PANEL_COMMON_MSG_STEP_DURATION_NUMBER: 'Step duration must be a number.',
+    ADMIN_PANEL_COMMON_MSG_STEP_DURATION_RANGE:
+      'Step duration must be in range 1..720 minutes.',
+    ADMIN_PANEL_COMMON_MSG_DATE_RANGE_FORMAT:
+      'Period must be in format DD.MM.YYYY - DD.MM.YYYY.',
+    ADMIN_PANEL_COMMON_MSG_DATE_RANGE_INVALID:
+      'End date cannot be earlier than start date.',
+    ADMIN_PANEL_COMMON_MSG_TIME_FORMAT:
+      'Time must be in HH:MM format (example: 10:00).',
+    ADMIN_PANEL_COMMON_MSG_TIME_HOUR_RANGE: 'Hour must be in range from 0 to 23.',
+    ADMIN_PANEL_COMMON_MSG_DATE_CODE_INVALID: 'Invalid date code.',
+    ADMIN_PANEL_COMMON_MSG_DATE_VALUE_INVALID: 'Invalid date.',
+    ADMIN_PANEL_COMMON_LABEL_DAY_OFF_ID: 'day-off id',
+    ADMIN_PANEL_COMMON_LABEL_HOLIDAY_ID: 'holiday id',
+    ADMIN_PANEL_COMMON_LABEL_CLIENT_ID: 'client id',
+    ADMIN_PANEL_SCHEDULE_MSG_USE_SECTION_BUTTONS:
+      'To manage this section, use buttons under the message.',
+
+    ADMIN_PANEL_SERVICES_BTN_CREATE: '➕ Create new service',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_ADD_ANOTHER: '➕ Add one more',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_CONTINUE: '➡️ Continue',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_CANCEL: '❌ Cancel creation',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_CONFIRM: '✅ Confirm creation',
+    ADMIN_PANEL_SERVICES_BTN_OPEN_STATS: '📊 Service stats',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_OPEN: '✏️ Edit service',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_NAME: '🪪 Edit name',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_PRICE: '💰 Edit price',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_DURATION: '⏱ Edit duration',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_DESCRIPTION: '📝 Edit description',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_RESULT: '🎯 Edit result',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_STEP: '🧩 Edit step name',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_STEP_DESCRIPTION: '📝 Edit step description',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_STEP_DURATION: '⏱ Edit step time',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_GUARANTEE: '🛡 Edit guarantee',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_DELETE: '🗑 Delete service',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_CONFIRM_DELETE: '🗑 Yes, delete',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_CONFIRM: '✅ Save',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_CANCEL: '❌ Cancel',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_BACK: '⬅️ Back to service card',
+    ADMIN_PANEL_SERVICES_BTN_BACK_TO_LIST: '⬅️ Back to services list',
+    ADMIN_PANEL_SERVICES_BTN_BACK: '⬅️ Back to admin panel',
+    ADMIN_PANEL_SERVICES_LABEL_NOT_SPECIFIED: 'Not specified',
+    ADMIN_PANEL_SERVICES_LABEL_ACTIVE: 'Active',
+    ADMIN_PANEL_SERVICES_LABEL_INACTIVE: 'Inactive',
+    ADMIN_PANEL_SERVICES_LABEL_MINUTES_SHORT: 'min',
+    ADMIN_PANEL_SERVICES_LABEL_DAYS_SHORT: 'days',
+    ADMIN_PANEL_SERVICES_LABEL_STEP_EMPTY: '🔹 Steps are not specified',
+    ADMIN_PANEL_SERVICES_LABEL_GUARANTEE_EMPTY: '🔹 Guarantees are not specified',
+    ADMIN_PANEL_SERVICES_CATALOG_TITLE: '💼 Salon services',
+    ADMIN_PANEL_SERVICES_CATALOG_EMPTY: 'There are no active services yet.',
+    ADMIN_PANEL_SERVICES_CATALOG_EMPTY_HINT:
+      'Add services in the studio so they appear in this section.',
+    ADMIN_PANEL_SERVICES_CATALOG_PICK: 'Choose a service to open the card:',
+    ADMIN_PANEL_SERVICES_CREATE_START_TEXT:
+      '➕ Create new service\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Now we will fill the service card step by step:\n' +
+      '1) Name\n' +
+      '2) Duration\n' +
+      '3) Price\n' +
+      '4) Description\n' +
+      '5) Steps\n' +
+      '6) Guarantees\n' +
+      '7) Result\n\n' +
+      'Starting with the name.',
+    ADMIN_PANEL_SERVICES_CREATE_NAME_INPUT_TEXT:
+      '💼 New service name\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Send the service name in one message.\n' +
+      'Minimum 2 characters, maximum 120 characters.',
+    ADMIN_PANEL_SERVICES_CREATE_DURATION_INPUT_TEXT:
+      '⏱ New service duration\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      'Enter duration in minutes.\n' +
+      'Range: 5..720.',
+    ADMIN_PANEL_SERVICES_CREATE_PRICE_INPUT_TEXT:
+      '💰 New service price\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      'Send price in format 750 or 750.50.',
+    ADMIN_PANEL_SERVICES_CREATE_DESCRIPTION_INPUT_TEXT:
+      '📝 New service description\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      'Send service description in one message.\n' +
+      'Minimum 10 characters, maximum 1600 characters.',
+    ADMIN_PANEL_SERVICES_CREATE_PREVIEW_TITLE: '📋 Preview of new service',
+    ADMIN_PANEL_SERVICES_CREATE_PREVIEW_CONFIRM: 'Confirm service creation.',
+    ADMIN_PANEL_SERVICES_CREATE_SUCCESS_TITLE: '✅ New service has been created',
+    ADMIN_PANEL_SERVICES_DETAILS_TITLE: '📄 Service card',
+    ADMIN_PANEL_SERVICES_EDIT_MENU_TITLE: '✏️ Service editing',
+    ADMIN_PANEL_SERVICES_EDIT_MENU_PICK: 'Choose what you want to change:',
+    ADMIN_PANEL_SERVICES_EDIT_CONFIRM_TITLE: '✅ Update confirmation',
+    ADMIN_PANEL_SERVICES_EDIT_CONFIRM_SAVE: 'Confirm saving changes.',
+    ADMIN_PANEL_SERVICES_DELETE_CONFIRM_TITLE: '⚠️ Service delete confirmation',
+    ADMIN_PANEL_SERVICES_DELETE_CONFIRM_BODY:
+      'After confirmation, the service will be hidden for clients and masters.\n' +
+      'Historical bookings will remain, but new bookings for this service will become unavailable.\n\n' +
+      'Confirm action.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_TITLE_INPUT_TEXT:
+      '🧩 Step #{stepNo}: title\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Send step title in one message.\n' +
+      'Minimum 2 characters, maximum 120 characters.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_DURATION_INPUT_TEXT:
+      '🧩 Step #{stepNo}: duration\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Step title: {stepTitle}\n\n' +
+      'Enter step duration in minutes.\n' +
+      'Range: 1..720.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_DESCRIPTION_INPUT_TEXT:
+      '🧩 Step #{stepNo}: description\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Step title: {stepTitle}\n' +
+      'Duration: {durationMinutes} {minutesLabel}\n\n' +
+      'Send step description in one message.\n' +
+      'Minimum 10 characters, maximum 500 characters.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_ADDED_TEXT:
+      '✅ Step added\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Added step #{stepNo}: {stepTitle} ({durationMinutes} {minutesLabel})\n' +
+      'Total steps: {totalSteps}\n\n' +
+      'Choose next action.',
+    ADMIN_PANEL_SERVICES_CREATE_GUARANTEE_INPUT_TEXT:
+      '🛡 Guarantee #{guaranteeNo}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Send guarantee text in one message.\n' +
+      'Minimum 3 characters, maximum 500 characters.',
+    ADMIN_PANEL_SERVICES_CREATE_GUARANTEE_ADDED_TEXT:
+      '✅ Guarantee added\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Added guarantee #{guaranteeNo}:\n{guaranteeText}\n\n' +
+      'Total guarantees: {totalGuarantees}\n\n' +
+      'Choose next action.',
+    ADMIN_PANEL_SERVICES_CREATE_RESULT_INPUT_TEXT:
+      '🎯 Service result\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      'Send result description for the client.\n' +
+      'Minimum 10 characters, maximum 1200 characters.',
+    ADMIN_PANEL_SERVICES_CREATE_PREVIEW_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Name: {name}\n' +
+      '⏱ Duration: {durationMinutes} {minutesLabel}\n' +
+      '💰 Price: {price}\n\n' +
+      '📝 Description\n{description}\n\n' +
+      '✨ Steps\n{stepsText}\n\n' +
+      '🛡 Guarantees\n{guaranteesText}\n\n' +
+      '🎯 Result\n{resultDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_CREATE_SUCCESS_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 {name}\n' +
+      '🪪 ID: {serviceId}\n' +
+      '⏱ Duration: {durationMinutes} {minutesLabel}\n' +
+      '💰 Price: {price}\n' +
+      '🧩 Steps: {stepsCount}\n' +
+      '🛡 Guarantees: {guaranteesCount}',
+    ADMIN_PANEL_SERVICES_DETAILS_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Name: {name}\n' +
+      '🪪 ID: {serviceId}\n' +
+      '⏱ Duration: {durationMinutes} {minutesLabel}\n' +
+      '💰 Price: {price}\n' +
+      '📌 Status: {status}\n\n' +
+      '📝 Description\n{description}\n\n' +
+      '🎯 Result\n{result}\n\n' +
+      '✨ Procedure steps\n{stepsText}\n\n' +
+      '🛡 Guarantees\n{guaranteesText}',
+    ADMIN_PANEL_SERVICES_EDIT_MENU_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '⏱ Current duration: {durationMinutes} {minutesLabel}\n\n' +
+      '💰 Current price: {price}\n\n' +
+      '📝 Current description:\n{description}\n\n' +
+      '🎯 Current result:\n{resultDescription}\n\n' +
+      '{pickText}',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_SELECT_TEXT:
+      '🛡 Service guarantee editing\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      'Choose guarantee to update:\n\n' +
+      '{list}',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_BUTTON_LABEL: '{badge} Guarantee #{guaranteeNo}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_PICK_TITLE:
+      'Choose step name to update:',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_PICK_DESCRIPTION:
+      'Choose step description to update:',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_PICK_DURATION:
+      'Choose step time to update:',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_TEXT:
+      '🧩 Service step editing\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '{modeText}\n\n' +
+      '{list}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_ROW_TEXT:
+      '{badge} Step #{stepNo} ({durationMinutes} {minutesLabel}) — {title}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_BUTTON_LABEL: '{badge} Step #{stepNo}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_INPUT_TEXT:
+      '✏️ Update step name\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n' +
+      '🧩 Step #{stepNo}\n\n' +
+      'Current title:\n{currentStepTitle}\n\n' +
+      'Send new step title in one message.\n' +
+      'Minimum 2 characters, maximum 120 characters.',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n' +
+      '🧩 Step #{stepNo}\n\n' +
+      'New title:\n{nextStepTitle}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DESCRIPTION_INPUT_TEXT:
+      '✏️ Update step description\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n' +
+      '🧩 Step #{stepNo}\n\n' +
+      'Current description:\n{currentStepDescription}\n\n' +
+      'Send new step description in one message.\n' +
+      'Minimum 10 characters, maximum 500 characters.',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DESCRIPTION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n' +
+      '🧩 Step #{stepNo}\n\n' +
+      'New description:\n{nextStepDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DURATION_INPUT_TEXT:
+      '✏️ Update step time\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n' +
+      '🧩 Step #{stepNo}\n\n' +
+      'Current step time: {currentStepDurationMinutes} {minutesLabel}\n\n' +
+      'Send new step duration in minutes.\n' +
+      'Range: 1..720.',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DURATION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n' +
+      '🧩 Step #{stepNo}\n\n' +
+      'New step time: {nextStepDurationMinutes} {minutesLabel}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_INPUT_TEXT:
+      '✏️ Update guarantee\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n' +
+      '🛡 Guarantee #{guaranteeNo}\n\n' +
+      'Current text:\n{currentGuaranteeText}\n\n' +
+      'Send new guarantee text in one message.\n' +
+      'Minimum 3 characters, maximum 500 characters.',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n' +
+      '🛡 Guarantee #{guaranteeNo}\n\n' +
+      'New text:\n{nextGuaranteeText}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_NAME_INPUT_TEXT:
+      '✏️ Update service name\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Current name: {serviceName}\n\n' +
+      'Send new name in one message.\n' +
+      'Minimum 2 characters, maximum 120 characters.',
+    ADMIN_PANEL_SERVICES_EDIT_DURATION_INPUT_TEXT:
+      '✏️ Update service duration\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '⏱ Current duration: {currentDurationMinutes} {minutesLabel}\n\n' +
+      'Send new duration in minutes.\n' +
+      'Range: 5..720',
+    ADMIN_PANEL_SERVICES_EDIT_PRICE_INPUT_TEXT:
+      '✏️ Update service price\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '💰 Current price: {currentPrice}\n\n' +
+      'Send new price in one message.\n' +
+      'Format: 750 or 750.50',
+    ADMIN_PANEL_SERVICES_EDIT_DESCRIPTION_INPUT_TEXT:
+      '✏️ Update service description\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '📝 Current description:\n{currentDescription}\n\n' +
+      'Send new description in one message.\n' +
+      'Minimum 10 characters, maximum 1600 characters.',
+    ADMIN_PANEL_SERVICES_EDIT_RESULT_INPUT_TEXT:
+      '✏️ Update service result\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '🎯 Current result:\n{currentResultDescription}\n\n' +
+      'Send new result text in one message.\n' +
+      'Minimum 10 characters, maximum 1200 characters.',
+    ADMIN_PANEL_SERVICES_EDIT_RESULT_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '🎯 New result:\n{nextResultDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_DESCRIPTION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '📝 New description:\n{nextDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_DURATION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '⏱ New duration: {nextDurationMinutes} {minutesLabel}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_PRICE_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '💰 New price: {nextPrice}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_NAME_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '🪪 New name: {nextServiceName}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_DELETE_CONFIRM_TEXT:
+      '{deleteTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '{deleteBody}',
+    ADMIN_PANEL_SERVICES_STATS_STUB_TEXT:
+      '📊 Service stats\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '⚠️ Section is temporarily unavailable.\n' +
+      'After integration, financial and operational metrics will appear here.',
+    ADMIN_PANEL_SERVICES_DEFAULT_NAME: 'New service',
+    ADMIN_PANEL_SERVICES_MSG_NOT_FOUND_OR_INACTIVE:
+      'Service was not found or is inactive.',
+    ADMIN_PANEL_SERVICES_MSG_NOT_FOUND_FOR_EDIT:
+      'Service for editing was not found.',
+    ADMIN_PANEL_SERVICES_MSG_SET_STEP_TITLE_FIRST:
+      'Set the step title first.',
+    ADMIN_PANEL_SERVICES_MSG_SET_STEP_TITLE_AND_DURATION_FIRST:
+      'Fill step title and duration first.',
+    ADMIN_PANEL_SERVICES_MSG_PREVIEW_BUILD_FAILED:
+      'Failed to build service preview data.',
+    ADMIN_PANEL_SERVICES_MSG_INPUT_VALIDATION_FAILED:
+      'Input validation failed.',
+    ADMIN_PANEL_SERVICES_MSG_USE_STEP_ACTIONS_BUTTONS:
+      'Use buttons below the message to continue creating steps.',
+    ADMIN_PANEL_SERVICES_MSG_USE_GUARANTEE_ACTIONS_BUTTONS:
+      'Use buttons below the message to continue creating guarantees.',
+    ADMIN_PANEL_SERVICES_MSG_USE_CREATE_CONFIRM_BUTTONS:
+      'Use confirmation buttons below the message to finish service creation.',
+    ADMIN_PANEL_SERVICES_MSG_SELECT_STEP_FIRST:
+      'Select a step from the list first.',
+    ADMIN_PANEL_SERVICES_MSG_SELECT_GUARANTEE_FIRST:
+      'Select a guarantee from the list first.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_NAME_FAILED:
+      'Service name validation failed.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_DURATION_FAILED:
+      'Service duration validation failed.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_PRICE_FAILED:
+      'Service price validation failed.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_DESCRIPTION_FAILED:
+      'Service description validation failed.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_STEP_TITLE_FAILED:
+      'Step title validation failed.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_STEP_DESCRIPTION_FAILED:
+      'Step description validation failed.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_STEP_DURATION_FAILED:
+      'Step duration validation failed.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_GUARANTEE_FAILED:
+      'Guarantee text validation failed.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_RESULT_FAILED:
+      'Result text validation failed.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_STEP_BUTTONS:
+      'Use buttons below the message to select a step.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_GUARANTEE_BUTTONS:
+      'Use buttons below the message to select a guarantee.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_CONFIRM_BUTTONS:
+      'Use confirmation buttons below the message to finish changes.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_MENU_BUTTONS:
+      'Use buttons below the message to edit service.',
+    ADMIN_PANEL_SERVICES_MSG_USE_CREATE_INPUT_OR_BUTTONS:
+      'Use the current input step or buttons below the message to create service.',
+    ADMIN_PANEL_SERVICES_MSG_COMPLETE_CURRENT_STEP_FIRST:
+      'Complete the current creation step first.',
+    ADMIN_PANEL_SERVICES_MSG_MAX_STEPS_REACHED:
+      'Maximum number of steps reached (20). Continue to next stage.',
+    ADMIN_PANEL_SERVICES_MSG_ADD_MIN_ONE_STEP:
+      'Add at least one step before moving to guarantees.',
+    ADMIN_PANEL_SERVICES_MSG_MAX_GUARANTEES_REACHED:
+      'Maximum number of guarantees reached (10). Continue to next stage.',
+    ADMIN_PANEL_SERVICES_MSG_ADD_MIN_ONE_GUARANTEE:
+      'Add at least one guarantee before moving to result.',
+    ADMIN_PANEL_SERVICES_MSG_INSUFFICIENT_CREATE_DATA:
+      'Insufficient data to create service. Check previous steps.',
+    ADMIN_PANEL_SERVICES_MSG_STEPS_NOT_FOUND:
+      'No steps found for this service. Add steps in DB first.',
+    ADMIN_PANEL_SERVICES_MSG_GUARANTEES_NOT_FOUND:
+      'No guarantees found for this service. Add guarantees in DB first.',
+    ADMIN_PANEL_SERVICES_LABEL_STEP_NUMBER: 'step number',
+    ADMIN_PANEL_SERVICES_LABEL_GUARANTEE_NUMBER: 'guarantee number',
+    ADMIN_PANEL_SERVICES_MSG_STEP_NOT_FOUND:
+      'Selected step was not found. Try again.',
+    ADMIN_PANEL_SERVICES_MSG_GUARANTEE_NOT_FOUND:
+      'Selected guarantee was not found. Try again.',
+    ADMIN_PANEL_SERVICES_MSG_DEACTIVATED_SUCCESS:
+      'Service "{serviceName}" was removed from active list.',
+    ADMIN_PANEL_SERVICES_MSG_GUARANTEE_UPDATED_SUCCESS:
+      'Guarantee #{guaranteeNo} for service "{serviceName}" was updated.',
+    ADMIN_PANEL_SERVICES_MSG_STEP_TITLE_UPDATED_SUCCESS:
+      'Step title #{stepNo} for service "{serviceName}" was updated.',
+    ADMIN_PANEL_SERVICES_MSG_STEP_DESCRIPTION_UPDATED_SUCCESS:
+      'Step description #{stepNo} for service "{serviceName}" was updated.',
+    ADMIN_PANEL_SERVICES_MSG_STEP_DURATION_UPDATED_SUCCESS:
+      'Step duration #{stepNo} for service "{serviceName}" was updated.',
+    ADMIN_PANEL_SERVICES_MSG_NAME_UPDATED_SUCCESS:
+      'Service name "{serviceName}" was updated.',
+    ADMIN_PANEL_SERVICES_MSG_DURATION_UPDATED_SUCCESS:
+      'Service duration "{serviceName}" was updated.',
+    ADMIN_PANEL_SERVICES_MSG_PRICE_UPDATED_SUCCESS:
+      'Service price "{serviceName}" was updated.',
+    ADMIN_PANEL_SERVICES_MSG_DESCRIPTION_UPDATED_SUCCESS:
+      'Service description "{serviceName}" was updated.',
+    ADMIN_PANEL_SERVICES_MSG_RESULT_UPDATED_SUCCESS:
+      'Service result "{serviceName}" was updated.',
     ADMIN_PANEL_MASTERS_BTN_CREATE_OPEN: '➕ Add master',
     ADMIN_PANEL_MASTERS_BTN_CREATE_START: '✅ Start creating master',
     ADMIN_PANEL_MASTERS_BTN_CREATE_CANCEL: '❌ Cancel creation',
@@ -1351,6 +2360,30 @@ export const ADMIN_PANEL_DICTIONARY = {
       '✅ Administrator role granted successfully.\n\n👤 {user}\n🆔 {telegramId}',
     ADMIN_PANEL_SETTINGS_MSG_ADMIN_REVOKED:
       '✅ Administrator role revoked successfully.\n\n👤 {user}\n🆔 {telegramId}',
+    ADMIN_PANEL_SETTINGS_MSG_USE_LANGUAGE_CONFIRM_BUTTONS:
+      'Use buttons below the message to confirm language change.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_LANGUAGE_PICK_BUTTONS:
+      'Use buttons below the message to choose language.',
+    ADMIN_PANEL_SETTINGS_MSG_TELEGRAM_ID_DIGITS_ONLY:
+      'Telegram ID must contain digits only.',
+    ADMIN_PANEL_SETTINGS_MSG_USER_NOT_FOUND_IN_STUDIO:
+      'User with this Telegram ID was not found in this studio.',
+    ADMIN_PANEL_SETTINGS_MSG_USER_ALREADY_ADMIN:
+      'This user already has admin role.',
+    ADMIN_PANEL_SETTINGS_MSG_USER_NOT_ADMIN:
+      'This user does not have admin role.',
+    ADMIN_PANEL_SETTINGS_MSG_CANNOT_REVOKE_SELF:
+      'You cannot revoke admin role from your own profile.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_ACTION_CONFIRM_BUTTONS:
+      'Use confirmation buttons below the message to finish this action.',
+    ADMIN_PANEL_SETTINGS_MSG_STUDIO_TEXT_VALIDATE_FAILED:
+      'Text validation failed for update.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_STUDIO_CONFIRM_BUTTONS:
+      'Use confirmation buttons below the message to finish changes.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_NOTIFICATIONS_BUTTONS:
+      'Use buttons below the message to manage notifications.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_SECTION_BUTTONS:
+      'Use buttons below the message to manage settings section.',
 
     ADMIN_PANEL_RECORDS_MENU_TITLE: '📅 Bookings',
     ADMIN_PANEL_RECORDS_MENU_SUBTITLE: 'Choose a category to view bookings:',
@@ -1527,6 +2560,498 @@ export const ADMIN_PANEL_DICTIONARY = {
     ADMIN_PANEL_BTN_BACK_TO_PANEL: '⬅️ Zpět na admin panel',
     ADMIN_PANEL_BTN_BACK_TO_MENU: '⬅️ Zpět do menu',
     ADMIN_PANEL_BTN_BACK_TO_LIST: '⬅️ Zpět na seznam',
+
+    ADMIN_PANEL_COMMON_MSG_ADMIN_USER_UNRESOLVED:
+      'Nepodařilo se určit uživatele administrátora.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_CALLBACK_LANGUAGE_SELECT:
+      'Neplatná callback akce pro výběr jazyka.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_CALLBACK_NOTIFICATION_TOGGLE:
+      'Neplatná callback akce pro změnu typu oznámení.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_CALLBACK_STUDIO_BLOCK_EDIT:
+      'Neplatná callback akce pro úpravu bloku studia.',
+    ADMIN_PANEL_COMMON_MSG_STUDIO_TEXT_TOO_SHORT:
+      'Text je příliš krátký (minimum 10 znaků).',
+    ADMIN_PANEL_COMMON_MSG_STUDIO_TEXT_TOO_LONG:
+      'Text je příliš dlouhý (maximum 4000 znaků).',
+    ADMIN_PANEL_COMMON_MSG_INVALID_BOOKING_CALLBACK:
+      'Neplatná callback akce pro rezervaci.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_NUMERIC_FIELD: 'Neplatné {field}.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_WEEKDAY: 'Neplatný den v týdnu.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_MONTH_CODE: 'Neplatný kód měsíčního reportu.',
+    ADMIN_PANEL_COMMON_MSG_DATE_FORMAT_DDMMYYYY: 'Datum musí být ve formátu DD.MM.RRRR.',
+    ADMIN_PANEL_COMMON_MSG_DATE_INVALID: 'Bylo zadáno neplatné datum.',
+    ADMIN_PANEL_COMMON_MSG_DATE_IN_PAST: 'Nelze zadat datum v minulosti.',
+    ADMIN_PANEL_COMMON_MSG_HOLIDAY_NAME_TOO_SHORT:
+      'Název svátku musí mít alespoň 2 znaky.',
+    ADMIN_PANEL_COMMON_MSG_HOLIDAY_NAME_TOO_LONG:
+      'Název svátku je příliš dlouhý (maximum 120 znaků).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_NAME_TOO_SHORT:
+      'Název služby musí mít alespoň 2 znaky.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_NAME_TOO_LONG:
+      'Název služby je příliš dlouhý (maximum 120 znaků).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_GUARANTEE_TOO_SHORT:
+      'Text garance musí mít alespoň 3 znaky.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_GUARANTEE_TOO_LONG:
+      'Text garance je příliš dlouhý (maximum 500 znaků).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_TITLE_TOO_SHORT:
+      'Název kroku musí mít alespoň 2 znaky.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_TITLE_TOO_LONG:
+      'Název kroku je příliš dlouhý (maximum 120 znaků).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_DESCRIPTION_TOO_SHORT:
+      'Popis kroku musí mít alespoň 10 znaků.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_DESCRIPTION_TOO_LONG:
+      'Popis kroku je příliš dlouhý (maximum 500 znaků).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_RESULT_TOO_SHORT:
+      'Výsledek služby musí mít alespoň 10 znaků.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_RESULT_TOO_LONG:
+      'Výsledek služby je příliš dlouhý (maximum 1200 znaků).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DESCRIPTION_TOO_SHORT:
+      'Popis služby musí mít alespoň 10 znaků.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DESCRIPTION_TOO_LONG:
+      'Popis služby je příliš dlouhý (maximum 1600 znaků).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_PRICE_FORMAT:
+      'Cena musí být číslo ve formátu 750 nebo 750.50.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_PRICE_NEGATIVE: 'Cena nemůže být záporná.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_PRICE_TOO_HIGH: 'Cena je příliš vysoká.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DURATION_INTEGER:
+      'Délka musí být celé číslo v minutách.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DURATION_NUMBER: 'Délka musí být číslo.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DURATION_RANGE:
+      'Délka služby musí být v rozsahu 5..720 minut.',
+    ADMIN_PANEL_COMMON_MSG_STEP_DURATION_INTEGER:
+      'Délka kroku musí být celé číslo v minutách.',
+    ADMIN_PANEL_COMMON_MSG_STEP_DURATION_NUMBER: 'Délka kroku musí být číslo.',
+    ADMIN_PANEL_COMMON_MSG_STEP_DURATION_RANGE:
+      'Délka kroku musí být v rozsahu 1..720 minut.',
+    ADMIN_PANEL_COMMON_MSG_DATE_RANGE_FORMAT:
+      'Období musí být ve formátu DD.MM.RRRR - DD.MM.RRRR.',
+    ADMIN_PANEL_COMMON_MSG_DATE_RANGE_INVALID:
+      'Datum konce nemůže být dříve než datum začátku.',
+    ADMIN_PANEL_COMMON_MSG_TIME_FORMAT:
+      'Čas musí být ve formátu HH:MM (např. 10:00).',
+    ADMIN_PANEL_COMMON_MSG_TIME_HOUR_RANGE: 'Hodina musí být v rozsahu 0 až 23.',
+    ADMIN_PANEL_COMMON_MSG_DATE_CODE_INVALID: 'Neplatný kód data.',
+    ADMIN_PANEL_COMMON_MSG_DATE_VALUE_INVALID: 'Neplatné datum.',
+    ADMIN_PANEL_COMMON_LABEL_DAY_OFF_ID: 'id dne volna',
+    ADMIN_PANEL_COMMON_LABEL_HOLIDAY_ID: 'id svátečního dne',
+    ADMIN_PANEL_COMMON_LABEL_CLIENT_ID: 'id klienta',
+    ADMIN_PANEL_SCHEDULE_MSG_USE_SECTION_BUTTONS:
+      'Pro správu této sekce použijte tlačítka pod zprávou.',
+
+    ADMIN_PANEL_SERVICES_BTN_CREATE: '➕ Vytvořit novou službu',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_ADD_ANOTHER: '➕ Přidat další',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_CONTINUE: '➡️ Pokračovat',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_CANCEL: '❌ Zrušit vytváření',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_CONFIRM: '✅ Potvrdit vytvoření',
+    ADMIN_PANEL_SERVICES_BTN_OPEN_STATS: '📊 Statistiky služby',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_OPEN: '✏️ Upravit službu',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_NAME: '🪪 Změnit název',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_PRICE: '💰 Změnit cenu',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_DURATION: '⏱ Změnit trvání',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_DESCRIPTION: '📝 Změnit popis',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_RESULT: '🎯 Změnit výsledek',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_STEP: '🧩 Změnit název kroku',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_STEP_DESCRIPTION: '📝 Změnit popis kroku',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_STEP_DURATION: '⏱ Změnit čas kroku',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_GUARANTEE: '🛡 Změnit garanci',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_DELETE: '🗑 Smazat službu',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_CONFIRM_DELETE: '🗑 Ano, smazat',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_CONFIRM: '✅ Uložit',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_CANCEL: '❌ Zrušit',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_BACK: '⬅️ Zpět na kartu služby',
+    ADMIN_PANEL_SERVICES_BTN_BACK_TO_LIST: '⬅️ Zpět na seznam služeb',
+    ADMIN_PANEL_SERVICES_BTN_BACK: '⬅️ Zpět na admin panel',
+    ADMIN_PANEL_SERVICES_LABEL_NOT_SPECIFIED: 'Neuvedeno',
+    ADMIN_PANEL_SERVICES_LABEL_ACTIVE: 'Aktivní',
+    ADMIN_PANEL_SERVICES_LABEL_INACTIVE: 'Neaktivní',
+    ADMIN_PANEL_SERVICES_LABEL_MINUTES_SHORT: 'min',
+    ADMIN_PANEL_SERVICES_LABEL_DAYS_SHORT: 'dnů',
+    ADMIN_PANEL_SERVICES_LABEL_STEP_EMPTY: '🔹 Kroky nejsou uvedeny',
+    ADMIN_PANEL_SERVICES_LABEL_GUARANTEE_EMPTY: '🔹 Garance nejsou uvedeny',
+    ADMIN_PANEL_SERVICES_CATALOG_TITLE: '💼 Služby salonu',
+    ADMIN_PANEL_SERVICES_CATALOG_EMPTY: 'Zatím nejsou žádné aktivní služby.',
+    ADMIN_PANEL_SERVICES_CATALOG_EMPTY_HINT:
+      'Přidejte služby ve studiu, aby se zobrazily v této sekci.',
+    ADMIN_PANEL_SERVICES_CATALOG_PICK: 'Vyberte službu pro zobrazení karty:',
+    ADMIN_PANEL_SERVICES_CREATE_START_TEXT:
+      '➕ Vytvoření nové služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Nyní postupně vyplníme kartu služby:\n' +
+      '1) Název\n' +
+      '2) Trvání\n' +
+      '3) Cena\n' +
+      '4) Popis\n' +
+      '5) Kroky\n' +
+      '6) Garance\n' +
+      '7) Výsledek\n\n' +
+      'Začínáme názvem.',
+    ADMIN_PANEL_SERVICES_CREATE_NAME_INPUT_TEXT:
+      '💼 Název nové služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Pošlete název služby jednou zprávou.\n' +
+      'Minimum 2 znaky, maximum 120 znaků.',
+    ADMIN_PANEL_SERVICES_CREATE_DURATION_INPUT_TEXT:
+      '⏱ Trvání nové služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      'Zadejte trvání v minutách.\n' +
+      'Rozsah: 5..720.',
+    ADMIN_PANEL_SERVICES_CREATE_PRICE_INPUT_TEXT:
+      '💰 Cena nové služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      'Pošlete cenu ve formátu 750 nebo 750.50.',
+    ADMIN_PANEL_SERVICES_CREATE_DESCRIPTION_INPUT_TEXT:
+      '📝 Popis nové služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      'Pošlete popis služby jednou zprávou.\n' +
+      'Minimum 10 znaků, maximum 1600 znaků.',
+    ADMIN_PANEL_SERVICES_CREATE_PREVIEW_TITLE: '📋 Náhled nové služby',
+    ADMIN_PANEL_SERVICES_CREATE_PREVIEW_CONFIRM: 'Potvrďte vytvoření služby.',
+    ADMIN_PANEL_SERVICES_CREATE_SUCCESS_TITLE: '✅ Nová služba byla vytvořena',
+    ADMIN_PANEL_SERVICES_DETAILS_TITLE: '📄 Karta služby',
+    ADMIN_PANEL_SERVICES_EDIT_MENU_TITLE: '✏️ Úprava služby',
+    ADMIN_PANEL_SERVICES_EDIT_MENU_PICK: 'Vyberte, co chcete změnit:',
+    ADMIN_PANEL_SERVICES_EDIT_CONFIRM_TITLE: '✅ Potvrzení změny',
+    ADMIN_PANEL_SERVICES_EDIT_CONFIRM_SAVE: 'Potvrďte uložení změn.',
+    ADMIN_PANEL_SERVICES_DELETE_CONFIRM_TITLE: '⚠️ Potvrzení smazání služby',
+    ADMIN_PANEL_SERVICES_DELETE_CONFIRM_BODY:
+      'Po potvrzení bude služba skryta pro klienty i mistry.\n' +
+      'Historické rezervace zůstanou, ale nové rezervace této služby budou nedostupné.\n\n' +
+      'Potvrďte akci.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_TITLE_INPUT_TEXT:
+      '🧩 Krok č.{stepNo}: název\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Pošlete název kroku jednou zprávou.\n' +
+      'Minimum 2 znaky, maximum 120 znaků.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_DURATION_INPUT_TEXT:
+      '🧩 Krok č.{stepNo}: trvání\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Název kroku: {stepTitle}\n\n' +
+      'Zadejte trvání kroku v minutách.\n' +
+      'Rozsah: 1..720.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_DESCRIPTION_INPUT_TEXT:
+      '🧩 Krok č.{stepNo}: popis\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Název kroku: {stepTitle}\n' +
+      'Trvání: {durationMinutes} {minutesLabel}\n\n' +
+      'Pošlete popis kroku jednou zprávou.\n' +
+      'Minimum 10 znaků, maximum 500 znaků.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_ADDED_TEXT:
+      '✅ Krok přidán\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Přidán krok č.{stepNo}: {stepTitle} ({durationMinutes} {minutesLabel})\n' +
+      'Celkem kroků: {totalSteps}\n\n' +
+      'Vyberte další akci.',
+    ADMIN_PANEL_SERVICES_CREATE_GUARANTEE_INPUT_TEXT:
+      '🛡 Garance č.{guaranteeNo}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Pošlete text garance jednou zprávou.\n' +
+      'Minimum 3 znaky, maximum 500 znaků.',
+    ADMIN_PANEL_SERVICES_CREATE_GUARANTEE_ADDED_TEXT:
+      '✅ Garance přidána\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Přidána garance č.{guaranteeNo}:\n{guaranteeText}\n\n' +
+      'Celkem garancí: {totalGuarantees}\n\n' +
+      'Vyberte další akci.',
+    ADMIN_PANEL_SERVICES_CREATE_RESULT_INPUT_TEXT:
+      '🎯 Výsledek služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      'Pošlete popis výsledku pro klienta.\n' +
+      'Minimum 10 znaků, maximum 1200 znaků.',
+    ADMIN_PANEL_SERVICES_CREATE_PREVIEW_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Název: {name}\n' +
+      '⏱ Trvání: {durationMinutes} {minutesLabel}\n' +
+      '💰 Cena: {price}\n\n' +
+      '📝 Popis\n{description}\n\n' +
+      '✨ Kroky\n{stepsText}\n\n' +
+      '🛡 Garance\n{guaranteesText}\n\n' +
+      '🎯 Výsledek\n{resultDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_CREATE_SUCCESS_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 {name}\n' +
+      '🪪 ID: {serviceId}\n' +
+      '⏱ Trvání: {durationMinutes} {minutesLabel}\n' +
+      '💰 Cena: {price}\n' +
+      '🧩 Kroků: {stepsCount}\n' +
+      '🛡 Garancí: {guaranteesCount}',
+    ADMIN_PANEL_SERVICES_DETAILS_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Název: {name}\n' +
+      '🪪 ID: {serviceId}\n' +
+      '⏱ Trvání: {durationMinutes} {minutesLabel}\n' +
+      '💰 Cena: {price}\n' +
+      '📌 Stav: {status}\n\n' +
+      '📝 Popis\n{description}\n\n' +
+      '🎯 Výsledek\n{result}\n\n' +
+      '✨ Kroky procedury\n{stepsText}\n\n' +
+      '🛡 Garance\n{guaranteesText}',
+    ADMIN_PANEL_SERVICES_EDIT_MENU_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '⏱ Aktuální trvání: {durationMinutes} {minutesLabel}\n\n' +
+      '💰 Aktuální cena: {price}\n\n' +
+      '📝 Aktuální popis:\n{description}\n\n' +
+      '🎯 Aktuální výsledek:\n{resultDescription}\n\n' +
+      '{pickText}',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_SELECT_TEXT:
+      '🛡 Úprava garance služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      'Vyberte garanci pro změnu:\n\n' +
+      '{list}',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_BUTTON_LABEL: '{badge} Garance č.{guaranteeNo}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_PICK_TITLE:
+      'Vyberte krok, jehož název chcete změnit:',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_PICK_DESCRIPTION:
+      'Vyberte krok, jehož popis chcete změnit:',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_PICK_DURATION:
+      'Vyberte krok, jehož čas chcete změnit:',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_TEXT:
+      '🧩 Úprava kroku služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '{modeText}\n\n' +
+      '{list}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_ROW_TEXT:
+      '{badge} Krok č.{stepNo} ({durationMinutes} {minutesLabel}) — {title}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_BUTTON_LABEL: '{badge} Krok č.{stepNo}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_INPUT_TEXT:
+      '✏️ Změna názvu kroku\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n' +
+      '🧩 Krok č.{stepNo}\n\n' +
+      'Aktuální název:\n{currentStepTitle}\n\n' +
+      'Pošlete nový název kroku jednou zprávou.\n' +
+      'Minimum 2 znaky, maximum 120 znaků.',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n' +
+      '🧩 Krok č.{stepNo}\n\n' +
+      'Nový název:\n{nextStepTitle}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DESCRIPTION_INPUT_TEXT:
+      '✏️ Změna popisu kroku\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n' +
+      '🧩 Krok č.{stepNo}\n\n' +
+      'Aktuální popis:\n{currentStepDescription}\n\n' +
+      'Pošlete nový popis kroku jednou zprávou.\n' +
+      'Minimum 10 znaků, maximum 500 znaků.',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DESCRIPTION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n' +
+      '🧩 Krok č.{stepNo}\n\n' +
+      'Nový popis:\n{nextStepDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DURATION_INPUT_TEXT:
+      '✏️ Změna času kroku\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n' +
+      '🧩 Krok č.{stepNo}\n\n' +
+      'Aktuální čas kroku: {currentStepDurationMinutes} {minutesLabel}\n\n' +
+      'Pošlete nové trvání kroku v minutách.\n' +
+      'Rozsah: 1..720.',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DURATION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n' +
+      '🧩 Krok č.{stepNo}\n\n' +
+      'Nový čas kroku: {nextStepDurationMinutes} {minutesLabel}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_INPUT_TEXT:
+      '✏️ Změna garance\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n' +
+      '🛡 Garance č.{guaranteeNo}\n\n' +
+      'Aktuální text:\n{currentGuaranteeText}\n\n' +
+      'Pošlete nový text garance jednou zprávou.\n' +
+      'Minimum 3 znaky, maximum 500 znaků.',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n' +
+      '🛡 Garance č.{guaranteeNo}\n\n' +
+      'Nový text:\n{nextGuaranteeText}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_NAME_INPUT_TEXT:
+      '✏️ Změna názvu služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Aktuální název: {serviceName}\n\n' +
+      'Pošlete nový název jednou zprávou.\n' +
+      'Minimum 2 znaky, maximum 120 znaků.',
+    ADMIN_PANEL_SERVICES_EDIT_DURATION_INPUT_TEXT:
+      '✏️ Změna trvání služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '⏱ Aktuální trvání: {currentDurationMinutes} {minutesLabel}\n\n' +
+      'Pošlete nové trvání v minutách.\n' +
+      'Rozsah: 5..720',
+    ADMIN_PANEL_SERVICES_EDIT_PRICE_INPUT_TEXT:
+      '✏️ Změna ceny služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '💰 Aktuální cena: {currentPrice}\n\n' +
+      'Pošlete novou cenu jednou zprávou.\n' +
+      'Formát: 750 nebo 750.50',
+    ADMIN_PANEL_SERVICES_EDIT_DESCRIPTION_INPUT_TEXT:
+      '✏️ Změna popisu služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '📝 Aktuální popis:\n{currentDescription}\n\n' +
+      'Pošlete nový popis jednou zprávou.\n' +
+      'Minimum 10 znaků, maximum 1600 znaků.',
+    ADMIN_PANEL_SERVICES_EDIT_RESULT_INPUT_TEXT:
+      '✏️ Změna výsledku služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '🎯 Aktuální výsledek:\n{currentResultDescription}\n\n' +
+      'Pošlete nový text výsledku jednou zprávou.\n' +
+      'Minimum 10 znaků, maximum 1200 znaků.',
+    ADMIN_PANEL_SERVICES_EDIT_RESULT_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '🎯 Nový výsledek:\n{nextResultDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_DESCRIPTION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '📝 Nový popis:\n{nextDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_DURATION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '⏱ Nové trvání: {nextDurationMinutes} {minutesLabel}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_PRICE_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '💰 Nová cena: {nextPrice}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_NAME_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '🪪 Nový název: {nextServiceName}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_DELETE_CONFIRM_TEXT:
+      '{deleteTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '{deleteBody}',
+    ADMIN_PANEL_SERVICES_STATS_STUB_TEXT:
+      '📊 Statistiky služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '⚠️ Sekce je dočasně nedostupná.\n' +
+      'Po napojení zde budou finanční a provozní ukazatele služby.',
+    ADMIN_PANEL_SERVICES_DEFAULT_NAME: 'Nová služba',
+    ADMIN_PANEL_SERVICES_MSG_NOT_FOUND_OR_INACTIVE:
+      'Služba nebyla nalezena nebo je neaktivní.',
+    ADMIN_PANEL_SERVICES_MSG_NOT_FOUND_FOR_EDIT:
+      'Služba pro úpravu nebyla nalezena.',
+    ADMIN_PANEL_SERVICES_MSG_SET_STEP_TITLE_FIRST:
+      'Nejprve zadejte název kroku.',
+    ADMIN_PANEL_SERVICES_MSG_SET_STEP_TITLE_AND_DURATION_FIRST:
+      'Nejprve vyplňte název a trvání kroku.',
+    ADMIN_PANEL_SERVICES_MSG_PREVIEW_BUILD_FAILED:
+      'Nepodařilo se sestavit data služby pro náhled.',
+    ADMIN_PANEL_SERVICES_MSG_INPUT_VALIDATION_FAILED:
+      'Při kontrole zadaných dat došlo k chybě.',
+    ADMIN_PANEL_SERVICES_MSG_USE_STEP_ACTIONS_BUTTONS:
+      'Pro pokračování ve vytváření kroků použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_SERVICES_MSG_USE_GUARANTEE_ACTIONS_BUTTONS:
+      'Pro pokračování ve vytváření garancí použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_SERVICES_MSG_USE_CREATE_CONFIRM_BUTTONS:
+      'Pro dokončení vytvoření služby použijte potvrzovací tlačítka pod zprávou.',
+    ADMIN_PANEL_SERVICES_MSG_SELECT_STEP_FIRST:
+      'Nejprve vyberte krok ze seznamu.',
+    ADMIN_PANEL_SERVICES_MSG_SELECT_GUARANTEE_FIRST:
+      'Nejprve vyberte garanci ze seznamu.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_NAME_FAILED:
+      'Při ověření názvu služby došlo k chybě.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_DURATION_FAILED:
+      'Při ověření trvání služby došlo k chybě.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_PRICE_FAILED:
+      'Při ověření ceny služby došlo k chybě.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_DESCRIPTION_FAILED:
+      'Při ověření popisu služby došlo k chybě.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_STEP_TITLE_FAILED:
+      'Při ověření názvu kroku došlo k chybě.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_STEP_DESCRIPTION_FAILED:
+      'Při ověření popisu kroku došlo k chybě.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_STEP_DURATION_FAILED:
+      'Při ověření času kroku došlo k chybě.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_GUARANTEE_FAILED:
+      'Při ověření textu garance došlo k chybě.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_RESULT_FAILED:
+      'Při ověření textu výsledku došlo k chybě.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_STEP_BUTTONS:
+      'Pro výběr kroku použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_GUARANTEE_BUTTONS:
+      'Pro výběr garance použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_CONFIRM_BUTTONS:
+      'Pro dokončení změn použijte potvrzovací tlačítka pod zprávou.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_MENU_BUTTONS:
+      'Pro úpravu služby použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_SERVICES_MSG_USE_CREATE_INPUT_OR_BUTTONS:
+      'Pro vytvoření služby použijte aktuální krok nebo tlačítka pod zprávou.',
+    ADMIN_PANEL_SERVICES_MSG_COMPLETE_CURRENT_STEP_FIRST:
+      'Nejprve dokončete aktuální krok vytváření.',
+    ADMIN_PANEL_SERVICES_MSG_MAX_STEPS_REACHED:
+      'Byl dosažen maximální počet kroků (20). Pokračujte dál.',
+    ADMIN_PANEL_SERVICES_MSG_ADD_MIN_ONE_STEP:
+      'Před přechodem na garance přidejte alespoň 1 krok.',
+    ADMIN_PANEL_SERVICES_MSG_MAX_GUARANTEES_REACHED:
+      'Byl dosažen maximální počet garancí (10). Pokračujte dál.',
+    ADMIN_PANEL_SERVICES_MSG_ADD_MIN_ONE_GUARANTEE:
+      'Před přechodem na výsledek přidejte alespoň 1 garanci.',
+    ADMIN_PANEL_SERVICES_MSG_INSUFFICIENT_CREATE_DATA:
+      'Nedostatek dat pro vytvoření služby. Zkontrolujte předchozí kroky.',
+    ADMIN_PANEL_SERVICES_MSG_STEPS_NOT_FOUND:
+      'Pro tuto službu nebyly nalezeny kroky. Nejprve je přidejte v DB.',
+    ADMIN_PANEL_SERVICES_MSG_GUARANTEES_NOT_FOUND:
+      'Pro tuto službu nebyly nalezeny garance. Nejprve je přidejte v DB.',
+    ADMIN_PANEL_SERVICES_LABEL_STEP_NUMBER: 'číslo kroku',
+    ADMIN_PANEL_SERVICES_LABEL_GUARANTEE_NUMBER: 'číslo garance',
+    ADMIN_PANEL_SERVICES_MSG_STEP_NOT_FOUND:
+      'Vybraný krok nebyl nalezen. Zkuste to znovu.',
+    ADMIN_PANEL_SERVICES_MSG_GUARANTEE_NOT_FOUND:
+      'Vybraná garance nebyla nalezena. Zkuste to znovu.',
+    ADMIN_PANEL_SERVICES_MSG_DEACTIVATED_SUCCESS:
+      'Služba "{serviceName}" byla úspěšně odstraněna ze seznamu aktivních.',
+    ADMIN_PANEL_SERVICES_MSG_GUARANTEE_UPDATED_SUCCESS:
+      'Garance č.{guaranteeNo} pro službu "{serviceName}" byla úspěšně upravena.',
+    ADMIN_PANEL_SERVICES_MSG_STEP_TITLE_UPDATED_SUCCESS:
+      'Název kroku č.{stepNo} pro službu "{serviceName}" byl úspěšně upraven.',
+    ADMIN_PANEL_SERVICES_MSG_STEP_DESCRIPTION_UPDATED_SUCCESS:
+      'Popis kroku č.{stepNo} pro službu "{serviceName}" byl úspěšně upraven.',
+    ADMIN_PANEL_SERVICES_MSG_STEP_DURATION_UPDATED_SUCCESS:
+      'Čas kroku č.{stepNo} pro službu "{serviceName}" byl úspěšně upraven.',
+    ADMIN_PANEL_SERVICES_MSG_NAME_UPDATED_SUCCESS:
+      'Název služby "{serviceName}" byl úspěšně upraven.',
+    ADMIN_PANEL_SERVICES_MSG_DURATION_UPDATED_SUCCESS:
+      'Trvání služby "{serviceName}" bylo úspěšně upraveno.',
+    ADMIN_PANEL_SERVICES_MSG_PRICE_UPDATED_SUCCESS:
+      'Cena služby "{serviceName}" byla úspěšně upravena.',
+    ADMIN_PANEL_SERVICES_MSG_DESCRIPTION_UPDATED_SUCCESS:
+      'Popis služby "{serviceName}" byl úspěšně upraven.',
+    ADMIN_PANEL_SERVICES_MSG_RESULT_UPDATED_SUCCESS:
+      'Výsledek služby "{serviceName}" byl úspěšně upraven.',
     ADMIN_PANEL_MASTERS_BTN_CREATE_OPEN: '➕ Přidat mistra',
     ADMIN_PANEL_MASTERS_BTN_CREATE_START: '✅ Spustit vytvoření mistra',
     ADMIN_PANEL_MASTERS_BTN_CREATE_CANCEL: '❌ Zrušit vytvoření',
@@ -2111,6 +3636,30 @@ export const ADMIN_PANEL_DICTIONARY = {
       '✅ Role administrátora byla úspěšně přidělena.\n\n👤 {user}\n🆔 {telegramId}',
     ADMIN_PANEL_SETTINGS_MSG_ADMIN_REVOKED:
       '✅ Role administrátora byla úspěšně odebrána.\n\n👤 {user}\n🆔 {telegramId}',
+    ADMIN_PANEL_SETTINGS_MSG_USE_LANGUAGE_CONFIRM_BUTTONS:
+      'Pro změnu jazyka použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_LANGUAGE_PICK_BUTTONS:
+      'Pro výběr jazyka použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_SETTINGS_MSG_TELEGRAM_ID_DIGITS_ONLY:
+      'Telegram ID musí obsahovat pouze číslice.',
+    ADMIN_PANEL_SETTINGS_MSG_USER_NOT_FOUND_IN_STUDIO:
+      'Uživatel s tímto Telegram ID nebyl v tomto studiu nalezen.',
+    ADMIN_PANEL_SETTINGS_MSG_USER_ALREADY_ADMIN:
+      'Tento uživatel už má roli administrátora.',
+    ADMIN_PANEL_SETTINGS_MSG_USER_NOT_ADMIN:
+      'Tento uživatel nemá roli administrátora.',
+    ADMIN_PANEL_SETTINGS_MSG_CANNOT_REVOKE_SELF:
+      'Nemůžete odebrat roli administrátora svému vlastnímu profilu.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_ACTION_CONFIRM_BUTTONS:
+      'Pro dokončení akce použijte potvrzovací tlačítka pod zprávou.',
+    ADMIN_PANEL_SETTINGS_MSG_STUDIO_TEXT_VALIDATE_FAILED:
+      'Při ověření textu pro aktualizaci došlo k chybě.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_STUDIO_CONFIRM_BUTTONS:
+      'Pro dokončení změn použijte potvrzovací tlačítka pod zprávou.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_NOTIFICATIONS_BUTTONS:
+      'Pro správu oznámení použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_SECTION_BUTTONS:
+      'Pro správu sekce nastavení použijte tlačítka pod zprávou.',
 
     ADMIN_PANEL_RECORDS_MENU_TITLE: '📅 Rezervace',
     ADMIN_PANEL_RECORDS_MENU_SUBTITLE: 'Vyberte kategorii pro zobrazení rezervací:',

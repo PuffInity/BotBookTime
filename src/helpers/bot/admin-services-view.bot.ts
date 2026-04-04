@@ -1,7 +1,6 @@
 import { Markup } from 'telegraf';
 import {
   ADMIN_PANEL_ACTION,
-  ADMIN_PANEL_BUTTON_TEXT,
   makeAdminPanelServicesEditOpenAction,
   makeAdminPanelServicesEditStepPickAction,
   makeAdminPanelServicesEditGuaranteePickAction,
@@ -13,6 +12,8 @@ import type {
   ServicesCatalogItem,
 } from '../../types/db-helpers/db-services.types.js';
 import type { CreateAdminServiceResult } from '../../types/db-helpers/db-admin-services.types.js';
+import { tBot, tBotTemplate } from './i18n.bot.js';
+import type { BotUiLanguage } from './i18n.bot.js';
 
 /**
  * @file admin-services-view.bot.ts
@@ -32,31 +33,37 @@ function formatPrice(price: string, currencyCode: string): string {
   return `${normalized} ${currencyCode}`;
 }
 
-function formatServiceLine(service: ServicesCatalogItem, index: number): string {
+function formatServiceLine(
+  service: ServicesCatalogItem,
+  index: number,
+  language: BotUiLanguage,
+): string {
   return (
     `${getNumberBadge(index)} ${service.name}\n` +
-    `🪪 ID: ${service.id} • ⏱ ${service.durationMinutes} хв • 💰 ${formatPrice(service.basePrice, service.currencyCode)}`
+    `🪪 ID: ${service.id} • ⏱ ${service.durationMinutes} ${tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_MINUTES_SHORT')} • 💰 ${formatPrice(service.basePrice, service.currencyCode)}`
   );
 }
 
-function formatSteps(details: ServicesCatalogDetails): string {
+function formatSteps(details: ServicesCatalogDetails, language: BotUiLanguage): string {
   if (details.steps.length === 0) {
-    return '🔹 Етапи не вказані';
+    return tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_STEP_EMPTY');
   }
 
   return details.steps
-    .map((step) => `• ${step.stepNo}. ${step.title} (≈${step.durationMinutes} хв)`)
+    .map((step) => `• ${step.stepNo}. ${step.title} (≈${step.durationMinutes} ${tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_MINUTES_SHORT')})`)
     .join('\n');
 }
 
-function formatGuarantees(details: ServicesCatalogDetails): string {
+function formatGuarantees(details: ServicesCatalogDetails, language: BotUiLanguage): string {
   if (details.guarantees.length === 0) {
-    return '🔹 Гарантії не вказані';
+    return tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_GUARANTEE_EMPTY');
   }
 
   return details.guarantees
     .map((item) => {
-      const validDays = item.validDays == null ? '' : ` (${item.validDays} дн.)`;
+      const validDays = item.validDays == null
+        ? ''
+        : ` (${item.validDays} ${tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_DAYS_SHORT')})`;
       return `• ${item.guaranteeText}${validDays}`;
     })
     .join('\n');
@@ -65,21 +72,24 @@ function formatGuarantees(details: ServicesCatalogDetails): string {
 /**
  * @summary Форматує список послуг студії.
  */
-export function formatAdminServicesCatalogText(services: ServicesCatalogItem[]): string {
+export function formatAdminServicesCatalogText(
+  services: ServicesCatalogItem[],
+  language: BotUiLanguage = 'uk',
+): string {
   if (services.length === 0) {
     return (
-      '💼 Послуги салону\n' +
+      `${tBot(language, 'ADMIN_PANEL_SERVICES_CATALOG_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
-      'Поки що немає активних послуг.\n' +
-      'Додайте послуги у студії, щоб вони зʼявилися в цьому розділі.'
+      `${tBot(language, 'ADMIN_PANEL_SERVICES_CATALOG_EMPTY')}\n` +
+      tBot(language, 'ADMIN_PANEL_SERVICES_CATALOG_EMPTY_HINT')
     );
   }
 
   return (
-    '💼 Послуги салону\n' +
+    `${tBot(language, 'ADMIN_PANEL_SERVICES_CATALOG_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Оберіть послугу для перегляду картки:\n\n' +
-    services.map(formatServiceLine).join('\n\n')
+    `${tBot(language, 'ADMIN_PANEL_SERVICES_CATALOG_PICK')}\n\n` +
+    services.map((service, index) => formatServiceLine(service, index, language)).join('\n\n')
   );
 }
 
@@ -88,6 +98,7 @@ export function formatAdminServicesCatalogText(services: ServicesCatalogItem[]):
  */
 export function createAdminServicesCatalogKeyboard(
   services: ServicesCatalogItem[],
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const rows = services.map((service, index) => [
     Markup.button.callback(
@@ -97,10 +108,10 @@ export function createAdminServicesCatalogKeyboard(
   ]);
 
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_CREATE, ADMIN_PANEL_ACTION.SERVICES_CREATE_OPEN)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_CREATE'), ADMIN_PANEL_ACTION.SERVICES_CREATE_OPEN)],
     ...rows,
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK, ADMIN_PANEL_ACTION.SERVICES_BACK)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.HOME, ADMIN_PANEL_ACTION.HOME)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_BACK'), ADMIN_PANEL_ACTION.SERVICES_BACK)],
+    [Markup.button.callback(tBot(language, 'HOME'), ADMIN_PANEL_ACTION.HOME)],
   ]);
 }
 
@@ -129,95 +140,69 @@ type AdminServiceCreatePreview = {
 /**
  * @summary Текст запуску створення нової послуги.
  */
-export function formatAdminServiceCreateStartText(): string {
-  return (
-    '➕ Створення нової послуги\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    'Зараз послідовно заповнимо картку послуги:\n' +
-    '1) Назва\n' +
-    '2) Тривалість\n' +
-    '3) Ціна\n' +
-    '4) Опис\n' +
-    '5) Етапи\n' +
-    '6) Гарантії\n' +
-    '7) Результат\n\n' +
-    'Починаємо з назви.'
-  );
+export function formatAdminServiceCreateStartText(language: BotUiLanguage = 'uk'): string {
+  return tBot(language, 'ADMIN_PANEL_SERVICES_CREATE_START_TEXT');
 }
 
 /**
  * @summary Текст кроку вводу назви нової послуги.
  */
-export function formatAdminServiceCreateNameInputText(): string {
-  return (
-    '💼 Назва нової послуги\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    'Надішліть назву послуги одним повідомленням.\n' +
-    'Мінімум 2 символи, максимум 120 символів.'
-  );
+export function formatAdminServiceCreateNameInputText(language: BotUiLanguage = 'uk'): string {
+  return tBot(language, 'ADMIN_PANEL_SERVICES_CREATE_NAME_INPUT_TEXT');
 }
 
 /**
  * @summary Текст кроку вводу тривалості нової послуги.
  */
-export function formatAdminServiceCreateDurationInputText(serviceName: string): string {
-  return (
-    '⏱ Тривалість нової послуги\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n\n` +
-    'Вкажіть тривалість у хвилинах.\n' +
-    'Діапазон: 5..720.'
-  );
+export function formatAdminServiceCreateDurationInputText(
+  serviceName: string,
+  language: BotUiLanguage = 'uk',
+): string {
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_CREATE_DURATION_INPUT_TEXT', { serviceName });
 }
 
 /**
  * @summary Текст кроку вводу ціни нової послуги.
  */
-export function formatAdminServiceCreatePriceInputText(serviceName: string): string {
-  return (
-    '💰 Ціна нової послуги\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n\n` +
-    'Надішліть ціну у форматі 750 або 750.50.'
-  );
+export function formatAdminServiceCreatePriceInputText(
+  serviceName: string,
+  language: BotUiLanguage = 'uk',
+): string {
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_CREATE_PRICE_INPUT_TEXT', { serviceName });
 }
 
 /**
  * @summary Текст кроку вводу опису нової послуги.
  */
-export function formatAdminServiceCreateDescriptionInputText(serviceName: string): string {
-  return (
-    '📝 Опис нової послуги\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n\n` +
-    'Надішліть опис послуги одним повідомленням.\n' +
-    'Мінімум 10 символів, максимум 1600 символів.'
-  );
+export function formatAdminServiceCreateDescriptionInputText(
+  serviceName: string,
+  language: BotUiLanguage = 'uk',
+): string {
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_CREATE_DESCRIPTION_INPUT_TEXT', { serviceName });
 }
 
 /**
  * @summary Текст кроку вводу назви етапу.
  */
-export function formatAdminServiceCreateStepTitleInputText(stepNo: number): string {
-  return (
-    `🧩 Етап №${stepNo}: назва\n` +
-    '━━━━━━━━━━━━━━\n\n' +
-    'Надішліть назву етапу одним повідомленням.\n' +
-    'Мінімум 2 символи, максимум 120 символів.'
-  );
+export function formatAdminServiceCreateStepTitleInputText(
+  stepNo: number,
+  language: BotUiLanguage = 'uk',
+): string {
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_CREATE_STEP_TITLE_INPUT_TEXT', { stepNo });
 }
 
 /**
  * @summary Текст кроку вводу тривалості етапу.
  */
-export function formatAdminServiceCreateStepDurationInputText(stepNo: number, stepTitle: string): string {
-  return (
-    `🧩 Етап №${stepNo}: тривалість\n` +
-    '━━━━━━━━━━━━━━\n\n' +
-    `Назва етапу: ${stepTitle}\n\n` +
-    'Вкажіть тривалість етапу у хвилинах.\n' +
-    'Діапазон: 1..720.'
-  );
+export function formatAdminServiceCreateStepDurationInputText(
+  stepNo: number,
+  stepTitle: string,
+  language: BotUiLanguage = 'uk',
+): string {
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_CREATE_STEP_DURATION_INPUT_TEXT', {
+    stepNo,
+    stepTitle,
+  });
 }
 
 /**
@@ -227,15 +212,14 @@ export function formatAdminServiceCreateStepDescriptionInputText(
   stepNo: number,
   stepTitle: string,
   durationMinutes: number,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    `🧩 Етап №${stepNo}: опис\n` +
-    '━━━━━━━━━━━━━━\n\n' +
-    `Назва етапу: ${stepTitle}\n` +
-    `Тривалість: ${durationMinutes} хв\n\n` +
-    'Надішліть опис етапу одним повідомленням.\n' +
-    'Мінімум 10 символів, максимум 500 символів.'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_CREATE_STEP_DESCRIPTION_INPUT_TEXT', {
+    stepNo,
+    stepTitle,
+    durationMinutes,
+    minutesLabel: tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_MINUTES_SHORT'),
+  });
 }
 
 /**
@@ -246,37 +230,40 @@ export function formatAdminServiceCreateStepAddedText(
   stepTitle: string,
   durationMinutes: number,
   totalSteps: number,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✅ Етап додано\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `Додано етап №${stepNo}: ${stepTitle} (${durationMinutes} хв)\n` +
-    `Усього етапів: ${totalSteps}\n\n` +
-    'Оберіть наступну дію.'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_CREATE_STEP_ADDED_TEXT', {
+    stepNo,
+    stepTitle,
+    durationMinutes,
+    totalSteps,
+    minutesLabel: tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_MINUTES_SHORT'),
+  });
 }
 
 /**
  * @summary Клавіатура дій після додавання етапу.
  */
-export function createAdminServiceCreateStepActionsKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminServiceCreateStepActionsKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_CREATE_ADD_ANOTHER, ADMIN_PANEL_ACTION.SERVICES_CREATE_STEP_ADD_ANOTHER)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_CREATE_CONTINUE, ADMIN_PANEL_ACTION.SERVICES_CREATE_STEP_CONTINUE)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_CREATE_CANCEL, ADMIN_PANEL_ACTION.SERVICES_CREATE_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_CREATE_ADD_ANOTHER'), ADMIN_PANEL_ACTION.SERVICES_CREATE_STEP_ADD_ANOTHER)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_CREATE_CONTINUE'), ADMIN_PANEL_ACTION.SERVICES_CREATE_STEP_CONTINUE)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_CREATE_CANCEL'), ADMIN_PANEL_ACTION.SERVICES_CREATE_CANCEL)],
   ]);
 }
 
 /**
  * @summary Текст кроку вводу гарантії.
  */
-export function formatAdminServiceCreateGuaranteeInputText(guaranteeNo: number): string {
-  return (
-    `🛡 Гарантія №${guaranteeNo}\n` +
-    '━━━━━━━━━━━━━━\n\n' +
-    'Надішліть текст гарантії одним повідомленням.\n' +
-    'Мінімум 3 символи, максимум 500 символів.'
-  );
+export function formatAdminServiceCreateGuaranteeInputText(
+  guaranteeNo: number,
+  language: BotUiLanguage = 'uk',
+): string {
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_CREATE_GUARANTEE_INPUT_TEXT', {
+    guaranteeNo,
+  });
 }
 
 /**
@@ -286,126 +273,139 @@ export function formatAdminServiceCreateGuaranteeAddedText(
   guaranteeNo: number,
   guaranteeText: string,
   totalGuarantees: number,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✅ Гарантію додано\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `Додано гарантію №${guaranteeNo}:\n${guaranteeText}\n\n` +
-    `Усього гарантій: ${totalGuarantees}\n\n` +
-    'Оберіть наступну дію.'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_CREATE_GUARANTEE_ADDED_TEXT', {
+    guaranteeNo,
+    guaranteeText,
+    totalGuarantees,
+  });
 }
 
 /**
  * @summary Клавіатура дій після додавання гарантії.
  */
-export function createAdminServiceCreateGuaranteeActionsKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminServiceCreateGuaranteeActionsKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_CREATE_ADD_ANOTHER, ADMIN_PANEL_ACTION.SERVICES_CREATE_GUARANTEE_ADD_ANOTHER)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_CREATE_CONTINUE, ADMIN_PANEL_ACTION.SERVICES_CREATE_GUARANTEE_CONTINUE)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_CREATE_CANCEL, ADMIN_PANEL_ACTION.SERVICES_CREATE_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_CREATE_ADD_ANOTHER'), ADMIN_PANEL_ACTION.SERVICES_CREATE_GUARANTEE_ADD_ANOTHER)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_CREATE_CONTINUE'), ADMIN_PANEL_ACTION.SERVICES_CREATE_GUARANTEE_CONTINUE)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_CREATE_CANCEL'), ADMIN_PANEL_ACTION.SERVICES_CREATE_CANCEL)],
   ]);
 }
 
 /**
  * @summary Текст кроку вводу результату послуги.
  */
-export function formatAdminServiceCreateResultInputText(serviceName: string): string {
-  return (
-    '🎯 Результат послуги\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n\n` +
-    'Надішліть опис результату для клієнта.\n' +
-    'Мінімум 10 символів, максимум 1200 символів.'
-  );
+export function formatAdminServiceCreateResultInputText(
+  serviceName: string,
+  language: BotUiLanguage = 'uk',
+): string {
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_CREATE_RESULT_INPUT_TEXT', { serviceName });
 }
 
 /**
  * @summary Текст попереднього перегляду перед створенням.
  */
-export function formatAdminServiceCreatePreviewText(draft: AdminServiceCreatePreview): string {
+export function formatAdminServiceCreatePreviewText(
+  draft: AdminServiceCreatePreview,
+  language: BotUiLanguage = 'uk',
+): string {
   const stepsText = draft.steps
-    .map((step, index) => `${getNumberBadge(index)} ${step.title} (${step.durationMinutes} хв)\n${step.description}`)
+    .map((step, index) => `${getNumberBadge(index)} ${step.title} (${step.durationMinutes} ${tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_MINUTES_SHORT')})\n${step.description}`)
     .join('\n\n');
 
   const guaranteesText = draft.guarantees
     .map((item) => {
-      const suffix = item.validDays == null ? '' : ` (${item.validDays} дн.)`;
+      const suffix = item.validDays == null ? '' : ` (${item.validDays} ${tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_DAYS_SHORT')})`;
       return `• ${item.guaranteeText}${suffix}`;
     })
     .join('\n');
 
-  return (
-    '📋 Попередній перегляд нової послуги\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Назва: ${draft.name}\n` +
-    `⏱ Тривалість: ${draft.durationMinutes} хв\n` +
-    `💰 Ціна: ${formatPrice(draft.basePrice, draft.currencyCode)}\n\n` +
-    `📝 Опис\n${draft.description}\n\n` +
-    `✨ Етапи\n${stepsText}\n\n` +
-    `🛡 Гарантії\n${guaranteesText}\n\n` +
-    `🎯 Результат\n${draft.resultDescription}\n\n` +
-    'Підтвердьте створення послуги.'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_CREATE_PREVIEW_BODY_TEXT', {
+    title: tBot(language, 'ADMIN_PANEL_SERVICES_CREATE_PREVIEW_TITLE'),
+    name: draft.name,
+    durationMinutes: draft.durationMinutes,
+    minutesLabel: tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_MINUTES_SHORT'),
+    price: formatPrice(draft.basePrice, draft.currencyCode),
+    description: draft.description,
+    stepsText,
+    guaranteesText,
+    resultDescription: draft.resultDescription,
+    confirmText: tBot(language, 'ADMIN_PANEL_SERVICES_CREATE_PREVIEW_CONFIRM'),
+  });
 }
 
 /**
  * @summary Клавіатура підтвердження створення послуги.
  */
-export function createAdminServiceCreatePreviewKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminServiceCreatePreviewKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_CREATE_CONFIRM, ADMIN_PANEL_ACTION.SERVICES_CREATE_CONFIRM)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_CREATE_CANCEL, ADMIN_PANEL_ACTION.SERVICES_CREATE_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_CREATE_CONFIRM'), ADMIN_PANEL_ACTION.SERVICES_CREATE_CONFIRM)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_CREATE_CANCEL'), ADMIN_PANEL_ACTION.SERVICES_CREATE_CANCEL)],
   ]);
 }
 
 /**
  * @summary Клавіатура для інпут-кроків створення послуги.
  */
-export function createAdminServiceCreateInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminServiceCreateInputKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_CREATE_CANCEL, ADMIN_PANEL_ACTION.SERVICES_CREATE_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK_TO_LIST, ADMIN_PANEL_ACTION.SERVICES_BACK_TO_LIST)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_CREATE_CANCEL'), ADMIN_PANEL_ACTION.SERVICES_CREATE_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_BACK_TO_LIST'), ADMIN_PANEL_ACTION.SERVICES_BACK_TO_LIST)],
   ]);
 }
 
 /**
  * @summary Текст успішного створення нової послуги.
  */
-export function formatAdminServiceCreateSuccessText(result: CreateAdminServiceResult): string {
-  return (
-    '✅ Нову послугу створено\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 ${result.name}\n` +
-    `🪪 ID: ${result.serviceId}\n` +
-    `⏱ Тривалість: ${result.durationMinutes} хв\n` +
-    `💰 Ціна: ${formatPrice(result.basePrice, result.currencyCode)}\n` +
-    `🧩 Етапів: ${result.stepsCount}\n` +
-    `🛡 Гарантій: ${result.guaranteesCount}`
-  );
+export function formatAdminServiceCreateSuccessText(
+  result: CreateAdminServiceResult,
+  language: BotUiLanguage = 'uk',
+): string {
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_CREATE_SUCCESS_BODY_TEXT', {
+    title: tBot(language, 'ADMIN_PANEL_SERVICES_CREATE_SUCCESS_TITLE'),
+    name: result.name,
+    serviceId: result.serviceId,
+    durationMinutes: result.durationMinutes,
+    minutesLabel: tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_MINUTES_SHORT'),
+    price: formatPrice(result.basePrice, result.currencyCode),
+    stepsCount: result.stepsCount,
+    guaranteesCount: result.guaranteesCount,
+  });
 }
 
 /**
  * @summary Форматує детальну картку послуги.
  */
-export function formatAdminServiceDetailsText(details: ServicesCatalogDetails): string {
+export function formatAdminServiceDetailsText(
+  details: ServicesCatalogDetails,
+  language: BotUiLanguage = 'uk',
+): string {
   const { service } = details;
-  const description = service.description?.trim() ? service.description.trim() : 'Не вказано';
-  const result = service.resultDescription?.trim() ? service.resultDescription.trim() : 'Не вказано';
+  const description = service.description?.trim() ? service.description.trim() : tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_NOT_SPECIFIED');
+  const result = service.resultDescription?.trim() ? service.resultDescription.trim() : tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_NOT_SPECIFIED');
 
-  return (
-    '📄 Картка послуги\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Назва: ${service.name}\n` +
-    `🪪 ID: ${service.id}\n` +
-    `⏱ Тривалість: ${service.durationMinutes} хв\n` +
-    `💰 Ціна: ${formatPrice(service.basePrice, service.currencyCode)}\n` +
-    `📌 Статус: ${service.isActive ? 'Активна' : 'Неактивна'}\n\n` +
-    `📝 Опис\n${description}\n\n` +
-    `🎯 Результат\n${result}\n\n` +
-    `✨ Етапи процедури\n${formatSteps(details)}\n\n` +
-    `🛡 Гарантії\n${formatGuarantees(details)}`
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_DETAILS_BODY_TEXT', {
+    title: tBot(language, 'ADMIN_PANEL_SERVICES_DETAILS_TITLE'),
+    name: service.name,
+    serviceId: service.id,
+    durationMinutes: service.durationMinutes,
+    minutesLabel: tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_MINUTES_SHORT'),
+    price: formatPrice(service.basePrice, service.currencyCode),
+    status: service.isActive
+      ? tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_ACTIVE')
+      : tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_INACTIVE'),
+    description,
+    result,
+    stepsText: formatSteps(details, language),
+    guaranteesText: formatGuarantees(details, language),
+  });
 }
 
 /**
@@ -413,28 +413,29 @@ export function formatAdminServiceDetailsText(details: ServicesCatalogDetails): 
  */
 export function createAdminServiceDetailsKeyboard(
   serviceId: string,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_OPEN,
+        tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_OPEN'),
         makeAdminPanelServicesEditOpenAction(serviceId),
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SERVICES_OPEN_STATS,
+        tBot(language, 'ADMIN_PANEL_SERVICES_BTN_OPEN_STATS'),
         makeAdminPanelServicesOpenStatsAction(serviceId),
       ),
     ],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK_TO_LIST, ADMIN_PANEL_ACTION.SERVICES_BACK_TO_LIST)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK, ADMIN_PANEL_ACTION.SERVICES_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_BACK_TO_LIST'), ADMIN_PANEL_ACTION.SERVICES_BACK_TO_LIST)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_BACK'), ADMIN_PANEL_ACTION.SERVICES_BACK)],
   ]);
 }
 
-function formatOptionalText(value: string | null): string {
+function formatOptionalText(value: string | null, language: BotUiLanguage): string {
   const normalized = value?.trim();
-  return normalized ? normalized : 'Не вказано';
+  return normalized ? normalized : tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_NOT_SPECIFIED');
 }
 
 /**
@@ -447,37 +448,40 @@ export function formatAdminServiceEditMenuText(
   currencyCode: string,
   description: string | null,
   resultDescription: string | null,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✏️ Редагування послуги\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n\n` +
-    `⏱ Поточна тривалість: ${durationMinutes} хв\n\n` +
-    `💰 Поточна ціна: ${formatPrice(basePrice, currencyCode)}\n\n` +
-    `📝 Поточний опис:\n${formatOptionalText(description)}\n\n` +
-    `🎯 Поточний результат:\n${formatOptionalText(resultDescription)}\n\n` +
-    'Оберіть, що потрібно змінити:'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_MENU_BODY_TEXT', {
+    title: tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_MENU_TITLE'),
+    serviceName,
+    durationMinutes,
+    minutesLabel: tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_MINUTES_SHORT'),
+    price: formatPrice(basePrice, currencyCode),
+    description: formatOptionalText(description, language),
+    resultDescription: formatOptionalText(resultDescription, language),
+    pickText: tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_MENU_PICK'),
+  });
 }
 
 /**
  * @summary Клавіатура меню редагування послуги.
  */
-export function createAdminServiceEditMenuKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminServiceEditMenuKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_NAME, ADMIN_PANEL_ACTION.SERVICES_EDIT_NAME_OPEN)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_DURATION, ADMIN_PANEL_ACTION.SERVICES_EDIT_DURATION_OPEN)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_PRICE, ADMIN_PANEL_ACTION.SERVICES_EDIT_PRICE_OPEN)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_DESCRIPTION, ADMIN_PANEL_ACTION.SERVICES_EDIT_DESCRIPTION_OPEN)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_RESULT, ADMIN_PANEL_ACTION.SERVICES_EDIT_RESULT_OPEN)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_STEP, ADMIN_PANEL_ACTION.SERVICES_EDIT_STEP_OPEN)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_STEP_DESCRIPTION, ADMIN_PANEL_ACTION.SERVICES_EDIT_STEP_DESCRIPTION_OPEN)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_STEP_DURATION, ADMIN_PANEL_ACTION.SERVICES_EDIT_STEP_DURATION_OPEN)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_GUARANTEE, ADMIN_PANEL_ACTION.SERVICES_EDIT_GUARANTEE_OPEN)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_DELETE, ADMIN_PANEL_ACTION.SERVICES_EDIT_DELETE_OPEN)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_BACK, ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK_TO_LIST, ADMIN_PANEL_ACTION.SERVICES_BACK_TO_LIST)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_BACK, ADMIN_PANEL_ACTION.SERVICES_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_NAME'), ADMIN_PANEL_ACTION.SERVICES_EDIT_NAME_OPEN)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_DURATION'), ADMIN_PANEL_ACTION.SERVICES_EDIT_DURATION_OPEN)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_PRICE'), ADMIN_PANEL_ACTION.SERVICES_EDIT_PRICE_OPEN)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_DESCRIPTION'), ADMIN_PANEL_ACTION.SERVICES_EDIT_DESCRIPTION_OPEN)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_RESULT'), ADMIN_PANEL_ACTION.SERVICES_EDIT_RESULT_OPEN)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_STEP'), ADMIN_PANEL_ACTION.SERVICES_EDIT_STEP_OPEN)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_STEP_DESCRIPTION'), ADMIN_PANEL_ACTION.SERVICES_EDIT_STEP_DESCRIPTION_OPEN)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_STEP_DURATION'), ADMIN_PANEL_ACTION.SERVICES_EDIT_STEP_DURATION_OPEN)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_GUARANTEE'), ADMIN_PANEL_ACTION.SERVICES_EDIT_GUARANTEE_OPEN)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_DELETE'), ADMIN_PANEL_ACTION.SERVICES_EDIT_DELETE_OPEN)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_BACK'), ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_BACK_TO_LIST'), ADMIN_PANEL_ACTION.SERVICES_BACK_TO_LIST)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_BACK'), ADMIN_PANEL_ACTION.SERVICES_BACK)],
   ]);
 }
 
@@ -504,16 +508,14 @@ function compactText(value: string, max = 64): string {
 export function formatAdminServiceEditGuaranteeSelectText(
   serviceName: string,
   options: AdminServiceGuaranteeOption[],
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '🛡 Редагування гарантії послуги\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n\n` +
-    'Оберіть гарантію, яку потрібно змінити:\n\n' +
-    options
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_SELECT_TEXT', {
+    serviceName,
+    list: options
       .map((item, index) => `${getNumberBadge(index)} №${item.guaranteeNo} — ${compactText(item.guaranteeText, 54)}`)
-      .join('\n')
-  );
+      .join('\n'),
+  });
 }
 
 /**
@@ -521,18 +523,22 @@ export function formatAdminServiceEditGuaranteeSelectText(
  */
 export function createAdminServiceEditGuaranteeSelectKeyboard(
   options: AdminServiceGuaranteeOption[],
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const rows = options.map((item, index) => [
     Markup.button.callback(
-      `${getNumberBadge(index)} Гарантія №${item.guaranteeNo}`,
+      tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_BUTTON_LABEL', {
+        badge: getNumberBadge(index),
+        guaranteeNo: item.guaranteeNo,
+      }),
       makeAdminPanelServicesEditGuaranteePickAction(item.guaranteeNo),
     ),
   ]);
 
   return Markup.inlineKeyboard([
     ...rows,
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_CANCEL, ADMIN_PANEL_ACTION.SERVICES_EDIT_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_BACK, ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_CANCEL'), ADMIN_PANEL_ACTION.SERVICES_EDIT_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_BACK'), ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
   ]);
 }
 
@@ -543,23 +549,30 @@ export function formatAdminServiceEditStepSelectText(
   serviceName: string,
   options: AdminServiceStepOption[],
   mode: 'title' | 'description' | 'duration' = 'title',
+  language: BotUiLanguage = 'uk',
 ): string {
   const modeText =
     mode === 'description'
-      ? 'Оберіть етап, опис якого потрібно змінити:'
+      ? tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_PICK_DESCRIPTION')
       : mode === 'duration'
-      ? 'Оберіть етап, час якого потрібно змінити:'
-      : 'Оберіть етап, назву якого потрібно змінити:';
+      ? tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_PICK_DURATION')
+      : tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_PICK_TITLE');
 
-  return (
-    '🧩 Редагування етапу послуги\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n\n` +
-    `${modeText}\n\n` +
-    options
-      .map((item, index) => `${getNumberBadge(index)} Етап №${item.stepNo} (${item.durationMinutes} хв) — ${compactText(item.title, 54)}`)
-      .join('\n')
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_TEXT', {
+    serviceName,
+    modeText,
+    list: options
+      .map((item, index) =>
+        tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_ROW_TEXT', {
+          badge: getNumberBadge(index),
+          stepNo: item.stepNo,
+          durationMinutes: item.durationMinutes,
+          minutesLabel: tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_MINUTES_SHORT'),
+          title: compactText(item.title, 54),
+        }),
+      )
+      .join('\n'),
+  });
 }
 
 /**
@@ -567,18 +580,22 @@ export function formatAdminServiceEditStepSelectText(
  */
 export function createAdminServiceEditStepSelectKeyboard(
   options: AdminServiceStepOption[],
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const rows = options.map((item, index) => [
     Markup.button.callback(
-      `${getNumberBadge(index)} Етап №${item.stepNo}`,
+      tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_STEP_BUTTON_LABEL', {
+        badge: getNumberBadge(index),
+        stepNo: item.stepNo,
+      }),
       makeAdminPanelServicesEditStepPickAction(item.stepNo),
     ),
   ]);
 
   return Markup.inlineKeyboard([
     ...rows,
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_CANCEL, ADMIN_PANEL_ACTION.SERVICES_EDIT_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_BACK, ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_CANCEL'), ADMIN_PANEL_ACTION.SERVICES_EDIT_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_BACK'), ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
   ]);
 }
 
@@ -589,16 +606,13 @@ export function formatAdminServiceEditStepInputText(
   serviceName: string,
   stepNo: number,
   currentStepTitle: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✏️ Оновлення назви етапу\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n` +
-    `🧩 Етап №${stepNo}\n\n` +
-    `Поточна назва:\n${currentStepTitle}\n\n` +
-    'Надішліть нову назву етапу одним повідомленням.\n' +
-    'Мінімум 2 символи, максимум 120 символів.'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_STEP_INPUT_TEXT', {
+    serviceName,
+    stepNo,
+    currentStepTitle,
+  });
 }
 
 /**
@@ -608,15 +622,15 @@ export function formatAdminServiceEditStepConfirmText(
   serviceName: string,
   stepNo: number,
   nextStepTitle: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✅ Підтвердження оновлення\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n` +
-    `🧩 Етап №${stepNo}\n\n` +
-    `Нова назва:\n${nextStepTitle}\n\n` +
-    'Підтвердьте збереження змін.'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_STEP_CONFIRM_TEXT', {
+    confirmTitle: tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_CONFIRM_TITLE'),
+    serviceName,
+    stepNo,
+    nextStepTitle,
+    confirmText: tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_CONFIRM_SAVE'),
+  });
 }
 
 /**
@@ -626,16 +640,13 @@ export function formatAdminServiceEditStepDescriptionInputText(
   serviceName: string,
   stepNo: number,
   currentStepDescription: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✏️ Оновлення опису етапу\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n` +
-    `🧩 Етап №${stepNo}\n\n` +
-    `Поточний опис:\n${currentStepDescription}\n\n` +
-    'Надішліть новий опис етапу одним повідомленням.\n' +
-    'Мінімум 10 символів, максимум 500 символів.'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_STEP_DESCRIPTION_INPUT_TEXT', {
+    serviceName,
+    stepNo,
+    currentStepDescription,
+  });
 }
 
 /**
@@ -645,15 +656,15 @@ export function formatAdminServiceEditStepDescriptionConfirmText(
   serviceName: string,
   stepNo: number,
   nextStepDescription: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✅ Підтвердження оновлення\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n` +
-    `🧩 Етап №${stepNo}\n\n` +
-    `Новий опис:\n${nextStepDescription}\n\n` +
-    'Підтвердьте збереження змін.'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_STEP_DESCRIPTION_CONFIRM_TEXT', {
+    confirmTitle: tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_CONFIRM_TITLE'),
+    serviceName,
+    stepNo,
+    nextStepDescription,
+    confirmText: tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_CONFIRM_SAVE'),
+  });
 }
 
 /**
@@ -663,16 +674,14 @@ export function formatAdminServiceEditStepDurationInputText(
   serviceName: string,
   stepNo: number,
   currentStepDurationMinutes: number,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✏️ Оновлення часу етапу\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n` +
-    `🧩 Етап №${stepNo}\n\n` +
-    `Поточний час етапу: ${currentStepDurationMinutes} хв\n\n` +
-    'Надішліть нову тривалість етапу в хвилинах.\n' +
-    'Діапазон: 1..720.'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_STEP_DURATION_INPUT_TEXT', {
+    serviceName,
+    stepNo,
+    currentStepDurationMinutes,
+    minutesLabel: tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_MINUTES_SHORT'),
+  });
 }
 
 /**
@@ -682,15 +691,16 @@ export function formatAdminServiceEditStepDurationConfirmText(
   serviceName: string,
   stepNo: number,
   nextStepDurationMinutes: number,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✅ Підтвердження оновлення\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n` +
-    `🧩 Етап №${stepNo}\n\n` +
-    `Новий час етапу: ${nextStepDurationMinutes} хв\n\n` +
-    'Підтвердьте збереження змін.'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_STEP_DURATION_CONFIRM_TEXT', {
+    confirmTitle: tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_CONFIRM_TITLE'),
+    serviceName,
+    stepNo,
+    nextStepDurationMinutes,
+    minutesLabel: tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_MINUTES_SHORT'),
+    confirmText: tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_CONFIRM_SAVE'),
+  });
 }
 
 /**
@@ -700,16 +710,13 @@ export function formatAdminServiceEditGuaranteeInputText(
   serviceName: string,
   guaranteeNo: number,
   currentGuaranteeText: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✏️ Оновлення гарантії\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n` +
-    `🛡 Гарантія №${guaranteeNo}\n\n` +
-    `Поточний текст:\n${currentGuaranteeText}\n\n` +
-    'Надішліть новий текст гарантії одним повідомленням.\n' +
-    'Мінімум 3 символи, максимум 500 символів.'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_INPUT_TEXT', {
+    serviceName,
+    guaranteeNo,
+    currentGuaranteeText,
+  });
 }
 
 /**
@@ -719,15 +726,15 @@ export function formatAdminServiceEditGuaranteeConfirmText(
   serviceName: string,
   guaranteeNo: number,
   nextGuaranteeText: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✅ Підтвердження оновлення\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n` +
-    `🛡 Гарантія №${guaranteeNo}\n\n` +
-    `Новий текст:\n${nextGuaranteeText}\n\n` +
-    'Підтвердьте збереження змін.'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_CONFIRM_TEXT', {
+    confirmTitle: tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_CONFIRM_TITLE'),
+    serviceName,
+    guaranteeNo,
+    nextGuaranteeText,
+    confirmText: tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_CONFIRM_SAVE'),
+  });
 }
 
 /**
@@ -735,14 +742,11 @@ export function formatAdminServiceEditGuaranteeConfirmText(
  */
 export function formatAdminServiceEditNameInputText(
   serviceName: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✏️ Оновлення назви послуги\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Поточна назва: ${serviceName}\n\n` +
-    'Надішліть нову назву одним повідомленням.\n' +
-    'Мінімум 2 символи, максимум 120 символів.'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_NAME_INPUT_TEXT', {
+    serviceName,
+  });
 }
 
 /**
@@ -751,15 +755,13 @@ export function formatAdminServiceEditNameInputText(
 export function formatAdminServiceEditDurationInputText(
   serviceName: string,
   currentDurationMinutes: number,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✏️ Оновлення тривалості послуги\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n\n` +
-    `⏱ Поточна тривалість: ${currentDurationMinutes} хв\n\n` +
-    'Надішліть нову тривалість у хвилинах.\n' +
-    'Діапазон: 5..720'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_DURATION_INPUT_TEXT', {
+    serviceName,
+    currentDurationMinutes,
+    minutesLabel: tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_MINUTES_SHORT'),
+  });
 }
 
 /**
@@ -769,15 +771,12 @@ export function formatAdminServiceEditPriceInputText(
   serviceName: string,
   currentBasePrice: string,
   currencyCode: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✏️ Оновлення ціни послуги\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n\n` +
-    `💰 Поточна ціна: ${formatPrice(currentBasePrice, currencyCode)}\n\n` +
-    'Надішліть нову ціну одним повідомленням.\n' +
-    'Формат: 750 або 750.50'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_PRICE_INPUT_TEXT', {
+    serviceName,
+    currentPrice: formatPrice(currentBasePrice, currencyCode),
+  });
 }
 
 /**
@@ -786,15 +785,12 @@ export function formatAdminServiceEditPriceInputText(
 export function formatAdminServiceEditDescriptionInputText(
   serviceName: string,
   currentDescription: string | null,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✏️ Оновлення опису послуги\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n\n` +
-    `📝 Поточний опис:\n${formatOptionalText(currentDescription)}\n\n` +
-    'Надішліть новий опис одним повідомленням.\n' +
-    'Мінімум 10 символів, максимум 1600 символів.'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_DESCRIPTION_INPUT_TEXT', {
+    serviceName,
+    currentDescription: formatOptionalText(currentDescription, language),
+  });
 }
 
 /**
@@ -803,38 +799,40 @@ export function formatAdminServiceEditDescriptionInputText(
 export function formatAdminServiceEditResultInputText(
   serviceName: string,
   currentResultDescription: string | null,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✏️ Оновлення результату послуги\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n\n` +
-    `🎯 Поточний результат:\n${formatOptionalText(currentResultDescription)}\n\n` +
-    'Надішліть новий текст результату одним повідомленням.\n' +
-    'Мінімум 10 символів, максимум 1200 символів.'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_RESULT_INPUT_TEXT', {
+    serviceName,
+    currentResultDescription: formatOptionalText(currentResultDescription, language),
+  });
 }
 
 /**
  * @summary Клавіатура кроку вводу нового результату.
  */
-export function createAdminServiceEditInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminServiceEditInputKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_CANCEL, ADMIN_PANEL_ACTION.SERVICES_EDIT_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_BACK, ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_CANCEL'), ADMIN_PANEL_ACTION.SERVICES_EDIT_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_BACK'), ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
   ]);
 }
 
 /**
  * @summary Текст підтвердження оновлення результату послуги.
  */
-export function formatAdminServiceEditResultConfirmText(serviceName: string, nextResultDescription: string): string {
-  return (
-    '✅ Підтвердження оновлення\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n\n` +
-    `🎯 Новий результат:\n${nextResultDescription}\n\n` +
-    'Підтвердьте збереження змін.'
-  );
+export function formatAdminServiceEditResultConfirmText(
+  serviceName: string,
+  nextResultDescription: string,
+  language: BotUiLanguage = 'uk',
+): string {
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_RESULT_CONFIRM_TEXT', {
+    confirmTitle: tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_CONFIRM_TITLE'),
+    serviceName,
+    nextResultDescription,
+    confirmText: tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_CONFIRM_SAVE'),
+  });
 }
 
 /**
@@ -843,14 +841,14 @@ export function formatAdminServiceEditResultConfirmText(serviceName: string, nex
 export function formatAdminServiceEditDescriptionConfirmText(
   serviceName: string,
   nextDescription: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✅ Підтвердження оновлення\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n\n` +
-    `📝 Новий опис:\n${nextDescription}\n\n` +
-    'Підтвердьте збереження змін.'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_DESCRIPTION_CONFIRM_TEXT', {
+    confirmTitle: tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_CONFIRM_TITLE'),
+    serviceName,
+    nextDescription,
+    confirmText: tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_CONFIRM_SAVE'),
+  });
 }
 
 /**
@@ -859,14 +857,15 @@ export function formatAdminServiceEditDescriptionConfirmText(
 export function formatAdminServiceEditDurationConfirmText(
   serviceName: string,
   nextDurationMinutes: number,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✅ Підтвердження оновлення\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n\n` +
-    `⏱ Нова тривалість: ${nextDurationMinutes} хв\n\n` +
-    'Підтвердьте збереження змін.'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_DURATION_CONFIRM_TEXT', {
+    confirmTitle: tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_CONFIRM_TITLE'),
+    serviceName,
+    nextDurationMinutes,
+    minutesLabel: tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_MINUTES_SHORT'),
+    confirmText: tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_CONFIRM_SAVE'),
+  });
 }
 
 /**
@@ -876,14 +875,14 @@ export function formatAdminServiceEditPriceConfirmText(
   serviceName: string,
   nextBasePrice: string,
   currencyCode: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✅ Підтвердження оновлення\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n\n` +
-    `💰 Нова ціна: ${formatPrice(nextBasePrice, currencyCode)}\n\n` +
-    'Підтвердьте збереження змін.'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_PRICE_CONFIRM_TEXT', {
+    confirmTitle: tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_CONFIRM_TITLE'),
+    serviceName,
+    nextPrice: formatPrice(nextBasePrice, currencyCode),
+    confirmText: tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_CONFIRM_SAVE'),
+  });
 }
 
 /**
@@ -892,24 +891,26 @@ export function formatAdminServiceEditPriceConfirmText(
 export function formatAdminServiceEditNameConfirmText(
   serviceName: string,
   nextServiceName: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '✅ Підтвердження оновлення\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n\n` +
-    `🪪 Нова назва: ${nextServiceName}\n\n` +
-    'Підтвердьте збереження змін.'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_EDIT_NAME_CONFIRM_TEXT', {
+    confirmTitle: tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_CONFIRM_TITLE'),
+    serviceName,
+    nextServiceName,
+    confirmText: tBot(language, 'ADMIN_PANEL_SERVICES_EDIT_CONFIRM_SAVE'),
+  });
 }
 
 /**
  * @summary Клавіатура підтвердження оновлення результату послуги.
  */
-export function createAdminServiceEditConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminServiceEditConfirmKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_CONFIRM, ADMIN_PANEL_ACTION.SERVICES_EDIT_CONFIRM)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_CANCEL, ADMIN_PANEL_ACTION.SERVICES_EDIT_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_BACK, ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_CONFIRM'), ADMIN_PANEL_ACTION.SERVICES_EDIT_CONFIRM)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_CANCEL'), ADMIN_PANEL_ACTION.SERVICES_EDIT_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_BACK'), ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
   ]);
 }
 
@@ -918,37 +919,36 @@ export function createAdminServiceEditConfirmKeyboard(): ReturnType<typeof Marku
  */
 export function formatAdminServiceDeleteConfirmText(
   serviceName: string,
+  language: BotUiLanguage = 'uk',
 ): string {
-  return (
-    '⚠️ Підтвердження видалення послуги\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n\n` +
-    'Після підтвердження послуга буде прихована для клієнтів та майстрів.\n' +
-    'Записи в історії залишаться, але нові бронювання для цієї послуги стануть недоступні.\n\n' +
-    'Підтвердьте дію.'
-  );
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_DELETE_CONFIRM_TEXT', {
+    deleteTitle: tBot(language, 'ADMIN_PANEL_SERVICES_DELETE_CONFIRM_TITLE'),
+    serviceName,
+    deleteBody: tBot(language, 'ADMIN_PANEL_SERVICES_DELETE_CONFIRM_BODY'),
+  });
 }
 
 /**
  * @summary Клавіатура підтвердження видалення (деактивації) послуги.
  */
-export function createAdminServiceDeleteConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminServiceDeleteConfirmKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_CONFIRM_DELETE, ADMIN_PANEL_ACTION.SERVICES_EDIT_CONFIRM)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_CANCEL, ADMIN_PANEL_ACTION.SERVICES_EDIT_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SERVICES_EDIT_BACK, ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_CONFIRM_DELETE'), ADMIN_PANEL_ACTION.SERVICES_EDIT_CONFIRM)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_CANCEL'), ADMIN_PANEL_ACTION.SERVICES_EDIT_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SERVICES_BTN_EDIT_BACK'), ADMIN_PANEL_ACTION.SERVICES_EDIT_BACK)],
   ]);
 }
 
 /**
  * @summary Stub-текст підрозділу статистики конкретної послуги.
  */
-export function formatAdminServiceStatsStubText(serviceName: string): string {
-  return (
-    '📊 Статистика послуги\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    `💼 Послуга: ${serviceName}\n\n` +
-    '⚠️ Розділ тимчасово недоступний.\n' +
-    'Після підключення тут будуть фінансові та операційні показники послуги.'
-  );
+export function formatAdminServiceStatsStubText(
+  serviceName: string,
+  language: BotUiLanguage = 'uk',
+): string {
+  return tBotTemplate(language, 'ADMIN_PANEL_SERVICES_STATS_STUB_TEXT', {
+    serviceName,
+  });
 }

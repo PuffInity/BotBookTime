@@ -804,11 +804,11 @@ function formatDateSql(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-function parseFutureDateInput(input: string): Date {
+function parseFutureDateInput(input: string, language: BotUiLanguage = 'uk'): Date {
   const normalized = input.trim();
   const match = normalized.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
   if (!match) {
-    throw new ValidationError('Дата має бути у форматі ДД.ММ.РРРР');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_DATE_FORMAT_DDMMYYYY'));
   }
 
   const day = Number(match[1]);
@@ -820,146 +820,150 @@ function parseFutureDateInput(input: string): Date {
     parsed.getMonth() !== month - 1 ||
     parsed.getDate() !== day
   ) {
-    throw new ValidationError('Введено некоректну дату');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_DATE_INVALID'));
   }
 
   const parsedDay = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   if (parsedDay.getTime() < today.getTime()) {
-    throw new ValidationError('Не можна вказувати дату у минулому');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_DATE_IN_PAST'));
   }
 
   return parsedDay;
 }
 
-function normalizeHolidayName(value: string): string {
+function normalizeHolidayName(value: string, language: BotUiLanguage = 'uk'): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length < 2) {
-    throw new ValidationError('Назва свята має містити мінімум 2 символи');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_HOLIDAY_NAME_TOO_SHORT'));
   }
   if (normalized.length > 120) {
-    throw new ValidationError('Назва свята занадто довга (максимум 120 символів)');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_HOLIDAY_NAME_TOO_LONG'));
   }
   return normalized;
 }
 
-function normalizeServiceNameInput(value: string): string {
+function normalizeServiceNameInput(value: string, language: BotUiLanguage = 'uk'): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length < 2) {
-    throw new ValidationError('Назва послуги має містити щонайменше 2 символи');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_SERVICE_NAME_TOO_SHORT'));
   }
   if (normalized.length > 120) {
-    throw new ValidationError('Назва послуги занадто довга (максимум 120 символів)');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_SERVICE_NAME_TOO_LONG'));
   }
   return normalized;
 }
 
-function normalizeServiceGuaranteeTextInput(value: string): string {
+function normalizeServiceGuaranteeTextInput(value: string, language: BotUiLanguage = 'uk'): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length < 3) {
-    throw new ValidationError('Текст гарантії має містити щонайменше 3 символи');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_SERVICE_GUARANTEE_TOO_SHORT'));
   }
   if (normalized.length > 500) {
-    throw new ValidationError('Текст гарантії занадто довгий (максимум 500 символів)');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_SERVICE_GUARANTEE_TOO_LONG'));
   }
   return normalized;
 }
 
-function normalizeServiceStepTitleInput(value: string): string {
+function normalizeServiceStepTitleInput(value: string, language: BotUiLanguage = 'uk'): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length < 2) {
-    throw new ValidationError('Назва етапу має містити щонайменше 2 символи');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_TITLE_TOO_SHORT'));
   }
   if (normalized.length > 120) {
-    throw new ValidationError('Назва етапу занадто довга (максимум 120 символів)');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_TITLE_TOO_LONG'));
   }
   return normalized;
 }
 
-function normalizeServiceStepDescriptionInput(value: string): string {
+function normalizeServiceStepDescriptionInput(value: string, language: BotUiLanguage = 'uk'): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length < 10) {
-    throw new ValidationError('Опис етапу має містити щонайменше 10 символів');
+    throw new ValidationError(
+      tBot(language, 'ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_DESCRIPTION_TOO_SHORT'),
+    );
   }
   if (normalized.length > 500) {
-    throw new ValidationError('Опис етапу занадто довгий (максимум 500 символів)');
+    throw new ValidationError(
+      tBot(language, 'ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_DESCRIPTION_TOO_LONG'),
+    );
   }
   return normalized;
 }
 
-function normalizeServiceResultDescriptionInput(value: string): string {
+function normalizeServiceResultDescriptionInput(value: string, language: BotUiLanguage = 'uk'): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length < 10) {
-    throw new ValidationError('Результат послуги має містити щонайменше 10 символів');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_SERVICE_RESULT_TOO_SHORT'));
   }
   if (normalized.length > 1200) {
-    throw new ValidationError('Результат послуги занадто довгий (максимум 1200 символів)');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_SERVICE_RESULT_TOO_LONG'));
   }
   return normalized;
 }
 
-function normalizeServiceDescriptionInput(value: string): string {
+function normalizeServiceDescriptionInput(value: string, language: BotUiLanguage = 'uk'): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length < 10) {
-    throw new ValidationError('Опис послуги має містити щонайменше 10 символів');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_SERVICE_DESCRIPTION_TOO_SHORT'));
   }
   if (normalized.length > 1600) {
-    throw new ValidationError('Опис послуги занадто довгий (максимум 1600 символів)');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_SERVICE_DESCRIPTION_TOO_LONG'));
   }
   return normalized;
 }
 
-function normalizeServiceBasePriceInput(value: string): string {
+function normalizeServiceBasePriceInput(value: string, language: BotUiLanguage = 'uk'): string {
   const normalized = value.trim().replace(',', '.');
   if (!/^\d+(\.\d{1,2})?$/.test(normalized)) {
-    throw new ValidationError('Ціна має бути числом у форматі 750 або 750.50');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_SERVICE_PRICE_FORMAT'));
   }
 
   const amount = Number(normalized);
   if (!Number.isFinite(amount) || amount < 0) {
-    throw new ValidationError('Ціна не може бути відʼємною');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_SERVICE_PRICE_NEGATIVE'));
   }
   if (amount > 99_999_999.99) {
-    throw new ValidationError('Ціна занадто велика');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_SERVICE_PRICE_TOO_HIGH'));
   }
 
   return amount.toFixed(2);
 }
 
-function normalizeServiceDurationInput(value: string): number {
+function normalizeServiceDurationInput(value: string, language: BotUiLanguage = 'uk'): number {
   const normalized = value.trim();
   if (!/^\d+$/.test(normalized)) {
-    throw new ValidationError('Тривалість має бути цілим числом у хвилинах');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_SERVICE_DURATION_INTEGER'));
   }
 
   const minutes = Number(normalized);
   if (!Number.isFinite(minutes)) {
-    throw new ValidationError('Тривалість має бути числом');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_SERVICE_DURATION_NUMBER'));
   }
 
   const duration = Math.trunc(minutes);
   if (duration < 5 || duration > 720) {
-    throw new ValidationError('Тривалість послуги має бути в діапазоні 5..720 хв');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_SERVICE_DURATION_RANGE'));
   }
 
   return duration;
 }
 
-function normalizeServiceStepDurationInput(value: string): number {
+function normalizeServiceStepDurationInput(value: string, language: BotUiLanguage = 'uk'): number {
   const normalized = value.trim();
   if (!/^\d+$/.test(normalized)) {
-    throw new ValidationError('Тривалість етапу має бути цілим числом у хвилинах');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_STEP_DURATION_INTEGER'));
   }
 
   const minutes = Number(normalized);
   if (!Number.isFinite(minutes)) {
-    throw new ValidationError('Тривалість етапу має бути числом');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_STEP_DURATION_NUMBER'));
   }
 
   const duration = Math.trunc(minutes);
   if (duration < 1 || duration > 720) {
-    throw new ValidationError('Тривалість етапу має бути в діапазоні 1..720 хв');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_STEP_DURATION_RANGE'));
   }
 
   return duration;
@@ -968,20 +972,23 @@ function normalizeServiceStepDurationInput(value: string): number {
 const MIN_TEMPORARY_SCHEDULE_DAYS = 7;
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
-function parseDateRangeInput(input: string): { dateFrom: Date; dateTo: Date } {
+function parseDateRangeInput(
+  input: string,
+  language: BotUiLanguage = 'uk',
+): { dateFrom: Date; dateTo: Date } {
   const normalized = input.trim();
   const match = normalized.match(
     /^(\d{2}\.\d{2}\.\d{4})\s*[-–—]\s*(\d{2}\.\d{2}\.\d{4})$/,
   );
 
   if (!match) {
-    throw new ValidationError('Період має бути у форматі ДД.ММ.РРРР - ДД.ММ.РРРР');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_DATE_RANGE_FORMAT'));
   }
 
-  const dateFrom = parseFutureDateInput(match[1]);
-  const dateTo = parseFutureDateInput(match[2]);
+  const dateFrom = parseFutureDateInput(match[1], language);
+  const dateTo = parseFutureDateInput(match[2], language);
   if (dateTo.getTime() < dateFrom.getTime()) {
-    throw new ValidationError('Дата завершення не може бути раніше дати початку');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_DATE_RANGE_INVALID'));
   }
 
   return { dateFrom, dateTo };
@@ -991,16 +998,16 @@ function countInclusiveDays(dateFrom: Date, dateTo: Date): number {
   return Math.floor((dateTo.getTime() - dateFrom.getTime()) / DAY_IN_MS) + 1;
 }
 
-function parseTimeInput(value: string): string {
+function parseTimeInput(value: string, language: BotUiLanguage = 'uk'): string {
   const normalized = value.trim();
   const match = normalized.match(/^(\d{1,2}):([0-5]\d)$/);
   if (!match) {
-    throw new ValidationError('Час має бути у форматі HH:MM (приклад: 10:00)');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_TIME_FORMAT'));
   }
 
   const hour = Number(match[1]);
   if (!Number.isInteger(hour) || hour < 0 || hour > 23) {
-    throw new ValidationError('Година має бути в діапазоні від 0 до 23');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_TIME_HOUR_RANGE'));
   }
 
   return `${hour}:${match[2]}`;
@@ -1019,11 +1026,11 @@ function upsertTemporaryDay(
   return [...filtered, day].sort((a, b) => a.weekday - b.weekday);
 }
 
-function parseDateFromCode(code: string): Date {
+function parseDateFromCode(code: string, language: BotUiLanguage = 'uk'): Date {
   const normalized = code.trim();
   const match = normalized.match(/^(\d{4})(\d{2})(\d{2})$/);
   if (!match) {
-    throw new ValidationError('Некоректний код дати');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_DATE_CODE_INVALID'));
   }
 
   const year = Number(match[1]);
@@ -1035,7 +1042,7 @@ function parseDateFromCode(code: string): Date {
     parsed.getMonth() !== month - 1 ||
     parsed.getDate() !== day
   ) {
-    throw new ValidationError('Некоректна дата');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_DATE_VALUE_INVALID'));
   }
 
   return parsed;
@@ -1204,7 +1211,7 @@ async function renderAdminSettingsLanguage(ctx: MyContext, preferEdit: boolean):
   const state = getSceneState(ctx);
   const userId = state.access?.userId;
   if (!userId) {
-    throw new ValidationError('Не вдалося визначити користувача адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_COMMON_MSG_ADMIN_USER_UNRESOLVED'));
   }
 
   const currentLanguage = await getAdminPanelLanguage({ userId });
@@ -1226,13 +1233,15 @@ async function renderAdminSettingsLanguage(ctx: MyContext, preferEdit: boolean):
   await ctx.reply(text, keyboard);
 }
 
-function parseSettingsLanguageFromAction(ctx: MyContext): LanguageCode {
+function parseSettingsLanguageFromAction(ctx: MyContext, language: BotUiLanguage = 'uk'): LanguageCode {
   const callbackData =
     ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
   const match = callbackData.match(ADMIN_PANEL_SETTINGS_LANGUAGE_SELECT_ACTION_REGEX);
   const nextLanguage = match?.[1] as LanguageCode | undefined;
   if (!nextLanguage) {
-    throw new ValidationError('Некоректна callback-дія вибору мови');
+    throw new ValidationError(
+      tBot(language, 'ADMIN_PANEL_COMMON_MSG_INVALID_CALLBACK_LANGUAGE_SELECT'),
+    );
   }
   return nextLanguage;
 }
@@ -1272,7 +1281,7 @@ async function renderAdminSettingsNotifications(
   const state = getSceneState(ctx);
   const userId = state.access?.userId;
   if (!userId) {
-    throw new ValidationError('Не вдалося визначити користувача адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_COMMON_MSG_ADMIN_USER_UNRESOLVED'));
   }
 
   const [notificationState, deliveryProfile] = await Promise.all([
@@ -1299,13 +1308,18 @@ async function renderAdminSettingsNotifications(
   await ctx.reply(text, keyboard);
 }
 
-function parseSettingsNotificationTypeFromAction(ctx: MyContext): NotificationType {
+function parseSettingsNotificationTypeFromAction(
+  ctx: MyContext,
+  language: BotUiLanguage = 'uk',
+): NotificationType {
   const callbackData =
     ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
   const match = callbackData.match(ADMIN_PANEL_SETTINGS_NOTIFICATIONS_TOGGLE_ACTION_REGEX);
   const notificationType = match?.[1] as NotificationType | undefined;
   if (!notificationType) {
-    throw new ValidationError('Некоректна callback-дія зміни типу сповіщення');
+    throw new ValidationError(
+      tBot(language, 'ADMIN_PANEL_COMMON_MSG_INVALID_CALLBACK_NOTIFICATION_TOGGLE'),
+    );
   }
   return notificationType;
 }
@@ -1315,7 +1329,7 @@ async function loadAdminSettingsAdmins(
 ): Promise<AdminStudioAdminMember[]> {
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const admins = await listAdminStudioAdmins({ studioId });
@@ -1415,7 +1429,7 @@ async function loadAdminStudioSettings(
 ): Promise<AdminStudioProfileSettings> {
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const data = await getAdminStudioProfileSettings({
@@ -1450,24 +1464,27 @@ async function renderAdminSettingsStudioProfile(
   await ctx.reply(text, keyboard);
 }
 
-function parseStudioBlockKeyFromAction(ctx: MyContext): ContentBlockKey {
+function parseStudioBlockKeyFromAction(
+  ctx: MyContext,
+  language: BotUiLanguage = 'uk',
+): ContentBlockKey {
   const callbackData =
     ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
   const match = callbackData.match(ADMIN_PANEL_SETTINGS_STUDIO_EDIT_BLOCK_OPEN_ACTION_REGEX);
   const blockKey = match?.[1] as ContentBlockKey | undefined;
   if (!blockKey) {
-    throw new ValidationError('Некоректна callback-дія редагування блоку');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_INVALID_CALLBACK_STUDIO_BLOCK_EDIT'));
   }
   return blockKey;
 }
 
-function normalizeStudioContentDraftInput(text: string): string {
+function normalizeStudioContentDraftInput(text: string, language: BotUiLanguage = 'uk'): string {
   const normalized = text.trim().replace(/\r/g, '');
   if (normalized.length < 10) {
-    throw new ValidationError('Текст занадто короткий (мінімум 10 символів)');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_STUDIO_TEXT_TOO_SHORT'));
   }
   if (normalized.length > 4000) {
-    throw new ValidationError('Текст занадто довгий (максимум 4000 символів)');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_STUDIO_TEXT_TOO_LONG'));
   }
   return normalized;
 }
@@ -1534,7 +1551,7 @@ async function renderAdminSettingsStudioEditConfirm(
 async function loadAdminMastersCatalog(state: AdminPanelSceneState): Promise<MasterCatalogItem[]> {
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const masters = await listActiveMastersCatalog({ studioId, limit: 50 });
@@ -2417,7 +2434,7 @@ async function renderAdminMasterBookingCard(
 async function loadAdminServicesCatalog(state: AdminPanelSceneState): Promise<ServicesCatalogItem[]> {
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const services = await listActiveServicesCatalog({ studioId, limit: 50 });
@@ -2433,8 +2450,8 @@ async function renderAdminServicesCatalog(ctx: MyContext, preferEdit: boolean): 
   state.servicesEditDraft = null;
   state.servicesCreateDraft = null;
 
-  const text = formatAdminServicesCatalogText(services);
-  const keyboard = createAdminServicesCatalogKeyboard(services);
+  const text = formatAdminServicesCatalogText(services, state.language);
+  const keyboard = createAdminServicesCatalogKeyboard(services, state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2456,12 +2473,12 @@ async function renderAdminServiceDetails(
   const state = getSceneState(ctx);
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const details = await getServiceCatalogDetailsById({ serviceId, studioId });
   if (!details) {
-    await replyAdminWarning(ctx, 'Послугу не знайдено або вона неактивна.');
+    await replyAdminWarning(ctx, tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_NOT_FOUND_OR_INACTIVE'));
     await renderAdminServicesCatalog(ctx, false);
     return;
   }
@@ -2471,8 +2488,8 @@ async function renderAdminServiceDetails(
   state.servicesEditDraft = null;
   state.servicesCreateDraft = null;
 
-  const text = formatAdminServiceDetailsText(details);
-  const keyboard = createAdminServiceDetailsKeyboard(serviceId);
+  const text = formatAdminServiceDetailsText(details, state.language);
+  const keyboard = createAdminServiceDetailsKeyboard(serviceId, state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2494,12 +2511,12 @@ async function renderAdminServiceEditMenu(
   const state = getSceneState(ctx);
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const service = await getAdminEditableServiceById({ studioId, serviceId });
   if (!service) {
-    await replyAdminWarning(ctx, 'Послугу для редагування не знайдено.');
+    await replyAdminWarning(ctx, tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_NOT_FOUND_FOR_EDIT'));
     await renderAdminServicesCatalog(ctx, false);
     return;
   }
@@ -2573,9 +2590,8 @@ async function renderAdminServiceEditMenu(
     service.basePrice,
     service.currencyCode,
     service.description,
-    service.resultDescription,
-  );
-  const keyboard = createAdminServiceEditMenuKeyboard();
+    service.resultDescription, state.language);
+  const keyboard = createAdminServiceEditMenuKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2612,8 +2628,8 @@ async function startAdminServiceCreate(ctx: MyContext, preferEdit: boolean): Pro
   state.servicesEditDraft = null;
   state.servicesCreateDraft = createEmptyAdminServiceCreateDraft();
 
-  const text = `${formatAdminServiceCreateStartText()}\n\n${formatAdminServiceCreateNameInputText()}`;
-  const keyboard = createAdminServiceCreateInputKeyboard();
+  const text = `${formatAdminServiceCreateStartText(state.language)}\n\n${formatAdminServiceCreateNameInputText(state.language)}`;
+  const keyboard = createAdminServiceCreateInputKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2631,7 +2647,7 @@ async function renderAdminStatsOverview(ctx: MyContext, preferEdit: boolean): Pr
   const state = getSceneState(ctx);
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const overview = await getAdminPanelStatsOverview(studioId);
@@ -2996,7 +3012,7 @@ async function renderRecordsCategoryStub(
   const state = getSceneState(ctx);
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   state.recordsFeed = await listAdminBookingsFeed({
@@ -3069,43 +3085,64 @@ function logAdminCriticalAction(
   });
 }
 
-function parseAppointmentIdFromAction(ctx: MyContext, regex: RegExp): string {
+function parseAppointmentIdFromAction(
+  ctx: MyContext,
+  regex: RegExp,
+  language: BotUiLanguage = 'uk',
+): string {
   const callbackData =
     ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
   const matches = callbackData.match(regex);
   const appointmentId = matches?.[1];
   if (!appointmentId) {
-    throw new ValidationError('Некоректна callback-дія для запису');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_INVALID_BOOKING_CALLBACK'));
   }
 
   return appointmentId;
 }
 
-function parseNumericIdFromAction(ctx: MyContext, regex: RegExp, fieldLabel: string): string {
+function parseNumericIdFromAction(
+  ctx: MyContext,
+  regex: RegExp,
+  fieldLabel: string,
+  language: BotUiLanguage = 'uk',
+): string {
   const callbackData =
     ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
   const match = callbackData.match(regex);
   const id = match?.[1]?.trim() ?? '';
   if (!/^\d+$/.test(id) || id === '0') {
-    throw new ValidationError(`Некоректний ${fieldLabel}`);
+    throw new ValidationError(
+      tBotTemplate(language, 'ADMIN_PANEL_COMMON_MSG_INVALID_NUMERIC_FIELD', {
+        field: fieldLabel,
+      }),
+    );
   }
   return id;
 }
 
-function parseWeekdayFromAction(ctx: MyContext, regex: RegExp): number {
+function parseWeekdayFromAction(
+  ctx: MyContext,
+  regex: RegExp,
+  language: BotUiLanguage = 'uk',
+): number {
   const callbackData =
     ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
   const match = callbackData.match(regex);
   const weekday = match?.[1] ? Number(match[1]) : Number.NaN;
 
   if (!Number.isInteger(weekday) || weekday < 1 || weekday > 7) {
-    throw new ValidationError('Некоректний день тижня');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_INVALID_WEEKDAY'));
   }
 
   return weekday;
 }
 
-function parseMonthCodeFromAction(ctx: MyContext, regex: RegExp): string {
+function parseMonthCodeFromAction(
+  ctx: MyContext,
+  regex: RegExp,
+  language: BotUiLanguage = 'uk',
+): string {
   const callbackData =
     ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
   const match = callbackData.match(regex);
@@ -3113,7 +3150,7 @@ function parseMonthCodeFromAction(ctx: MyContext, regex: RegExp): string {
   const monthMatch = monthCode.match(/^(\d{4})(\d{2})$/);
   const month = monthMatch?.[2] ? Number(monthMatch[2]) : NaN;
   if (!monthMatch || !Number.isFinite(month) || month < 1 || month > 12) {
-    throw new ValidationError('Некоректний код місячного звіту');
+    throw new ValidationError(tBot(language, 'ADMIN_PANEL_COMMON_MSG_INVALID_MONTH_CODE'));
   }
   return monthCode;
 }
@@ -3226,7 +3263,7 @@ async function renderAdminBookingMasterProfile(
   const state = getSceneState(ctx);
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const details = await getMasterCatalogDetailsById({ masterId: item.masterId, studioId });
@@ -3748,7 +3785,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       const dayOffDraft = state.scheduleDayOffDraft;
       if (dayOffDraft?.mode === 'awaiting_date') {
         try {
-          const date = parseFutureDateInput(text);
+          const date = parseFutureDateInput(text, state.language);
           state.scheduleDayOffDraft = {
             mode: 'awaiting_confirm',
             offDate: formatDateSql(date),
@@ -3764,8 +3801,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
             ? error
             : new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_DATE_FAILED'));
 
-          await ctx.reply(
-            `⚠️ ${err.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_DATE_FORMAT')}`,
+          await replyAdminWarning(
+            ctx,
+            `${err.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_DATE_FORMAT')}`,
             createAdminScheduleDayOffInputKeyboard(state.language),
           );
         }
@@ -3783,7 +3821,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       const holidayDraft = state.scheduleHolidayDraft;
       if (holidayDraft?.mode === 'awaiting_date') {
         try {
-          const date = parseFutureDateInput(text);
+          const date = parseFutureDateInput(text, state.language);
           state.scheduleHolidayDraft = {
             mode: 'awaiting_name',
             holidayDate: formatDateSql(date),
@@ -3800,8 +3838,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
             ? error
             : new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_DATE_FAILED'));
 
-          await ctx.reply(
-            `⚠️ ${err.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_DATE_FORMAT')}`,
+          await replyAdminWarning(
+            ctx,
+            `${err.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_DATE_FORMAT')}`,
             createAdminScheduleHolidayInputKeyboard(state.language),
           );
         }
@@ -3810,7 +3849,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
       if (holidayDraft?.mode === 'awaiting_name') {
         try {
-          const holidayName = normalizeHolidayName(text);
+          const holidayName = normalizeHolidayName(text, state.language);
           if (!holidayDraft.holidayDate || !holidayDraft.holidayDateLabel) {
             throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_PICK_HOLIDAY_DATE_FIRST'));
           }
@@ -3831,8 +3870,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
             ? error
             : new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_HOLIDAY_NAME_FAILED'));
 
-          await ctx.reply(
-            `⚠️ ${err.message}`,
+          await replyAdminWarning(
+            ctx,
+            err.message,
             createAdminScheduleHolidayInputKeyboard(state.language),
           );
         }
@@ -3850,7 +3890,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       const temporaryDraft = state.scheduleTemporaryDraft;
       if (temporaryDraft?.mode === 'awaiting_period') {
         try {
-          const { dateFrom, dateTo } = parseDateRangeInput(text);
+          const { dateFrom, dateTo } = parseDateRangeInput(text, state.language);
           const rangeDays = countInclusiveDays(dateFrom, dateTo);
           if (rangeDays < MIN_TEMPORARY_SCHEDULE_DAYS) {
             throw new ValidationError(
@@ -3885,8 +3925,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
             ? error
             : new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_PERIOD_FAILED'));
 
-          await ctx.reply(
-            `⚠️ ${err.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_RANGE_FORMAT')}`,
+          await replyAdminWarning(
+            ctx,
+            `${err.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_RANGE_FORMAT')}`,
             createAdminScheduleTemporaryPeriodInputKeyboard(state.language),
           );
         }
@@ -3900,7 +3941,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
             throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_PICK_WEEKDAY_FIRST'));
           }
 
-          const fromTime = parseTimeInput(text);
+          const fromTime = parseTimeInput(text, state.language);
           state.scheduleTemporaryDraft = {
             ...temporaryDraft,
             mode: 'awaiting_day_to',
@@ -3915,8 +3956,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           const err = error instanceof ValidationError
             ? error
             : new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_FROM_TIME_FAILED'));
-          await ctx.reply(
-            `⚠️ ${err.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_TIME_FORMAT')}`,
+          await replyAdminWarning(
+            ctx,
+            `${err.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_TIME_FORMAT')}`,
             createAdminScheduleTemporaryDayInputKeyboard(temporaryDraft.selectedWeekday ?? 1, state.language),
           );
         }
@@ -3931,7 +3973,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
             throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_PICK_DAY_AND_FROM_FIRST'));
           }
 
-          const toTime = parseTimeInput(text);
+          const toTime = parseTimeInput(text, state.language);
           if (timeToMinutes(toTime) <= timeToMinutes(fromTime)) {
             throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_TO_AFTER_FROM'));
           }
@@ -3964,8 +4006,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           const err = error instanceof ValidationError
             ? error
             : new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_TO_TIME_FAILED'));
-          await ctx.reply(
-            `⚠️ ${err.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_TIME_FORMAT')}`,
+          await replyAdminWarning(
+            ctx,
+            `${err.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_TIME_FORMAT')}`,
             createAdminScheduleTemporaryDayInputKeyboard(temporaryDraft.selectedWeekday ?? 1, state.language),
           );
         }
@@ -3987,7 +4030,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
             throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_PICK_WEEKDAY_FIRST'));
           }
 
-          const fromTime = parseTimeInput(text);
+          const fromTime = parseTimeInput(text, state.language);
           state.scheduleConfigureDayDraft = {
             ...configureDayDraft,
             mode: 'awaiting_to',
@@ -4005,8 +4048,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               ? error
               : new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_FROM_TIME_FAILED'));
 
-          await ctx.reply(
-            `⚠️ ${err.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_TIME_FORMAT')}`,
+          await replyAdminWarning(
+            ctx,
+            `${err.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_TIME_FORMAT')}`,
             createAdminScheduleConfigureDayInputKeyboard(configureDayDraft.weekday ?? 1, state.language),
           );
         }
@@ -4022,10 +4066,10 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
             throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_PICK_DAY_AND_FROM_FIRST'));
           }
           if (!access?.studioId) {
-            throw new ValidationError('Не вдалося визначити студію адміністратора');
+            throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
           }
 
-          const toTime = parseTimeInput(text);
+          const toTime = parseTimeInput(text, state.language);
           if (timeToMinutes(toTime) <= timeToMinutes(fromTime)) {
             throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_TO_AFTER_FROM'));
           }
@@ -4066,8 +4110,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               ? error
               : new ValidationError(tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_TO_TIME_FAILED'));
 
-          await ctx.reply(
-            `⚠️ ${err.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_TIME_FORMAT')}`,
+          await replyAdminWarning(
+            ctx,
+            `${err.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_TIME_FORMAT')}`,
             createAdminScheduleConfigureDayInputKeyboard(configureDayDraft.weekday ?? 1, state.language),
           );
         }
@@ -4159,7 +4204,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
             if (!mastersCreateDraft.scheduleSelectedWeekday) {
               throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_PICK_WEEKDAY_FIRST'));
             }
-            mastersCreateDraft.schedulePendingFromTime = parseTimeInput(text);
+            mastersCreateDraft.schedulePendingFromTime = parseTimeInput(text, state.language);
             mastersCreateDraft.mode = 'awaiting_schedule_to';
             await renderAdminMasterCreateTextStep(ctx, mastersCreateDraft, false);
             return;
@@ -4172,7 +4217,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_PICK_DAY_AND_FROM_FIRST'));
             }
 
-            const toTime = parseTimeInput(text);
+            const toTime = parseTimeInput(text, state.language);
             if (timeToMinutes(toTime) <= timeToMinutes(fromTime)) {
               throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_TO_AFTER_FROM'));
             }
@@ -4249,8 +4294,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               : new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_CREATE_VALIDATION_FAILED'));
 
           if (mastersCreateDraft.mode === 'selecting_services') {
-            await ctx.reply(
-              `⚠️ ${err.message}`,
+            await replyAdminWarning(
+              ctx,
+              err.message,
               createAdminMasterCreateServicesKeyboard(
                 mastersCreateDraft.availableServices,
                 mastersCreateDraft.selectedServiceIds,
@@ -4343,81 +4389,90 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       if (servicesCreateDraft) {
         try {
           if (servicesCreateDraft.mode === 'awaiting_name') {
-            servicesCreateDraft.name = normalizeServiceNameInput(text);
+            servicesCreateDraft.name = normalizeServiceNameInput(text, state.language);
             servicesCreateDraft.mode = 'awaiting_duration';
             await ctx.reply(
-              formatAdminServiceCreateDurationInputText(servicesCreateDraft.name),
-              createAdminServiceCreateInputKeyboard(),
+              formatAdminServiceCreateDurationInputText(servicesCreateDraft.name, state.language),
+              createAdminServiceCreateInputKeyboard(state.language),
             );
             return;
           }
 
           if (servicesCreateDraft.mode === 'awaiting_duration') {
-            servicesCreateDraft.durationMinutes = normalizeServiceDurationInput(text);
+            servicesCreateDraft.durationMinutes = normalizeServiceDurationInput(text, state.language);
             servicesCreateDraft.mode = 'awaiting_price';
             await ctx.reply(
-              formatAdminServiceCreatePriceInputText(servicesCreateDraft.name ?? 'Нова послуга'),
-              createAdminServiceCreateInputKeyboard(),
+              formatAdminServiceCreatePriceInputText(
+                servicesCreateDraft.name ?? tBot(state.language, 'ADMIN_PANEL_SERVICES_DEFAULT_NAME'),
+                state.language,
+              ),
+              createAdminServiceCreateInputKeyboard(state.language),
             );
             return;
           }
 
           if (servicesCreateDraft.mode === 'awaiting_price') {
-            servicesCreateDraft.basePrice = normalizeServiceBasePriceInput(text);
+            servicesCreateDraft.basePrice = normalizeServiceBasePriceInput(text, state.language);
             servicesCreateDraft.mode = 'awaiting_description';
             await ctx.reply(
-              formatAdminServiceCreateDescriptionInputText(servicesCreateDraft.name ?? 'Нова послуга'),
-              createAdminServiceCreateInputKeyboard(),
+              formatAdminServiceCreateDescriptionInputText(
+                servicesCreateDraft.name ?? tBot(state.language, 'ADMIN_PANEL_SERVICES_DEFAULT_NAME'),
+                state.language,
+              ),
+              createAdminServiceCreateInputKeyboard(state.language),
             );
             return;
           }
 
           if (servicesCreateDraft.mode === 'awaiting_description') {
-            servicesCreateDraft.description = normalizeServiceDescriptionInput(text);
+            servicesCreateDraft.description = normalizeServiceDescriptionInput(text, state.language);
             servicesCreateDraft.mode = 'awaiting_step_title';
             await ctx.reply(
-              formatAdminServiceCreateStepTitleInputText(servicesCreateDraft.steps.length + 1),
-              createAdminServiceCreateInputKeyboard(),
+              formatAdminServiceCreateStepTitleInputText(servicesCreateDraft.steps.length + 1, state.language),
+              createAdminServiceCreateInputKeyboard(state.language),
             );
             return;
           }
 
           if (servicesCreateDraft.mode === 'awaiting_step_title') {
-            servicesCreateDraft.pendingStepTitle = normalizeServiceStepTitleInput(text);
+            servicesCreateDraft.pendingStepTitle = normalizeServiceStepTitleInput(text, state.language);
             servicesCreateDraft.mode = 'awaiting_step_duration';
             await ctx.reply(
               formatAdminServiceCreateStepDurationInputText(
                 servicesCreateDraft.steps.length + 1,
-                servicesCreateDraft.pendingStepTitle,
-              ),
-              createAdminServiceCreateInputKeyboard(),
+                servicesCreateDraft.pendingStepTitle, state.language),
+              createAdminServiceCreateInputKeyboard(state.language),
             );
             return;
           }
 
           if (servicesCreateDraft.mode === 'awaiting_step_duration') {
-            servicesCreateDraft.pendingStepDurationMinutes = normalizeServiceStepDurationInput(text);
+            servicesCreateDraft.pendingStepDurationMinutes = normalizeServiceStepDurationInput(
+              text,
+              state.language,
+            );
             if (!servicesCreateDraft.pendingStepTitle) {
-              throw new ValidationError('Спочатку вкажіть назву етапу');
+              throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_SET_STEP_TITLE_FIRST'));
             }
             servicesCreateDraft.mode = 'awaiting_step_description';
             await ctx.reply(
               formatAdminServiceCreateStepDescriptionInputText(
                 servicesCreateDraft.steps.length + 1,
                 servicesCreateDraft.pendingStepTitle,
-                servicesCreateDraft.pendingStepDurationMinutes,
-              ),
-              createAdminServiceCreateInputKeyboard(),
+                servicesCreateDraft.pendingStepDurationMinutes, state.language),
+              createAdminServiceCreateInputKeyboard(state.language),
             );
             return;
           }
 
           if (servicesCreateDraft.mode === 'awaiting_step_description') {
-            const stepDescription = normalizeServiceStepDescriptionInput(text);
+            const stepDescription = normalizeServiceStepDescriptionInput(text, state.language);
             const stepTitle = servicesCreateDraft.pendingStepTitle;
             const stepDuration = servicesCreateDraft.pendingStepDurationMinutes;
             if (!stepTitle || stepDuration == null) {
-              throw new ValidationError('Спочатку заповніть назву і тривалість етапу');
+              throw new ValidationError(
+                tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_SET_STEP_TITLE_AND_DURATION_FIRST'),
+              );
             }
 
             servicesCreateDraft.steps.push({
@@ -4434,15 +4489,14 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
                 servicesCreateDraft.steps.length,
                 stepTitle,
                 stepDuration,
-                servicesCreateDraft.steps.length,
-              ),
-              createAdminServiceCreateStepActionsKeyboard(),
+                servicesCreateDraft.steps.length, state.language),
+              createAdminServiceCreateStepActionsKeyboard(state.language),
             );
             return;
           }
 
           if (servicesCreateDraft.mode === 'awaiting_guarantee_text') {
-            const guaranteeText = normalizeServiceGuaranteeTextInput(text);
+            const guaranteeText = normalizeServiceGuaranteeTextInput(text, state.language);
             servicesCreateDraft.guarantees.push({
               guaranteeText,
               validDays: null,
@@ -4453,15 +4507,17 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               formatAdminServiceCreateGuaranteeAddedText(
                 servicesCreateDraft.guarantees.length,
                 guaranteeText,
-                servicesCreateDraft.guarantees.length,
-              ),
-              createAdminServiceCreateGuaranteeActionsKeyboard(),
+                servicesCreateDraft.guarantees.length, state.language),
+              createAdminServiceCreateGuaranteeActionsKeyboard(state.language),
             );
             return;
           }
 
           if (servicesCreateDraft.mode === 'awaiting_result') {
-            servicesCreateDraft.resultDescription = normalizeServiceResultDescriptionInput(text);
+            servicesCreateDraft.resultDescription = normalizeServiceResultDescriptionInput(
+              text,
+              state.language,
+            );
             if (
               !servicesCreateDraft.name ||
               servicesCreateDraft.durationMinutes == null ||
@@ -4470,7 +4526,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               servicesCreateDraft.steps.length === 0 ||
               servicesCreateDraft.guarantees.length === 0
             ) {
-              throw new ValidationError('Не вдалося сформувати дані послуги для попереднього перегляду');
+              throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_PREVIEW_BUILD_FAILED'));
             }
 
             servicesCreateDraft.mode = 'awaiting_confirm';
@@ -4484,32 +4540,35 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
                 resultDescription: servicesCreateDraft.resultDescription,
                 steps: servicesCreateDraft.steps,
                 guarantees: servicesCreateDraft.guarantees,
-              }),
-              createAdminServiceCreatePreviewKeyboard(),
+              }, state.language),
+              createAdminServiceCreatePreviewKeyboard(state.language),
             );
             return;
           }
 
           if (servicesCreateDraft.mode === 'awaiting_step_menu') {
-            await ctx.reply(
-              'ℹ️ Для продовження створення етапів використовуйте кнопки під повідомленням.',
-              createAdminServiceCreateStepActionsKeyboard(),
+            await replyAdminInfo(
+              ctx,
+              tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_USE_STEP_ACTIONS_BUTTONS'),
+              createAdminServiceCreateStepActionsKeyboard(state.language),
             );
             return;
           }
 
           if (servicesCreateDraft.mode === 'awaiting_guarantee_menu') {
-            await ctx.reply(
-              'ℹ️ Для продовження створення гарантій використовуйте кнопки під повідомленням.',
-              createAdminServiceCreateGuaranteeActionsKeyboard(),
+            await replyAdminInfo(
+              ctx,
+              tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_USE_GUARANTEE_ACTIONS_BUTTONS'),
+              createAdminServiceCreateGuaranteeActionsKeyboard(state.language),
             );
             return;
           }
 
           if (servicesCreateDraft.mode === 'awaiting_confirm') {
-            await ctx.reply(
-              'ℹ️ Для завершення створення послуги використовуйте кнопки підтвердження під повідомленням.',
-              createAdminServiceCreatePreviewKeyboard(),
+            await replyAdminInfo(
+              ctx,
+              tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_USE_CREATE_CONFIRM_BUTTONS'),
+              createAdminServiceCreatePreviewKeyboard(state.language),
             );
             return;
           }
@@ -4517,16 +4576,16 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           const err =
             error instanceof ValidationError
               ? error
-              : new ValidationError('Виникла помилка перевірки введених даних');
+              : new ValidationError(tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_INPUT_VALIDATION_FAILED'));
 
           const keyboard =
             servicesCreateDraft.mode === 'awaiting_step_menu'
-              ? createAdminServiceCreateStepActionsKeyboard()
+              ? createAdminServiceCreateStepActionsKeyboard(state.language)
               : servicesCreateDraft.mode === 'awaiting_guarantee_menu'
-              ? createAdminServiceCreateGuaranteeActionsKeyboard()
+              ? createAdminServiceCreateGuaranteeActionsKeyboard(state.language)
               : servicesCreateDraft.mode === 'awaiting_confirm'
-              ? createAdminServiceCreatePreviewKeyboard()
-              : createAdminServiceCreateInputKeyboard();
+              ? createAdminServiceCreatePreviewKeyboard(state.language)
+              : createAdminServiceCreateInputKeyboard(state.language);
 
           await replyAdminWarning(ctx, err.message, keyboard);
           return;
@@ -4537,54 +4596,50 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       if (servicesEditDraft?.mode === 'awaiting_text') {
         try {
           if (servicesEditDraft.field === 'name') {
-            const nextName = normalizeServiceNameInput(text);
+            const nextName = normalizeServiceNameInput(text, state.language);
             servicesEditDraft.mode = 'awaiting_confirm';
             servicesEditDraft.value = nextName;
             await ctx.reply(
               formatAdminServiceEditNameConfirmText(
                 servicesEditDraft.serviceName,
-                nextName,
-              ),
-              createAdminServiceEditConfirmKeyboard(),
+                nextName, state.language),
+              createAdminServiceEditConfirmKeyboard(state.language),
             );
           } else if (servicesEditDraft.field === 'duration_minutes') {
-            const nextDuration = normalizeServiceDurationInput(text);
+            const nextDuration = normalizeServiceDurationInput(text, state.language);
             servicesEditDraft.mode = 'awaiting_confirm';
             servicesEditDraft.value = nextDuration;
             await ctx.reply(
               formatAdminServiceEditDurationConfirmText(
                 servicesEditDraft.serviceName,
-                nextDuration,
-              ),
-              createAdminServiceEditConfirmKeyboard(),
+                nextDuration, state.language),
+              createAdminServiceEditConfirmKeyboard(state.language),
             );
           } else if (servicesEditDraft.field === 'base_price') {
-            const nextPrice = normalizeServiceBasePriceInput(text);
+            const nextPrice = normalizeServiceBasePriceInput(text, state.language);
             servicesEditDraft.mode = 'awaiting_confirm';
             servicesEditDraft.value = nextPrice;
             await ctx.reply(
               formatAdminServiceEditPriceConfirmText(
                 servicesEditDraft.serviceName,
                 nextPrice,
-                servicesEditDraft.currentCurrencyCode,
-              ),
-              createAdminServiceEditConfirmKeyboard(),
+                servicesEditDraft.currentCurrencyCode, state.language),
+              createAdminServiceEditConfirmKeyboard(state.language),
             );
           } else if (servicesEditDraft.field === 'description') {
-            const nextDescription = normalizeServiceDescriptionInput(text);
+            const nextDescription = normalizeServiceDescriptionInput(text, state.language);
             servicesEditDraft.mode = 'awaiting_confirm';
             servicesEditDraft.value = nextDescription;
             await ctx.reply(
               formatAdminServiceEditDescriptionConfirmText(
                 servicesEditDraft.serviceName,
-                nextDescription,
-              ),
-              createAdminServiceEditConfirmKeyboard(),
+                nextDescription, state.language),
+              createAdminServiceEditConfirmKeyboard(state.language),
             );
           } else if (servicesEditDraft.field === 'step_title') {
-            const nextStepTitle = normalizeServiceStepTitleInput(text);
+            const nextStepTitle = normalizeServiceStepTitleInput(text, state.language);
             if (!servicesEditDraft.currentStepNo) {
-              throw new ValidationError('Спочатку оберіть етап зі списку');
+              throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_SELECT_STEP_FIRST'));
             }
             servicesEditDraft.mode = 'awaiting_confirm';
             servicesEditDraft.value = nextStepTitle;
@@ -4592,14 +4647,13 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               formatAdminServiceEditStepConfirmText(
                 servicesEditDraft.serviceName,
                 servicesEditDraft.currentStepNo,
-                nextStepTitle,
-              ),
-              createAdminServiceEditConfirmKeyboard(),
+                nextStepTitle, state.language),
+              createAdminServiceEditConfirmKeyboard(state.language),
             );
           } else if (servicesEditDraft.field === 'step_description') {
-            const nextStepDescription = normalizeServiceStepDescriptionInput(text);
+            const nextStepDescription = normalizeServiceStepDescriptionInput(text, state.language);
             if (!servicesEditDraft.currentStepNo) {
-              throw new ValidationError('Спочатку оберіть етап зі списку');
+              throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_SELECT_STEP_FIRST'));
             }
             servicesEditDraft.mode = 'awaiting_confirm';
             servicesEditDraft.value = nextStepDescription;
@@ -4607,14 +4661,13 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               formatAdminServiceEditStepDescriptionConfirmText(
                 servicesEditDraft.serviceName,
                 servicesEditDraft.currentStepNo,
-                nextStepDescription,
-              ),
-              createAdminServiceEditConfirmKeyboard(),
+                nextStepDescription, state.language),
+              createAdminServiceEditConfirmKeyboard(state.language),
             );
           } else if (servicesEditDraft.field === 'step_duration_minutes') {
-            const nextStepDuration = normalizeServiceStepDurationInput(text);
+            const nextStepDuration = normalizeServiceStepDurationInput(text, state.language);
             if (!servicesEditDraft.currentStepNo) {
-              throw new ValidationError('Спочатку оберіть етап зі списку');
+              throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_SELECT_STEP_FIRST'));
             }
             servicesEditDraft.mode = 'awaiting_confirm';
             servicesEditDraft.value = nextStepDuration;
@@ -4622,14 +4675,13 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               formatAdminServiceEditStepDurationConfirmText(
                 servicesEditDraft.serviceName,
                 servicesEditDraft.currentStepNo,
-                nextStepDuration,
-              ),
-              createAdminServiceEditConfirmKeyboard(),
+                nextStepDuration, state.language),
+              createAdminServiceEditConfirmKeyboard(state.language),
             );
           } else if (servicesEditDraft.field === 'guarantee_text') {
-            const nextGuaranteeText = normalizeServiceGuaranteeTextInput(text);
+            const nextGuaranteeText = normalizeServiceGuaranteeTextInput(text, state.language);
             if (!servicesEditDraft.currentGuaranteeNo) {
-              throw new ValidationError('Спочатку оберіть гарантію зі списку');
+              throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_SELECT_GUARANTEE_FIRST'));
             }
             servicesEditDraft.mode = 'awaiting_confirm';
             servicesEditDraft.value = nextGuaranteeText;
@@ -4637,20 +4689,18 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               formatAdminServiceEditGuaranteeConfirmText(
                 servicesEditDraft.serviceName,
                 servicesEditDraft.currentGuaranteeNo,
-                nextGuaranteeText,
-              ),
-              createAdminServiceEditConfirmKeyboard(),
+                nextGuaranteeText, state.language),
+              createAdminServiceEditConfirmKeyboard(state.language),
             );
           } else {
-            const nextResult = normalizeServiceResultDescriptionInput(text);
+            const nextResult = normalizeServiceResultDescriptionInput(text, state.language);
             servicesEditDraft.mode = 'awaiting_confirm';
             servicesEditDraft.value = nextResult;
             await ctx.reply(
               formatAdminServiceEditResultConfirmText(
                 servicesEditDraft.serviceName,
-                nextResult,
-              ),
-              createAdminServiceEditConfirmKeyboard(),
+                nextResult, state.language),
+              createAdminServiceEditConfirmKeyboard(state.language),
             );
           }
         } catch (error) {
@@ -4659,54 +4709,57 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               ? error
               : new ValidationError(
                   servicesEditDraft.field === 'name'
-                    ? 'Виникла помилка перевірки назви послуги'
+                    ? tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_VALIDATE_NAME_FAILED')
                     : servicesEditDraft.field === 'duration_minutes'
-                    ? 'Виникла помилка перевірки тривалості послуги'
+                    ? tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_VALIDATE_DURATION_FAILED')
                     : servicesEditDraft.field === 'base_price'
-                    ? 'Виникла помилка перевірки ціни послуги'
+                    ? tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_VALIDATE_PRICE_FAILED')
                     : servicesEditDraft.field === 'description'
-                    ? 'Виникла помилка перевірки опису послуги'
+                    ? tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_VALIDATE_DESCRIPTION_FAILED')
                     : servicesEditDraft.field === 'step_title'
-                    ? 'Виникла помилка перевірки назви етапу'
+                    ? tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_VALIDATE_STEP_TITLE_FAILED')
                     : servicesEditDraft.field === 'step_description'
-                    ? 'Виникла помилка перевірки опису етапу'
+                    ? tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_VALIDATE_STEP_DESCRIPTION_FAILED')
                     : servicesEditDraft.field === 'step_duration_minutes'
-                    ? 'Виникла помилка перевірки часу етапу'
+                    ? tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_VALIDATE_STEP_DURATION_FAILED')
                     : servicesEditDraft.field === 'guarantee_text'
-                    ? 'Виникла помилка перевірки тексту гарантії'
-                    : 'Виникла помилка перевірки тексту результату',
+                    ? tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_VALIDATE_GUARANTEE_FAILED')
+                    : tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_VALIDATE_RESULT_FAILED'),
                 );
 
-          await ctx.reply(
-            `⚠️ ${err.message}`,
-            createAdminServiceEditInputKeyboard(),
-          );
+          await replyAdminWarning(ctx, err.message, createAdminServiceEditInputKeyboard(state.language));
         }
         return;
       }
 
       if (servicesEditDraft?.mode === 'selecting_step') {
-        await ctx.reply(
-          'ℹ️ Для вибору етапу використовуйте кнопки під повідомленням.',
-          createAdminServiceEditStepSelectKeyboard(servicesEditDraft.stepOptions),
+        await replyAdminInfo(
+          ctx,
+          tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_USE_EDIT_STEP_BUTTONS'),
+          createAdminServiceEditStepSelectKeyboard(servicesEditDraft.stepOptions, state.language),
         );
         return;
       }
 
       if (servicesEditDraft?.mode === 'selecting_guarantee') {
-        await ctx.reply(
-          'ℹ️ Для вибору гарантії використовуйте кнопки під повідомленням.',
-          createAdminServiceEditGuaranteeSelectKeyboard(servicesEditDraft.guaranteeOptions),
+        await replyAdminInfo(
+          ctx,
+          tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_USE_EDIT_GUARANTEE_BUTTONS'),
+          createAdminServiceEditGuaranteeSelectKeyboard(
+            servicesEditDraft.guaranteeOptions,
+            state.language,
+          ),
         );
         return;
       }
 
       if (servicesEditDraft?.mode === 'awaiting_confirm') {
-        await ctx.reply(
-          'ℹ️ Для завершення змін використовуйте кнопки підтвердження під повідомленням.',
+        await replyAdminInfo(
+          ctx,
+          tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_USE_EDIT_CONFIRM_BUTTONS'),
           servicesEditDraft.field === 'deactivate'
-            ? createAdminServiceDeleteConfirmKeyboard()
-            : createAdminServiceEditConfirmKeyboard(),
+            ? createAdminServiceDeleteConfirmKeyboard(state.language)
+            : createAdminServiceEditConfirmKeyboard(state.language),
         );
         return;
       }
@@ -4729,8 +4782,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               ? error
               : new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_EDIT_VALUE_VALIDATION_FAILED'));
 
-          await ctx.reply(
-            `⚠️ ${err.message}`,
+          await replyAdminWarning(
+            ctx,
+            err.message,
             createAdminMasterEditInputKeyboard(mastersEditDraft.masterId, state.language),
           );
         }
@@ -4783,24 +4837,27 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       }
 
       if (state.servicesCurrentSection === 'edit' && state.servicesSelectedServiceId) {
-        await ctx.reply(
-          'ℹ️ Для редагування послуги використовуйте кнопки під повідомленням.',
-          createAdminServiceEditMenuKeyboard(),
+        await replyAdminInfo(
+          ctx,
+          tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_USE_EDIT_MENU_BUTTONS'),
+          createAdminServiceEditMenuKeyboard(state.language),
         );
         return;
       }
 
       if (state.servicesCurrentSection === 'create') {
-        await ctx.reply(
-          'ℹ️ Для створення послуги використовуйте поточний крок або кнопки під повідомленням.',
-          createAdminServiceCreateInputKeyboard(),
+        await replyAdminInfo(
+          ctx,
+          tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_USE_CREATE_INPUT_OR_BUTTONS'),
+          createAdminServiceCreateInputKeyboard(state.language),
         );
         return;
       }
 
       if (state.scheduleCurrentSection) {
-        await ctx.reply(
-          'ℹ️ Для керування цим розділом використовуйте кнопки під повідомленням.',
+        await replyAdminInfo(
+          ctx,
+          tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_USE_SECTION_BUTTONS'),
         );
         return;
       }
@@ -4808,8 +4865,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       const settingsLanguageDraft = state.settingsLanguageDraft;
       if (state.settingsCurrentSection === 'language') {
         if (settingsLanguageDraft) {
-          await ctx.reply(
-            'ℹ️ Для зміни мови використовуйте кнопки під повідомленням.',
+          await replyAdminInfo(
+            ctx,
+            tBot(state.language, 'ADMIN_PANEL_SETTINGS_MSG_USE_LANGUAGE_CONFIRM_BUTTONS'),
             createAdminSettingsLanguageConfirmKeyboard(),
           );
         } else {
@@ -4817,8 +4875,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           const currentLanguage = userId
             ? await getAdminPanelLanguage({ userId })
             : 'uk';
-          await ctx.reply(
-            'ℹ️ Для вибору мови використовуйте кнопки під повідомленням.',
+          await replyAdminInfo(
+            ctx,
+            tBot(state.language, 'ADMIN_PANEL_SETTINGS_MSG_USE_LANGUAGE_PICK_BUTTONS'),
             createAdminSettingsLanguageKeyboard(currentLanguage),
           );
         }
@@ -4833,13 +4892,14 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       ) {
         const access = state.access;
         if (!access?.studioId) {
-          throw new ValidationError('Не вдалося визначити студію адміністратора');
+          throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
         }
 
         const candidateTelegramId = text.trim();
         if (!/^\d+$/.test(candidateTelegramId)) {
-          await ctx.reply(
-            '⚠️ Telegram ID має містити тільки цифри.',
+          await replyAdminWarning(
+            ctx,
+            tBot(state.language, 'ADMIN_PANEL_SETTINGS_MSG_TELEGRAM_ID_DIGITS_ONLY'),
             settingsDraft.action === 'grant'
               ? createAdminSettingsGrantInputKeyboard()
               : createAdminSettingsRevokeInputKeyboard(),
@@ -4855,8 +4915,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           });
         } catch (error) {
           if (error instanceof ValidationError) {
-            await ctx.reply(
-              `⚠️ ${error.message}`,
+            await replyAdminWarning(
+              ctx,
+              error.message,
               settingsDraft.action === 'grant'
                 ? createAdminSettingsGrantInputKeyboard()
                 : createAdminSettingsRevokeInputKeyboard(),
@@ -4867,8 +4928,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         }
 
         if (!target) {
-          await ctx.reply(
-            '⚠️ Користувача з таким Telegram ID не знайдено в цьому салоні.',
+          await replyAdminWarning(
+            ctx,
+            tBot(state.language, 'ADMIN_PANEL_SETTINGS_MSG_USER_NOT_FOUND_IN_STUDIO'),
             settingsDraft.action === 'grant'
               ? createAdminSettingsGrantInputKeyboard()
               : createAdminSettingsRevokeInputKeyboard(),
@@ -4877,24 +4939,27 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         }
 
         if (settingsDraft.action === 'grant' && target.isAdmin) {
-          await ctx.reply(
-            '⚠️ Цей користувач уже має роль адміністратора.',
+          await replyAdminWarning(
+            ctx,
+            tBot(state.language, 'ADMIN_PANEL_SETTINGS_MSG_USER_ALREADY_ADMIN'),
             createAdminSettingsGrantInputKeyboard(),
           );
           return;
         }
 
         if (settingsDraft.action === 'revoke' && !target.isAdmin) {
-          await ctx.reply(
-            '⚠️ У цього користувача немає ролі адміністратора.',
+          await replyAdminWarning(
+            ctx,
+            tBot(state.language, 'ADMIN_PANEL_SETTINGS_MSG_USER_NOT_ADMIN'),
             createAdminSettingsRevokeInputKeyboard(),
           );
           return;
         }
 
         if (settingsDraft.action === 'revoke' && target.userId === access.userId) {
-          await ctx.reply(
-            '⚠️ Не можна забрати роль адміністратора у власного профілю.',
+          await replyAdminWarning(
+            ctx,
+            tBot(state.language, 'ADMIN_PANEL_SETTINGS_MSG_CANNOT_REVOKE_SELF'),
             createAdminSettingsRevokeInputKeyboard(),
           );
           return;
@@ -4911,8 +4976,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         settingsDraft &&
         settingsDraft.mode === 'awaiting_confirm'
       ) {
-        await ctx.reply(
-          'ℹ️ Для завершення дії використовуйте кнопки підтвердження під повідомленням.',
+        await replyAdminInfo(
+          ctx,
+          tBot(state.language, 'ADMIN_PANEL_SETTINGS_MSG_USE_ACTION_CONFIRM_BUTTONS'),
           settingsDraft.action === 'grant'
             ? createAdminSettingsGrantConfirmKeyboard()
             : createAdminSettingsRevokeConfirmKeyboard(),
@@ -4927,7 +4993,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         studioDraft.mode === 'awaiting_text'
       ) {
         try {
-          const draftContent = normalizeStudioContentDraftInput(text);
+          const draftContent = normalizeStudioContentDraftInput(text, state.language);
           studioDraft.mode = 'awaiting_confirm';
           studioDraft.draftContent = draftContent;
           await renderAdminSettingsStudioEditConfirm(ctx, studioDraft, false);
@@ -4935,12 +5001,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           const err =
             error instanceof ValidationError
               ? error
-              : new ValidationError('Помилка перевірки тексту для оновлення');
+              : new ValidationError(tBot(state.language, 'ADMIN_PANEL_SETTINGS_MSG_STUDIO_TEXT_VALIDATE_FAILED'));
 
-          await ctx.reply(
-            `⚠️ ${err.message}`,
-            createAdminSettingsStudioEditInputKeyboard(),
-          );
+          await replyAdminWarning(ctx, err.message, createAdminSettingsStudioEditInputKeyboard());
         }
         return;
       }
@@ -4950,8 +5013,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         studioDraft &&
         studioDraft.mode === 'awaiting_confirm'
       ) {
-        await ctx.reply(
-          'ℹ️ Для завершення змін використовуйте кнопки підтвердження під повідомленням.',
+        await replyAdminInfo(
+          ctx,
+          tBot(state.language, 'ADMIN_PANEL_SETTINGS_MSG_USE_STUDIO_CONFIRM_BUTTONS'),
           createAdminSettingsStudioEditConfirmKeyboard(),
         );
         return;
@@ -4964,17 +5028,16 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           return;
         }
 
-        await ctx.reply(
-          'ℹ️ Для керування сповіщеннями використовуйте кнопки під повідомленням.',
+        await replyAdminInfo(
+          ctx,
+          tBot(state.language, 'ADMIN_PANEL_SETTINGS_MSG_USE_NOTIFICATIONS_BUTTONS'),
           createAdminSettingsNotificationsKeyboard(currentState),
         );
         return;
       }
 
       if (state.settingsCurrentSection) {
-        await ctx.reply(
-          'ℹ️ Для керування розділом налаштувань використовуйте кнопки під повідомленням.',
-        );
+        await replyAdminInfo(ctx, tBot(state.language, 'ADMIN_PANEL_SETTINGS_MSG_USE_SECTION_BUTTONS'));
         return;
       }
 
@@ -5066,10 +5129,14 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const state = getSceneState(ctx);
     const access = state.access;
     if (!access?.studioId) {
-      throw new ValidationError('Не вдалося визначити студію адміністратора');
+      throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
     }
 
-    const weekday = parseWeekdayFromAction(ctx, ADMIN_PANEL_SCHEDULE_CONFIGURE_DAY_WEEKDAY_ACTION_REGEX);
+    const weekday = parseWeekdayFromAction(
+      ctx,
+      ADMIN_PANEL_SCHEDULE_CONFIGURE_DAY_WEEKDAY_ACTION_REGEX,
+      state.language,
+    );
     state.scheduleCurrentSection = 'configure-day';
     state.scheduleConfigureDayDraft = {
       mode: 'awaiting_from',
@@ -5099,10 +5166,14 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const state = getSceneState(ctx);
     const access = state.access;
     if (!access?.studioId) {
-      throw new ValidationError('Не вдалося визначити студію адміністратора');
+      throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
     }
 
-    const weekday = parseWeekdayFromAction(ctx, ADMIN_PANEL_SCHEDULE_CONFIGURE_DAY_OFF_ACTION_REGEX);
+    const weekday = parseWeekdayFromAction(
+      ctx,
+      ADMIN_PANEL_SCHEDULE_CONFIGURE_DAY_OFF_ACTION_REGEX,
+      state.language,
+    );
 
 	    const updated = await upsertAdminStudioWeeklyDay({
 	      studioId: access.studioId,
@@ -5191,8 +5262,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           offDate: null,
           offDateLabel: null,
         };
-        await ctx.reply(
-          `⚠️ ${error.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_DATE_FORMAT')}`,
+        await replyAdminWarning(
+          ctx,
+          `${error.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_RETRY_DATE_FORMAT')}`,
           createAdminScheduleDayOffInputKeyboard(state.language),
         );
         return;
@@ -5231,7 +5303,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const dayOffId = parseNumericIdFromAction(
       ctx,
       ADMIN_PANEL_SCHEDULE_DAY_OFF_DELETE_REQUEST_ACTION_REGEX,
-      'id вихідного дня',
+      tBot(state.language, 'ADMIN_PANEL_COMMON_LABEL_DAY_OFF_ID'),
+      state.language,
     );
 
     const data = await loadAdminSchedule(state);
@@ -5279,7 +5352,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const dayOffId = parseNumericIdFromAction(
       ctx,
       ADMIN_PANEL_SCHEDULE_DAY_OFF_DELETE_CONFIRM_ACTION_REGEX,
-      'id вихідного дня',
+      tBot(state.language, 'ADMIN_PANEL_COMMON_LABEL_DAY_OFF_ID'),
+      state.language,
     );
 
     if (!access?.studioId || !state.scheduleDeleteDraft || state.scheduleDeleteDraft.type !== 'day_off' || state.scheduleDeleteDraft.id !== dayOffId) {
@@ -5374,8 +5448,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           holidayDateLabel: null,
           holidayName: null,
         };
-        await ctx.reply(
-          `⚠️ ${error.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_TRY_AGAIN')}`,
+        await replyAdminWarning(
+          ctx,
+          `${error.message}\n\n${tBot(state.language, 'ADMIN_PANEL_SCHEDULE_MSG_TRY_AGAIN')}`,
           createAdminScheduleHolidayInputKeyboard(state.language),
         );
         return;
@@ -5416,7 +5491,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const holidayId = parseNumericIdFromAction(
       ctx,
       ADMIN_PANEL_SCHEDULE_HOLIDAY_DELETE_REQUEST_ACTION_REGEX,
-      'id святкового дня',
+      tBot(state.language, 'ADMIN_PANEL_COMMON_LABEL_HOLIDAY_ID'),
+      state.language,
     );
 
     const data = await loadAdminSchedule(state);
@@ -5464,7 +5540,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const holidayId = parseNumericIdFromAction(
       ctx,
       ADMIN_PANEL_SCHEDULE_HOLIDAY_DELETE_CONFIRM_ACTION_REGEX,
-      'id святкового дня',
+      tBot(state.language, 'ADMIN_PANEL_COMMON_LABEL_HOLIDAY_ID'),
+      state.language,
     );
 
     if (!access?.studioId || !state.scheduleDeleteDraft || state.scheduleDeleteDraft.type !== 'holiday' || state.scheduleDeleteDraft.id !== holidayId) {
@@ -5684,8 +5761,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       });
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(
-          `⚠️ ${error.message}`,
+        await replyAdminWarning(
+          ctx,
+          error.message,
           createAdminScheduleTemporaryDaysConfigKeyboard(draft.days, state.language),
         );
         return;
@@ -5731,8 +5809,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     let dateFrom: Date;
     let dateTo: Date;
     try {
-      dateFrom = parseDateFromCode(dateFromCode);
-      dateTo = parseDateFromCode(dateToCode);
+      dateFrom = parseDateFromCode(dateFromCode, state.language);
+      dateTo = parseDateFromCode(dateToCode, state.language);
     } catch {
       await renderScheduleSection(ctx, 'temporary', true);
       return;
@@ -5783,8 +5861,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     let dateFrom: Date;
     let dateTo: Date;
     try {
-      dateFrom = parseDateFromCode(dateFromCode);
-      dateTo = parseDateFromCode(dateToCode);
+      dateFrom = parseDateFromCode(dateFromCode, state.language);
+      dateTo = parseDateFromCode(dateToCode, state.language);
     } catch {
       await renderScheduleSection(ctx, 'temporary', true);
       return;
@@ -6525,17 +6603,19 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     if (draft.mode !== 'awaiting_step_menu') {
-      await ctx.reply(
-        'ℹ️ Спочатку завершіть поточний крок створення.',
-        createAdminServiceCreateInputKeyboard(),
+      await replyAdminInfo(
+        ctx,
+        tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_COMPLETE_CURRENT_STEP_FIRST'),
+        createAdminServiceCreateInputKeyboard(state.language),
       );
       return;
     }
 
     if (draft.steps.length >= 20) {
-      await ctx.reply(
-        '⚠️ Досягнуто максимальної кількості етапів (20). Перейдіть далі.',
-        createAdminServiceCreateStepActionsKeyboard(),
+      await replyAdminWarning(
+        ctx,
+        tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_MAX_STEPS_REACHED'),
+        createAdminServiceCreateStepActionsKeyboard(state.language),
       );
       return;
     }
@@ -6544,8 +6624,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.pendingStepTitle = null;
     draft.pendingStepDurationMinutes = null;
     await ctx.reply(
-      formatAdminServiceCreateStepTitleInputText(draft.steps.length + 1),
-      createAdminServiceCreateInputKeyboard(),
+      formatAdminServiceCreateStepTitleInputText(draft.steps.length + 1, state.language),
+      createAdminServiceCreateInputKeyboard(state.language),
     );
   });
 
@@ -6559,25 +6639,27 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     if (draft.mode !== 'awaiting_step_menu') {
-      await ctx.reply(
-        'ℹ️ Спочатку завершіть поточний крок створення.',
-        createAdminServiceCreateInputKeyboard(),
+      await replyAdminInfo(
+        ctx,
+        tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_COMPLETE_CURRENT_STEP_FIRST'),
+        createAdminServiceCreateInputKeyboard(state.language),
       );
       return;
     }
 
     if (draft.steps.length === 0) {
-      await ctx.reply(
-        '⚠️ Додайте щонайменше 1 етап перед переходом до гарантій.',
-        createAdminServiceCreateStepActionsKeyboard(),
+      await replyAdminWarning(
+        ctx,
+        tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_ADD_MIN_ONE_STEP'),
+        createAdminServiceCreateStepActionsKeyboard(state.language),
       );
       return;
     }
 
     draft.mode = 'awaiting_guarantee_text';
     await ctx.reply(
-      formatAdminServiceCreateGuaranteeInputText(draft.guarantees.length + 1),
-      createAdminServiceCreateInputKeyboard(),
+      formatAdminServiceCreateGuaranteeInputText(draft.guarantees.length + 1, state.language),
+      createAdminServiceCreateInputKeyboard(state.language),
     );
   });
 
@@ -6591,25 +6673,27 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     if (draft.mode !== 'awaiting_guarantee_menu') {
-      await ctx.reply(
-        'ℹ️ Спочатку завершіть поточний крок створення.',
-        createAdminServiceCreateInputKeyboard(),
+      await replyAdminInfo(
+        ctx,
+        tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_COMPLETE_CURRENT_STEP_FIRST'),
+        createAdminServiceCreateInputKeyboard(state.language),
       );
       return;
     }
 
     if (draft.guarantees.length >= 10) {
-      await ctx.reply(
-        '⚠️ Досягнуто максимальної кількості гарантій (10). Перейдіть далі.',
-        createAdminServiceCreateGuaranteeActionsKeyboard(),
+      await replyAdminWarning(
+        ctx,
+        tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_MAX_GUARANTEES_REACHED'),
+        createAdminServiceCreateGuaranteeActionsKeyboard(state.language),
       );
       return;
     }
 
     draft.mode = 'awaiting_guarantee_text';
     await ctx.reply(
-      formatAdminServiceCreateGuaranteeInputText(draft.guarantees.length + 1),
-      createAdminServiceCreateInputKeyboard(),
+      formatAdminServiceCreateGuaranteeInputText(draft.guarantees.length + 1, state.language),
+      createAdminServiceCreateInputKeyboard(state.language),
     );
   });
 
@@ -6623,25 +6707,30 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     if (draft.mode !== 'awaiting_guarantee_menu') {
-      await ctx.reply(
-        'ℹ️ Спочатку завершіть поточний крок створення.',
-        createAdminServiceCreateInputKeyboard(),
+      await replyAdminInfo(
+        ctx,
+        tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_COMPLETE_CURRENT_STEP_FIRST'),
+        createAdminServiceCreateInputKeyboard(state.language),
       );
       return;
     }
 
     if (draft.guarantees.length === 0) {
-      await ctx.reply(
-        '⚠️ Додайте щонайменше 1 гарантію перед переходом до результату.',
-        createAdminServiceCreateGuaranteeActionsKeyboard(),
+      await replyAdminWarning(
+        ctx,
+        tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_ADD_MIN_ONE_GUARANTEE'),
+        createAdminServiceCreateGuaranteeActionsKeyboard(state.language),
       );
       return;
     }
 
     draft.mode = 'awaiting_result';
     await ctx.reply(
-      formatAdminServiceCreateResultInputText(draft.name ?? 'Нова послуга'),
-      createAdminServiceCreateInputKeyboard(),
+      formatAdminServiceCreateResultInputText(
+        draft.name ?? tBot(state.language, 'ADMIN_PANEL_SERVICES_DEFAULT_NAME'),
+        state.language,
+      ),
+      createAdminServiceCreateInputKeyboard(state.language),
     );
   });
 
@@ -6665,9 +6754,10 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       draft.steps.length === 0 ||
       draft.guarantees.length === 0
     ) {
-      await ctx.reply(
-        '⚠️ Недостатньо даних для створення послуги. Перевірте попередні кроки.',
-        createAdminServiceCreatePreviewKeyboard(),
+      await replyAdminWarning(
+        ctx,
+        tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_INSUFFICIENT_CREATE_DATA'),
+        createAdminServiceCreatePreviewKeyboard(state.language),
       );
       return;
     }
@@ -6697,11 +6787,11 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 	        },
 	        state.access,
 	      );
-	      await ctx.reply(formatAdminServiceCreateSuccessText(created));
+	      await ctx.reply(formatAdminServiceCreateSuccessText(created, state.language));
       await renderAdminServiceDetails(ctx, created.serviceId, false);
     } catch (error) {
       if (error instanceof ValidationError) {
-        await replyAdminWarning(ctx, error.message, createAdminServiceCreatePreviewKeyboard());
+        await replyAdminWarning(ctx, error.message, createAdminServiceCreatePreviewKeyboard(state.language));
         return;
       }
       throw error;
@@ -6714,7 +6804,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const serviceId = parseNumericIdFromAction(
       ctx,
       ADMIN_PANEL_SERVICES_OPEN_ACTION_REGEX,
-      'id послуги',
+      tBot(state.language, 'ADMIN_PANEL_MASTERS_LABEL_SERVICE_ID'),
     );
     await renderAdminServiceDetails(ctx, serviceId, true);
     state.servicesSelectedServiceId = serviceId;
@@ -6726,7 +6816,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const serviceId = parseNumericIdFromAction(
       ctx,
       ADMIN_PANEL_SERVICES_EDIT_OPEN_ACTION_REGEX,
-      'id послуги',
+      tBot(state.language, 'ADMIN_PANEL_MASTERS_LABEL_SERVICE_ID'),
     );
 
     await renderAdminServiceEditMenu(ctx, serviceId, true);
@@ -6760,8 +6850,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.currentValue = draft.currentResultDescription;
     draft.value = null;
     await ctx.reply(
-      formatAdminServiceEditResultInputText(draft.serviceName, draft.currentResultDescription),
-      createAdminServiceEditInputKeyboard(),
+      formatAdminServiceEditResultInputText(draft.serviceName, draft.currentResultDescription, state.language),
+      createAdminServiceEditInputKeyboard(state.language),
     );
   });
 
@@ -6792,8 +6882,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.currentValue = draft.serviceName;
     draft.value = null;
     await ctx.reply(
-      formatAdminServiceEditNameInputText(draft.serviceName),
-      createAdminServiceEditInputKeyboard(),
+      formatAdminServiceEditNameInputText(draft.serviceName, state.language),
+      createAdminServiceEditInputKeyboard(state.language),
     );
   });
 
@@ -6826,9 +6916,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     await ctx.reply(
       formatAdminServiceEditDurationInputText(
         draft.serviceName,
-        draft.currentDurationMinutes,
-      ),
-      createAdminServiceEditInputKeyboard(),
+        draft.currentDurationMinutes, state.language),
+      createAdminServiceEditInputKeyboard(state.language),
     );
   });
 
@@ -6862,9 +6951,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       formatAdminServiceEditPriceInputText(
         draft.serviceName,
         draft.currentBasePrice,
-        draft.currentCurrencyCode,
-      ),
-      createAdminServiceEditInputKeyboard(),
+        draft.currentCurrencyCode, state.language),
+      createAdminServiceEditInputKeyboard(state.language),
     );
   });
 
@@ -6895,8 +6983,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.currentValue = draft.currentDescription;
     draft.value = null;
     await ctx.reply(
-      formatAdminServiceEditDescriptionInputText(draft.serviceName, draft.currentDescription),
-      createAdminServiceEditInputKeyboard(),
+      formatAdminServiceEditDescriptionInputText(draft.serviceName, draft.currentDescription, state.language),
+      createAdminServiceEditInputKeyboard(state.language),
     );
   });
 
@@ -6918,9 +7006,10 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     const details = await getServiceCatalogDetailsById({ serviceId: draft.serviceId, studioId });
     if (!details || details.steps.length === 0) {
-      await ctx.reply(
-        '⚠️ Для цієї послуги не знайдено етапів. Спочатку додайте етапи у БД.',
-        createAdminServiceEditMenuKeyboard(),
+      await replyAdminWarning(
+        ctx,
+        tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_STEPS_NOT_FOUND'),
+        createAdminServiceEditMenuKeyboard(state.language),
       );
       return;
     }
@@ -6944,8 +7033,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.value = null;
 
     await ctx.reply(
-      formatAdminServiceEditStepSelectText(draft.serviceName, draft.stepOptions, 'title'),
-      createAdminServiceEditStepSelectKeyboard(draft.stepOptions),
+      formatAdminServiceEditStepSelectText(draft.serviceName, draft.stepOptions, 'title', state.language),
+      createAdminServiceEditStepSelectKeyboard(draft.stepOptions, state.language),
     );
   });
 
@@ -6967,9 +7056,10 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     const details = await getServiceCatalogDetailsById({ serviceId: draft.serviceId, studioId });
     if (!details || details.steps.length === 0) {
-      await ctx.reply(
-        '⚠️ Для цієї послуги не знайдено етапів. Спочатку додайте етапи у БД.',
-        createAdminServiceEditMenuKeyboard(),
+      await replyAdminWarning(
+        ctx,
+        tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_STEPS_NOT_FOUND'),
+        createAdminServiceEditMenuKeyboard(state.language),
       );
       return;
     }
@@ -6993,8 +7083,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.value = null;
 
     await ctx.reply(
-      formatAdminServiceEditStepSelectText(draft.serviceName, draft.stepOptions, 'description'),
-      createAdminServiceEditStepSelectKeyboard(draft.stepOptions),
+      formatAdminServiceEditStepSelectText(draft.serviceName, draft.stepOptions, 'description', state.language),
+      createAdminServiceEditStepSelectKeyboard(draft.stepOptions, state.language),
     );
   });
 
@@ -7016,9 +7106,10 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     const details = await getServiceCatalogDetailsById({ serviceId: draft.serviceId, studioId });
     if (!details || details.steps.length === 0) {
-      await ctx.reply(
-        '⚠️ Для цієї послуги не знайдено етапів. Спочатку додайте етапи у БД.',
-        createAdminServiceEditMenuKeyboard(),
+      await replyAdminWarning(
+        ctx,
+        tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_STEPS_NOT_FOUND'),
+        createAdminServiceEditMenuKeyboard(state.language),
       );
       return;
     }
@@ -7042,8 +7133,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.value = null;
 
     await ctx.reply(
-      formatAdminServiceEditStepSelectText(draft.serviceName, draft.stepOptions, 'duration'),
-      createAdminServiceEditStepSelectKeyboard(draft.stepOptions),
+      formatAdminServiceEditStepSelectText(draft.serviceName, draft.stepOptions, 'duration', state.language),
+      createAdminServiceEditStepSelectKeyboard(draft.stepOptions, state.language),
     );
   });
 
@@ -7065,14 +7156,15 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       parseNumericIdFromAction(
         ctx,
         ADMIN_PANEL_SERVICES_EDIT_STEP_PICK_ACTION_REGEX,
-        'номер етапу',
+        tBot(state.language, 'ADMIN_PANEL_SERVICES_LABEL_STEP_NUMBER'),
       ),
     );
     const selectedStep = draft.stepOptions.find((item) => item.stepNo === stepNo);
     if (!selectedStep) {
-      await ctx.reply(
-        '⚠️ Обраний етап не знайдено. Спробуйте ще раз.',
-        createAdminServiceEditStepSelectKeyboard(draft.stepOptions),
+      await replyAdminWarning(
+        ctx,
+        tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_STEP_NOT_FOUND'),
+        createAdminServiceEditStepSelectKeyboard(draft.stepOptions, state.language),
       );
       return;
     }
@@ -7096,9 +7188,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         formatAdminServiceEditStepDurationInputText(
           draft.serviceName,
           selectedStep.stepNo,
-          selectedStep.durationMinutes,
-        ),
-        createAdminServiceEditInputKeyboard(),
+          selectedStep.durationMinutes, state.language),
+        createAdminServiceEditInputKeyboard(state.language),
       );
       return;
     }
@@ -7108,9 +7199,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         formatAdminServiceEditStepDescriptionInputText(
           draft.serviceName,
           selectedStep.stepNo,
-          selectedStep.description,
-        ),
-        createAdminServiceEditInputKeyboard(),
+          selectedStep.description, state.language),
+        createAdminServiceEditInputKeyboard(state.language),
       );
       return;
     }
@@ -7119,9 +7209,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       formatAdminServiceEditStepInputText(
         draft.serviceName,
         selectedStep.stepNo,
-        selectedStep.title,
-      ),
-      createAdminServiceEditInputKeyboard(),
+        selectedStep.title, state.language),
+      createAdminServiceEditInputKeyboard(state.language),
     );
   });
 
@@ -7143,9 +7232,10 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     const details = await getServiceCatalogDetailsById({ serviceId: draft.serviceId, studioId });
     if (!details || details.guarantees.length === 0) {
-      await ctx.reply(
-        '⚠️ Для цієї послуги не знайдено гарантій. Спочатку додайте гарантії у БД.',
-        createAdminServiceEditMenuKeyboard(),
+      await replyAdminWarning(
+        ctx,
+        tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_GUARANTEES_NOT_FOUND'),
+        createAdminServiceEditMenuKeyboard(state.language),
       );
       return;
     }
@@ -7167,8 +7257,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.value = null;
 
     await ctx.reply(
-      formatAdminServiceEditGuaranteeSelectText(draft.serviceName, draft.guaranteeOptions),
-      createAdminServiceEditGuaranteeSelectKeyboard(draft.guaranteeOptions),
+      formatAdminServiceEditGuaranteeSelectText(draft.serviceName, draft.guaranteeOptions, state.language),
+      createAdminServiceEditGuaranteeSelectKeyboard(draft.guaranteeOptions, state.language),
     );
   });
 
@@ -7190,14 +7280,15 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       parseNumericIdFromAction(
         ctx,
         ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_PICK_ACTION_REGEX,
-        'номер гарантії',
+        tBot(state.language, 'ADMIN_PANEL_SERVICES_LABEL_GUARANTEE_NUMBER'),
       ),
     );
     const selectedGuarantee = draft.guaranteeOptions.find((item) => item.guaranteeNo === guaranteeNo);
     if (!selectedGuarantee) {
-      await ctx.reply(
-        '⚠️ Обрану гарантію не знайдено. Спробуйте ще раз.',
-        createAdminServiceEditGuaranteeSelectKeyboard(draft.guaranteeOptions),
+      await replyAdminWarning(
+        ctx,
+        tBot(state.language, 'ADMIN_PANEL_SERVICES_MSG_GUARANTEE_NOT_FOUND'),
+        createAdminServiceEditGuaranteeSelectKeyboard(draft.guaranteeOptions, state.language),
       );
       return;
     }
@@ -7213,9 +7304,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       formatAdminServiceEditGuaranteeInputText(
         draft.serviceName,
         selectedGuarantee.guaranteeNo,
-        selectedGuarantee.guaranteeText,
-      ),
-      createAdminServiceEditInputKeyboard(),
+        selectedGuarantee.guaranteeText, state.language),
+      createAdminServiceEditInputKeyboard(state.language),
     );
   });
 
@@ -7246,8 +7336,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     draft.currentValue = null;
     draft.value = 'deactivate';
     await ctx.reply(
-      formatAdminServiceDeleteConfirmText(draft.serviceName),
-      createAdminServiceDeleteConfirmKeyboard(),
+      formatAdminServiceDeleteConfirmText(draft.serviceName, state.language),
+      createAdminServiceDeleteConfirmKeyboard(state.language),
     );
   });
 
@@ -7310,7 +7400,12 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 	          },
 	          state.access,
 	        );
-	        await replyAdminSuccess(ctx, `Послугу "${deactivated.name}" успішно видалено зі списку активних.`);
+	        await replyAdminSuccess(
+            ctx,
+            tBotTemplate(state.language, 'ADMIN_PANEL_SERVICES_MSG_DEACTIVATED_SUCCESS', {
+              serviceName: deactivated.name,
+            }),
+          );
         await renderAdminServicesCatalog(ctx, false);
         return;
       }
@@ -7323,8 +7418,12 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           guaranteeText: String(draft.value),
         });
         state.servicesEditDraft = null;
-        await ctx.reply(
-          `✅ Гарантію №${draft.currentGuaranteeNo ?? '-'} для послуги "${draft.serviceName}" успішно оновлено.`,
+        await replyAdminSuccess(
+          ctx,
+          tBotTemplate(state.language, 'ADMIN_PANEL_SERVICES_MSG_GUARANTEE_UPDATED_SUCCESS', {
+            guaranteeNo: draft.currentGuaranteeNo ?? '-',
+            serviceName: draft.serviceName,
+          }),
         );
         await renderAdminServiceDetails(ctx, draft.serviceId, false);
         return;
@@ -7338,8 +7437,12 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           title: String(draft.value),
         });
         state.servicesEditDraft = null;
-        await ctx.reply(
-          `✅ Назву етапу №${draft.currentStepNo ?? '-'} для послуги "${draft.serviceName}" успішно оновлено.`,
+        await replyAdminSuccess(
+          ctx,
+          tBotTemplate(state.language, 'ADMIN_PANEL_SERVICES_MSG_STEP_TITLE_UPDATED_SUCCESS', {
+            stepNo: draft.currentStepNo ?? '-',
+            serviceName: draft.serviceName,
+          }),
         );
         await renderAdminServiceDetails(ctx, draft.serviceId, false);
         return;
@@ -7353,8 +7456,12 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           description: String(draft.value),
         });
         state.servicesEditDraft = null;
-        await ctx.reply(
-          `✅ Опис етапу №${draft.currentStepNo ?? '-'} для послуги "${draft.serviceName}" успішно оновлено.`,
+        await replyAdminSuccess(
+          ctx,
+          tBotTemplate(state.language, 'ADMIN_PANEL_SERVICES_MSG_STEP_DESCRIPTION_UPDATED_SUCCESS', {
+            stepNo: draft.currentStepNo ?? '-',
+            serviceName: draft.serviceName,
+          }),
         );
         await renderAdminServiceDetails(ctx, draft.serviceId, false);
         return;
@@ -7368,11 +7475,15 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           durationMinutes:
             typeof draft.value === 'number'
               ? draft.value
-              : normalizeServiceStepDurationInput(String(draft.value)),
+              : normalizeServiceStepDurationInput(String(draft.value), state.language),
         });
         state.servicesEditDraft = null;
-        await ctx.reply(
-          `✅ Час етапу №${draft.currentStepNo ?? '-'} для послуги "${draft.serviceName}" успішно оновлено.`,
+        await replyAdminSuccess(
+          ctx,
+          tBotTemplate(state.language, 'ADMIN_PANEL_SERVICES_MSG_STEP_DURATION_UPDATED_SUCCESS', {
+            stepNo: draft.currentStepNo ?? '-',
+            serviceName: draft.serviceName,
+          }),
         );
         await renderAdminServiceDetails(ctx, draft.serviceId, false);
         return;
@@ -7392,7 +7503,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               durationMinutes:
                 typeof draft.value === 'number'
                   ? draft.value
-                  : normalizeServiceDurationInput(String(draft.value)),
+                  : normalizeServiceDurationInput(String(draft.value), state.language),
             })
           : draft.field === 'base_price'
           ? await updateAdminServiceBasePrice({
@@ -7413,25 +7524,37 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
             });
       state.servicesEditDraft = null;
 
-      await ctx.reply(
+      await replyAdminSuccess(
+        ctx,
         draft.field === 'name'
-          ? `✅ Назву послуги "${updated.name}" успішно оновлено.`
-        : draft.field === 'duration_minutes'
-          ? `✅ Тривалість послуги "${updated.name}" успішно оновлено.`
+          ? tBotTemplate(state.language, 'ADMIN_PANEL_SERVICES_MSG_NAME_UPDATED_SUCCESS', {
+              serviceName: updated.name,
+            })
+          : draft.field === 'duration_minutes'
+          ? tBotTemplate(state.language, 'ADMIN_PANEL_SERVICES_MSG_DURATION_UPDATED_SUCCESS', {
+              serviceName: updated.name,
+            })
           : draft.field === 'base_price'
-          ? `✅ Ціну послуги "${updated.name}" успішно оновлено.`
+          ? tBotTemplate(state.language, 'ADMIN_PANEL_SERVICES_MSG_PRICE_UPDATED_SUCCESS', {
+              serviceName: updated.name,
+            })
           : draft.field === 'description'
-          ? `✅ Опис послуги "${updated.name}" успішно оновлено.`
-          : `✅ Результат послуги "${updated.name}" успішно оновлено.`,
+          ? tBotTemplate(state.language, 'ADMIN_PANEL_SERVICES_MSG_DESCRIPTION_UPDATED_SUCCESS', {
+              serviceName: updated.name,
+            })
+          : tBotTemplate(state.language, 'ADMIN_PANEL_SERVICES_MSG_RESULT_UPDATED_SUCCESS', {
+              serviceName: updated.name,
+            }),
       );
       await renderAdminServiceDetails(ctx, draft.serviceId, false);
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(
-          `⚠️ ${error.message}`,
+        await replyAdminWarning(
+          ctx,
+          error.message,
           draft.field === 'deactivate'
-            ? createAdminServiceDeleteConfirmKeyboard()
-            : createAdminServiceEditInputKeyboard(),
+            ? createAdminServiceDeleteConfirmKeyboard(state.language)
+            : createAdminServiceEditInputKeyboard(state.language),
         );
         state.servicesEditDraft = {
           ...draft,
@@ -7491,12 +7614,12 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     try {
       await ctx.editMessageText(
         formatAdminStatsServiceDetailsText(stats, state.language),
-        createAdminServiceDetailsKeyboard(serviceId),
+        createAdminServiceDetailsKeyboard(serviceId, state.language),
       );
     } catch {
       await ctx.reply(
         formatAdminStatsServiceDetailsText(stats, state.language),
-        createAdminServiceDetailsKeyboard(serviceId),
+        createAdminServiceDetailsKeyboard(serviceId, state.language),
       );
     }
   });
@@ -7665,7 +7788,11 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(ADMIN_PANEL_STATS_MONTHLY_OPEN_ACTION_REGEX, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
-    const monthCode = parseMonthCodeFromAction(ctx, ADMIN_PANEL_STATS_MONTHLY_OPEN_ACTION_REGEX);
+    const monthCode = parseMonthCodeFromAction(
+      ctx,
+      ADMIN_PANEL_STATS_MONTHLY_OPEN_ACTION_REGEX,
+      state.language,
+    );
 
     try {
       await renderAdminStatsMonthlyReportDetails(ctx, monthCode, true);
@@ -7719,7 +7846,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const clientId = parseNumericIdFromAction(
       ctx,
       ADMIN_PANEL_STATS_CLIENTS_OPEN_ACTION_REGEX,
-      'id клієнта',
+      tBot(state.language, 'ADMIN_PANEL_COMMON_LABEL_CLIENT_ID'),
+      state.language,
     );
 
     try {
@@ -7800,10 +7928,10 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const state = getSceneState(ctx);
     const userId = state.access?.userId;
     if (!userId) {
-      throw new ValidationError('Не вдалося визначити користувача адміністратора');
+      throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_COMMON_MSG_ADMIN_USER_UNRESOLVED'));
     }
 
-    const notificationType = parseSettingsNotificationTypeFromAction(ctx);
+    const notificationType = parseSettingsNotificationTypeFromAction(ctx, state.language);
     const currentState = state.settingsNotificationsState ?? (await getUserNotificationSettingsState(userId));
     const nextEnabled = !(currentState[notificationType] ?? true);
 
@@ -7830,7 +7958,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     await ctx.answerCbQuery();
     const userId = getSceneState(ctx).access?.userId;
     if (!userId) {
-      throw new ValidationError('Не вдалося визначити користувача адміністратора');
+      throw new ValidationError(
+        tBot(getSceneState(ctx).language, 'ADMIN_PANEL_COMMON_MSG_ADMIN_USER_UNRESOLVED'),
+      );
     }
 
 	    await setAllUserNotificationSettings({
@@ -7852,7 +7982,9 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     await ctx.answerCbQuery();
     const userId = getSceneState(ctx).access?.userId;
     if (!userId) {
-      throw new ValidationError('Не вдалося визначити користувача адміністратора');
+      throw new ValidationError(
+        tBot(getSceneState(ctx).language, 'ADMIN_PANEL_COMMON_MSG_ADMIN_USER_UNRESOLVED'),
+      );
     }
 
 	    await setAllUserNotificationSettings({
@@ -7875,10 +8007,10 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const state = getSceneState(ctx);
     const userId = state.access?.userId;
     if (!userId) {
-      throw new ValidationError('Не вдалося визначити користувача адміністратора');
+      throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_COMMON_MSG_ADMIN_USER_UNRESOLVED'));
     }
 
-    const nextLanguage = parseSettingsLanguageFromAction(ctx);
+    const nextLanguage = parseSettingsLanguageFromAction(ctx, state.language);
     const currentLanguage = await getAdminPanelLanguage({ userId });
     if (nextLanguage === currentLanguage) {
       await renderAdminSettingsLanguage(ctx, true);
@@ -7954,7 +8086,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
   scene.action(ADMIN_PANEL_SETTINGS_STUDIO_EDIT_BLOCK_OPEN_ACTION_REGEX, async (ctx) => {
     await ctx.answerCbQuery();
-    const blockKey = parseStudioBlockKeyFromAction(ctx);
+    const blockKey = parseStudioBlockKeyFromAction(ctx, getSceneState(ctx).language);
     await renderAdminSettingsStudioEditPrompt(ctx, blockKey, true);
   });
 
@@ -8254,7 +8386,11 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(ADMIN_PANEL_RECORDS_CONTACT_CLIENT_ACTION_REGEX, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
-    const appointmentId = parseAppointmentIdFromAction(ctx, ADMIN_PANEL_RECORDS_CONTACT_CLIENT_ACTION_REGEX);
+    const appointmentId = parseAppointmentIdFromAction(
+      ctx,
+      ADMIN_PANEL_RECORDS_CONTACT_CLIENT_ACTION_REGEX,
+      state.language,
+    );
     const item = await resolveAdminRecordById(state, appointmentId);
     if (!item) {
       await renderRecordsFallback(ctx, true);
@@ -8270,6 +8406,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const appointmentId = parseAppointmentIdFromAction(
       ctx,
       ADMIN_PANEL_RECORDS_VIEW_CLIENT_PROFILE_ACTION_REGEX,
+      state.language,
     );
     const item = await resolveAdminRecordById(state, appointmentId);
     if (!item) {
@@ -8286,6 +8423,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const appointmentId = parseAppointmentIdFromAction(
       ctx,
       ADMIN_PANEL_RECORDS_VIEW_MASTER_PROFILE_ACTION_REGEX,
+      state.language,
     );
     const item = await resolveAdminRecordById(state, appointmentId);
     if (!item) {
@@ -8302,6 +8440,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const currentAppointmentId = parseAppointmentIdFromAction(
       ctx,
       ADMIN_PANEL_RECORDS_NEXT_PENDING_ACTION_REGEX,
+      state.language,
     );
     const nextPending = await resolveNextPendingBooking(state, currentAppointmentId);
     if (!nextPending) {
@@ -8327,7 +8466,11 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    const appointmentId = parseAppointmentIdFromAction(ctx, ADMIN_PANEL_RECORDS_CONFIRM_ACTION_REGEX);
+    const appointmentId = parseAppointmentIdFromAction(
+      ctx,
+      ADMIN_PANEL_RECORDS_CONFIRM_ACTION_REGEX,
+      state.language,
+    );
     let updated: AdminBookingItem;
     try {
       updated = await confirmAdminPendingBooking({
@@ -8370,7 +8513,11 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(ADMIN_PANEL_RECORDS_CANCEL_REQUEST_ACTION_REGEX, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
-    const appointmentId = parseAppointmentIdFromAction(ctx, ADMIN_PANEL_RECORDS_CANCEL_REQUEST_ACTION_REGEX);
+    const appointmentId = parseAppointmentIdFromAction(
+      ctx,
+      ADMIN_PANEL_RECORDS_CANCEL_REQUEST_ACTION_REGEX,
+      state.language,
+    );
     const item = await resolveAdminRecordById(state, appointmentId);
     if (!item) {
       await renderRecordsFallback(ctx, true);
@@ -8386,6 +8533,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const appointmentId = parseAppointmentIdFromAction(
       ctx,
       ADMIN_PANEL_RECORDS_HARD_DELETE_REQUEST_ACTION_REGEX,
+      state.language,
     );
     const item = await resolveAdminRecordById(state, appointmentId);
     if (!item) {
@@ -8417,6 +8565,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const appointmentId = parseAppointmentIdFromAction(
       ctx,
       ADMIN_PANEL_RECORDS_HARD_DELETE_CONFIRM_ACTION_REGEX,
+      state.language,
     );
     const target = await resolveAdminRecordById(state, appointmentId);
     if (!target) {
@@ -8561,7 +8710,11 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    const appointmentId = parseAppointmentIdFromAction(ctx, ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_ACTION_REGEX);
+    const appointmentId = parseAppointmentIdFromAction(
+      ctx,
+      ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_ACTION_REGEX,
+      state.language,
+    );
     let canceled: AdminBookingItem;
     try {
       canceled = await cancelAdminBooking({
@@ -8604,7 +8757,11 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(ADMIN_PANEL_RECORDS_RESCHEDULE_ACTION_REGEX, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
-    const appointmentId = parseAppointmentIdFromAction(ctx, ADMIN_PANEL_RECORDS_RESCHEDULE_ACTION_REGEX);
+    const appointmentId = parseAppointmentIdFromAction(
+      ctx,
+      ADMIN_PANEL_RECORDS_RESCHEDULE_ACTION_REGEX,
+      state.language,
+    );
     const item = await resolveAdminRecordById(state, appointmentId);
     if (!item) {
       await renderRecordsFallback(ctx, true);
@@ -8763,7 +8920,11 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
   scene.action(ADMIN_PANEL_RECORDS_CHANGE_MASTER_ACTION_REGEX, async (ctx) => {
     await ctx.answerCbQuery();
     const state = getSceneState(ctx);
-    const appointmentId = parseAppointmentIdFromAction(ctx, ADMIN_PANEL_RECORDS_CHANGE_MASTER_ACTION_REGEX);
+    const appointmentId = parseAppointmentIdFromAction(
+      ctx,
+      ADMIN_PANEL_RECORDS_CHANGE_MASTER_ACTION_REGEX,
+      state.language,
+    );
     const item = await resolveAdminRecordById(state, appointmentId);
     if (!item) {
       await renderRecordsFallback(ctx, true);
