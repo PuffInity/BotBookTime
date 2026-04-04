@@ -1555,7 +1555,7 @@ async function renderAdminMastersCatalog(ctx: MyContext, preferEdit: boolean): P
   state.mastersDeleteDraft = null;
 
   const text = formatAdminMastersCatalogText(masters);
-  const keyboard = createAdminMastersCatalogKeyboard(masters);
+  const keyboard = createAdminMastersCatalogKeyboard(masters, state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1597,7 +1597,7 @@ async function renderAdminMasterDetails(
   state.mastersDeleteDraft = null;
 
   const text = formatAdminMasterDetailsText(details);
-  const keyboard = createAdminMasterDetailsKeyboard(masterId);
+  const keyboard = createAdminMasterDetailsKeyboard(masterId, state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1631,7 +1631,7 @@ async function renderAdminMasterDeleteInput(
   };
 
   const text = formatAdminMasterDeleteInputText();
-  const keyboard = createAdminMasterDeleteInputKeyboard();
+  const keyboard = createAdminMasterDeleteInputKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1650,11 +1650,12 @@ async function renderAdminMasterDeleteConfirm(
   draft: AdminMasterDeleteDraft,
   preferEdit: boolean,
 ): Promise<void> {
+  const state = getSceneState(ctx);
   const text = formatAdminMasterDeleteConfirmText(
     draft.targetDisplayName ?? '—',
     draft.telegramUserId ?? '—',
   );
-  const keyboard = createAdminMasterDeleteConfirmKeyboard();
+  const keyboard = createAdminMasterDeleteConfirmKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1925,7 +1926,7 @@ async function renderAdminMasterCreateStart(ctx: MyContext, preferEdit: boolean)
   };
 
   const text = formatAdminMasterCreateStartText();
-  const keyboard = createAdminMasterCreateStartKeyboard();
+  const keyboard = createAdminMasterCreateStartKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1944,6 +1945,7 @@ async function renderAdminMasterCreateTextStep(
   draft: AdminMasterCreateDraft,
   preferEdit: boolean,
 ): Promise<void> {
+  const state = getSceneState(ctx);
   let text = '';
   switch (draft.mode) {
     case 'awaiting_display_name':
@@ -1993,8 +1995,8 @@ async function renderAdminMasterCreateTextStep(
 
   const keyboard =
     draft.mode === 'awaiting_schedule_from' || draft.mode === 'awaiting_schedule_to'
-      ? createAdminMasterCreateScheduleInputKeyboard(draft.scheduleSelectedWeekday ?? 1)
-      : createAdminMasterCreateInputKeyboard();
+      ? createAdminMasterCreateScheduleInputKeyboard(draft.scheduleSelectedWeekday ?? 1, state.language)
+      : createAdminMasterCreateInputKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2013,6 +2015,7 @@ async function renderAdminMasterCreateServicesStep(
   draft: AdminMasterCreateDraft,
   preferEdit: boolean,
 ): Promise<void> {
+  const state = getSceneState(ctx);
   const text = formatAdminMasterCreateServicesText(
     draft.displayName ?? '—',
     draft.availableServices,
@@ -2021,6 +2024,7 @@ async function renderAdminMasterCreateServicesStep(
   const keyboard = createAdminMasterCreateServicesKeyboard(
     draft.availableServices,
     draft.selectedServiceIds,
+    state.language,
   );
 
   if (preferEdit && ctx.updateType === 'callback_query') {
@@ -2040,12 +2044,14 @@ async function renderAdminMasterCreateSchedulePickStep(
   draft: AdminMasterCreateDraft,
   preferEdit: boolean,
 ): Promise<void> {
+  const state = getSceneState(ctx);
   const text = formatAdminMasterCreateSchedulePickText(
     draft.displayName ?? '—',
     toMasterCreateScheduleViewDays(draft.scheduleDays),
   );
   const keyboard = createAdminMasterCreateSchedulePickKeyboard(
     toMasterCreateScheduleViewDays(draft.scheduleDays),
+    state.language,
   );
 
   if (preferEdit && ctx.updateType === 'callback_query') {
@@ -2065,9 +2071,10 @@ async function renderAdminMasterCreateConfirmStep(
   draft: AdminMasterCreateDraft,
   preferEdit: boolean,
 ): Promise<void> {
+  const state = getSceneState(ctx);
   const confirmData = buildAdminMasterCreateConfirmData(draft);
   const text = formatAdminMasterCreateConfirmText(confirmData);
-  const keyboard = createAdminMasterCreateConfirmKeyboard();
+  const keyboard = createAdminMasterCreateConfirmKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2096,7 +2103,7 @@ async function renderAdminMasterEditMenu(
   state.mastersDeleteDraft = null;
 
   const text = formatAdminMasterEditMenuText(details.master.displayName);
-  const keyboard = createAdminMasterEditMenuKeyboard(masterId);
+  const keyboard = createAdminMasterEditMenuKeyboard(masterId, state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2134,7 +2141,7 @@ async function renderAdminMasterEditInput(
   state.mastersDeleteDraft = null;
 
   const text = formatAdminMasterEditInputText(field, currentValue);
-  const keyboard = createAdminMasterEditInputKeyboard(masterId);
+  const keyboard = createAdminMasterEditInputKeyboard(masterId, state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2153,9 +2160,10 @@ async function renderAdminMasterEditConfirm(
   draft: AdminMasterEditDraft,
   preferEdit: boolean,
 ): Promise<void> {
+  const state = getSceneState(ctx);
   const nextValue = draft.value ?? draft.currentValue;
   const text = formatAdminMasterEditConfirmText(draft.field, draft.currentValue, nextValue);
-  const keyboard = createAdminMasterEditConfirmKeyboard(draft.masterId);
+  const keyboard = createAdminMasterEditConfirmKeyboard(draft.masterId, state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2191,7 +2199,7 @@ async function renderAdminMasterEditServicesMenu(
   };
 
   const text = formatAdminMasterEditServicesMenuText(details.master.displayName, items);
-  const keyboard = createAdminMasterEditServicesMenuKeyboard();
+  const keyboard = createAdminMasterEditServicesMenuKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2230,7 +2238,7 @@ async function renderAdminMasterEditServicesAddCandidates(
     details.master.displayName,
     candidates,
   );
-  const keyboard = createAdminMasterEditServicesAddCandidatesKeyboard(candidates);
+  const keyboard = createAdminMasterEditServicesAddCandidatesKeyboard(candidates, state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2269,7 +2277,7 @@ async function renderAdminMasterEditServicesRemoveCandidates(
     details.master.displayName,
     candidates,
   );
-  const keyboard = createAdminMasterEditServicesRemoveCandidatesKeyboard(candidates);
+  const keyboard = createAdminMasterEditServicesRemoveCandidatesKeyboard(candidates, state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2320,7 +2328,7 @@ async function renderAdminMasterBookingsList(
   state.mastersDeleteDraft = null;
 
   const text = formatAdminMasterBookingsFeedText(details.master.displayName, feed);
-  const keyboard = createAdminMasterBookingsFeedKeyboard(feed);
+  const keyboard = createAdminMasterBookingsFeedKeyboard(feed, state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2364,7 +2372,7 @@ async function renderAdminMasterBookingCard(
   state.mastersDeleteDraft = null;
 
   const text = formatAdminMasterBookingCardText(booking);
-  const keyboard = createAdminMasterBookingCardKeyboard();
+  const keyboard = createAdminMasterBookingCardKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -4173,6 +4181,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               createAdminMasterCreateServicesKeyboard(
                 mastersCreateDraft.availableServices,
                 mastersCreateDraft.selectedServiceIds,
+                state.language,
               ),
             );
             return;
@@ -4183,6 +4192,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               'ℹ️ Для налаштування графіку використовуйте кнопки під повідомленням.',
               createAdminMasterCreateSchedulePickKeyboard(
                 toMasterCreateScheduleViewDays(mastersCreateDraft.scheduleDays),
+                state.language,
               ),
             );
             return;
@@ -4191,14 +4201,14 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           if (mastersCreateDraft.mode === 'awaiting_confirm') {
             await ctx.reply(
               'ℹ️ Для завершення створення використовуйте кнопки підтвердження під повідомленням.',
-              createAdminMasterCreateConfirmKeyboard(),
+              createAdminMasterCreateConfirmKeyboard(state.language),
             );
             return;
           }
 
           await ctx.reply(
             'ℹ️ Для створення майстра використовуйте кнопки під повідомленням.',
-            createAdminMasterCreateStartKeyboard(),
+            createAdminMasterCreateStartKeyboard(state.language),
           );
           return;
         } catch (error) {
@@ -4213,6 +4223,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               createAdminMasterCreateServicesKeyboard(
                 mastersCreateDraft.availableServices,
                 mastersCreateDraft.selectedServiceIds,
+                state.language,
               ),
             );
             return;
@@ -4227,15 +4238,17 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
               mastersCreateDraft.mode === 'awaiting_schedule_pick'
                 ? createAdminMasterCreateSchedulePickKeyboard(
                     toMasterCreateScheduleViewDays(mastersCreateDraft.scheduleDays),
+                    state.language,
                   )
                 : createAdminMasterCreateScheduleInputKeyboard(
                     mastersCreateDraft.scheduleSelectedWeekday ?? 1,
+                    state.language,
                   );
             await replyAdminWarning(ctx, err.message, keyboard);
             return;
           }
 
-          await replyAdminWarning(ctx, err.message, createAdminMasterCreateInputKeyboard());
+          await replyAdminWarning(ctx, err.message, createAdminMasterCreateInputKeyboard(state.language));
           return;
         }
       }
@@ -4281,7 +4294,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           if (mastersDeleteDraft.mode === 'awaiting_confirm') {
             await ctx.reply(
               'ℹ️ Для підтвердження або скасування видалення використовуйте кнопки під повідомленням.',
-              createAdminMasterDeleteConfirmKeyboard(),
+              createAdminMasterDeleteConfirmKeyboard(state.language),
             );
             return;
           }
@@ -4290,7 +4303,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
             error instanceof ValidationError
               ? error
               : new ValidationError('Виникла помилка перевірки даних для видалення майстра');
-          await replyAdminWarning(ctx, err.message, createAdminMasterDeleteInputKeyboard());
+          await replyAdminWarning(ctx, err.message, createAdminMasterDeleteInputKeyboard(state.language));
           return;
         }
       }
@@ -4683,7 +4696,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
           await ctx.reply(
             `⚠️ ${err.message}`,
-            createAdminMasterEditInputKeyboard(mastersEditDraft.masterId),
+            createAdminMasterEditInputKeyboard(mastersEditDraft.masterId, state.language),
           );
         }
         return;
@@ -4692,7 +4705,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       if (mastersEditDraft?.mode === 'awaiting_confirm') {
         await ctx.reply(
           'ℹ️ Для завершення редагування використовуйте кнопки підтвердження під повідомленням.',
-          createAdminMasterEditConfirmKeyboard(mastersEditDraft.masterId),
+          createAdminMasterEditConfirmKeyboard(mastersEditDraft.masterId, state.language),
         );
         return;
       }
@@ -4700,7 +4713,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       if (state.mastersCurrentSection === 'edit' && state.mastersSelectedMasterId) {
         await ctx.reply(
           'ℹ️ Для редагування профілю майстра використовуйте кнопки під повідомленням.',
-          createAdminMasterEditMenuKeyboard(state.mastersSelectedMasterId),
+          createAdminMasterEditMenuKeyboard(state.mastersSelectedMasterId, state.language),
         );
         return;
       }
@@ -4710,10 +4723,10 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         const items = state.mastersServicesDraft?.items ?? [];
         const keyboard =
           mode === 'add_candidates'
-            ? createAdminMasterEditServicesAddCandidatesKeyboard(items)
+            ? createAdminMasterEditServicesAddCandidatesKeyboard(items, state.language)
             : mode === 'remove_candidates'
-            ? createAdminMasterEditServicesRemoveCandidatesKeyboard(items)
-            : createAdminMasterEditServicesMenuKeyboard();
+            ? createAdminMasterEditServicesRemoveCandidatesKeyboard(items, state.language)
+            : createAdminMasterEditServicesMenuKeyboard(state.language);
 
         await ctx.reply(
           'ℹ️ Для керування послугами майстра використовуйте кнопки під повідомленням.',
@@ -4725,8 +4738,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       if (state.mastersCurrentSection === 'delete' && state.mastersDeleteDraft) {
         const keyboard =
           state.mastersDeleteDraft.mode === 'awaiting_confirm'
-            ? createAdminMasterDeleteConfirmKeyboard()
-            : createAdminMasterDeleteInputKeyboard();
+            ? createAdminMasterDeleteConfirmKeyboard(state.language)
+            : createAdminMasterDeleteInputKeyboard(state.language);
         await ctx.reply(
           'ℹ️ Для видалення майстра використовуйте кнопки під повідомленням.',
           keyboard,
@@ -6145,12 +6158,12 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     try {
       await ctx.editMessageText(
         formatAdminStatsMasterDetailsText(stats),
-        createAdminMasterDetailsKeyboard(masterId),
+        createAdminMasterDetailsKeyboard(masterId, state.language),
       );
     } catch {
       await ctx.reply(
         formatAdminStatsMasterDetailsText(stats),
-        createAdminMasterDetailsKeyboard(masterId),
+        createAdminMasterDetailsKeyboard(masterId, state.language),
       );
     }
   });
@@ -6405,7 +6418,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       await renderAdminMastersCatalog(ctx, false);
     } catch (error) {
       if (error instanceof ValidationError) {
-        await replyAdminWarning(ctx, error.message, createAdminMasterDeleteConfirmKeyboard());
+        await replyAdminWarning(ctx, error.message, createAdminMasterDeleteConfirmKeyboard(state.language));
         return;
       }
       throw error;

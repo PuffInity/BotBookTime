@@ -1,7 +1,6 @@
 import { Markup } from 'telegraf';
 import {
   ADMIN_PANEL_ACTION,
-  ADMIN_PANEL_BUTTON_TEXT,
   makeAdminPanelMastersCreateScheduleDayOffAction,
   makeAdminPanelMastersCreateSchedulePickAction,
   makeAdminPanelMastersCreateServiceToggleAction,
@@ -14,6 +13,8 @@ import {
   makeAdminPanelMastersOpenBookingsAction,
   makeAdminPanelMastersOpenStatsAction,
 } from '../../types/bot-admin-panel.types.js';
+import { tBot } from './i18n.bot.js';
+import type { BotUiLanguage } from './i18n.bot.js';
 import type { AdminBookingItem, AdminBookingsFeedPage } from '../../types/db-helpers/db-admin-bookings.types.js';
 import type {
   MasterCatalogDetails,
@@ -153,6 +154,7 @@ export function formatAdminMastersCatalogText(masters: MasterCatalogItem[]): str
  */
 export function createAdminMastersCatalogKeyboard(
   masters: MasterCatalogItem[],
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const rows = masters.map((master, index) => [
     Markup.button.callback(
@@ -163,10 +165,10 @@ export function createAdminMastersCatalogKeyboard(
 
   return Markup.inlineKeyboard([
     ...rows,
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_OPEN, ADMIN_PANEL_ACTION.MASTERS_CREATE_OPEN)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_DELETE_OPEN, ADMIN_PANEL_ACTION.MASTERS_DELETE_OPEN)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK, ADMIN_PANEL_ACTION.MASTERS_BACK)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.HOME, ADMIN_PANEL_ACTION.HOME)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_CREATE_OPEN'), ADMIN_PANEL_ACTION.MASTERS_CREATE_OPEN)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_DELETE_OPEN'), ADMIN_PANEL_ACTION.MASTERS_DELETE_OPEN)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_BACK'), ADMIN_PANEL_ACTION.MASTERS_BACK)],
+    [Markup.button.callback(tBot(language, 'HOME'), ADMIN_PANEL_ACTION.HOME)],
   ]);
 }
 
@@ -210,19 +212,23 @@ export function formatAdminMasterCreateStartText(): string {
 /**
  * @summary Клавіатура старту створення майстра.
  */
-export function createAdminMasterCreateStartKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminMasterCreateStartKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_START, ADMIN_PANEL_ACTION.MASTERS_CREATE_START)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_CANCEL, ADMIN_PANEL_ACTION.MASTERS_CREATE_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_CREATE_START'), ADMIN_PANEL_ACTION.MASTERS_CREATE_START)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_CREATE_CANCEL'), ADMIN_PANEL_ACTION.MASTERS_CREATE_CANCEL)],
   ]);
 }
 
 /**
  * @summary Базова клавіатура для текстових кроків створення майстра.
  */
-export function createAdminMasterCreateInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminMasterCreateInputKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_CANCEL, ADMIN_PANEL_ACTION.MASTERS_CREATE_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_CREATE_CANCEL'), ADMIN_PANEL_ACTION.MASTERS_CREATE_CANCEL)],
   ]);
 }
 
@@ -284,6 +290,7 @@ export function formatAdminMasterCreateServicesText(
 export function createAdminMasterCreateServicesKeyboard(
   services: ServicesCatalogItem[],
   selectedServiceIds: string[],
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const selected = new Set(selectedServiceIds);
   const rows = services.map((service, index) => {
@@ -298,8 +305,8 @@ export function createAdminMasterCreateServicesKeyboard(
 
   return Markup.inlineKeyboard([
     ...rows,
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_SERVICES_DONE, ADMIN_PANEL_ACTION.MASTERS_CREATE_SERVICES_DONE)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_CANCEL, ADMIN_PANEL_ACTION.MASTERS_CREATE_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_CREATE_SERVICES_DONE'), ADMIN_PANEL_ACTION.MASTERS_CREATE_SERVICES_DONE)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_CREATE_CANCEL'), ADMIN_PANEL_ACTION.MASTERS_CREATE_CANCEL)],
   ]);
 }
 
@@ -410,6 +417,7 @@ export function formatAdminMasterCreateSchedulePickText(
  */
 export function createAdminMasterCreateSchedulePickKeyboard(
   scheduleDays: AdminMasterCreateScheduleDayView[],
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const byWeekday = new Map<number, AdminMasterCreateScheduleDayView>();
   for (const item of scheduleDays) {
@@ -438,8 +446,8 @@ export function createAdminMasterCreateSchedulePickKeyboard(
 
   return Markup.inlineKeyboard([
     ...rows,
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_CONFIRM, ADMIN_PANEL_ACTION.MASTERS_CREATE_CONFIRM)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_CANCEL, ADMIN_PANEL_ACTION.MASTERS_CREATE_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_CREATE_CONFIRM'), ADMIN_PANEL_ACTION.MASTERS_CREATE_CONFIRM)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_CREATE_CANCEL'), ADMIN_PANEL_ACTION.MASTERS_CREATE_CANCEL)],
   ]);
 }
 
@@ -448,16 +456,17 @@ export function createAdminMasterCreateSchedulePickKeyboard(
  */
 export function createAdminMasterCreateScheduleInputKeyboard(
   weekday: number,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_MARK_DAY_OFF,
+        tBot(language, 'ADMIN_PANEL_MASTERS_BTN_CREATE_MARK_DAY_OFF'),
         makeAdminPanelMastersCreateScheduleDayOffAction(weekday),
       ),
     ],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_BACK_TO_SCHEDULE, ADMIN_PANEL_ACTION.MASTERS_CREATE_CONTINUE)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_CANCEL, ADMIN_PANEL_ACTION.MASTERS_CREATE_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_CREATE_BACK_TO_SCHEDULE'), ADMIN_PANEL_ACTION.MASTERS_CREATE_CONTINUE)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_CREATE_CANCEL'), ADMIN_PANEL_ACTION.MASTERS_CREATE_CANCEL)],
   ]);
 }
 
@@ -522,11 +531,13 @@ export function formatAdminMasterCreateConfirmText(data: AdminMasterCreateConfir
 /**
  * @summary Клавіатура фінального підтвердження створення майстра.
  */
-export function createAdminMasterCreateConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminMasterCreateConfirmKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_CONFIRM, ADMIN_PANEL_ACTION.MASTERS_CREATE_CONFIRM)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_BACK_TO_SCHEDULE, ADMIN_PANEL_ACTION.MASTERS_CREATE_CONTINUE)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_CREATE_CANCEL, ADMIN_PANEL_ACTION.MASTERS_CREATE_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_CREATE_CONFIRM'), ADMIN_PANEL_ACTION.MASTERS_CREATE_CONFIRM)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_CREATE_BACK_TO_SCHEDULE'), ADMIN_PANEL_ACTION.MASTERS_CREATE_CONTINUE)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_CREATE_CANCEL'), ADMIN_PANEL_ACTION.MASTERS_CREATE_CANCEL)],
   ]);
 }
 
@@ -577,27 +588,28 @@ export function formatAdminMasterDetailsText(details: MasterCatalogDetails): str
  */
 export function createAdminMasterDetailsKeyboard(
   masterId: string,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.MASTERS_OPEN_BOOKINGS,
+        tBot(language, 'ADMIN_PANEL_MASTERS_BTN_OPEN_BOOKINGS'),
         makeAdminPanelMastersOpenBookingsAction(masterId),
       ),
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.MASTERS_OPEN_STATS,
+        tBot(language, 'ADMIN_PANEL_MASTERS_BTN_OPEN_STATS'),
         makeAdminPanelMastersOpenStatsAction(masterId),
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_OPEN,
+        tBot(language, 'ADMIN_PANEL_MASTERS_BTN_EDIT_OPEN'),
         makeAdminPanelMastersEditOpenAction(masterId),
       ),
     ],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_DELETE_OPEN, ADMIN_PANEL_ACTION.MASTERS_DELETE_OPEN)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK_TO_LIST, ADMIN_PANEL_ACTION.MASTERS_BACK_TO_LIST)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK, ADMIN_PANEL_ACTION.MASTERS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_DELETE_OPEN'), ADMIN_PANEL_ACTION.MASTERS_DELETE_OPEN)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_BACK_TO_LIST'), ADMIN_PANEL_ACTION.MASTERS_BACK_TO_LIST)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_BACK'), ADMIN_PANEL_ACTION.MASTERS_BACK)],
   ]);
 }
 
@@ -617,10 +629,12 @@ export function formatAdminMasterDeleteInputText(): string {
 /**
  * @summary Клавіатура екрану введення Telegram ID для видалення майстра.
  */
-export function createAdminMasterDeleteInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminMasterDeleteInputKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_DELETE_CANCEL, ADMIN_PANEL_ACTION.MASTERS_DELETE_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK_TO_LIST, ADMIN_PANEL_ACTION.MASTERS_BACK_TO_LIST)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_DELETE_CANCEL'), ADMIN_PANEL_ACTION.MASTERS_DELETE_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_BACK_TO_LIST'), ADMIN_PANEL_ACTION.MASTERS_BACK_TO_LIST)],
   ]);
 }
 
@@ -646,11 +660,13 @@ export function formatAdminMasterDeleteConfirmText(
 /**
  * @summary Клавіатура підтвердження видалення майстра.
  */
-export function createAdminMasterDeleteConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminMasterDeleteConfirmKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_DELETE_CONFIRM, ADMIN_PANEL_ACTION.MASTERS_DELETE_CONFIRM)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_DELETE_CANCEL, ADMIN_PANEL_ACTION.MASTERS_DELETE_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK_TO_LIST, ADMIN_PANEL_ACTION.MASTERS_BACK_TO_LIST)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_DELETE_CONFIRM'), ADMIN_PANEL_ACTION.MASTERS_DELETE_CONFIRM)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_DELETE_CANCEL'), ADMIN_PANEL_ACTION.MASTERS_DELETE_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_BACK_TO_LIST'), ADMIN_PANEL_ACTION.MASTERS_BACK_TO_LIST)],
   ]);
 }
 
@@ -698,6 +714,7 @@ export function formatAdminMasterBookingsFeedText(
  */
 export function createAdminMasterBookingsFeedKeyboard(
   page: AdminBookingsFeedPage,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const numberButtons = page.items.map((item, index) =>
     Markup.button.callback(
@@ -715,7 +732,7 @@ export function createAdminMasterBookingsFeedKeyboard(
   if (page.hasPrevPage) {
     paginationRow.push(
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.RECORDS_PREV_PAGE,
+        tBot(language, 'ADMIN_PANEL_BTN_PREV'),
         ADMIN_PANEL_ACTION.MASTERS_BOOKINGS_PREV_PAGE,
       ),
     );
@@ -723,7 +740,7 @@ export function createAdminMasterBookingsFeedKeyboard(
   if (page.hasNextPage) {
     paginationRow.push(
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.RECORDS_NEXT_PAGE,
+        tBot(language, 'ADMIN_PANEL_BTN_NEXT'),
         ADMIN_PANEL_ACTION.MASTERS_BOOKINGS_NEXT_PAGE,
       ),
     );
@@ -734,12 +751,12 @@ export function createAdminMasterBookingsFeedKeyboard(
     ...(paginationRow.length > 0 ? [paginationRow] : []),
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.MASTERS_BOOKINGS_BACK_TO_MASTER,
+        tBot(language, 'ADMIN_PANEL_MASTERS_BTN_BOOKINGS_BACK_TO_MASTER'),
         ADMIN_PANEL_ACTION.MASTERS_BOOKINGS_BACK_TO_MASTER,
       ),
     ],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK_TO_LIST, ADMIN_PANEL_ACTION.MASTERS_BACK_TO_LIST)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK, ADMIN_PANEL_ACTION.MASTERS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_BACK_TO_LIST'), ADMIN_PANEL_ACTION.MASTERS_BACK_TO_LIST)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_BACK'), ADMIN_PANEL_ACTION.MASTERS_BACK)],
   ]);
 }
 
@@ -768,22 +785,24 @@ export function formatAdminMasterBookingCardText(item: AdminBookingItem): string
 /**
  * @summary Клавіатура картки запису майстра (read-only).
  */
-export function createAdminMasterBookingCardKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminMasterBookingCardKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.RECORDS_BACK_TO_LIST,
+        tBot(language, 'ADMIN_PANEL_BTN_BACK_TO_LIST'),
         ADMIN_PANEL_ACTION.MASTERS_BOOKINGS_BACK_TO_LIST,
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.MASTERS_BOOKINGS_BACK_TO_MASTER,
+        tBot(language, 'ADMIN_PANEL_MASTERS_BTN_BOOKINGS_BACK_TO_MASTER'),
         ADMIN_PANEL_ACTION.MASTERS_BOOKINGS_BACK_TO_MASTER,
       ),
     ],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK_TO_LIST, ADMIN_PANEL_ACTION.MASTERS_BACK_TO_LIST)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK, ADMIN_PANEL_ACTION.MASTERS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_BACK_TO_LIST'), ADMIN_PANEL_ACTION.MASTERS_BACK_TO_LIST)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_BACK'), ADMIN_PANEL_ACTION.MASTERS_BACK)],
   ]);
 }
 
@@ -847,52 +866,53 @@ export function formatAdminMasterEditMenuText(masterName: string): string {
  */
 export function createAdminMasterEditMenuKeyboard(
   masterId: string,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_DISPLAY_NAME,
+        tBot(language, 'ADMIN_PANEL_MASTERS_BTN_EDIT_DISPLAY_NAME'),
         makeAdminPanelMastersEditFieldAction(masterId, 'display_name'),
       ),
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_BIO,
+        tBot(language, 'ADMIN_PANEL_MASTERS_BTN_EDIT_BIO'),
         makeAdminPanelMastersEditFieldAction(masterId, 'bio'),
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_MATERIALS,
+        tBot(language, 'ADMIN_PANEL_MASTERS_BTN_EDIT_MATERIALS'),
         makeAdminPanelMastersEditFieldAction(masterId, 'materials'),
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_SERVICES,
+        tBot(language, 'ADMIN_PANEL_MASTERS_BTN_EDIT_SERVICES'),
         ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_OPEN,
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_PHONE,
+        tBot(language, 'ADMIN_PANEL_MASTERS_BTN_EDIT_PHONE'),
         makeAdminPanelMastersEditFieldAction(masterId, 'phone'),
       ),
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_EMAIL,
+        tBot(language, 'ADMIN_PANEL_MASTERS_BTN_EDIT_EMAIL'),
         makeAdminPanelMastersEditFieldAction(masterId, 'email'),
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_STARTED_ON,
+        tBot(language, 'ADMIN_PANEL_MASTERS_BTN_EDIT_STARTED_ON'),
         makeAdminPanelMastersEditFieldAction(masterId, 'started_on'),
       ),
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_PROCEDURES,
+        tBot(language, 'ADMIN_PANEL_MASTERS_BTN_EDIT_PROCEDURES'),
         makeAdminPanelMastersEditFieldAction(masterId, 'procedures_done_total'),
       ),
     ],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_BACK, ADMIN_PANEL_ACTION.MASTERS_EDIT_BACK)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_BACK, ADMIN_PANEL_ACTION.MASTERS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_EDIT_BACK'), ADMIN_PANEL_ACTION.MASTERS_EDIT_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_BACK'), ADMIN_PANEL_ACTION.MASTERS_BACK)],
   ]);
 }
 
@@ -929,11 +949,13 @@ export function formatAdminMasterEditServicesMenuText(
 /**
  * @summary Клавіатура меню керування послугами майстра.
  */
-export function createAdminMasterEditServicesMenuKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminMasterEditServicesMenuKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_SERVICES_ADD, ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_ADD_OPEN)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_SERVICES_REMOVE, ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_REMOVE_OPEN)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_SERVICES_BACK, ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_EDIT_SERVICES_ADD'), ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_ADD_OPEN)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_EDIT_SERVICES_REMOVE'), ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_REMOVE_OPEN)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_EDIT_SERVICES_BACK'), ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_BACK)],
   ]);
 }
 
@@ -976,6 +998,7 @@ export function formatAdminMasterEditServicesAddCandidatesText(
  */
 export function createAdminMasterEditServicesAddCandidatesKeyboard(
   candidates: MasterOwnProfileServiceManageItem[],
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const rows = candidates.map((item, index) => [
     Markup.button.callback(
@@ -986,7 +1009,7 @@ export function createAdminMasterEditServicesAddCandidatesKeyboard(
 
   return Markup.inlineKeyboard([
     ...rows,
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_SERVICES_BACK, ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_EDIT_SERVICES_BACK'), ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_BACK)],
   ]);
 }
 
@@ -1029,6 +1052,7 @@ export function formatAdminMasterEditServicesRemoveCandidatesText(
  */
 export function createAdminMasterEditServicesRemoveCandidatesKeyboard(
   candidates: MasterOwnProfileServiceManageItem[],
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const rows = candidates.map((item, index) => [
     Markup.button.callback(
@@ -1039,7 +1063,7 @@ export function createAdminMasterEditServicesRemoveCandidatesKeyboard(
 
   return Markup.inlineKeyboard([
     ...rows,
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_SERVICES_BACK, ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_EDIT_SERVICES_BACK'), ADMIN_PANEL_ACTION.MASTERS_EDIT_SERVICES_BACK)],
   ]);
 }
 
@@ -1077,10 +1101,11 @@ export function formatAdminMasterEditInputText(
  */
 export function createAdminMasterEditInputKeyboard(
   masterId: string,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_CANCEL, ADMIN_PANEL_ACTION.MASTERS_EDIT_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_BACK, makeAdminPanelMastersEditOpenAction(masterId))],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_EDIT_CANCEL'), ADMIN_PANEL_ACTION.MASTERS_EDIT_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_EDIT_BACK'), makeAdminPanelMastersEditOpenAction(masterId))],
   ]);
 }
 
@@ -1108,11 +1133,12 @@ export function formatAdminMasterEditConfirmText(
  */
 export function createAdminMasterEditConfirmKeyboard(
   masterId: string,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_CONFIRM, ADMIN_PANEL_ACTION.MASTERS_EDIT_CONFIRM)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_CANCEL, ADMIN_PANEL_ACTION.MASTERS_EDIT_CANCEL)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.MASTERS_EDIT_BACK, makeAdminPanelMastersEditOpenAction(masterId))],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_EDIT_CONFIRM'), ADMIN_PANEL_ACTION.MASTERS_EDIT_CONFIRM)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_EDIT_CANCEL'), ADMIN_PANEL_ACTION.MASTERS_EDIT_CANCEL)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_MASTERS_BTN_EDIT_BACK'), makeAdminPanelMastersEditOpenAction(masterId))],
   ]);
 }
 
