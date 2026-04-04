@@ -4,6 +4,19 @@ import type { MasterCatalogDetails } from '../../types/db-helpers/db-masters.typ
 import type { FaqCatalogItem } from '../../types/db-helpers/db-faq.types.js';
 import type { ProfileBookingStatusData, ProfileBookingStatusItem } from '../../types/db-helpers/db-profile-booking.types.js';
 import type { MasterServiceBookingMeta } from '../../types/db-helpers/db-booking.types.js';
+import type {
+  MasterBookingsFeedPage,
+  MasterPendingBookingItem,
+} from '../../types/db-helpers/db-master-bookings.types.js';
+import type {
+  MasterOwnProfileCertificateManageItem,
+  MasterOwnProfileData,
+  MasterOwnProfileServiceManageItem,
+} from '../../types/db-helpers/db-master-profile.types.js';
+import type { MasterClientBookingsHistoryItem } from '../../types/db-helpers/db-master-clients.types.js';
+import type { MasterPanelStatsData } from '../../types/db-helpers/db-master-stats.types.js';
+import type { MasterPanelFinanceData } from '../../types/db-helpers/db-master-finance.types.js';
+import type { MasterPanelScheduleData } from '../../types/db-helpers/db-master-schedule.types.js';
 import { translateTextWithCache } from './translate-provider.helper.js';
 
 /**
@@ -395,5 +408,263 @@ export async function translateProfileBookingStatusData(
   return {
     upcoming,
     recent,
+  };
+}
+
+export async function translateMasterPendingBookings(
+  items: MasterPendingBookingItem[],
+  targetLanguage: LanguageCode,
+): Promise<MasterPendingBookingItem[]> {
+  const memo: TranslateMemo = new Map();
+
+  return Promise.all(
+    items.map(async (item) => ({
+      ...item,
+      serviceName: await translateTextRuntime({
+        text: item.serviceName,
+        targetLanguage,
+        sourceLanguage: 'uk',
+        scope: 'master-panel:booking-service-name',
+        memo,
+      }),
+    })),
+  );
+}
+
+export async function translateMasterBookingsFeedPage(
+  page: MasterBookingsFeedPage,
+  targetLanguage: LanguageCode,
+): Promise<MasterBookingsFeedPage> {
+  const items = await translateMasterPendingBookings(page.items, targetLanguage);
+  return {
+    ...page,
+    items,
+  };
+}
+
+export async function translateMasterClientBookingsHistory(
+  items: MasterClientBookingsHistoryItem[],
+  targetLanguage: LanguageCode,
+): Promise<MasterClientBookingsHistoryItem[]> {
+  const memo: TranslateMemo = new Map();
+
+  return Promise.all(
+    items.map(async (item) => ({
+      ...item,
+      serviceName: await translateTextRuntime({
+        text: item.serviceName,
+        targetLanguage,
+        sourceLanguage: 'uk',
+        scope: 'master-panel:client-history-service-name',
+        memo,
+      }),
+    })),
+  );
+}
+
+export async function translateMasterOwnProfileData(
+  profile: MasterOwnProfileData,
+  targetLanguage: LanguageCode,
+): Promise<MasterOwnProfileData> {
+  const memo: TranslateMemo = new Map();
+
+  const [bio, materialsInfo, services, certificates] = await Promise.all([
+    translateOptionalText({
+      value: profile.bio,
+      targetLanguage,
+      sourceLanguage: 'uk',
+      scope: 'master-panel:own-profile-bio',
+      memo,
+    }),
+    translateOptionalText({
+      value: profile.materialsInfo,
+      targetLanguage,
+      sourceLanguage: 'uk',
+      scope: 'master-panel:own-profile-materials',
+      memo,
+    }),
+    Promise.all(
+      profile.services.map(async (service) => ({
+        ...service,
+        serviceName: await translateTextRuntime({
+          text: service.serviceName,
+          targetLanguage,
+          sourceLanguage: 'uk',
+          scope: 'master-panel:own-profile-service-name',
+          memo,
+        }),
+      })),
+    ),
+    Promise.all(
+      profile.certificates.map(async (certificate) => ({
+        ...certificate,
+        title: await translateTextRuntime({
+          text: certificate.title,
+          targetLanguage,
+          sourceLanguage: 'uk',
+          scope: 'master-panel:own-profile-certificate-title',
+          memo,
+        }),
+        issuer: await translateOptionalText({
+          value: certificate.issuer,
+          targetLanguage,
+          sourceLanguage: 'uk',
+          scope: 'master-panel:own-profile-certificate-issuer',
+          memo,
+        }),
+      })),
+    ),
+  ]);
+
+  return {
+    ...profile,
+    bio: bio ?? null,
+    materialsInfo: materialsInfo ?? null,
+    services,
+    certificates,
+  };
+}
+
+export async function translateMasterOwnProfileServiceManage(
+  items: MasterOwnProfileServiceManageItem[],
+  targetLanguage: LanguageCode,
+): Promise<MasterOwnProfileServiceManageItem[]> {
+  const memo: TranslateMemo = new Map();
+
+  return Promise.all(
+    items.map(async (service) => ({
+      ...service,
+      serviceName: await translateTextRuntime({
+        text: service.serviceName,
+        targetLanguage,
+        sourceLanguage: 'uk',
+        scope: 'master-panel:service-manage-name',
+        memo,
+      }),
+    })),
+  );
+}
+
+export async function translateMasterOwnProfileCertificatesManage(
+  items: MasterOwnProfileCertificateManageItem[],
+  targetLanguage: LanguageCode,
+): Promise<MasterOwnProfileCertificateManageItem[]> {
+  const memo: TranslateMemo = new Map();
+
+  return Promise.all(
+    items.map(async (certificate) => ({
+      ...certificate,
+      title: await translateTextRuntime({
+        text: certificate.title,
+        targetLanguage,
+        sourceLanguage: 'uk',
+        scope: 'master-panel:certificate-manage-title',
+        memo,
+      }),
+      issuer: await translateOptionalText({
+        value: certificate.issuer,
+        targetLanguage,
+        sourceLanguage: 'uk',
+        scope: 'master-panel:certificate-manage-issuer',
+        memo,
+      }),
+    })),
+  );
+}
+
+export async function translateMasterPanelStatsData(
+  stats: MasterPanelStatsData,
+  targetLanguage: LanguageCode,
+): Promise<MasterPanelStatsData> {
+  const memo: TranslateMemo = new Map();
+
+  const topServices = await Promise.all(
+    stats.topServices.map(async (item) => ({
+      ...item,
+      serviceName: await translateTextRuntime({
+        text: item.serviceName,
+        targetLanguage,
+        sourceLanguage: 'uk',
+        scope: 'master-panel:stats-top-service',
+        memo,
+      }),
+    })),
+  );
+
+  return {
+    ...stats,
+    topServices,
+  };
+}
+
+export async function translateMasterPanelFinanceData(
+  finance: MasterPanelFinanceData,
+  targetLanguage: LanguageCode,
+): Promise<MasterPanelFinanceData> {
+  const memo: TranslateMemo = new Map();
+
+  return {
+    ...finance,
+    bestServiceName:
+      (await translateOptionalText({
+        value: finance.bestServiceName,
+        targetLanguage,
+        sourceLanguage: 'uk',
+        scope: 'master-panel:finance-best-service',
+        memo,
+      })) ?? null,
+  };
+}
+
+export async function translateMasterPanelScheduleData(
+  schedule: MasterPanelScheduleData,
+  targetLanguage: LanguageCode,
+): Promise<MasterPanelScheduleData> {
+  const memo: TranslateMemo = new Map();
+
+  const [upcomingDaysOff, upcomingVacations, upcomingTemporaryHours] = await Promise.all([
+    Promise.all(
+      schedule.upcomingDaysOff.map(async (item) => ({
+        ...item,
+        reason: await translateOptionalText({
+          value: item.reason,
+          targetLanguage,
+          sourceLanguage: 'uk',
+          scope: 'master-panel:schedule-day-off-reason',
+          memo,
+        }),
+      })),
+    ),
+    Promise.all(
+      schedule.upcomingVacations.map(async (item) => ({
+        ...item,
+        reason: await translateOptionalText({
+          value: item.reason,
+          targetLanguage,
+          sourceLanguage: 'uk',
+          scope: 'master-panel:schedule-vacation-reason',
+          memo,
+        }),
+      })),
+    ),
+    Promise.all(
+      schedule.upcomingTemporaryHours.map(async (item) => ({
+        ...item,
+        note: await translateOptionalText({
+          value: item.note,
+          targetLanguage,
+          sourceLanguage: 'uk',
+          scope: 'master-panel:schedule-temporary-note',
+          memo,
+        }),
+      })),
+    ),
+  ]);
+
+  return {
+    ...schedule,
+    upcomingDaysOff,
+    upcomingVacations,
+    upcomingTemporaryHours,
   };
 }

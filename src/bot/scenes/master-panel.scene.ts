@@ -210,6 +210,17 @@ import {
   formatMasterClientBookingsHistoryText,
   formatMasterClientProfileText,
 } from '../../helpers/bot/master-client-profile-view.bot.js';
+import {
+  translateMasterBookingsFeedPage,
+  translateMasterClientBookingsHistory,
+  translateMasterOwnProfileCertificatesManage,
+  translateMasterOwnProfileData,
+  translateMasterOwnProfileServiceManage,
+  translateMasterPanelFinanceData,
+  translateMasterPanelScheduleData,
+  translateMasterPanelStatsData,
+  translateMasterPendingBookings,
+} from '../../helpers/translate/translate-db-content.helper.js';
 
 /**
  * @file master-panel.scene.ts
@@ -344,8 +355,10 @@ function parseServiceIdFromAction(ctx: MyContext, regex: RegExp): string {
 async function getMasterCertificateTitleById(
   masterId: string,
   certificateId: string,
+  language: BotUiLanguage,
 ): Promise<string | null> {
-  const certificates = await listMasterOwnCertificatesManage(masterId);
+  const rawCertificates = await listMasterOwnCertificatesManage(masterId);
+  const certificates = await translateMasterOwnProfileCertificatesManage(rawCertificates, language);
   const found = certificates.find((certificate) => certificate.certificateId === certificateId);
   return found?.title ?? null;
 }
@@ -741,7 +754,8 @@ async function renderMasterServicesManage(
   masterId: string,
   preferEdit: boolean,
 ): Promise<void> {
-  const services = await listMasterOwnServicesManage(masterId);
+  const servicesRaw = await listMasterOwnServicesManage(masterId);
+  const services = await translateMasterOwnProfileServiceManage(servicesRaw, language);
   await renderView(
     ctx,
     formatMasterOwnProfileServicesText(services, language),
@@ -756,7 +770,8 @@ async function renderMasterServicesAddCandidates(
   masterId: string,
   preferEdit: boolean,
 ): Promise<void> {
-  const services = await listMasterOwnServicesAddCandidates(masterId);
+  const servicesRaw = await listMasterOwnServicesAddCandidates(masterId);
+  const services = await translateMasterOwnProfileServiceManage(servicesRaw, language);
   await renderView(
     ctx,
     formatMasterOwnProfileServicesAddText(services, language),
@@ -771,7 +786,8 @@ async function renderMasterServicesRemoveCandidates(
   masterId: string,
   preferEdit: boolean,
 ): Promise<void> {
-  const services = await listMasterOwnServicesRemoveCandidates(masterId);
+  const servicesRaw = await listMasterOwnServicesRemoveCandidates(masterId);
+  const services = await translateMasterOwnProfileServiceManage(servicesRaw, language);
   await renderView(
     ctx,
     formatMasterOwnProfileServicesRemoveText(services, language),
@@ -786,7 +802,8 @@ async function renderMasterCertificatesManage(
   masterId: string,
   preferEdit: boolean,
 ): Promise<void> {
-  const certificates = await listMasterOwnCertificatesManage(masterId);
+  const certificatesRaw = await listMasterOwnCertificatesManage(masterId);
+  const certificates = await translateMasterOwnProfileCertificatesManage(certificatesRaw, language);
   await renderView(
     ctx,
     formatMasterOwnProfileCertificatesText(certificates, language),
@@ -801,7 +818,8 @@ async function renderMasterCertificatesDeleteList(
   masterId: string,
   preferEdit: boolean,
 ): Promise<void> {
-  const certificates = await listMasterOwnCertificatesManage(masterId);
+  const certificatesRaw = await listMasterOwnCertificatesManage(masterId);
+  const certificates = await translateMasterOwnProfileCertificatesManage(certificatesRaw, language);
   await renderView(
     ctx,
     formatMasterOwnProfileCertificateDeleteListText(certificates, language),
@@ -816,7 +834,10 @@ async function loadOwnProfileIntoState(state: MasterPanelSceneState): Promise<Ma
     return null;
   }
 
-  state.ownProfile = await getMasterOwnProfile(state.access.masterId);
+  const profileRaw = await getMasterOwnProfile(state.access.masterId);
+  state.ownProfile = profileRaw
+    ? await translateMasterOwnProfileData(profileRaw, state.language)
+    : null;
   return state.ownProfile;
 }
 
@@ -828,10 +849,11 @@ async function loadPendingIntoState(state: MasterPanelSceneState): Promise<void>
     return;
   }
 
-  state.pending = await listMasterPendingBookings({
+  const pendingRaw = await listMasterPendingBookings({
     masterId: state.access.masterId,
     limit: 20,
   });
+  state.pending = await translateMasterPendingBookings(pendingRaw, state.language);
 
   if (state.pending.length === 0) {
     state.pendingCursor = 0;
@@ -854,12 +876,22 @@ async function loadBookingsFeedIntoState(
     return;
   }
 
-  state.bookingsFeed = await listMasterBookingsFeed({
+  const feedRaw = await listMasterBookingsFeed({
     masterId: state.access.masterId,
     category,
     limit: 5,
     offset,
   });
+  state.bookingsFeed = await translateMasterBookingsFeedPage(feedRaw, state.language);
+}
+
+async function getMasterScheduleTranslated(
+  masterId: string,
+  limit: number,
+  language: BotUiLanguage,
+) {
+  const scheduleRaw = await getMasterPanelSchedule(masterId, limit);
+  return translateMasterPanelScheduleData(scheduleRaw, language);
 }
 
 async function renderView(
@@ -989,10 +1021,13 @@ async function resolveBookingItemById(
   if (fromFeed) return fromFeed;
 
   if (!state.access) return null;
-  return getMasterBookingCardById({
+  const item = await getMasterBookingCardById({
     masterId: state.access.masterId,
     appointmentId,
   });
+  if (!item) return null;
+  const [translated] = await translateMasterPendingBookings([item], state.language);
+  return translated;
 }
 
 async function renderRescheduleDateStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
@@ -1340,7 +1375,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
             createMasterScheduleSectionKeyboard(),
           );
 
-          const schedule = await getMasterPanelSchedule(access.masterId, 10);
+          const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
           await renderView(
             ctx,
             formatMasterScheduleConfigureDayText(schedule),
@@ -1709,7 +1744,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       masterId: access.masterId,
       serviceId,
     });
-    const services = await listMasterOwnServicesManage(access.masterId);
+    const servicesRaw = await listMasterOwnServicesManage(access.masterId);
+    const services = await translateMasterOwnProfileServiceManage(servicesRaw, state.language);
 
     await safeAnswerCbQuery(
       ctx,
@@ -1866,7 +1902,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       MASTER_PANEL_PROFILE_CERTIFICATE_DELETE_REQUEST_ACTION_REGEX,
       'certificateId',
     );
-    const title = await getMasterCertificateTitleById(access.masterId, certificateId);
+    const title = await getMasterCertificateTitleById(access.masterId, certificateId, state.language);
     if (!title) {
       await renderMasterCertificatesDeleteList(ctx, state.language, access.masterId, true);
       return;
@@ -2395,7 +2431,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    const schedule = await getMasterPanelSchedule(state.access.masterId, 5);
+    const schedule = await getMasterScheduleTranslated(state.access.masterId, 5, state.language);
     await renderView(ctx, formatMasterScheduleText(schedule), createMasterScheduleKeyboard(), true);
   });
 
@@ -2415,7 +2451,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    const stats = await getMasterPanelStats(state.access.masterId);
+    const statsRaw = await getMasterPanelStats(state.access.masterId);
+    const stats = await translateMasterPanelStatsData(statsRaw, state.language);
     await renderView(
       ctx,
       formatMasterStatsText(stats, state.language),
@@ -2440,7 +2477,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    const finance = await getMasterPanelFinance(state.access.masterId);
+    const financeRaw = await getMasterPanelFinance(state.access.masterId);
+    const finance = await translateMasterPanelFinanceData(financeRaw, state.language);
     await renderView(
       ctx,
       formatMasterFinanceText(finance, state.language),
@@ -2464,7 +2502,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    const schedule = await getMasterPanelSchedule(state.access.masterId, 10);
+    const schedule = await getMasterScheduleTranslated(state.access.masterId, 10, state.language);
     await renderView(
       ctx,
       formatMasterScheduleConfigureDayText(schedule),
@@ -2536,7 +2574,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       createMasterScheduleSectionKeyboard(),
     );
 
-    const schedule = await getMasterPanelSchedule(state.access.masterId, 10);
+    const schedule = await getMasterScheduleTranslated(state.access.masterId, 10, state.language);
     await renderView(
       ctx,
       formatMasterScheduleConfigureDayText(schedule),
@@ -2623,7 +2661,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await ctx.reply(formatMasterScheduleSetDayOffSuccessText(successDate), createMasterScheduleSectionKeyboard());
 
-    const schedule = await getMasterPanelSchedule(access.masterId, 5);
+    const schedule = await getMasterScheduleTranslated(access.masterId, 5, state.language);
     await renderView(ctx, formatMasterScheduleText(schedule), createMasterScheduleKeyboard(), false);
   });
 
@@ -2643,7 +2681,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    const schedule = await getMasterPanelSchedule(access.masterId, 5);
+    const schedule = await getMasterScheduleTranslated(access.masterId, 5, state.language);
     await renderView(ctx, formatMasterScheduleText(schedule), createMasterScheduleKeyboard(), true);
   });
 
@@ -2661,7 +2699,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    const schedule = await getMasterPanelSchedule(state.access.masterId, 10);
+    const schedule = await getMasterScheduleTranslated(state.access.masterId, 10, state.language);
     await renderView(
       ctx,
       formatMasterScheduleDaysOffListText(schedule),
@@ -2691,7 +2729,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       'id вихідного дня',
     );
 
-    const schedule = await getMasterPanelSchedule(access.masterId, 10);
+    const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
     const target = schedule.upcomingDaysOff.find((item) => item.id === dayOffId);
     if (!target) {
       resetScheduleDeleteDraft(state);
@@ -2741,7 +2779,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     );
 
     if (!draft || draft.type !== 'day_off' || draft.dayOffId !== dayOffId) {
-      const schedule = await getMasterPanelSchedule(access.masterId, 10);
+      const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
       resetScheduleDeleteDraft(state);
       await renderView(
         ctx,
@@ -2760,7 +2798,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleDeleteDraft(state);
     await ctx.reply('✅ Вихідний день успішно видалено.');
 
-    const schedule = await getMasterPanelSchedule(access.masterId, 10);
+    const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
     await renderView(
       ctx,
       formatMasterScheduleDaysOffListText(schedule),
@@ -2783,7 +2821,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    const schedule = await getMasterPanelSchedule(state.access.masterId, 10);
+    const schedule = await getMasterScheduleTranslated(state.access.masterId, 10, state.language);
     await renderView(
       ctx,
       formatMasterScheduleVacationsText(schedule),
@@ -2813,7 +2851,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       'id відпустки',
     );
 
-    const schedule = await getMasterPanelSchedule(access.masterId, 10);
+    const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
     const target = schedule.upcomingVacations.find((item) => item.id === vacationId);
     if (!target) {
       resetScheduleDeleteDraft(state);
@@ -2863,7 +2901,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     );
 
     if (!draft || draft.type !== 'vacation' || draft.vacationId !== vacationId) {
-      const schedule = await getMasterPanelSchedule(access.masterId, 10);
+      const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
       resetScheduleDeleteDraft(state);
       await renderView(
         ctx,
@@ -2882,7 +2920,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleDeleteDraft(state);
     await ctx.reply('✅ Період відпустки успішно видалено.');
 
-    const schedule = await getMasterPanelSchedule(access.masterId, 10);
+    const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
     await renderView(
       ctx,
       formatMasterScheduleVacationsText(schedule),
@@ -2981,7 +3019,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       createMasterScheduleSectionKeyboard(),
     );
 
-    const schedule = await getMasterPanelSchedule(access.masterId, 10);
+    const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
     await renderView(
       ctx,
       formatMasterScheduleVacationsText(schedule),
@@ -3006,7 +3044,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    const schedule = await getMasterPanelSchedule(access.masterId, 10);
+    const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
     await renderView(
       ctx,
       formatMasterScheduleVacationsText(schedule),
@@ -3029,7 +3067,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    const schedule = await getMasterPanelSchedule(state.access.masterId, 10);
+    const schedule = await getMasterScheduleTranslated(state.access.masterId, 10, state.language);
     await renderView(
       ctx,
       formatMasterScheduleTemporaryHoursText(schedule),
@@ -3102,7 +3140,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       draft.dateFrom !== parsed.dateFrom ||
       draft.dateTo !== parsed.dateTo
     ) {
-      const schedule = await getMasterPanelSchedule(access.masterId, 10);
+      const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
       resetScheduleDeleteDraft(state);
       await renderView(
         ctx,
@@ -3122,7 +3160,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     resetScheduleDeleteDraft(state);
     await ctx.reply('✅ Тимчасову зміну графіку успішно видалено.');
 
-    const schedule = await getMasterPanelSchedule(access.masterId, 10);
+    const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
     await renderView(
       ctx,
       formatMasterScheduleTemporaryHoursText(schedule),
@@ -3144,7 +3182,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    const schedule = await getMasterPanelSchedule(access.masterId, 10);
+    const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
     if (draftType === 'day_off') {
       await renderView(
         ctx,
@@ -3426,7 +3464,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       createMasterScheduleSectionKeyboard(),
     );
 
-    const schedule = await getMasterPanelSchedule(access.masterId, 10);
+    const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
     await renderView(
       ctx,
       formatMasterScheduleTemporaryHoursText(schedule),
@@ -3451,7 +3489,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    const schedule = await getMasterPanelSchedule(access.masterId, 10);
+    const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
     await renderView(
       ctx,
       formatMasterScheduleTemporaryHoursText(schedule),
@@ -3826,7 +3864,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       MASTER_PANEL_BOOKING_CLIENT_HISTORY_ACTION_REGEX,
     );
 
-    const [profile, history] = await Promise.all([
+    const [profile, historyRaw] = await Promise.all([
       getMasterClientProfileByBooking({
         masterId: access.masterId,
         appointmentId,
@@ -3837,6 +3875,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
         limit: 20,
       }),
     ]);
+    const history = await translateMasterClientBookingsHistory(historyRaw, state.language);
 
     if (!profile) {
       if (state.bookingsFeed) {
