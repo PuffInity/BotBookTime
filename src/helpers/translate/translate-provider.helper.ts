@@ -3,6 +3,7 @@ import {
   getCachedTranslation,
   setCachedTranslation,
 } from '../redis/translate-cache.redis.helper.js';
+import { request as httpsRequest } from 'node:https';
 import type {
   RuntimeTranslateResult,
   TranslateCacheKeyInput,
@@ -39,6 +40,73 @@ function decodeHtmlEntities(input: string): string {
     .replaceAll('&gt;', '>');
 }
 
+async function postJsonViaHttps(
+  url: string,
+  body: Record<string, unknown>,
+  timeoutMs: number,
+): Promise<{
+  ok: boolean;
+  status: number;
+  payload: GoogleTranslationResponse | null;
+}> {
+  return new Promise((resolve, reject) => {
+    const encodedBody = JSON.stringify(body);
+    const req = httpsRequest(
+      url,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': String(Buffer.byteLength(encodedBody)),
+        },
+        timeout: timeoutMs,
+      },
+      (res) => {
+        let raw = '';
+        res.setEncoding('utf8');
+
+        res.on('data', (chunk) => {
+          raw += chunk;
+        });
+
+        res.on('end', () => {
+          const status = res.statusCode ?? 500;
+          if (!raw) {
+            resolve({
+              ok: status >= 200 && status < 300,
+              status,
+              payload: null,
+            });
+            return;
+          }
+
+          try {
+            const payload = JSON.parse(raw) as GoogleTranslationResponse;
+            resolve({
+              ok: status >= 200 && status < 300,
+              status,
+              payload,
+            });
+          } catch {
+            resolve({
+              ok: false,
+              status,
+              payload: null,
+            });
+          }
+        });
+      },
+    );
+
+    req.on('timeout', () => {
+      req.destroy(new Error('Translation request timeout'));
+    });
+    req.on('error', reject);
+    req.write(encodedBody);
+    req.end();
+  });
+}
+
 async function translateViaGoogleApi(input: {
   text: string;
   sourceLanguage: string;
@@ -48,41 +116,63 @@ async function translateViaGoogleApi(input: {
   const apiKey = translateConfig.googleApiKey;
   if (!apiKey) return null;
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), input.timeoutMs);
+  const requestUrl =
+    `https://translation.googleapis.com/language/translate/v2?key=${encodeURIComponent(apiKey)}`;
+  const requestBody = {
+    q: input.text,
+    source: input.sourceLanguage,
+    target: input.targetLanguage,
+    format: 'text',
+  };
 
   try {
-    const response = await fetch(
-      `https://translation.googleapis.com/language/translate/v2?key=${encodeURIComponent(apiKey)}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          q: input.text,
-          source: input.sourceLanguage,
-          target: input.targetLanguage,
-          format: 'text',
-        }),
-      },
-    );
+    let status = 500;
+    let payload: GoogleTranslationResponse | null = null;
 
-    const payload = (await response.json()) as GoogleTranslationResponse;
-    if (!response.ok || payload.error) {
+    if (typeof fetch === 'function') {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), input.timeoutMs);
+      try {
+        const response = await fetch(requestUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify(requestBody),
+        });
+        status = response.status;
+        payload = (await response.json()) as GoogleTranslationResponse;
+      } finally {
+        clearTimeout(timer);
+      }
+    } else {
+      const response = await postJsonViaHttps(requestUrl, requestBody, input.timeoutMs);
+      status = response.status;
+      payload = response.payload;
+      if (!response.ok && !payload?.error) {
+        loggerTranslate.warn('[translate] Provider returned non-ok response', {
+          status,
+          providerErrorCode: undefined,
+          providerErrorStatus: undefined,
+        });
+        return null;
+      }
+    }
+
+    if (status < 200 || status >= 300 || payload?.error) {
       loggerTranslate.warn('[translate] Provider returned non-ok response', {
-        status: response.status,
-        providerErrorCode: payload.error?.code,
-        providerErrorStatus: payload.error?.status,
+        status,
+        providerErrorCode: payload?.error?.code,
+        providerErrorStatus: payload?.error?.status,
       });
       return null;
     }
 
-    const translatedText = payload.data?.translations?.[0]?.translatedText;
+    const translatedText = payload?.data?.translations?.[0]?.translatedText;
     if (!translatedText || translatedText.trim().length === 0) return null;
 
     return decodeHtmlEntities(translatedText);
-  } finally {
-    clearTimeout(timer);
+  } catch {
+    return null;
   }
 }
 
@@ -188,4 +278,3 @@ export async function translateTextWithCache(
     return asOriginal(input.text, 'provider-failed');
   }
 }
-

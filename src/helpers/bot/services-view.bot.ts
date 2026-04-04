@@ -26,6 +26,12 @@ function getMinutesUnit(language: BotUiLanguage): string {
   return language === 'uk' ? 'хв' : 'min';
 }
 
+function getDaysUnit(language: BotUiLanguage): string {
+  if (language === 'en') return 'days';
+  if (language === 'cs') return 'dnů';
+  return 'дн.';
+}
+
 function formatPrice(price: string, currencyCode: string): string {
   const normalizedPrice = price
     .replace(/[.,]00$/, '')
@@ -63,7 +69,8 @@ function formatGuaranteesBlock(details: ServicesCatalogDetails, language: BotUiL
   }
 
   const lines = details.guarantees.map((guarantee) => {
-    const validDaysLabel = guarantee.validDays == null ? '' : ` (${guarantee.validDays} дн.)`;
+    const validDaysLabel =
+      guarantee.validDays == null ? '' : ` (${guarantee.validDays} ${getDaysUnit(language)})`;
     return `✔ ${guarantee.guaranteeText}${validDaysLabel}`;
   });
   return `${tBot(language, 'SERVICES_GUARANTEES_TITLE')}\n${lines.join('\n')}`;

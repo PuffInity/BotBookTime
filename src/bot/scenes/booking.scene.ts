@@ -182,6 +182,10 @@ function isPhoneStepRequired(state: BookingSceneState): boolean {
   return !state.profilePhone || !state.isProfilePhoneVerified;
 }
 
+function hasAnyKeyword(message: string, keywords: string[]): boolean {
+  return keywords.some((keyword) => message.includes(keyword));
+}
+
 async function renderView(
   ctx: MyContext,
   text: string,
@@ -607,21 +611,21 @@ export function createBookingScene(): Scenes.WizardScene<MyContext> {
       }
 
       const message = error.message.toLowerCase();
-      if (message.includes('час') || message.includes('слот')) {
+      if (hasAnyKeyword(message, ['час', 'слот', 'time', 'slot'])) {
         ctx.wizard.selectStep(3);
-        await ctx.reply(`⚠️ ${error.message}`);
+        await ctx.reply(tBot(state.language, 'BOOKING_NO_SLOTS'));
         await renderTimeStep(ctx, false);
         return;
       }
 
-      if (message.includes('майстра') || message.includes('послуга')) {
+      if (hasAnyKeyword(message, ['майстра', 'послуга', 'master', 'service'])) {
         ctx.wizard.selectStep(4);
-        await ctx.reply(`⚠️ ${error.message}`);
+        await ctx.reply(tBot(state.language, 'BOOKING_NO_MASTERS'));
         await renderMasterStep(ctx, false);
         return;
       }
 
-      await ctx.reply(`⚠️ ${error.message}`);
+      await ctx.reply(tBot(state.language, 'BOOKING_ERROR_FALLBACK'));
       await renderConfirmStep(ctx, true);
     }
   });
