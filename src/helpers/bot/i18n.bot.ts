@@ -1,5 +1,9 @@
 import type { LanguageCode } from '../../types/db/dbEnums.type.js';
 import { resolveFeatureGatedUiLanguage } from './language-feature.bot.js';
+import { COMMON_PANEL_DICTIONARY } from './i18n-common-panel.bot.js';
+import { MAIN_PANEL_DICTIONARY } from './i18n-main-panel.bot.js';
+import { ADMIN_PANEL_DICTIONARY } from './i18n-admin-panel.bot.js';
+import { MASTER_PANEL_DICTIONARY } from './i18n-master-panel.bot.js';
 
 /**
  * @file i18n.bot.ts
@@ -8,7 +12,7 @@ import { resolveFeatureGatedUiLanguage } from './language-feature.bot.js';
 
 export type BotUiLanguage = 'uk' | 'en' | 'cs';
 
-const BOT_DICTIONARY = {
+const BOT_LEGACY_DICTIONARY = {
   uk: {
     MAIN_MENU_TEXT:
       'Вітаю 👋\n\n' +
@@ -884,6 +888,24 @@ const BOT_DICTIONARY = {
     OTP_EMAIL_SEND_FAILED: '⚠️ Nepodařilo se odeslat ověřovací kód. Zkuste to znovu později.',
   },
 } as const;
+
+type BotDictionaryMap = Record<BotUiLanguage, Record<string, string>>;
+
+function mergePanelDictionaries(...dictionaries: BotDictionaryMap[]): BotDictionaryMap {
+  return {
+    uk: Object.assign({}, ...dictionaries.map((dictionary) => dictionary.uk)),
+    en: Object.assign({}, ...dictionaries.map((dictionary) => dictionary.en)),
+    cs: Object.assign({}, ...dictionaries.map((dictionary) => dictionary.cs)),
+  };
+}
+
+const BOT_DICTIONARY = mergePanelDictionaries(
+  BOT_LEGACY_DICTIONARY as BotDictionaryMap,
+  COMMON_PANEL_DICTIONARY as BotDictionaryMap,
+  MAIN_PANEL_DICTIONARY as BotDictionaryMap,
+  ADMIN_PANEL_DICTIONARY as BotDictionaryMap,
+  MASTER_PANEL_DICTIONARY as BotDictionaryMap,
+);
 
 export type BotDictionaryKey = keyof (typeof BOT_DICTIONARY)['uk'];
 
