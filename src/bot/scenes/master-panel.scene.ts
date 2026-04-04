@@ -9,7 +9,7 @@ import type {
 } from '../../types/db-helpers/db-master-bookings.types.js';
 import type { MasterTemporaryScheduleDayInput } from '../../types/db-helpers/db-master-schedule.types.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
-import { resolveBotUiLanguage } from '../../helpers/bot/i18n.bot.js';
+import { resolveBotUiLanguage, tBot } from '../../helpers/bot/i18n.bot.js';
 import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 import {
   createMasterPanelRootKeyboard,
@@ -912,8 +912,8 @@ async function renderPendingQueue(ctx: MyContext, preferEdit: boolean): Promise<
   if (state.pending.length === 0) {
     await renderView(
       ctx,
-      formatMasterPendingBookingsEmptyText(),
-      createMasterPendingBookingsEmptyKeyboard(),
+      formatMasterPendingBookingsEmptyText(state.language),
+      createMasterPendingBookingsEmptyKeyboard(state.language),
       preferEdit,
     );
     return;
@@ -925,17 +925,18 @@ async function renderPendingQueue(ctx: MyContext, preferEdit: boolean): Promise<
 
   await renderView(
     ctx,
-    formatMasterPendingBookingCardText(item, cursor, state.pending.length),
-    createMasterPendingBookingCardKeyboard(item, hasNext),
+    formatMasterPendingBookingCardText(item, cursor, state.pending.length, state.language),
+    createMasterPendingBookingCardKeyboard(item, hasNext, state.language),
     preferEdit,
   );
 }
 
 async function renderBookingsMenu(ctx: MyContext, preferEdit: boolean): Promise<void> {
+  const state = getSceneState(ctx);
   await renderView(
     ctx,
-    formatMasterBookingsMenuText(),
-    createMasterBookingsMenuKeyboard(),
+    formatMasterBookingsMenuText(state.language),
+    createMasterBookingsMenuKeyboard(state.language),
     preferEdit,
   );
 }
@@ -951,8 +952,8 @@ async function renderBookingsFeed(ctx: MyContext, preferEdit: boolean): Promise<
 
   await renderView(
     ctx,
-    formatMasterBookingsFeedText(feed),
-    createMasterBookingsFeedKeyboard(feed),
+    formatMasterBookingsFeedText(feed, state.language),
+    createMasterBookingsFeedKeyboard(feed, state.language),
     preferEdit,
   );
 }
@@ -1000,8 +1001,8 @@ async function renderRescheduleDateStep(ctx: MyContext, preferEdit: boolean): Pr
 
   await renderView(
     ctx,
-    formatMasterRescheduleDateStepText(item),
-    createMasterRescheduleDateKeyboard(buildBookingDateOptions(7)),
+    formatMasterRescheduleDateStepText(item, state.language),
+    createMasterRescheduleDateKeyboard(buildBookingDateOptions(7), state.language),
     preferEdit,
   );
 }
@@ -1016,16 +1017,20 @@ async function renderRescheduleTimeStep(ctx: MyContext, preferEdit: boolean): Pr
   }
 
   const timeCodes = getAvailableRescheduleTimeCodes(draft.dateCode);
-  const baseText = formatMasterRescheduleTimeStepText(item, formatDateCodeLabel(draft.dateCode));
+  const baseText = formatMasterRescheduleTimeStepText(
+    item,
+    formatDateCodeLabel(draft.dateCode),
+    state.language,
+  );
   const text =
     timeCodes.length > 0
       ? baseText
-      : `${baseText}\n\n⚠️ На цю дату вже немає доступного часу. Оберіть іншу дату.`;
+      : `${baseText}\n\n${tBot(state.language, 'MASTER_PANEL_BOOKINGS_RESCHEDULE_NO_TIME_FOR_DATE')}`;
 
   await renderView(
     ctx,
     text,
-    createMasterRescheduleTimeKeyboard(timeCodes),
+    createMasterRescheduleTimeKeyboard(timeCodes, state.language),
     preferEdit,
   );
 }
@@ -1045,8 +1050,8 @@ async function renderRescheduleConfirmStep(ctx: MyContext, preferEdit: boolean):
 
   await renderView(
     ctx,
-    formatMasterRescheduleConfirmText(item, newStartAt, newEndAt),
-    createMasterRescheduleConfirmKeyboard(),
+    formatMasterRescheduleConfirmText(item, newStartAt, newEndAt, state.language),
+    createMasterRescheduleConfirmKeyboard(state.language),
     preferEdit,
   );
 }
@@ -2319,8 +2324,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterBookingDetailsCardText(item),
-      createMasterBookingDetailsCardKeyboard(item),
+      formatMasterBookingDetailsCardText(item, state.language),
+      createMasterBookingDetailsCardKeyboard(item, state.language),
       true,
     );
   });
@@ -3488,8 +3493,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
     await renderView(
       ctx,
-      formatMasterCancelPendingBookingConfirmText(targetItem),
-      createMasterCancelPendingBookingConfirmKeyboard(targetItem),
+      formatMasterCancelPendingBookingConfirmText(targetItem, state.language),
+      createMasterCancelPendingBookingConfirmKeyboard(targetItem, state.language),
       true,
     );
   });

@@ -6,7 +6,6 @@ import type {
 } from '../../types/db-helpers/db-master-bookings.types.js';
 import {
   MASTER_PANEL_ACTION,
-  MASTER_PANEL_BUTTON_TEXT,
   makeMasterPanelBookingCancelConfirmAction,
   makeMasterPanelBookingCancelRequestAction,
   makeMasterPanelBookingConfirmAction,
@@ -16,16 +15,25 @@ import {
   makeMasterPanelBookingRescheduleAction,
   makeMasterPanelBookingRescheduleTimeAction,
 } from '../../types/bot-master-panel.types.js';
+import type { BotUiLanguage } from './i18n.bot.js';
+import { tBot, tBotTemplate } from './i18n.bot.js';
 
 /**
  * @file master-bookings-view.bot.ts
  * @summary UI/helper-и для блоку "Мої записи" у панелі майстра.
  */
 
-function formatDateTimeRange(startAt: Date, endAt: Date): string {
-  const date = startAt.toLocaleDateString('uk-UA');
-  const startTime = startAt.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
-  const endTime = endAt.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+function toLocale(language: BotUiLanguage): string {
+  if (language === 'en') return 'en-US';
+  if (language === 'cs') return 'cs-CZ';
+  return 'uk-UA';
+}
+
+function formatDateTimeRange(startAt: Date, endAt: Date, language: BotUiLanguage): string {
+  const locale = toLocale(language);
+  const date = startAt.toLocaleDateString(locale);
+  const startTime = startAt.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+  const endTime = endAt.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
 
   return `${date} • ${startTime}–${endTime}`;
 }
@@ -35,59 +43,59 @@ function formatPrice(price: string, currencyCode: string): string {
   return `${normalized} ${currencyCode}`;
 }
 
-function formatClientDisplayName(item: MasterPendingBookingItem): string {
+function formatClientDisplayName(item: MasterPendingBookingItem, language: BotUiLanguage): string {
   if (item.attendeeName && item.attendeeName.trim().length > 0) {
     return item.attendeeName;
   }
 
   const fullName = `${item.clientFirstName}${item.clientLastName ? ` ${item.clientLastName}` : ''}`.trim();
-  return fullName || 'Клієнт';
+  return fullName || tBot(language, 'MASTER_PANEL_BOOKINGS_CLIENT_FALLBACK');
 }
 
-function formatBookingStatusLabel(status: MasterPendingBookingItem['status']): string {
+function formatBookingStatusLabel(status: MasterPendingBookingItem['status'], language: BotUiLanguage): string {
   switch (status) {
     case 'pending':
-      return '🟡 Очікує підтвердження';
+      return tBot(language, 'MASTER_PANEL_BOOKINGS_STATUS_PENDING');
     case 'confirmed':
-      return '🟢 Підтверджено';
+      return tBot(language, 'MASTER_PANEL_BOOKINGS_STATUS_CONFIRMED');
     case 'completed':
-      return '⚪ Завершено';
+      return tBot(language, 'MASTER_PANEL_BOOKINGS_STATUS_COMPLETED');
     case 'canceled':
-      return '🔴 Скасовано';
+      return tBot(language, 'MASTER_PANEL_BOOKINGS_STATUS_CANCELED');
     case 'transferred':
-      return '🟣 Перенесено';
+      return tBot(language, 'MASTER_PANEL_BOOKINGS_STATUS_TRANSFERRED');
     default:
       return status;
   }
 }
 
-function categoryTitle(category: MasterBookingsCategory): string {
+function categoryTitle(category: MasterBookingsCategory, language: BotUiLanguage): string {
   switch (category) {
     case 'today':
-      return '📍 Записи на сьогодні';
+      return tBot(language, 'MASTER_PANEL_BOOKINGS_CATEGORY_TODAY');
     case 'tomorrow':
-      return '📆 Записи на завтра';
+      return tBot(language, 'MASTER_PANEL_BOOKINGS_CATEGORY_TOMORROW');
     case 'all':
-      return '🗂 Усі записи';
+      return tBot(language, 'MASTER_PANEL_BOOKINGS_CATEGORY_ALL');
     case 'canceled':
-      return '❌ Скасовані записи';
+      return tBot(language, 'MASTER_PANEL_BOOKINGS_CATEGORY_CANCELED');
     default:
-      return '📅 Мої записи';
+      return tBot(language, 'MASTER_PANEL_BOOKINGS_MENU_TITLE');
   }
 }
 
-function categoryEmptyText(category: MasterBookingsCategory): string {
+function categoryEmptyText(category: MasterBookingsCategory, language: BotUiLanguage): string {
   switch (category) {
     case 'today':
-      return '📭 На сьогодні записів немає.';
+      return tBot(language, 'MASTER_PANEL_BOOKINGS_EMPTY_TODAY');
     case 'tomorrow':
-      return '📭 На завтра записів немає.';
+      return tBot(language, 'MASTER_PANEL_BOOKINGS_EMPTY_TOMORROW');
     case 'all':
-      return '📭 Записів не знайдено.';
+      return tBot(language, 'MASTER_PANEL_BOOKINGS_EMPTY_ALL');
     case 'canceled':
-      return '📭 Скасованих записів не знайдено.';
+      return tBot(language, 'MASTER_PANEL_BOOKINGS_EMPTY_CANCELED');
     default:
-      return '📭 Записів не знайдено.';
+      return tBot(language, 'MASTER_PANEL_BOOKINGS_EMPTY_ALL');
   }
 }
 
@@ -102,23 +110,27 @@ export function formatMasterPendingBookingCardText(
   item: MasterPendingBookingItem,
   index: number,
   total: number,
+  language: BotUiLanguage,
 ): string {
   const comment = item.clientComment?.trim();
   const commentBlock = comment
-    ? `\n\n📝 Коментар клієнта:\n${comment}`
+    ? `\n\n${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_COMMENT_TITLE')}:\n${comment}`
     : '';
 
   return (
-    '🆕 Новий запис\n' +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_PENDING_CARD_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `📌 Позиція у черзі: ${index + 1} з ${total}\n\n` +
-    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
-    `📱 Телефон: ${item.attendeePhoneE164 ?? 'Не вказано'}\n` +
-    `✉️ Email: ${item.attendeeEmail ?? 'Не вказано'}\n\n` +
-    `💼 Послуга: ${item.serviceName}\n` +
-    `🕒 Час: ${formatDateTimeRange(item.startAt, item.endAt)}\n` +
-    `💰 Ціна: ${formatPrice(item.priceAmount, item.currencyCode)}\n` +
-    '📌 Статус: ⏳ Очікує підтвердження' +
+    `${tBotTemplate(language, 'MASTER_PANEL_BOOKINGS_LABEL_QUEUE_POSITION', {
+      index: String(index + 1),
+      total: String(total),
+    })}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_CLIENT')}: ${formatClientDisplayName(item, language)}\n` +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_PHONE')}: ${item.attendeePhoneE164 ?? tBot(language, 'MASTER_PANEL_BOOKINGS_NOT_SET')}\n` +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_EMAIL')}: ${item.attendeeEmail ?? tBot(language, 'MASTER_PANEL_BOOKINGS_NOT_SET')}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_SERVICE')}: ${item.serviceName}\n` +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_TIME')}: ${formatDateTimeRange(item.startAt, item.endAt, language)}\n` +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_PRICE')}: ${formatPrice(item.priceAmount, item.currencyCode)}\n` +
+    tBot(language, 'MASTER_PANEL_BOOKINGS_PENDING_CARD_STATUS_WAITING') +
     commentBlock
   );
 }
@@ -129,96 +141,106 @@ export function formatMasterPendingBookingCardText(
 export function createMasterPendingBookingCardKeyboard(
   item: MasterPendingBookingItem,
   hasNext: boolean,
+  language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
-      Markup.button.callback('✅ Підтвердити', makeMasterPanelBookingConfirmAction(item.appointmentId)),
-      Markup.button.callback('❌ Скасувати', makeMasterPanelBookingCancelRequestAction(item.appointmentId)),
+      Markup.button.callback(
+        tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_CONFIRM'),
+        makeMasterPanelBookingConfirmAction(item.appointmentId),
+      ),
+      Markup.button.callback(
+        tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_CANCEL'),
+        makeMasterPanelBookingCancelRequestAction(item.appointmentId),
+      ),
     ],
     [
-      Markup.button.callback('🔄 Перенести', makeMasterPanelBookingRescheduleAction(item.appointmentId)),
-      Markup.button.callback('👤 Профіль клієнта', makeMasterPanelBookingProfileAction(item.appointmentId)),
+      Markup.button.callback(
+        tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_RESCHEDULE'),
+        makeMasterPanelBookingRescheduleAction(item.appointmentId),
+      ),
+      Markup.button.callback(
+        tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_CLIENT_PROFILE'),
+        makeMasterPanelBookingProfileAction(item.appointmentId),
+      ),
     ],
     ...(hasNext
-      ? [[Markup.button.callback('🆕 Наступний непідтверджений запис', MASTER_PANEL_ACTION.BOOKINGS_NEXT_PENDING)]]
+      ? [[Markup.button.callback(tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_NEXT_PENDING'), MASTER_PANEL_ACTION.BOOKINGS_NEXT_PENDING)]]
       : []),
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_PANEL'), MASTER_PANEL_ACTION.BACK_TO_PANEL)],
   ]);
 }
 
 /**
  * @summary Текст порожньої pending-черги.
  */
-export function formatMasterPendingBookingsEmptyText(): string {
-  return (
-    '📭 Нових записів, що очікують підтвердження, немає.\n\n' +
-    'Усі запити оброблено. Нові записи з’являться тут автоматично.'
-  );
+export function formatMasterPendingBookingsEmptyText(language: BotUiLanguage): string {
+  return tBot(language, 'MASTER_PANEL_BOOKINGS_EMPTY_PENDING');
 }
 
 /**
  * @summary Клавіатура порожньої pending-черги.
  */
-export function createMasterPendingBookingsEmptyKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterPendingBookingsEmptyKeyboard(
+  language: BotUiLanguage,
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('📅 До меню записів', MASTER_PANEL_ACTION.BOOKINGS_OPEN_MENU)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_BACK_TO_BOOKINGS_MENU'), MASTER_PANEL_ACTION.BOOKINGS_OPEN_MENU)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_PANEL'), MASTER_PANEL_ACTION.BACK_TO_PANEL)],
   ]);
 }
 
 /**
  * @summary Текст меню категорій блоку "Мої записи".
  */
-export function formatMasterBookingsMenuText(): string {
+export function formatMasterBookingsMenuText(language: BotUiLanguage): string {
   return (
-    '📅 Мої записи\n' +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_MENU_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Керування записами.\n' +
-    'Оберіть категорію для перегляду:'
+    tBot(language, 'MASTER_PANEL_BOOKINGS_MENU_SUBTITLE')
   );
 }
 
 /**
  * @summary Клавіатура меню категорій блоку "Мої записи".
  */
-export function createMasterBookingsMenuKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterBookingsMenuKeyboard(
+  language: BotUiLanguage,
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('🆕 Нові записи (очікують підтвердження)', MASTER_PANEL_ACTION.BOOKINGS_SHOW_PENDING)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BOOKINGS_CATEGORY_PENDING'), MASTER_PANEL_ACTION.BOOKINGS_SHOW_PENDING)],
     [
-      Markup.button.callback('📍 Сьогодні', MASTER_PANEL_ACTION.BOOKINGS_MENU_TODAY),
-      Markup.button.callback('📆 Завтра', MASTER_PANEL_ACTION.BOOKINGS_MENU_TOMORROW),
+      Markup.button.callback(tBot(language, 'MASTER_PANEL_BOOKINGS_CATEGORY_TODAY'), MASTER_PANEL_ACTION.BOOKINGS_MENU_TODAY),
+      Markup.button.callback(tBot(language, 'MASTER_PANEL_BOOKINGS_CATEGORY_TOMORROW'), MASTER_PANEL_ACTION.BOOKINGS_MENU_TOMORROW),
     ],
     [
-      Markup.button.callback('🗂 Усі записи', MASTER_PANEL_ACTION.BOOKINGS_MENU_ALL),
-      Markup.button.callback('❌ Скасовані', MASTER_PANEL_ACTION.BOOKINGS_MENU_CANCELED),
+      Markup.button.callback(tBot(language, 'MASTER_PANEL_BOOKINGS_CATEGORY_ALL'), MASTER_PANEL_ACTION.BOOKINGS_MENU_ALL),
+      Markup.button.callback(tBot(language, 'MASTER_PANEL_BOOKINGS_CATEGORY_CANCELED'), MASTER_PANEL_ACTION.BOOKINGS_MENU_CANCELED),
     ],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_PANEL'), MASTER_PANEL_ACTION.BACK_TO_PANEL)],
   ]);
 }
 
 /**
  * @summary Текст списку записів по категорії.
  */
-export function formatMasterBookingsFeedText(page: MasterBookingsFeedPage): string {
-  const title = categoryTitle(page.category);
+export function formatMasterBookingsFeedText(page: MasterBookingsFeedPage, language: BotUiLanguage): string {
+  const title = categoryTitle(page.category, language);
   if (page.items.length === 0) {
-    return (
-      `${title}\n` +
-      '━━━━━━━━━━━━━━\n\n' +
-      `${categoryEmptyText(page.category)}`
-    );
+    return `${title}\n━━━━━━━━━━━━━━\n\n${categoryEmptyText(page.category, language)}`;
   }
 
+  const locale = toLocale(language);
   const lines = page.items.map((item, index) => {
     return (
       `${cardIndexLabel(index)}\n\n` +
-      `👤 ${formatClientDisplayName(item)}\n` +
+      `👤 ${formatClientDisplayName(item, language)}\n` +
       `💼 ${item.serviceName}\n` +
-      `💰 Ціна: ${formatPrice(item.priceAmount, item.currencyCode)}\n` +
-      `📅 ${item.startAt.toLocaleDateString('uk-UA')}\n` +
-      `⏰ ${item.startAt.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}` +
-      `–${item.endAt.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}\n` +
-      `${formatBookingStatusLabel(item.status)}`
+      `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_PRICE')}: ${formatPrice(item.priceAmount, item.currencyCode)}\n` +
+      `📅 ${item.startAt.toLocaleDateString(locale)}\n` +
+      `⏰ ${item.startAt.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}` +
+      `–${item.endAt.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}\n` +
+      `${formatBookingStatusLabel(item.status, language)}`
     );
   });
 
@@ -229,7 +251,10 @@ export function formatMasterBookingsFeedText(page: MasterBookingsFeedPage): stri
     `${title}\n` +
     '━━━━━━━━━━━━━━\n\n' +
     `${lines.join('\n\n⸻\n\n')}\n\n` +
-    `📄 Сторінка ${pageNumber} з ${totalPages}`
+    tBotTemplate(language, 'MASTER_PANEL_BOOKINGS_LABEL_PAGE', {
+      page: String(pageNumber),
+      total: String(totalPages),
+    })
   );
 }
 
@@ -238,12 +263,10 @@ export function formatMasterBookingsFeedText(page: MasterBookingsFeedPage): stri
  */
 export function createMasterBookingsFeedKeyboard(
   page: MasterBookingsFeedPage,
+  language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const numberButtons = page.items.map((item, index) => {
-    return Markup.button.callback(
-      `${index + 1}`,
-      makeMasterPanelBookingOpenCardAction(item.appointmentId),
-    );
+    return Markup.button.callback(`${index + 1}`, makeMasterPanelBookingOpenCardAction(item.appointmentId));
   });
 
   const numberRows: ReturnType<typeof Markup.button.callback>[][] = [];
@@ -253,36 +276,39 @@ export function createMasterBookingsFeedKeyboard(
 
   const paginationRow: ReturnType<typeof Markup.button.callback>[] = [];
   if (page.hasPrevPage) {
-    paginationRow.push(Markup.button.callback('⬅️ Попередня', MASTER_PANEL_ACTION.BOOKINGS_LIST_PREV_PAGE));
+    paginationRow.push(Markup.button.callback(tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_PREV'), MASTER_PANEL_ACTION.BOOKINGS_LIST_PREV_PAGE));
   }
   if (page.hasNextPage) {
-    paginationRow.push(Markup.button.callback('➡️ Наступна', MASTER_PANEL_ACTION.BOOKINGS_LIST_NEXT_PAGE));
+    paginationRow.push(Markup.button.callback(tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_NEXT'), MASTER_PANEL_ACTION.BOOKINGS_LIST_NEXT_PAGE));
   }
 
   return Markup.inlineKeyboard([
     ...numberRows,
     ...(paginationRow.length > 0 ? [paginationRow] : []),
-    [Markup.button.callback('⬅️ До меню записів', MASTER_PANEL_ACTION.BOOKINGS_OPEN_MENU)],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_BACK_TO_BOOKINGS_MENU_ALT'), MASTER_PANEL_ACTION.BOOKINGS_OPEN_MENU)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_PANEL'), MASTER_PANEL_ACTION.BACK_TO_PANEL)],
   ]);
 }
 
 /**
  * @summary Текст підтвердження скасування pending-запису.
  */
-export function formatMasterCancelPendingBookingConfirmText(item: MasterPendingBookingItem): string {
+export function formatMasterCancelPendingBookingConfirmText(
+  item: MasterPendingBookingItem,
+  language: BotUiLanguage,
+): string {
   const warning =
     item.status === 'confirmed'
-      ? '\n\n⚠️ Ви скасовуєте вже підтверджений запис.\nПереконайтесь, що все узгоджено з клієнтом.'
+      ? `\n\n${tBot(language, 'MASTER_PANEL_BOOKINGS_CANCEL_CONFIRM_WARNING_CONFIRMED')}`
       : '';
 
   return (
-    '⚠️ Підтвердження скасування\n' +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_CANCEL_CONFIRM_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Ви дійсно хочете скасувати цей запис?\n\n' +
-    `👤 ${formatClientDisplayName(item)}\n` +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_CANCEL_CONFIRM_BODY')}\n\n` +
+    `👤 ${formatClientDisplayName(item, language)}\n` +
     `💼 ${item.serviceName}\n` +
-    `🕒 ${formatDateTimeRange(item.startAt, item.endAt)}` +
+    `🕒 ${formatDateTimeRange(item.startAt, item.endAt, language)}` +
     warning
   );
 }
@@ -292,64 +318,58 @@ export function formatMasterCancelPendingBookingConfirmText(item: MasterPendingB
  */
 export function createMasterCancelPendingBookingConfirmKeyboard(
   item: MasterPendingBookingItem,
+  language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        '✅ Так, скасувати',
+        tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_CANCEL_CONFIRM'),
         makeMasterPanelBookingCancelConfirmAction(item.appointmentId),
       ),
       Markup.button.callback(
-        '↩️ Ні, повернутись',
+        tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_CANCEL_REJECT'),
         MASTER_PANEL_ACTION.BOOKINGS_BACK_TO_LIST,
       ),
     ],
-    [Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_PANEL'), MASTER_PANEL_ACTION.BACK_TO_PANEL)],
   ]);
 }
 
 /**
  * @summary Текст детальної картки запису зі списку.
  */
-export function formatMasterBookingDetailsCardText(item: MasterPendingBookingItem): string {
+export function formatMasterBookingDetailsCardText(
+  item: MasterPendingBookingItem,
+  language: BotUiLanguage,
+): string {
   const comment = item.clientComment?.trim();
   const commentBlock = comment
-    ? `\n\n📝 Коментар клієнта:\n${comment}`
+    ? `\n\n${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_COMMENT_TITLE')}:\n${comment}`
     : '';
 
   let stateHint = '';
   if (item.status === 'canceled') {
-    stateHint =
-      '\n\n⚠️ Цей запис уже скасований.\n' +
-      'Доступний лише перегляд інформації.';
+    stateHint = `\n\n${tBot(language, 'MASTER_PANEL_BOOKINGS_HINT_CANCELED')}`;
   } else if (item.status === 'completed') {
-    stateHint =
-      '\n\n⚠️ Цей запис уже завершений.\n' +
-      'Доступний лише перегляд інформації.';
+    stateHint = `\n\n${tBot(language, 'MASTER_PANEL_BOOKINGS_HINT_COMPLETED')}`;
   } else if (item.status === 'transferred') {
-    stateHint =
-      '\n\n⚠️ Цей запис позначено як перенесений.\n' +
-      'Доступний лише перегляд інформації.';
+    stateHint = `\n\n${tBot(language, 'MASTER_PANEL_BOOKINGS_HINT_TRANSFERRED')}`;
   } else if (item.status === 'pending') {
-    stateHint =
-      '\n\nℹ️ Для обробки pending-запису використайте розділ:\n' +
-      '«🆕 Нові записи (очікують підтвердження)».';
+    stateHint = `\n\n${tBot(language, 'MASTER_PANEL_BOOKINGS_HINT_PENDING')}`;
   } else if (item.status === 'confirmed') {
-    stateHint =
-      '\n\nℹ️ Для підтвердженого запису доступні дії:\n' +
-      'перенесення або скасування.';
+    stateHint = `\n\n${tBot(language, 'MASTER_PANEL_BOOKINGS_HINT_CONFIRMED')}`;
   }
 
   return (
-    '📄 Картка запису\n' +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_CARD_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
-    `📱 Телефон: ${item.attendeePhoneE164 ?? 'Не вказано'}\n` +
-    `✉️ Email: ${item.attendeeEmail ?? 'Не вказано'}\n\n` +
-    `💼 Послуга: ${item.serviceName}\n` +
-    `🕒 Час: ${formatDateTimeRange(item.startAt, item.endAt)}\n` +
-    `💰 Ціна: ${formatPrice(item.priceAmount, item.currencyCode)}\n` +
-    `📌 Статус: ${formatBookingStatusLabel(item.status)}` +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_CLIENT')}: ${formatClientDisplayName(item, language)}\n` +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_PHONE')}: ${item.attendeePhoneE164 ?? tBot(language, 'MASTER_PANEL_BOOKINGS_NOT_SET')}\n` +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_EMAIL')}: ${item.attendeeEmail ?? tBot(language, 'MASTER_PANEL_BOOKINGS_NOT_SET')}\n\n` +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_SERVICE')}: ${item.serviceName}\n` +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_TIME')}: ${formatDateTimeRange(item.startAt, item.endAt, language)}\n` +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_PRICE')}: ${formatPrice(item.priceAmount, item.currencyCode)}\n` +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_STATUS')}: ${formatBookingStatusLabel(item.status, language)}` +
     commentBlock +
     stateHint
   );
@@ -360,28 +380,46 @@ export function formatMasterBookingDetailsCardText(item: MasterPendingBookingIte
  */
 export function createMasterBookingDetailsCardKeyboard(
   item: MasterPendingBookingItem,
+  language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const actionRows: ReturnType<typeof Markup.button.callback>[][] = [];
 
   if (item.status === 'confirmed') {
     actionRows.push([
-      Markup.button.callback('🔄 Перенести', makeMasterPanelBookingRescheduleAction(item.appointmentId)),
-      Markup.button.callback('❌ Скасувати', makeMasterPanelBookingCancelRequestAction(item.appointmentId)),
+      Markup.button.callback(
+        tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_RESCHEDULE'),
+        makeMasterPanelBookingRescheduleAction(item.appointmentId),
+      ),
+      Markup.button.callback(
+        tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_CANCEL'),
+        makeMasterPanelBookingCancelRequestAction(item.appointmentId),
+      ),
     ]);
   } else if (item.status === 'pending') {
-    actionRows.push([Markup.button.callback('🆕 До черги pending', MASTER_PANEL_ACTION.BOOKINGS_SHOW_PENDING)]);
+    actionRows.push([
+      Markup.button.callback(
+        tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_OPEN_PENDING_QUEUE'),
+        MASTER_PANEL_ACTION.BOOKINGS_SHOW_PENDING,
+      ),
+    ]);
   }
 
   return Markup.inlineKeyboard([
     ...actionRows,
-    [Markup.button.callback('👤 Профіль клієнта', makeMasterPanelBookingProfileAction(item.appointmentId))],
-    [Markup.button.callback('⬅️ До списку', MASTER_PANEL_ACTION.BOOKINGS_BACK_TO_LIST)],
-    [Markup.button.callback('⬅️ До меню записів', MASTER_PANEL_ACTION.BOOKINGS_OPEN_MENU)],
+    [
+      Markup.button.callback(
+        tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_CLIENT_PROFILE'),
+        makeMasterPanelBookingProfileAction(item.appointmentId),
+      ),
+    ],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_BACK_TO_LIST'), MASTER_PANEL_ACTION.BOOKINGS_BACK_TO_LIST)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_BACK_TO_BOOKINGS_MENU_ALT'), MASTER_PANEL_ACTION.BOOKINGS_OPEN_MENU)],
   ]);
 }
 
-function formatDateLabel(date: Date): string {
-  const weekday = date.toLocaleDateString('uk-UA', { weekday: 'short' });
+function formatDateLabel(date: Date, language: BotUiLanguage): string {
+  const locale = toLocale(language);
+  const weekday = date.toLocaleDateString(locale, { weekday: 'short' });
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   return `${weekday} ${day}.${month}`;
@@ -390,20 +428,23 @@ function formatDateLabel(date: Date): string {
 /**
  * @summary Текст кроку вибору нової дати для перенесення.
  */
-export function formatMasterRescheduleDateStepText(item: MasterPendingBookingItem): string {
+export function formatMasterRescheduleDateStepText(
+  item: MasterPendingBookingItem,
+  language: BotUiLanguage,
+): string {
   const warning =
     item.status === 'confirmed'
-      ? '\n⚠️ Ви змінюєте вже підтверджений запис. Переконайтесь, що новий час узгоджений з клієнтом.\n'
+      ? `\n${tBot(language, 'MASTER_PANEL_BOOKINGS_RESCHEDULE_WARNING_CONFIRMED')}\n`
       : '\n';
 
   return (
-    '🔄 Перенесення запису — крок 1/3\n' +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_RESCHEDULE_STEP_1')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
-    `💼 Послуга: ${item.serviceName}\n` +
-    `🕒 Поточний час: ${formatDateTimeRange(item.startAt, item.endAt)}\n` +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_CLIENT')}: ${formatClientDisplayName(item, language)}\n` +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_SERVICE')}: ${item.serviceName}\n` +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_TIME')}: ${formatDateTimeRange(item.startAt, item.endAt, language)}\n` +
     warning +
-    'Оберіть нову дату для перенесення.'
+    tBot(language, 'MASTER_PANEL_BOOKINGS_RESCHEDULE_SELECT_DATE')
   );
 }
 
@@ -412,6 +453,7 @@ export function formatMasterRescheduleDateStepText(item: MasterPendingBookingIte
  */
 export function createMasterRescheduleDateKeyboard(
   dates: Date[],
+  language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     ...dates.map((date) => {
@@ -419,11 +461,11 @@ export function createMasterRescheduleDateKeyboard(
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
       const code = `${year}${month}${day}`;
-      return [Markup.button.callback(formatDateLabel(date), makeMasterPanelBookingRescheduleDateAction(code))];
+      return [Markup.button.callback(formatDateLabel(date, language), makeMasterPanelBookingRescheduleDateAction(code))];
     }),
     [
-      Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_CANCEL),
-      Markup.button.callback(MASTER_PANEL_BUTTON_TEXT.BACK_TO_PANEL, MASTER_PANEL_ACTION.BACK_TO_PANEL),
+      Markup.button.callback(tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_CANCEL_ACTION'), MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_CANCEL),
+      Markup.button.callback(tBot(language, 'MASTER_PANEL_BTN_BACK_TO_PANEL'), MASTER_PANEL_ACTION.BACK_TO_PANEL),
     ],
   ]);
 }
@@ -431,14 +473,18 @@ export function createMasterRescheduleDateKeyboard(
 /**
  * @summary Текст кроку вибору нового часу.
  */
-export function formatMasterRescheduleTimeStepText(item: MasterPendingBookingItem, dateLabel: string): string {
+export function formatMasterRescheduleTimeStepText(
+  item: MasterPendingBookingItem,
+  dateLabel: string,
+  language: BotUiLanguage,
+): string {
   return (
-    '🔄 Перенесення запису — крок 2/3\n' +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_RESCHEDULE_STEP_2')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
-    `💼 Послуга: ${item.serviceName}\n` +
-    `📆 Нова дата: ${dateLabel}\n\n` +
-    'Оберіть новий час.'
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_CLIENT')}: ${formatClientDisplayName(item, language)}\n` +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_SERVICE')}: ${item.serviceName}\n` +
+    `📆 ${dateLabel}\n\n` +
+    tBot(language, 'MASTER_PANEL_BOOKINGS_RESCHEDULE_SELECT_TIME')
   );
 }
 
@@ -447,6 +493,7 @@ export function formatMasterRescheduleTimeStepText(item: MasterPendingBookingIte
  */
 export function createMasterRescheduleTimeKeyboard(
   timeCodes: string[],
+  language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const rows: ReturnType<typeof Markup.button.callback>[][] = [];
 
@@ -467,8 +514,8 @@ export function createMasterRescheduleTimeKeyboard(
   return Markup.inlineKeyboard([
     ...rows,
     [
-      Markup.button.callback('⬅️ До вибору дати', MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_BACK_TO_DATE),
-      Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_CANCEL),
+      Markup.button.callback(tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_RESCHEDULE_BACK_TO_DATE'), MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_BACK_TO_DATE),
+      Markup.button.callback(tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_CANCEL_ACTION'), MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_CANCEL),
     ],
   ]);
 }
@@ -480,27 +527,30 @@ export function formatMasterRescheduleConfirmText(
   item: MasterPendingBookingItem,
   newStartAt: Date,
   newEndAt: Date,
+  language: BotUiLanguage,
 ): string {
   return (
-    '🔄 Перенесення запису — крок 3/3\n' +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_RESCHEDULE_STEP_3')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
-    `💼 Послуга: ${item.serviceName}\n\n` +
-    `🕒 Було: ${formatDateTimeRange(item.startAt, item.endAt)}\n` +
-    `🕒 Стане: ${formatDateTimeRange(newStartAt, newEndAt)}\n\n` +
-    'Підтвердіть перенесення запису.'
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_CLIENT')}: ${formatClientDisplayName(item, language)}\n` +
+    `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_SERVICE')}: ${item.serviceName}\n\n` +
+    `🕒 ${language === 'en' ? 'Was' : language === 'cs' ? 'Bylo' : 'Було'}: ${formatDateTimeRange(item.startAt, item.endAt, language)}\n` +
+    `🕒 ${language === 'en' ? 'Will be' : language === 'cs' ? 'Bude' : 'Стане'}: ${formatDateTimeRange(newStartAt, newEndAt, language)}\n\n` +
+    tBot(language, 'MASTER_PANEL_BOOKINGS_RESCHEDULE_CONFIRM')
   );
 }
 
 /**
  * @summary Клавіатура підтвердження перенесення.
  */
-export function createMasterRescheduleConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createMasterRescheduleConfirmKeyboard(
+  language: BotUiLanguage,
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback('✅ Підтвердити перенесення', MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_CONFIRM)],
+    [Markup.button.callback(tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_RESCHEDULE_CONFIRM'), MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_CONFIRM)],
     [
-      Markup.button.callback('⬅️ До вибору часу', MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_BACK_TO_TIME),
-      Markup.button.callback('❌ Скасувати дію', MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_CANCEL),
+      Markup.button.callback(tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_RESCHEDULE_BACK_TO_TIME'), MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_BACK_TO_TIME),
+      Markup.button.callback(tBot(language, 'MASTER_PANEL_BOOKINGS_BTN_CANCEL_ACTION'), MASTER_PANEL_ACTION.BOOKINGS_RESCHEDULE_CANCEL),
     ],
   ]);
 }
