@@ -13,7 +13,7 @@ import {
   makeAdminPanelMastersOpenBookingsAction,
   makeAdminPanelMastersOpenStatsAction,
 } from '../../types/bot-admin-panel.types.js';
-import { tBot } from './i18n.bot.js';
+import { tBot, tBotTemplate } from './i18n.bot.js';
 import type { BotUiLanguage } from './i18n.bot.js';
 import type { AdminBookingItem, AdminBookingsFeedPage } from '../../types/db-helpers/db-admin-bookings.types.js';
 import type {
@@ -43,22 +43,30 @@ function formatPrice(price: string, currencyCode: string): string {
   return `${normalized} ${currencyCode}`;
 }
 
-function formatWeekdayLabel(weekday: number): string {
-  const labels: Record<number, string> = {
-    1: 'Пн',
-    2: 'Вт',
-    3: 'Ср',
-    4: 'Чт',
-    5: 'Пт',
-    6: 'Сб',
-    7: 'Нд',
-  };
-  return labels[weekday] ?? `День ${weekday}`;
+function formatWeekdayLabel(language: BotUiLanguage, weekday: number): string {
+  switch (weekday) {
+    case 1:
+      return tBot(language, 'ADMIN_PANEL_MASTERS_WEEKDAY_1');
+    case 2:
+      return tBot(language, 'ADMIN_PANEL_MASTERS_WEEKDAY_2');
+    case 3:
+      return tBot(language, 'ADMIN_PANEL_MASTERS_WEEKDAY_3');
+    case 4:
+      return tBot(language, 'ADMIN_PANEL_MASTERS_WEEKDAY_4');
+    case 5:
+      return tBot(language, 'ADMIN_PANEL_MASTERS_WEEKDAY_5');
+    case 6:
+      return tBot(language, 'ADMIN_PANEL_MASTERS_WEEKDAY_6');
+    case 7:
+      return tBot(language, 'ADMIN_PANEL_MASTERS_WEEKDAY_7');
+    default:
+      return `#${weekday}`;
+  }
 }
 
-function formatWorkingRange(item: MasterWeeklyScheduleItem): string {
+function formatWorkingRange(language: BotUiLanguage, item: MasterWeeklyScheduleItem): string {
   if (!item.isWorking || !item.openTime || !item.closeTime) {
-    return 'вихідний';
+    return tBot(language, 'ADMIN_PANEL_MASTERS_LABEL_DAY_OFF');
   }
   return `${item.openTime.slice(0, 5)}–${item.closeTime.slice(0, 5)}`;
 }
@@ -67,30 +75,33 @@ function formatSpecializationLine(item: MasterSpecializationItem): string {
   return `• ${item.serviceName} — ${item.durationMinutes} хв • ${formatPrice(item.priceAmount, item.currencyCode)}`;
 }
 
-function formatBookingStatusLabel(status: AdminBookingItem['status']): string {
+function formatBookingStatusLabel(
+  language: BotUiLanguage,
+  status: AdminBookingItem['status'],
+): string {
   switch (status) {
     case 'pending':
-      return '🟡 Очікує підтвердження';
+      return tBot(language, 'ADMIN_PANEL_MASTERS_BOOKING_STATUS_PENDING');
     case 'confirmed':
-      return '🟢 Підтверджено';
+      return tBot(language, 'ADMIN_PANEL_MASTERS_BOOKING_STATUS_CONFIRMED');
     case 'completed':
-      return '⚪ Завершено';
+      return tBot(language, 'ADMIN_PANEL_MASTERS_BOOKING_STATUS_COMPLETED');
     case 'canceled':
-      return '🔴 Скасовано';
+      return tBot(language, 'ADMIN_PANEL_MASTERS_BOOKING_STATUS_CANCELED');
     case 'transferred':
-      return '🟣 Перенесено';
+      return tBot(language, 'ADMIN_PANEL_MASTERS_BOOKING_STATUS_TRANSFERRED');
     default:
       return status;
   }
 }
 
-function formatClientDisplayName(item: AdminBookingItem): string {
+function formatClientDisplayName(item: AdminBookingItem, language: BotUiLanguage): string {
   if (item.attendeeName && item.attendeeName.trim().length > 0) {
     return item.attendeeName;
   }
 
   const fullName = `${item.clientFirstName}${item.clientLastName ? ` ${item.clientLastName}` : ''}`.trim();
-  return fullName || 'Клієнт';
+  return fullName || tBot(language, 'ADMIN_PANEL_MASTERS_LABEL_UNKNOWN_CLIENT');
 }
 
 function toSafeDate(value: Date | string): Date | null {
@@ -98,22 +109,32 @@ function toSafeDate(value: Date | string): Date | null {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
-function formatUiDate(value: Date | string): string {
-  const parsed = toSafeDate(value);
-  if (!parsed) return 'невідома дата';
-  return parsed.toLocaleDateString('uk-UA');
+function resolveLocale(language: BotUiLanguage): string {
+  if (language === 'en') return 'en-US';
+  if (language === 'cs') return 'cs-CZ';
+  return 'uk-UA';
 }
 
-function formatUiTime(value: Date | string): string {
+function formatUiDate(value: Date | string, language: BotUiLanguage): string {
+  const parsed = toSafeDate(value);
+  if (!parsed) return tBot(language, 'ADMIN_PANEL_MASTERS_LABEL_UNKNOWN_DATE');
+  return parsed.toLocaleDateString(resolveLocale(language));
+}
+
+function formatUiTime(value: Date | string, language: BotUiLanguage): string {
   const parsed = toSafeDate(value);
   if (!parsed) return '--:--';
-  return parsed.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+  return parsed.toLocaleTimeString(resolveLocale(language), { hour: '2-digit', minute: '2-digit' });
 }
 
-function formatDateTimeRange(startAt: Date | string, endAt: Date | string): string {
-  const date = formatUiDate(startAt);
-  const startTime = formatUiTime(startAt);
-  const endTime = formatUiTime(endAt);
+function formatDateTimeRange(
+  startAt: Date | string,
+  endAt: Date | string,
+  language: BotUiLanguage,
+): string {
+  const date = formatUiDate(startAt, language);
+  const startTime = formatUiTime(startAt, language);
+  const endTime = formatUiTime(endAt, language);
   return `${date} • ${startTime}–${endTime}`;
 }
 
@@ -131,10 +152,14 @@ function formatMasterCatalogLine(master: MasterCatalogItem, index: number): stri
 /**
  * @summary Форматує список майстрів студії для адмін-панелі.
  */
-export function formatAdminMastersCatalogText(masters: MasterCatalogItem[]): string {
+export function formatAdminMastersCatalogText(
+  masters: MasterCatalogItem[],
+  language: BotUiLanguage = 'uk',
+): string {
+  const title = tBot(language, 'ADMIN_PANEL_BTN_MASTERS');
   if (masters.length === 0) {
     return (
-      '👩‍🎨 Майстри студії\n' +
+      `${title}\n` +
       '━━━━━━━━━━━━━━\n\n' +
       'Поки що немає активних майстрів.\n' +
       'Додайте майстра або активуйте існуючий профіль.'
@@ -142,7 +167,7 @@ export function formatAdminMastersCatalogText(masters: MasterCatalogItem[]): str
   }
 
   return (
-    '👩‍🎨 Майстри студії\n' +
+    `${title}\n` +
     '━━━━━━━━━━━━━━\n\n' +
     'Оберіть майстра зі списку, щоб відкрити деталі:\n\n' +
     masters.map(formatMasterCatalogLine).join('\n\n')
@@ -380,11 +405,11 @@ export function formatAdminMasterCreateEmailInputText(): string {
   );
 }
 
-function formatSchedulePreviewLine(item: AdminMasterCreateScheduleDayView): string {
+function formatSchedulePreviewLine(item: AdminMasterCreateScheduleDayView, language: BotUiLanguage): string {
   if (!item.isWorking || !item.openTime || !item.closeTime) {
-    return `• ${formatWeekdayLabel(item.weekday)}: вихідний`;
+    return `• ${formatWeekdayLabel(language, item.weekday)}: ${tBot(language, 'ADMIN_PANEL_MASTERS_LABEL_DAY_OFF')}`;
   }
-  return `• ${formatWeekdayLabel(item.weekday)}: ${item.openTime}–${item.closeTime}`;
+  return `• ${formatWeekdayLabel(language, item.weekday)}: ${item.openTime}–${item.closeTime}`;
 }
 
 /**
@@ -393,6 +418,7 @@ function formatSchedulePreviewLine(item: AdminMasterCreateScheduleDayView): stri
 export function formatAdminMasterCreateSchedulePickText(
   displayName: string,
   scheduleDays: AdminMasterCreateScheduleDayView[],
+  language: BotUiLanguage = 'uk',
 ): string {
   const lines =
     scheduleDays.length === 0
@@ -400,7 +426,7 @@ export function formatAdminMasterCreateSchedulePickText(
       : scheduleDays
           .slice()
           .sort((a, b) => a.weekday - b.weekday)
-          .map(formatSchedulePreviewLine)
+          .map((item) => formatSchedulePreviewLine(item, language))
           .join('\n');
 
   return (
@@ -435,10 +461,10 @@ export function createAdminMasterCreateSchedulePickKeyboard(
     const status =
       day.isWorking && day.openTime && day.closeTime
         ? `${day.openTime}–${day.closeTime}`
-        : 'вихідний';
+        : tBot(language, 'ADMIN_PANEL_MASTERS_LABEL_DAY_OFF');
     return [
       Markup.button.callback(
-        `${formatWeekdayLabel(weekday)} • ${status}`,
+        `${formatWeekdayLabel(language, weekday)} • ${status}`,
         makeAdminPanelMastersCreateSchedulePickAction(weekday),
       ),
     ];
@@ -473,9 +499,12 @@ export function createAdminMasterCreateScheduleInputKeyboard(
 /**
  * @summary Екран вводу часу початку робочого дня.
  */
-export function formatAdminMasterCreateScheduleFromInputText(weekday: number): string {
+export function formatAdminMasterCreateScheduleFromInputText(
+  weekday: number,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    `🕒 ${formatWeekdayLabel(weekday)} • Час початку\n` +
+    `🕒 ${formatWeekdayLabel(language, weekday)} • Час початку\n` +
     '━━━━━━━━━━━━━━\n\n' +
     'Введіть час початку у форматі HH:MM.\n' +
     'Приклад: 9:00 або 09:00'
@@ -488,9 +517,10 @@ export function formatAdminMasterCreateScheduleFromInputText(weekday: number): s
 export function formatAdminMasterCreateScheduleToInputText(
   weekday: number,
   fromTime: string,
+  language: BotUiLanguage = 'uk',
 ): string {
   return (
-    `🕒 ${formatWeekdayLabel(weekday)} • Час завершення\n` +
+    `🕒 ${formatWeekdayLabel(language, weekday)} • Час завершення\n` +
     '━━━━━━━━━━━━━━\n\n' +
     `Початок: ${fromTime}\n\n` +
     'Введіть час завершення у форматі HH:MM.'
@@ -500,7 +530,10 @@ export function formatAdminMasterCreateScheduleToInputText(
 /**
  * @summary Екран фінального підтвердження створення майстра.
  */
-export function formatAdminMasterCreateConfirmText(data: AdminMasterCreateConfirmViewData): string {
+export function formatAdminMasterCreateConfirmText(
+  data: AdminMasterCreateConfirmViewData,
+  language: BotUiLanguage = 'uk',
+): string {
   const servicesList =
     data.selectedServiceNames.length > 0
       ? data.selectedServiceNames.map((name, index) => `${getNumberBadge(index)} ${name}`).join('\n')
@@ -509,7 +542,7 @@ export function formatAdminMasterCreateConfirmText(data: AdminMasterCreateConfir
   const scheduleList = data.scheduleDays
     .slice()
     .sort((a, b) => a.weekday - b.weekday)
-    .map(formatSchedulePreviewLine)
+    .map((item) => formatSchedulePreviewLine(item, language))
     .join('\n');
 
   return (
@@ -544,7 +577,10 @@ export function createAdminMasterCreateConfirmKeyboard(
 /**
  * @summary Форматує деталі профілю майстра у адмін-панелі.
  */
-export function formatAdminMasterDetailsText(details: MasterCatalogDetails): string {
+export function formatAdminMasterDetailsText(
+  details: MasterCatalogDetails,
+  language: BotUiLanguage = 'uk',
+): string {
   const specializations =
     details.specializations.length > 0
       ? details.specializations.map(formatSpecializationLine).join('\n')
@@ -555,7 +591,7 @@ export function formatAdminMasterDetailsText(details: MasterCatalogDetails): str
       ? details.weeklySchedule
           .slice()
           .sort((a, b) => a.weekday - b.weekday)
-          .map((item) => `• ${formatWeekdayLabel(item.weekday)}: ${formatWorkingRange(item)}`)
+          .map((item) => `• ${formatWeekdayLabel(language, item.weekday)}: ${formatWorkingRange(language, item)}`)
           .join('\n')
       : '• Графік ще не заповнений';
 
@@ -676,24 +712,25 @@ export function createAdminMasterDeleteConfirmKeyboard(
 export function formatAdminMasterBookingsFeedText(
   masterName: string,
   page: AdminBookingsFeedPage,
+  language: BotUiLanguage = 'uk',
 ): string {
   if (page.items.length === 0) {
     return (
-      '📅 Записи майстра\n' +
+      `${tBot(language, 'ADMIN_PANEL_MASTERS_BOOKINGS_FEED_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
       `👩‍🎨 Майстер: ${masterName}\n\n` +
-      '📭 У майстра поки немає записів.'
+      tBot(language, 'ADMIN_PANEL_MASTERS_BOOKINGS_FEED_EMPTY')
     );
   }
 
   const lines = page.items.map((item, index) => {
     return (
       `${getNumberBadge(index + page.offset)}\n\n` +
-      `👤 ${formatClientDisplayName(item)}\n` +
+      `👤 ${formatClientDisplayName(item, language)}\n` +
       `💼 ${item.serviceName}\n` +
-      `🕒 ${formatDateTimeRange(item.startAt, item.endAt)}\n` +
+      `🕒 ${formatDateTimeRange(item.startAt, item.endAt, language)}\n` +
       `💰 ${formatPrice(item.priceAmount, item.currencyCode)}\n` +
-      `${formatBookingStatusLabel(item.status)}`
+      `${formatBookingStatusLabel(language, item.status)}`
     );
   });
 
@@ -701,11 +738,15 @@ export function formatAdminMasterBookingsFeedText(
   const totalPages = Math.max(1, Math.ceil(page.total / page.limit));
 
   return (
-    '📅 Записи майстра\n' +
+    `${tBot(language, 'ADMIN_PANEL_MASTERS_BOOKINGS_FEED_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
     `👩‍🎨 Майстер: ${masterName}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_MASTERS_BOOKINGS_FEED_PICK')}\n\n` +
     `${lines.join('\n\n⸻\n\n')}\n\n` +
-    `📄 Сторінка ${pageNumber} з ${totalPages}`
+    tBotTemplate(language, 'ADMIN_PANEL_MASTERS_BOOKINGS_FEED_PAGE', {
+      current: pageNumber,
+      total: totalPages,
+    })
   );
 }
 
@@ -763,21 +804,43 @@ export function createAdminMasterBookingsFeedKeyboard(
 /**
  * @summary Текст детальної картки запису в контексті конкретного майстра.
  */
-export function formatAdminMasterBookingCardText(item: AdminBookingItem): string {
+export function formatAdminMasterBookingCardText(
+  item: AdminBookingItem,
+  language: BotUiLanguage = 'uk',
+): string {
   const comment = item.clientComment?.trim();
-  const commentBlock = comment ? `\n\n📝 Коментар клієнта:\n${comment}` : '';
+  const commentBlock = comment
+    ? `\n\n${tBot(language, 'ADMIN_PANEL_MASTERS_BOOKING_CARD_COMMENT_TITLE')}\n${comment}`
+    : '';
+  const notSpecified = tBot(language, 'ADMIN_PANEL_MASTERS_LABEL_NOT_SPECIFIED');
 
   return (
-    '📄 Картка запису\n' +
+    `${tBot(language, 'ADMIN_PANEL_MASTERS_BOOKING_CARD_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👤 Клієнт: ${formatClientDisplayName(item)}\n` +
-    `📱 Телефон: ${item.attendeePhoneE164 ?? 'Не вказано'}\n` +
-    `✉️ Email: ${item.attendeeEmail ?? 'Не вказано'}\n\n` +
-    `💼 Послуга: ${item.serviceName}\n` +
-    `👩‍🎨 Майстер: ${item.masterName}\n` +
-    `🕒 Час: ${formatDateTimeRange(item.startAt, item.endAt)}\n` +
-    `💰 Ціна: ${formatPrice(item.priceAmount, item.currencyCode)}\n` +
-    `📌 Статус: ${formatBookingStatusLabel(item.status)}` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_MASTERS_BOOKING_CARD_CLIENT', {
+      value: formatClientDisplayName(item, language),
+    })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_MASTERS_BOOKING_CARD_PHONE', {
+      value: item.attendeePhoneE164 ?? notSpecified,
+    })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_MASTERS_BOOKING_CARD_EMAIL', {
+      value: item.attendeeEmail ?? notSpecified,
+    })}\n\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_MASTERS_BOOKING_CARD_SERVICE', {
+      value: item.serviceName,
+    })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_MASTERS_BOOKING_CARD_MASTER', {
+      value: item.masterName,
+    })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_MASTERS_BOOKING_CARD_TIME', {
+      value: formatDateTimeRange(item.startAt, item.endAt, language),
+    })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_MASTERS_BOOKING_CARD_PRICE', {
+      value: formatPrice(item.priceAmount, item.currencyCode),
+    })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_MASTERS_BOOKING_CARD_STATUS', {
+      value: formatBookingStatusLabel(language, item.status),
+    })}` +
     commentBlock
   );
 }

@@ -60,6 +60,94 @@ export const ADMIN_PANEL_DICTIONARY = {
     ADMIN_PANEL_MASTERS_BTN_EDIT_SERVICES_BACK: '⬅️ До редагування майстра',
     ADMIN_PANEL_MASTERS_BTN_EDIT_CANCEL: '❌ Скасувати редагування',
     ADMIN_PANEL_MASTERS_BTN_EDIT_CONFIRM: '✅ Зберегти зміни',
+    ADMIN_PANEL_MASTERS_MSG_PICK_WEEKDAY_FIRST: 'Спочатку оберіть день тижня.',
+    ADMIN_PANEL_MASTERS_MSG_PICK_DAY_AND_FROM_FIRST: 'Спочатку оберіть день і введіть час початку.',
+    ADMIN_PANEL_MASTERS_MSG_TO_AFTER_FROM: 'Час завершення має бути пізніше часу початку.',
+    ADMIN_PANEL_MASTERS_MSG_WORK_TIME_SAVED: 'Робочий час для дня успішно збережено.',
+    ADMIN_PANEL_MASTERS_MSG_USE_SERVICES_BUTTONS:
+      'ℹ️ Для вибору послуг використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_MASTERS_MSG_USE_SCHEDULE_BUTTONS:
+      'ℹ️ Для налаштування графіку використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_MASTERS_MSG_USE_CONFIRM_BUTTONS:
+      'ℹ️ Для завершення створення використовуйте кнопки підтвердження під повідомленням.',
+    ADMIN_PANEL_MASTERS_MSG_USE_CREATE_BUTTONS:
+      'ℹ️ Для створення майстра використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_MASTERS_MSG_CREATE_VALIDATION_FAILED:
+      'Виникла помилка перевірки даних створення майстра.',
+    ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED:
+      'Не вдалося визначити студію адміністратора.',
+    ADMIN_PANEL_MASTERS_MSG_USER_NOT_FOUND_IN_STUDIO:
+      'Користувача з таким Telegram ID не знайдено в цьому салоні.',
+    ADMIN_PANEL_MASTERS_MSG_USER_NOT_MASTER:
+      'Користувач із цим Telegram ID не має ролі майстра.',
+    ADMIN_PANEL_MASTERS_MSG_MASTER_NOT_FOUND_OR_INACTIVE:
+      'Майстра не знайдено серед активних профілів або він уже видалений.',
+    ADMIN_PANEL_MASTERS_MSG_USE_DELETE_CONFIRM_BUTTONS:
+      'ℹ️ Для підтвердження або скасування видалення використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_MASTERS_MSG_DELETE_VALIDATION_FAILED:
+      'Виникла помилка перевірки даних для видалення майстра.',
+    ADMIN_PANEL_MASTERS_MSG_SERVICE_NOT_FOUND_IN_LIST:
+      'Послугу не знайдено в актуальному списку.',
+    ADMIN_PANEL_MASTERS_MSG_SELECT_AT_LEAST_ONE_SERVICE:
+      'Оберіть щонайменше одну послугу для майстра.',
+    ADMIN_PANEL_MASTERS_MSG_DAY_MARKED_OFF: 'День позначено як вихідний.',
+    ADMIN_PANEL_MASTERS_MSG_CREATION_CANCELLED: 'Створення майстра скасовано.',
+    ADMIN_PANEL_MASTERS_MSG_PROFILE_INCOMPLETE:
+      'Профіль майстра заповнено не повністю.',
+    ADMIN_PANEL_MASTERS_MSG_TARGET_USER_NOT_SET:
+      'Не задано користувача для створення майстра.',
+    ADMIN_PANEL_MASTERS_MSG_CREATED_SUCCESS:
+      '✅ Майстра "{name}" успішно створено.\n🆔 Telegram ID: {telegramId}\n💼 Призначено послуг: {servicesCount}',
+    ADMIN_PANEL_MASTERS_MSG_SERVICE_ADDED:
+      'Послугу "{serviceName}" додано майстру.',
+    ADMIN_PANEL_MASTERS_MSG_SERVICE_REMOVED:
+      'Послугу "{serviceName}" вимкнено у майстра.',
+    ADMIN_PANEL_MASTERS_MSG_DELETED_SUCCESS:
+      'Майстра "{name}" успішно видалено з активного списку.',
+    ADMIN_PANEL_MASTERS_MSG_EDIT_VALUE_VALIDATION_FAILED:
+      'Виникла помилка перевірки значення.',
+    ADMIN_PANEL_MASTERS_MSG_USE_EDIT_CONFIRM_BUTTONS:
+      'ℹ️ Для завершення редагування використовуйте кнопки підтвердження під повідомленням.',
+    ADMIN_PANEL_MASTERS_MSG_USE_EDIT_MENU_BUTTONS:
+      'ℹ️ Для редагування профілю майстра використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_MASTERS_MSG_USE_SERVICES_MANAGE_BUTTONS:
+      'ℹ️ Для керування послугами майстра використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_MASTERS_MSG_USE_DELETE_BUTTONS:
+      'ℹ️ Для видалення майстра використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_MASTERS_LABEL_SERVICE_ID: 'id послуги',
+    ADMIN_PANEL_MASTERS_LABEL_WEEKDAY: 'день тижня',
+    ADMIN_PANEL_MASTERS_LABEL_MASTER_ID: 'id майстра',
+    ADMIN_PANEL_MASTERS_LABEL_BOOKING_ID: 'id запису',
+    ADMIN_PANEL_MASTERS_WEEKDAY_1: 'Пн',
+    ADMIN_PANEL_MASTERS_WEEKDAY_2: 'Вт',
+    ADMIN_PANEL_MASTERS_WEEKDAY_3: 'Ср',
+    ADMIN_PANEL_MASTERS_WEEKDAY_4: 'Чт',
+    ADMIN_PANEL_MASTERS_WEEKDAY_5: 'Пт',
+    ADMIN_PANEL_MASTERS_WEEKDAY_6: 'Сб',
+    ADMIN_PANEL_MASTERS_WEEKDAY_7: 'Нд',
+    ADMIN_PANEL_MASTERS_LABEL_DAY_OFF: 'вихідний',
+    ADMIN_PANEL_MASTERS_LABEL_UNKNOWN_DATE: 'невідома дата',
+    ADMIN_PANEL_MASTERS_LABEL_UNKNOWN_CLIENT: 'Клієнт',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_PENDING: '🟡 Очікує підтвердження',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_CONFIRMED: '🟢 Підтверджено',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_COMPLETED: '⚪ Завершено',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_CANCELED: '🔴 Скасовано',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_TRANSFERRED: '🟣 Перенесено',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_TITLE: '📅 Записи майстра',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_EMPTY: '📭 У майстра поки немає записів.',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_PICK: 'Оберіть запис зі списку:',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_PAGE: '📄 Сторінка {current} з {total}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_TITLE: '📄 Картка запису',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_CLIENT: '👤 Клієнт: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_PHONE: '📱 Телефон: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_EMAIL: '✉️ Email: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_SERVICE: '💼 Послуга: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_MASTER: '👩‍🎨 Майстер: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_TIME: '🕒 Час: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_PRICE: '💰 Ціна: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_STATUS: '📌 Статус: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_COMMENT_TITLE: '📝 Коментар клієнта:',
+    ADMIN_PANEL_MASTERS_LABEL_NOT_SPECIFIED: 'Не вказано',
 
     ADMIN_PANEL_SCHEDULE_MENU_TITLE: '🕒 Розклад студії',
     ADMIN_PANEL_SCHEDULE_MENU_DESCRIPTION:
@@ -518,6 +606,94 @@ export const ADMIN_PANEL_DICTIONARY = {
     ADMIN_PANEL_MASTERS_BTN_EDIT_SERVICES_BACK: '⬅️ Back to master edit',
     ADMIN_PANEL_MASTERS_BTN_EDIT_CANCEL: '❌ Cancel editing',
     ADMIN_PANEL_MASTERS_BTN_EDIT_CONFIRM: '✅ Save changes',
+    ADMIN_PANEL_MASTERS_MSG_PICK_WEEKDAY_FIRST: 'Select weekday first.',
+    ADMIN_PANEL_MASTERS_MSG_PICK_DAY_AND_FROM_FIRST: 'Select day and start time first.',
+    ADMIN_PANEL_MASTERS_MSG_TO_AFTER_FROM: 'End time must be later than start time.',
+    ADMIN_PANEL_MASTERS_MSG_WORK_TIME_SAVED: 'Working hours for the day saved successfully.',
+    ADMIN_PANEL_MASTERS_MSG_USE_SERVICES_BUTTONS:
+      'ℹ️ Use buttons below the message to choose services.',
+    ADMIN_PANEL_MASTERS_MSG_USE_SCHEDULE_BUTTONS:
+      'ℹ️ Use buttons below the message to configure schedule.',
+    ADMIN_PANEL_MASTERS_MSG_USE_CONFIRM_BUTTONS:
+      'ℹ️ Use confirmation buttons below the message to finish creation.',
+    ADMIN_PANEL_MASTERS_MSG_USE_CREATE_BUTTONS:
+      'ℹ️ Use buttons below the message to create master profile.',
+    ADMIN_PANEL_MASTERS_MSG_CREATE_VALIDATION_FAILED:
+      'Validation failed while creating master profile.',
+    ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED:
+      'Failed to resolve admin studio.',
+    ADMIN_PANEL_MASTERS_MSG_USER_NOT_FOUND_IN_STUDIO:
+      'User with this Telegram ID was not found in this studio.',
+    ADMIN_PANEL_MASTERS_MSG_USER_NOT_MASTER:
+      'User with this Telegram ID does not have master role.',
+    ADMIN_PANEL_MASTERS_MSG_MASTER_NOT_FOUND_OR_INACTIVE:
+      'Master was not found among active profiles or is already inactive.',
+    ADMIN_PANEL_MASTERS_MSG_USE_DELETE_CONFIRM_BUTTONS:
+      'ℹ️ Use buttons below the message to confirm or cancel deletion.',
+    ADMIN_PANEL_MASTERS_MSG_DELETE_VALIDATION_FAILED:
+      'Validation failed while deleting master.',
+    ADMIN_PANEL_MASTERS_MSG_SERVICE_NOT_FOUND_IN_LIST:
+      'Service was not found in the current list.',
+    ADMIN_PANEL_MASTERS_MSG_SELECT_AT_LEAST_ONE_SERVICE:
+      'Select at least one service for the master.',
+    ADMIN_PANEL_MASTERS_MSG_DAY_MARKED_OFF: 'Day has been marked as day off.',
+    ADMIN_PANEL_MASTERS_MSG_CREATION_CANCELLED: 'Master creation canceled.',
+    ADMIN_PANEL_MASTERS_MSG_PROFILE_INCOMPLETE:
+      'Master profile is not fully completed.',
+    ADMIN_PANEL_MASTERS_MSG_TARGET_USER_NOT_SET:
+      'Target user for master creation is not set.',
+    ADMIN_PANEL_MASTERS_MSG_CREATED_SUCCESS:
+      '✅ Master "{name}" was created successfully.\n🆔 Telegram ID: {telegramId}\n💼 Assigned services: {servicesCount}',
+    ADMIN_PANEL_MASTERS_MSG_SERVICE_ADDED:
+      'Service "{serviceName}" was added to master.',
+    ADMIN_PANEL_MASTERS_MSG_SERVICE_REMOVED:
+      'Service "{serviceName}" was disabled for master.',
+    ADMIN_PANEL_MASTERS_MSG_DELETED_SUCCESS:
+      'Master "{name}" was removed from active list successfully.',
+    ADMIN_PANEL_MASTERS_MSG_EDIT_VALUE_VALIDATION_FAILED:
+      'Validation failed for entered value.',
+    ADMIN_PANEL_MASTERS_MSG_USE_EDIT_CONFIRM_BUTTONS:
+      'ℹ️ Use confirmation buttons below the message to finish editing.',
+    ADMIN_PANEL_MASTERS_MSG_USE_EDIT_MENU_BUTTONS:
+      'ℹ️ Use buttons below the message to edit master profile.',
+    ADMIN_PANEL_MASTERS_MSG_USE_SERVICES_MANAGE_BUTTONS:
+      'ℹ️ Use buttons below the message to manage master services.',
+    ADMIN_PANEL_MASTERS_MSG_USE_DELETE_BUTTONS:
+      'ℹ️ Use buttons below the message to delete master.',
+    ADMIN_PANEL_MASTERS_LABEL_SERVICE_ID: 'service id',
+    ADMIN_PANEL_MASTERS_LABEL_WEEKDAY: 'weekday',
+    ADMIN_PANEL_MASTERS_LABEL_MASTER_ID: 'master id',
+    ADMIN_PANEL_MASTERS_LABEL_BOOKING_ID: 'booking id',
+    ADMIN_PANEL_MASTERS_WEEKDAY_1: 'Mon',
+    ADMIN_PANEL_MASTERS_WEEKDAY_2: 'Tue',
+    ADMIN_PANEL_MASTERS_WEEKDAY_3: 'Wed',
+    ADMIN_PANEL_MASTERS_WEEKDAY_4: 'Thu',
+    ADMIN_PANEL_MASTERS_WEEKDAY_5: 'Fri',
+    ADMIN_PANEL_MASTERS_WEEKDAY_6: 'Sat',
+    ADMIN_PANEL_MASTERS_WEEKDAY_7: 'Sun',
+    ADMIN_PANEL_MASTERS_LABEL_DAY_OFF: 'day off',
+    ADMIN_PANEL_MASTERS_LABEL_UNKNOWN_DATE: 'unknown date',
+    ADMIN_PANEL_MASTERS_LABEL_UNKNOWN_CLIENT: 'Client',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_PENDING: '🟡 Awaiting confirmation',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_CONFIRMED: '🟢 Confirmed',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_COMPLETED: '⚪ Completed',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_CANCELED: '🔴 Canceled',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_TRANSFERRED: '🟣 Transferred',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_TITLE: '📅 Master bookings',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_EMPTY: '📭 This master has no bookings yet.',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_PICK: 'Select a booking from the list:',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_PAGE: '📄 Page {current} of {total}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_TITLE: '📄 Booking card',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_CLIENT: '👤 Client: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_PHONE: '📱 Phone: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_EMAIL: '✉️ Email: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_SERVICE: '💼 Service: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_MASTER: '👩‍🎨 Master: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_TIME: '🕒 Time: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_PRICE: '💰 Price: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_STATUS: '📌 Status: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_COMMENT_TITLE: '📝 Client comment:',
+    ADMIN_PANEL_MASTERS_LABEL_NOT_SPECIFIED: 'Not specified',
 
     ADMIN_PANEL_SCHEDULE_MENU_TITLE: '🕒 Studio schedule',
     ADMIN_PANEL_SCHEDULE_MENU_DESCRIPTION:
@@ -982,6 +1158,99 @@ export const ADMIN_PANEL_DICTIONARY = {
     ADMIN_PANEL_MASTERS_BTN_EDIT_SERVICES_BACK: '⬅️ Zpět na úpravu mistra',
     ADMIN_PANEL_MASTERS_BTN_EDIT_CANCEL: '❌ Zrušit úpravy',
     ADMIN_PANEL_MASTERS_BTN_EDIT_CONFIRM: '✅ Uložit změny',
+    ADMIN_PANEL_MASTERS_MSG_PICK_WEEKDAY_FIRST: 'Nejprve vyberte den týdne.',
+    ADMIN_PANEL_MASTERS_MSG_PICK_DAY_AND_FROM_FIRST:
+      'Nejprve vyberte den a zadejte čas začátku.',
+    ADMIN_PANEL_MASTERS_MSG_TO_AFTER_FROM:
+      'Čas konce musí být později než čas začátku.',
+    ADMIN_PANEL_MASTERS_MSG_WORK_TIME_SAVED:
+      'Pracovní čas pro den byl úspěšně uložen.',
+    ADMIN_PANEL_MASTERS_MSG_USE_SERVICES_BUTTONS:
+      'ℹ️ Pro výběr služeb použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_MASTERS_MSG_USE_SCHEDULE_BUTTONS:
+      'ℹ️ Pro nastavení rozvrhu použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_MASTERS_MSG_USE_CONFIRM_BUTTONS:
+      'ℹ️ Pro dokončení vytvoření použijte potvrzovací tlačítka pod zprávou.',
+    ADMIN_PANEL_MASTERS_MSG_USE_CREATE_BUTTONS:
+      'ℹ️ Pro vytvoření mistra použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_MASTERS_MSG_CREATE_VALIDATION_FAILED:
+      'Při ověření dat pro vytvoření mistra došlo k chybě.',
+    ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED:
+      'Nepodařilo se určit studio administrátora.',
+    ADMIN_PANEL_MASTERS_MSG_USER_NOT_FOUND_IN_STUDIO:
+      'Uživatel s tímto Telegram ID nebyl v tomto studiu nalezen.',
+    ADMIN_PANEL_MASTERS_MSG_USER_NOT_MASTER:
+      'Uživatel s tímto Telegram ID nemá roli mistra.',
+    ADMIN_PANEL_MASTERS_MSG_MASTER_NOT_FOUND_OR_INACTIVE:
+      'Mistr nebyl nalezen mezi aktivními profily nebo je již neaktivní.',
+    ADMIN_PANEL_MASTERS_MSG_USE_DELETE_CONFIRM_BUTTONS:
+      'ℹ️ Pro potvrzení nebo zrušení smazání použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_MASTERS_MSG_DELETE_VALIDATION_FAILED:
+      'Při ověření dat pro smazání mistra došlo k chybě.',
+    ADMIN_PANEL_MASTERS_MSG_SERVICE_NOT_FOUND_IN_LIST:
+      'Služba nebyla nalezena v aktuálním seznamu.',
+    ADMIN_PANEL_MASTERS_MSG_SELECT_AT_LEAST_ONE_SERVICE:
+      'Vyberte pro mistra alespoň jednu službu.',
+    ADMIN_PANEL_MASTERS_MSG_DAY_MARKED_OFF:
+      'Den byl označen jako volno.',
+    ADMIN_PANEL_MASTERS_MSG_CREATION_CANCELLED:
+      'Vytváření mistra bylo zrušeno.',
+    ADMIN_PANEL_MASTERS_MSG_PROFILE_INCOMPLETE:
+      'Profil mistra není vyplněn kompletně.',
+    ADMIN_PANEL_MASTERS_MSG_TARGET_USER_NOT_SET:
+      'Není nastaven uživatel pro vytvoření mistra.',
+    ADMIN_PANEL_MASTERS_MSG_CREATED_SUCCESS:
+      '✅ Mistr "{name}" byl úspěšně vytvořen.\n🆔 Telegram ID: {telegramId}\n💼 Přiřazené služby: {servicesCount}',
+    ADMIN_PANEL_MASTERS_MSG_SERVICE_ADDED:
+      'Služba "{serviceName}" byla přidána mistrovi.',
+    ADMIN_PANEL_MASTERS_MSG_SERVICE_REMOVED:
+      'Služba "{serviceName}" byla u mistra vypnuta.',
+    ADMIN_PANEL_MASTERS_MSG_DELETED_SUCCESS:
+      'Mistr "{name}" byl úspěšně odstraněn z aktivního seznamu.',
+    ADMIN_PANEL_MASTERS_MSG_EDIT_VALUE_VALIDATION_FAILED:
+      'Při ověření hodnoty došlo k chybě.',
+    ADMIN_PANEL_MASTERS_MSG_USE_EDIT_CONFIRM_BUTTONS:
+      'ℹ️ Pro dokončení úprav použijte potvrzovací tlačítka pod zprávou.',
+    ADMIN_PANEL_MASTERS_MSG_USE_EDIT_MENU_BUTTONS:
+      'ℹ️ Pro úpravu profilu mistra použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_MASTERS_MSG_USE_SERVICES_MANAGE_BUTTONS:
+      'ℹ️ Pro správu služeb mistra použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_MASTERS_MSG_USE_DELETE_BUTTONS:
+      'ℹ️ Pro smazání mistra použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_MASTERS_LABEL_SERVICE_ID: 'id služby',
+    ADMIN_PANEL_MASTERS_LABEL_WEEKDAY: 'den týdne',
+    ADMIN_PANEL_MASTERS_LABEL_MASTER_ID: 'id mistra',
+    ADMIN_PANEL_MASTERS_LABEL_BOOKING_ID: 'id rezervace',
+    ADMIN_PANEL_MASTERS_WEEKDAY_1: 'Po',
+    ADMIN_PANEL_MASTERS_WEEKDAY_2: 'Út',
+    ADMIN_PANEL_MASTERS_WEEKDAY_3: 'St',
+    ADMIN_PANEL_MASTERS_WEEKDAY_4: 'Čt',
+    ADMIN_PANEL_MASTERS_WEEKDAY_5: 'Pá',
+    ADMIN_PANEL_MASTERS_WEEKDAY_6: 'So',
+    ADMIN_PANEL_MASTERS_WEEKDAY_7: 'Ne',
+    ADMIN_PANEL_MASTERS_LABEL_DAY_OFF: 'volno',
+    ADMIN_PANEL_MASTERS_LABEL_UNKNOWN_DATE: 'neznámé datum',
+    ADMIN_PANEL_MASTERS_LABEL_UNKNOWN_CLIENT: 'Klient',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_PENDING: '🟡 Čeká na potvrzení',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_CONFIRMED: '🟢 Potvrzeno',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_COMPLETED: '⚪ Dokončeno',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_CANCELED: '🔴 Zrušeno',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_TRANSFERRED: '🟣 Přesunuto',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_TITLE: '📅 Rezervace mistra',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_EMPTY: '📭 Tento mistr zatím nemá žádné rezervace.',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_PICK: 'Vyberte rezervaci ze seznamu:',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_PAGE: '📄 Strana {current} z {total}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_TITLE: '📄 Karta rezervace',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_CLIENT: '👤 Klient: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_PHONE: '📱 Telefon: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_EMAIL: '✉️ Email: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_SERVICE: '💼 Služba: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_MASTER: '👩‍🎨 Mistr: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_TIME: '🕒 Čas: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_PRICE: '💰 Cena: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_STATUS: '📌 Stav: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_COMMENT_TITLE: '📝 Komentář klienta:',
+    ADMIN_PANEL_MASTERS_LABEL_NOT_SPECIFIED: 'Neuvedeno',
 
     ADMIN_PANEL_SCHEDULE_MENU_TITLE: '🕒 Rozvrh salonu',
     ADMIN_PANEL_SCHEDULE_MENU_DESCRIPTION:
