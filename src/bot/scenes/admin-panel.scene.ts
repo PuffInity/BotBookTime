@@ -1119,7 +1119,7 @@ async function renderScheduleMenu(ctx: MyContext): Promise<void> {
 async function loadAdminSchedule(state: AdminPanelSceneState): Promise<AdminStudioScheduleData> {
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const data = await getAdminStudioSchedule(studioId, 12);
@@ -2644,8 +2644,8 @@ async function renderAdminStatsOverview(ctx: MyContext, preferEdit: boolean): Pr
   state.statsSelectedServiceId = null;
   state.statsServiceDetails = null;
 
-  const text = formatAdminStatsOverviewText(overview);
-  const keyboard = createAdminStatsOverviewKeyboard();
+  const text = formatAdminStatsOverviewText(overview, state.language);
+  const keyboard = createAdminStatsOverviewKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2667,7 +2667,7 @@ async function renderAdminStatsMastersList(
   const state = getSceneState(ctx);
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const feed = await listAdminPanelStatsMastersFeed({
@@ -2688,8 +2688,8 @@ async function renderAdminStatsMastersList(
   state.statsSelectedClientId = null;
   state.statsClientDetails = null;
 
-  const text = formatAdminStatsMastersListText(feed);
-  const keyboard = createAdminStatsMastersListKeyboard(feed);
+  const text = formatAdminStatsMastersListText(feed, state.language);
+  const keyboard = createAdminStatsMastersListKeyboard(feed, state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2711,7 +2711,7 @@ async function renderAdminStatsMasterDetails(
   const state = getSceneState(ctx);
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const details = await getAdminPanelStatsMasterDetails({ studioId, masterId });
@@ -2727,8 +2727,8 @@ async function renderAdminStatsMasterDetails(
   state.statsSelectedClientId = null;
   state.statsClientDetails = null;
 
-  const text = formatAdminStatsMasterDetailsText(details);
-  const keyboard = createAdminStatsMasterDetailsKeyboard();
+  const text = formatAdminStatsMasterDetailsText(details, state.language);
+  const keyboard = createAdminStatsMasterDetailsKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2750,7 +2750,7 @@ async function renderAdminStatsServicesList(
   const state = getSceneState(ctx);
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const feed = await listAdminPanelStatsServicesFeed({
@@ -2771,8 +2771,8 @@ async function renderAdminStatsServicesList(
   state.statsSelectedClientId = null;
   state.statsClientDetails = null;
 
-  const text = formatAdminStatsServicesListText(feed);
-  const keyboard = createAdminStatsServicesListKeyboard(feed);
+  const text = formatAdminStatsServicesListText(feed, state.language);
+  const keyboard = createAdminStatsServicesListKeyboard(feed, state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2794,7 +2794,7 @@ async function renderAdminStatsServiceDetails(
   const state = getSceneState(ctx);
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const details = await getAdminPanelStatsServiceDetails({ studioId, serviceId });
@@ -2810,8 +2810,8 @@ async function renderAdminStatsServiceDetails(
   state.statsSelectedClientId = null;
   state.statsClientDetails = null;
 
-  const text = formatAdminStatsServiceDetailsText(details);
-  const keyboard = createAdminStatsServiceDetailsKeyboard();
+  const text = formatAdminStatsServiceDetailsText(details, state.language);
+  const keyboard = createAdminStatsServiceDetailsKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2833,7 +2833,7 @@ async function renderAdminStatsMonthlyList(
   const state = getSceneState(ctx);
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const feed = await listAdminPanelStatsMonthlyFeed({
@@ -2853,8 +2853,8 @@ async function renderAdminStatsMonthlyList(
   state.statsSelectedClientId = null;
   state.statsClientDetails = null;
 
-  const text = formatAdminStatsMonthlyListText(feed);
-  const keyboard = createAdminStatsMonthlyListKeyboard(feed);
+  const text = formatAdminStatsMonthlyListText(feed, state.language);
+  const keyboard = createAdminStatsMonthlyListKeyboard(feed, state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2876,7 +2876,7 @@ async function renderAdminStatsMonthlyReportDetails(
   const state = getSceneState(ctx);
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const details = await getAdminPanelStatsMonthlyReportDetails({ studioId, monthCode });
@@ -2891,8 +2891,8 @@ async function renderAdminStatsMonthlyReportDetails(
   state.statsSelectedClientId = null;
   state.statsClientDetails = null;
 
-  const text = formatAdminStatsMonthlyReportDetailsText(details);
-  const keyboard = createAdminStatsMonthlyReportDetailsKeyboard();
+  const text = formatAdminStatsMonthlyReportDetailsText(details, state.language);
+  const keyboard = createAdminStatsMonthlyReportDetailsKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2914,7 +2914,7 @@ async function renderAdminStatsClientsList(
   const state = getSceneState(ctx);
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const feed = await listAdminPanelStatsClientsFeed({
@@ -2934,8 +2934,8 @@ async function renderAdminStatsClientsList(
   state.statsSelectedMonthCode = null;
   state.statsMonthlyReportDetails = null;
 
-  const text = formatAdminStatsClientsListText(feed);
-  const keyboard = createAdminStatsClientsListKeyboard(feed);
+  const text = formatAdminStatsClientsListText(feed, state.language);
+  const keyboard = createAdminStatsClientsListKeyboard(feed, state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -2957,7 +2957,7 @@ async function renderAdminStatsClientDetails(
   const state = getSceneState(ctx);
   const studioId = state.access?.studioId;
   if (!studioId) {
-    throw new ValidationError('Не вдалося визначити студію адміністратора');
+    throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
   }
 
   const details = await getAdminPanelStatsClientDetails({ studioId, clientId });
@@ -2972,8 +2972,8 @@ async function renderAdminStatsClientDetails(
   state.statsSelectedMonthCode = null;
   state.statsMonthlyReportDetails = null;
 
-  const text = formatAdminStatsClientDetailsText(details);
-  const keyboard = createAdminStatsClientDetailsKeyboard();
+  const text = formatAdminStatsClientDetailsText(details, state.language);
+  const keyboard = createAdminStatsClientDetailsKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -6195,12 +6195,12 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     try {
       await ctx.editMessageText(
-        formatAdminStatsMasterDetailsText(stats),
+        formatAdminStatsMasterDetailsText(stats, state.language),
         createAdminMasterDetailsKeyboard(masterId, state.language),
       );
     } catch {
       await ctx.reply(
-        formatAdminStatsMasterDetailsText(stats),
+        formatAdminStatsMasterDetailsText(stats, state.language),
         createAdminMasterDetailsKeyboard(masterId, state.language),
       );
     }
@@ -7463,13 +7463,13 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const state = getSceneState(ctx);
     const studioId = state.access?.studioId;
     if (!studioId) {
-      throw new ValidationError('Не вдалося визначити студію адміністратора');
+      throw new ValidationError(tBot(state.language, 'ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED'));
     }
 
     const serviceId = parseNumericIdFromAction(
       ctx,
       ADMIN_PANEL_SERVICES_OPEN_STATS_ACTION_REGEX,
-      'id послуги',
+      tBot(state.language, 'ADMIN_PANEL_MASTERS_LABEL_SERVICE_ID'),
     );
 
     let stats: AdminPanelStatsServiceDetails;
@@ -7490,12 +7490,12 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
     try {
       await ctx.editMessageText(
-        formatAdminStatsServiceDetailsText(stats),
+        formatAdminStatsServiceDetailsText(stats, state.language),
         createAdminServiceDetailsKeyboard(serviceId),
       );
     } catch {
       await ctx.reply(
-        formatAdminStatsServiceDetailsText(stats),
+        formatAdminStatsServiceDetailsText(stats, state.language),
         createAdminServiceDetailsKeyboard(serviceId),
       );
     }
@@ -7613,7 +7613,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     const serviceId = parseNumericIdFromAction(
       ctx,
       ADMIN_PANEL_STATS_SERVICES_OPEN_ACTION_REGEX,
-      'id послуги',
+      tBot(state.language, 'ADMIN_PANEL_MASTERS_LABEL_SERVICE_ID'),
     );
 
     try {

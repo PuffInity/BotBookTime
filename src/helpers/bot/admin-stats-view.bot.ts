@@ -1,7 +1,6 @@
 import { Markup } from 'telegraf';
 import {
   ADMIN_PANEL_ACTION,
-  ADMIN_PANEL_BUTTON_TEXT,
   makeAdminPanelStatsClientsOpenAction,
   makeAdminPanelStatsMastersOpenAction,
   makeAdminPanelStatsMonthlyOpenAction,
@@ -18,11 +17,19 @@ import type {
   AdminPanelStatsServiceDetails,
   AdminPanelStatsServicesFeedPage,
 } from '../../types/db-helpers/db-admin-stats.types.js';
+import { tBot, tBotTemplate } from './i18n.bot.js';
+import type { BotUiLanguage } from './i18n.bot.js';
 
 /**
  * @file admin-stats-view.bot.ts
  * @summary UI/helper-и для блоку "Статистика" в адмін-панелі.
  */
+
+function resolveLocale(language: BotUiLanguage): string {
+  if (language === 'en') return 'en-US';
+  if (language === 'cs') return 'cs-CZ';
+  return 'uk-UA';
+}
 
 function formatMoney(value: number, currencyCode: string): string {
   const rounded = Number.isFinite(value) ? value : 0;
@@ -30,9 +37,9 @@ function formatMoney(value: number, currencyCode: string): string {
   return `${normalized} ${currencyCode}`;
 }
 
-function formatDate(value: Date | null): string {
-  if (!value) return '—';
-  return new Intl.DateTimeFormat('uk-UA', {
+function formatDate(value: Date | null, language: BotUiLanguage): string {
+  if (!value) return tBot(language, 'ADMIN_PANEL_STATS_LABEL_DASH');
+  return new Intl.DateTimeFormat(resolveLocale(language), {
     timeZone: 'Europe/Prague',
     day: '2-digit',
     month: '2-digit',
@@ -40,7 +47,7 @@ function formatDate(value: Date | null): string {
   }).format(value);
 }
 
-function formatMonthCode(monthCode: string): string {
+function formatMonthCode(monthCode: string, language: BotUiLanguage): string {
   const match = monthCode.match(/^(\d{4})(\d{2})$/);
   if (!match) return monthCode;
 
@@ -51,7 +58,7 @@ function formatMonthCode(monthCode: string): string {
   }
 
   const date = new Date(year, month - 1, 1);
-  const monthLabel = new Intl.DateTimeFormat('uk-UA', {
+  const monthLabel = new Intl.DateTimeFormat(resolveLocale(language), {
     month: 'long',
     year: 'numeric',
     timeZone: 'Europe/Prague',
@@ -66,58 +73,57 @@ function getNumberBadge(index: number): string {
   return NUMBER_BADGES[index] ?? `${index + 1}.`;
 }
 
-/**
- * @summary Форматує оглядову статистику салону.
- */
-export function formatAdminStatsOverviewText(data: AdminPanelStatsOverview): string {
+export function formatAdminStatsOverviewText(
+  data: AdminPanelStatsOverview,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '📊 Статистика салону\n' +
+    `${tBot(language, 'ADMIN_PANEL_STATS_OVERVIEW_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    '💵 Глобальний дохід\n' +
-    `📅 За місяць: ${formatMoney(data.grossMonth, data.currencyCode)}\n` +
-    `📅 За 3 місяці: ${formatMoney(data.gross3m, data.currencyCode)}\n` +
-    `📅 За пів року: ${formatMoney(data.gross6m, data.currencyCode)}\n` +
-    `📅 За рік: ${formatMoney(data.grossYear, data.currencyCode)}\n\n` +
-    '🏢 Дохід салону (15%)\n' +
-    `📅 За місяць: ${formatMoney(data.salonMonth, data.currencyCode)}\n` +
-    `📅 За 3 місяці: ${formatMoney(data.salon3m, data.currencyCode)}\n` +
-    `📅 За пів року: ${formatMoney(data.salon6m, data.currencyCode)}\n` +
-    `📅 За рік: ${formatMoney(data.salonYear, data.currencyCode)}\n\n` +
-    '📈 Поточний місяць\n' +
-    `📋 Завершено процедур: ${data.completedProceduresMonth}\n` +
-    `👥 Унікальних клієнтів: ${data.uniqueClientsMonth}\n` +
-    `💳 Середній чек: ${formatMoney(data.avgCheckMonth, data.currencyCode)}\n\n` +
-    'Оберіть розділ для детального перегляду.'
+    `${tBot(language, 'ADMIN_PANEL_STATS_OVERVIEW_SECTION_GLOBAL')}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_MONTH', { value: formatMoney(data.grossMonth, data.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_3M', { value: formatMoney(data.gross3m, data.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_6M', { value: formatMoney(data.gross6m, data.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_YEAR', { value: formatMoney(data.grossYear, data.currencyCode) })}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_STATS_OVERVIEW_SECTION_SALON')}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_MONTH', { value: formatMoney(data.salonMonth, data.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_3M', { value: formatMoney(data.salon3m, data.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_6M', { value: formatMoney(data.salon6m, data.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_YEAR', { value: formatMoney(data.salonYear, data.currencyCode) })}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_STATS_OVERVIEW_SECTION_CURRENT_MONTH')}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_COMPLETED', { value: data.completedProceduresMonth })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_UNIQUE_CLIENTS', { value: data.uniqueClientsMonth })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_AVG_CHECK', { value: formatMoney(data.avgCheckMonth, data.currencyCode) })}\n\n` +
+    tBot(language, 'ADMIN_PANEL_STATS_OVERVIEW_HINT')
   );
 }
 
-/**
- * @summary Клавіатура оглядової статистики.
- */
-export function createAdminStatsOverviewKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminStatsOverviewKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_MASTERS, ADMIN_PANEL_ACTION.STATS_OPEN_MASTERS),
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_SERVICES, ADMIN_PANEL_ACTION.STATS_OPEN_SERVICES),
+      Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_MASTERS'), ADMIN_PANEL_ACTION.STATS_OPEN_MASTERS),
+      Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_SERVICES'), ADMIN_PANEL_ACTION.STATS_OPEN_SERVICES),
     ],
     [
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_MONTHLY, ADMIN_PANEL_ACTION.STATS_OPEN_MONTHLY),
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_CLIENTS, ADMIN_PANEL_ACTION.STATS_OPEN_CLIENTS),
+      Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_MONTHLY'), ADMIN_PANEL_ACTION.STATS_OPEN_MONTHLY),
+      Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_CLIENTS'), ADMIN_PANEL_ACTION.STATS_OPEN_CLIENTS),
     ],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK, ADMIN_PANEL_ACTION.STATS_BACK)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.HOME, ADMIN_PANEL_ACTION.HOME)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_BACK'), ADMIN_PANEL_ACTION.STATS_BACK)],
+    [Markup.button.callback(tBot(language, 'HOME'), ADMIN_PANEL_ACTION.HOME)],
   ]);
 }
 
-/**
- * @summary Текст списку статистики майстрів.
- */
-export function formatAdminStatsMastersListText(page: AdminPanelStatsMastersFeedPage): string {
+export function formatAdminStatsMastersListText(
+  page: AdminPanelStatsMastersFeedPage,
+  language: BotUiLanguage = 'uk',
+): string {
   if (page.items.length === 0) {
     return (
-      '👩‍🎨 Статистика майстрів\n' +
+      `${tBot(language, 'ADMIN_PANEL_STATS_MASTERS_LIST_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
-      'За поточний місяць даних поки немає.'
+      tBot(language, 'ADMIN_PANEL_STATS_MASTERS_LIST_EMPTY')
     );
   }
 
@@ -125,9 +131,12 @@ export function formatAdminStatsMastersListText(page: AdminPanelStatsMastersFeed
     const number = getNumberBadge(index + page.offset);
     return (
       `${number} ${item.displayName}\n` +
-      `💰 Дохід: ${formatMoney(item.grossMonth, item.currencyCode)}\n` +
-      `🏢 Частка салону: ${formatMoney(item.salonMonth, item.currencyCode)}\n` +
-      `📋 Процедур: ${item.completedProceduresMonth} • 👥 Клієнтів: ${item.clientsServedMonth}`
+      `${tBotTemplate(language, 'ADMIN_PANEL_STATS_ROW_INCOME', { value: formatMoney(item.grossMonth, item.currencyCode) })}\n` +
+      `${tBotTemplate(language, 'ADMIN_PANEL_STATS_ROW_SALON_SHARE', { value: formatMoney(item.salonMonth, item.currencyCode) })}\n` +
+      tBotTemplate(language, 'ADMIN_PANEL_STATS_ROW_PROCEDURES_CLIENTS', {
+        procedures: item.completedProceduresMonth,
+        clients: item.clientsServedMonth,
+      })
     );
   });
 
@@ -135,18 +144,16 @@ export function formatAdminStatsMastersListText(page: AdminPanelStatsMastersFeed
   const pagesTotal = Math.max(1, Math.ceil(page.total / page.limit));
 
   return (
-    '👩‍🎨 Статистика майстрів\n' +
+    `${tBot(language, 'ADMIN_PANEL_STATS_MASTERS_LIST_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
     lines.join('\n\n') +
-    `\n\n📄 Сторінка ${currentPage} з ${pagesTotal}`
+    `\n\n${tBotTemplate(language, 'ADMIN_PANEL_STATS_PAGINATION', { current: currentPage, total: pagesTotal })}`
   );
 }
 
-/**
- * @summary Клавіатура списку статистики майстрів.
- */
 export function createAdminStatsMastersListKeyboard(
   page: AdminPanelStatsMastersFeedPage,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const masterButtons = page.items.map((item, index) => [
     Markup.button.callback(
@@ -157,85 +164,81 @@ export function createAdminStatsMastersListKeyboard(
 
   const pagingRow = [];
   if (page.hasPrevPage) {
-    pagingRow.push(
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_PREV_PAGE, ADMIN_PANEL_ACTION.STATS_MASTERS_PREV_PAGE),
-    );
+    pagingRow.push(Markup.button.callback(tBot(language, 'ADMIN_PANEL_BTN_PREV'), ADMIN_PANEL_ACTION.STATS_MASTERS_PREV_PAGE));
   }
   if (page.hasNextPage) {
-    pagingRow.push(
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_NEXT_PAGE, ADMIN_PANEL_ACTION.STATS_MASTERS_NEXT_PAGE),
-    );
+    pagingRow.push(Markup.button.callback(tBot(language, 'ADMIN_PANEL_BTN_NEXT'), ADMIN_PANEL_ACTION.STATS_MASTERS_NEXT_PAGE));
   }
 
   return Markup.inlineKeyboard([
     ...masterButtons,
     ...(pagingRow.length > 0 ? [pagingRow] : []),
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK_TO_OVERVIEW, ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK, ADMIN_PANEL_ACTION.STATS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_BACK_TO_OVERVIEW'), ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_BACK'), ADMIN_PANEL_ACTION.STATS_BACK)],
   ]);
 }
 
-/**
- * @summary Текст детальної статистики конкретного майстра.
- */
 export function formatAdminStatsMasterDetailsText(
   details: AdminPanelStatsMasterDetails,
+  language: BotUiLanguage = 'uk',
 ): string {
   const topServices =
     details.topServices.length > 0
       ? details.topServices
           .map((item, index) => `${getNumberBadge(index)} ${item.serviceName} — ${item.completedCount}`)
           .join('\n')
-      : 'Немає даних';
+      : tBot(language, 'ADMIN_PANEL_STATS_NO_DATA');
 
   return (
-    '👩‍🎨 Деталі статистики майстра\n' +
+    `${tBot(language, 'ADMIN_PANEL_STATS_MASTER_DETAILS_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👤 ${details.displayName}\n` +
-    `🪪 ID: ${details.masterId}\n\n` +
-    '💰 Фінанси\n' +
-    `📅 Місяць: ${formatMoney(details.grossMonth, details.currencyCode)}\n` +
-    `📅 3 місяці: ${formatMoney(details.gross3m, details.currencyCode)}\n` +
-    `📅 Пів року: ${formatMoney(details.gross6m, details.currencyCode)}\n` +
-    `📅 Рік: ${formatMoney(details.grossYear, details.currencyCode)}\n` +
-    `🏢 Частка салону (місяць): ${formatMoney(details.salonMonth, details.currencyCode)}\n` +
-    `💳 Середній чек: ${formatMoney(details.avgCheck, details.currencyCode)}\n\n` +
-    '📈 Активність (поточний місяць)\n' +
-    `📋 Завершено процедур: ${details.completedProceduresMonth}\n` +
-    `👥 Клієнтів: ${details.clientsServedMonth}\n` +
-    `📊 Завантаженість: ${details.workloadPercentMonth}%\n` +
-    `🔁 Повторні клієнти: ${details.repeatClientsPercentMonth}%\n` +
-    `🆕 Нові клієнти: ${details.newClientsMonth}\n` +
-    `📅 Записів цього тижня: ${details.bookingsThisWeek}\n` +
-    `📅 Записів сьогодні: ${details.bookingsToday}\n\n` +
-    '💼 ТОП послуги (місяць)\n' +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MASTER_DETAILS_NAME', { value: details.displayName })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_LABEL_ID_ROW', { value: details.masterId })}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_STATS_SECTION_FINANCE')}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_MONTH', { value: formatMoney(details.grossMonth, details.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_3M', { value: formatMoney(details.gross3m, details.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_6M', { value: formatMoney(details.gross6m, details.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_YEAR', { value: formatMoney(details.grossYear, details.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MASTER_DETAILS_SALON_MONTH', { value: formatMoney(details.salonMonth, details.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MASTER_DETAILS_AVG_CHECK', { value: formatMoney(details.avgCheck, details.currencyCode) })}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_STATS_SECTION_ACTIVITY')}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MASTER_DETAILS_COMPLETED', { value: details.completedProceduresMonth })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MASTER_DETAILS_CLIENTS', { value: details.clientsServedMonth })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MASTER_DETAILS_WORKLOAD', { value: details.workloadPercentMonth })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MASTER_DETAILS_REPEAT', { value: details.repeatClientsPercentMonth })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MASTER_DETAILS_NEW_CLIENTS', { value: details.newClientsMonth })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MASTER_DETAILS_WEEK', { value: details.bookingsThisWeek })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MASTER_DETAILS_TODAY', { value: details.bookingsToday })}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_STATS_MASTER_DETAILS_TOP_SERVICES')}\n` +
     `${topServices}\n\n` +
-    `🏆 Найприбутковіша послуга: ${details.bestServiceName ?? '—'}\n` +
-    `💸 Дохід по ній: ${formatMoney(details.bestServiceAmount, details.currencyCode)}\n` +
-    `📅 Найкращий місяць: ${formatDate(details.bestMonthStart)} (${formatMoney(details.bestMonthAmount, details.currencyCode)})`
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MASTER_DETAILS_BEST_SERVICE', { value: details.bestServiceName ?? tBot(language, 'ADMIN_PANEL_STATS_LABEL_DASH') })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MASTER_DETAILS_BEST_SERVICE_AMOUNT', { value: formatMoney(details.bestServiceAmount, details.currencyCode) })}\n` +
+    tBotTemplate(language, 'ADMIN_PANEL_STATS_MASTER_DETAILS_BEST_MONTH', {
+      month: formatDate(details.bestMonthStart, language),
+      value: formatMoney(details.bestMonthAmount, details.currencyCode),
+    })
   );
 }
 
-/**
- * @summary Клавіатура детальної статистики майстра.
- */
-export function createAdminStatsMasterDetailsKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminStatsMasterDetailsKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_MASTERS_BACK_TO_LIST, ADMIN_PANEL_ACTION.STATS_MASTERS_BACK_TO_LIST)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK_TO_OVERVIEW, ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK, ADMIN_PANEL_ACTION.STATS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_MASTERS_BACK_TO_LIST'), ADMIN_PANEL_ACTION.STATS_MASTERS_BACK_TO_LIST)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_BACK_TO_OVERVIEW'), ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_BACK'), ADMIN_PANEL_ACTION.STATS_BACK)],
   ]);
 }
 
-/**
- * @summary Текст списку статистики послуг.
- */
-export function formatAdminStatsServicesListText(page: AdminPanelStatsServicesFeedPage): string {
+export function formatAdminStatsServicesListText(
+  page: AdminPanelStatsServicesFeedPage,
+  language: BotUiLanguage = 'uk',
+): string {
   if (page.items.length === 0) {
     return (
-      '💼 Статистика послуг\n' +
+      `${tBot(language, 'ADMIN_PANEL_STATS_SERVICES_LIST_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
-      'За поточний місяць активних даних поки немає.'
+      tBot(language, 'ADMIN_PANEL_STATS_SERVICES_LIST_EMPTY')
     );
   }
 
@@ -243,9 +246,12 @@ export function formatAdminStatsServicesListText(page: AdminPanelStatsServicesFe
     const number = getNumberBadge(index + page.offset);
     return (
       `${number} ${item.serviceName}\n` +
-      `💰 Дохід: ${formatMoney(item.grossMonth, item.currencyCode)}\n` +
-      `🏢 Частка салону: ${formatMoney(item.salonMonth, item.currencyCode)}\n` +
-      `📋 Процедур: ${item.completedProceduresMonth} • 👥 Клієнтів: ${item.clientsServedMonth}`
+      `${tBotTemplate(language, 'ADMIN_PANEL_STATS_ROW_INCOME', { value: formatMoney(item.grossMonth, item.currencyCode) })}\n` +
+      `${tBotTemplate(language, 'ADMIN_PANEL_STATS_ROW_SALON_SHARE', { value: formatMoney(item.salonMonth, item.currencyCode) })}\n` +
+      tBotTemplate(language, 'ADMIN_PANEL_STATS_ROW_PROCEDURES_CLIENTS', {
+        procedures: item.completedProceduresMonth,
+        clients: item.clientsServedMonth,
+      })
     );
   });
 
@@ -253,18 +259,16 @@ export function formatAdminStatsServicesListText(page: AdminPanelStatsServicesFe
   const pagesTotal = Math.max(1, Math.ceil(page.total / page.limit));
 
   return (
-    '💼 Статистика послуг\n' +
+    `${tBot(language, 'ADMIN_PANEL_STATS_SERVICES_LIST_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
     lines.join('\n\n') +
-    `\n\n📄 Сторінка ${currentPage} з ${pagesTotal}`
+    `\n\n${tBotTemplate(language, 'ADMIN_PANEL_STATS_PAGINATION', { current: currentPage, total: pagesTotal })}`
   );
 }
 
-/**
- * @summary Клавіатура списку статистики послуг.
- */
 export function createAdminStatsServicesListKeyboard(
   page: AdminPanelStatsServicesFeedPage,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const serviceButtons = page.items.map((item, index) => [
     Markup.button.callback(
@@ -275,89 +279,82 @@ export function createAdminStatsServicesListKeyboard(
 
   const pagingRow = [];
   if (page.hasPrevPage) {
-    pagingRow.push(
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_PREV_PAGE, ADMIN_PANEL_ACTION.STATS_SERVICES_PREV_PAGE),
-    );
+    pagingRow.push(Markup.button.callback(tBot(language, 'ADMIN_PANEL_BTN_PREV'), ADMIN_PANEL_ACTION.STATS_SERVICES_PREV_PAGE));
   }
   if (page.hasNextPage) {
-    pagingRow.push(
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_NEXT_PAGE, ADMIN_PANEL_ACTION.STATS_SERVICES_NEXT_PAGE),
-    );
+    pagingRow.push(Markup.button.callback(tBot(language, 'ADMIN_PANEL_BTN_NEXT'), ADMIN_PANEL_ACTION.STATS_SERVICES_NEXT_PAGE));
   }
 
   return Markup.inlineKeyboard([
     ...serviceButtons,
     ...(pagingRow.length > 0 ? [pagingRow] : []),
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK_TO_OVERVIEW, ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK, ADMIN_PANEL_ACTION.STATS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_BACK_TO_OVERVIEW'), ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_BACK'), ADMIN_PANEL_ACTION.STATS_BACK)],
   ]);
 }
 
-/**
- * @summary Текст детальної статистики конкретної послуги.
- */
 export function formatAdminStatsServiceDetailsText(
   details: AdminPanelStatsServiceDetails,
+  language: BotUiLanguage = 'uk',
 ): string {
   const topMasters =
     details.topMasters.length > 0
       ? details.topMasters
           .map((item, index) => `${getNumberBadge(index)} ${item.displayName} — ${item.completedCount}`)
           .join('\n')
-      : 'Немає даних';
+      : tBot(language, 'ADMIN_PANEL_STATS_NO_DATA');
 
   return (
-    '💼 Деталі статистики послуги\n' +
+    `${tBot(language, 'ADMIN_PANEL_STATS_SERVICE_DETAILS_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `🧾 Назва: ${details.serviceName}\n` +
-    `🪪 ID: ${details.serviceId}\n` +
-    `⏱ Тривалість: ${details.durationMinutes} хв\n` +
-    `💵 Базова ціна: ${formatMoney(details.basePrice, details.currencyCode)}\n\n` +
-    '💰 Фінанси\n' +
-    `📅 Місяць: ${formatMoney(details.grossMonth, details.currencyCode)}\n` +
-    `📅 3 місяці: ${formatMoney(details.gross3m, details.currencyCode)}\n` +
-    `📅 Пів року: ${formatMoney(details.gross6m, details.currencyCode)}\n` +
-    `📅 Рік: ${formatMoney(details.grossYear, details.currencyCode)}\n` +
-    `🏢 Частка салону (місяць): ${formatMoney(details.salonMonth, details.currencyCode)}\n` +
-    `💳 Середній чек (місяць): ${formatMoney(details.avgCheckMonth, details.currencyCode)}\n\n` +
-    '📈 Поточний місяць\n' +
-    `📋 Завершено процедур: ${details.completedProceduresMonth}\n` +
-    `👥 Унікальних клієнтів: ${details.clientsServedMonth}\n\n` +
-    '👩‍🎨 Топ майстри по послузі\n' +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_SERVICE_DETAILS_NAME', { value: details.serviceName })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_LABEL_ID_ROW', { value: details.serviceId })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_SERVICE_DETAILS_DURATION', { value: details.durationMinutes })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_SERVICE_DETAILS_BASE_PRICE', { value: formatMoney(details.basePrice, details.currencyCode) })}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_STATS_SECTION_FINANCE')}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_MONTH', { value: formatMoney(details.grossMonth, details.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_3M', { value: formatMoney(details.gross3m, details.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_6M', { value: formatMoney(details.gross6m, details.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_YEAR', { value: formatMoney(details.grossYear, details.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MASTER_DETAILS_SALON_MONTH', { value: formatMoney(details.salonMonth, details.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_SERVICE_DETAILS_AVG_CHECK_MONTH', { value: formatMoney(details.avgCheckMonth, details.currencyCode) })}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_STATS_OVERVIEW_SECTION_CURRENT_MONTH')}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MASTER_DETAILS_COMPLETED', { value: details.completedProceduresMonth })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_UNIQUE_CLIENTS', { value: details.clientsServedMonth })}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_STATS_SERVICE_DETAILS_TOP_MASTERS')}\n` +
     `${topMasters}`
   );
 }
 
-/**
- * @summary Клавіатура детальної статистики послуги.
- */
-export function createAdminStatsServiceDetailsKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminStatsServiceDetailsKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_SERVICES_BACK_TO_LIST, ADMIN_PANEL_ACTION.STATS_SERVICES_BACK_TO_LIST)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK_TO_OVERVIEW, ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK, ADMIN_PANEL_ACTION.STATS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_SERVICES_BACK_TO_LIST'), ADMIN_PANEL_ACTION.STATS_SERVICES_BACK_TO_LIST)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_BACK_TO_OVERVIEW'), ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_BACK'), ADMIN_PANEL_ACTION.STATS_BACK)],
   ]);
 }
 
-/**
- * @summary Текст списку місячних звітів.
- */
-export function formatAdminStatsMonthlyListText(page: AdminPanelStatsMonthlyFeedPage): string {
+export function formatAdminStatsMonthlyListText(
+  page: AdminPanelStatsMonthlyFeedPage,
+  language: BotUiLanguage = 'uk',
+): string {
   if (page.items.length === 0) {
     return (
-      '📅 Місячні звіти\n' +
+      `${tBot(language, 'ADMIN_PANEL_STATS_MONTHLY_LIST_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
-      'Поки що немає завершених даних по місяцях.'
+      tBot(language, 'ADMIN_PANEL_STATS_MONTHLY_LIST_EMPTY')
     );
   }
 
   const lines = page.items.map((item, index) => {
     const number = getNumberBadge(index + page.offset);
     return (
-      `${number} 📅 ${formatMonthCode(item.monthCode)}\n` +
-      `💰 Глобальний дохід: ${formatMoney(item.grossMonth, item.currencyCode)}\n` +
-      `🏢 Дохід салону: ${formatMoney(item.salonMonth, item.currencyCode)}\n` +
-      `📋 Кількість процедур: ${item.completedProceduresMonth}`
+      `${number} 📅 ${formatMonthCode(item.monthCode, language)}\n` +
+      `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MONTHLY_LIST_GROSS', { value: formatMoney(item.grossMonth, item.currencyCode) })}\n` +
+      `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MONTHLY_LIST_SALON', { value: formatMoney(item.salonMonth, item.currencyCode) })}\n` +
+      `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MONTHLY_LIST_PROCEDURES', { value: item.completedProceduresMonth })}`
     );
   });
 
@@ -365,105 +362,96 @@ export function formatAdminStatsMonthlyListText(page: AdminPanelStatsMonthlyFeed
   const pagesTotal = Math.max(1, Math.ceil(page.total / page.limit));
 
   return (
-    '📅 Місячні звіти\n' +
+    `${tBot(language, 'ADMIN_PANEL_STATS_MONTHLY_LIST_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
     lines.join('\n\n') +
-    `\n\n📄 Сторінка ${currentPage} з ${pagesTotal}`
+    `\n\n${tBotTemplate(language, 'ADMIN_PANEL_STATS_PAGINATION', { current: currentPage, total: pagesTotal })}`
   );
 }
 
-/**
- * @summary Клавіатура списку місячних звітів.
- */
 export function createAdminStatsMonthlyListKeyboard(
   page: AdminPanelStatsMonthlyFeedPage,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const monthButtons = page.items.map((item, index) => [
     Markup.button.callback(
-      `${getNumberBadge(index + page.offset)} ${formatMonthCode(item.monthCode)}`,
+      `${getNumberBadge(index + page.offset)} ${formatMonthCode(item.monthCode, language)}`,
       makeAdminPanelStatsMonthlyOpenAction(item.monthCode),
     ),
   ]);
 
   const pagingRow = [];
   if (page.hasPrevPage) {
-    pagingRow.push(
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_PREV_PAGE, ADMIN_PANEL_ACTION.STATS_MONTHLY_PREV_PAGE),
-    );
+    pagingRow.push(Markup.button.callback(tBot(language, 'ADMIN_PANEL_BTN_PREV'), ADMIN_PANEL_ACTION.STATS_MONTHLY_PREV_PAGE));
   }
   if (page.hasNextPage) {
-    pagingRow.push(
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_NEXT_PAGE, ADMIN_PANEL_ACTION.STATS_MONTHLY_NEXT_PAGE),
-    );
+    pagingRow.push(Markup.button.callback(tBot(language, 'ADMIN_PANEL_BTN_NEXT'), ADMIN_PANEL_ACTION.STATS_MONTHLY_NEXT_PAGE));
   }
 
   return Markup.inlineKeyboard([
     ...monthButtons,
     ...(pagingRow.length > 0 ? [pagingRow] : []),
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK_TO_OVERVIEW, ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK, ADMIN_PANEL_ACTION.STATS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_BACK_TO_OVERVIEW'), ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_BACK'), ADMIN_PANEL_ACTION.STATS_BACK)],
   ]);
 }
 
-/**
- * @summary Текст деталізованого місячного фінансового звіту.
- */
 export function formatAdminStatsMonthlyReportDetailsText(
   details: AdminPanelStatsMonthlyReportDetails,
+  language: BotUiLanguage = 'uk',
 ): string {
   const topServices =
     details.topServices.length > 0
       ? details.topServices
           .map((item, index) => `${getNumberBadge(index)} ${item.serviceName} — ${formatMoney(item.grossAmount, details.currencyCode)}`)
           .join('\n')
-      : 'Немає даних';
+      : tBot(language, 'ADMIN_PANEL_STATS_NO_DATA');
 
   const topMasters =
     details.topMasters.length > 0
       ? details.topMasters
           .map((item, index) => `${getNumberBadge(index)} ${item.displayName} — ${formatMoney(item.grossAmount, details.currencyCode)}`)
           .join('\n')
-      : 'Немає даних';
+      : tBot(language, 'ADMIN_PANEL_STATS_NO_DATA');
 
   return (
-    '📊 Фінансовий звіт\n' +
+    `${tBot(language, 'ADMIN_PANEL_STATS_MONTHLY_DETAILS_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `📅 Період: ${formatMonthCode(details.monthCode)}\n\n` +
-    '💰 Основні фінансові показники\n' +
-    `💰 Глобальний дохід: ${formatMoney(details.grossMonth, details.currencyCode)}\n` +
-    `🏢 Дохід салону (15%): ${formatMoney(details.salonMonth, details.currencyCode)}\n` +
-    `💸 Заробіток майстрів: ${formatMoney(details.masterEarningsMonth, details.currencyCode)}\n\n` +
-    '📈 Додаткові показники\n' +
-    `📋 Кількість процедур: ${details.completedProceduresMonth}\n` +
-    `👥 Кількість клієнтів: ${details.clientsCountMonth}\n` +
-    `💳 Середній чек: ${formatMoney(details.avgCheckMonth, details.currencyCode)}\n\n` +
-    '💼 Найприбутковіші послуги\n' +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MONTHLY_DETAILS_PERIOD', { value: formatMonthCode(details.monthCode, language) })}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_STATS_MONTHLY_DETAILS_MAIN')}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MONTHLY_LIST_GROSS', { value: formatMoney(details.grossMonth, details.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MONTHLY_DETAILS_SALON_15', { value: formatMoney(details.salonMonth, details.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MONTHLY_DETAILS_MASTER_EARNINGS', { value: formatMoney(details.masterEarningsMonth, details.currencyCode) })}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_STATS_MONTHLY_DETAILS_ADDITIONAL')}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MONTHLY_LIST_PROCEDURES', { value: details.completedProceduresMonth })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MONTHLY_DETAILS_CLIENTS', { value: details.clientsCountMonth })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_AVG_CHECK', { value: formatMoney(details.avgCheckMonth, details.currencyCode) })}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_STATS_MONTHLY_DETAILS_TOP_SERVICES')}\n` +
     `${topServices}\n\n` +
-    '👩‍🎨 Найприбутковіші майстри\n' +
+    `${tBot(language, 'ADMIN_PANEL_STATS_MONTHLY_DETAILS_TOP_MASTERS')}\n` +
     `${topMasters}`
   );
 }
 
-/**
- * @summary Клавіатура деталізованого місячного фінансового звіту.
- */
-export function createAdminStatsMonthlyReportDetailsKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminStatsMonthlyReportDetailsKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_MONTHLY_BACK_TO_LIST, ADMIN_PANEL_ACTION.STATS_MONTHLY_BACK_TO_LIST)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK_TO_OVERVIEW, ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK, ADMIN_PANEL_ACTION.STATS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_MONTHLY_BACK_TO_LIST'), ADMIN_PANEL_ACTION.STATS_MONTHLY_BACK_TO_LIST)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_BACK_TO_OVERVIEW'), ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_BACK'), ADMIN_PANEL_ACTION.STATS_BACK)],
   ]);
 }
 
-/**
- * @summary Текст списку фінансової статистики клієнтів.
- */
-export function formatAdminStatsClientsListText(page: AdminPanelStatsClientsFeedPage): string {
+export function formatAdminStatsClientsListText(
+  page: AdminPanelStatsClientsFeedPage,
+  language: BotUiLanguage = 'uk',
+): string {
   if (page.items.length === 0) {
     return (
-      '👥 Статистика клієнтів\n' +
+      `${tBot(language, 'ADMIN_PANEL_STATS_CLIENTS_LIST_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
-      'Поки що немає завершених оплат по клієнтах.'
+      tBot(language, 'ADMIN_PANEL_STATS_CLIENTS_LIST_EMPTY')
     );
   }
 
@@ -471,9 +459,9 @@ export function formatAdminStatsClientsListText(page: AdminPanelStatsClientsFeed
     const number = getNumberBadge(index + page.offset);
     return (
       `${number} 👤 ${item.fullName}\n` +
-      `💰 Витрачено: ${formatMoney(item.spentTotal, item.currencyCode)}\n` +
-      `📋 Кількість процедур: ${item.proceduresTotal}\n` +
-      `💳 Середній чек: ${formatMoney(item.avgCheck, item.currencyCode)}`
+      `${tBotTemplate(language, 'ADMIN_PANEL_STATS_CLIENTS_LIST_SPENT', { value: formatMoney(item.spentTotal, item.currencyCode) })}\n` +
+      `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MONTHLY_LIST_PROCEDURES', { value: item.proceduresTotal })}\n` +
+      `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_AVG_CHECK', { value: formatMoney(item.avgCheck, item.currencyCode) })}`
     );
   });
 
@@ -481,18 +469,16 @@ export function formatAdminStatsClientsListText(page: AdminPanelStatsClientsFeed
   const pagesTotal = Math.max(1, Math.ceil(page.total / page.limit));
 
   return (
-    '👥 Статистика клієнтів\n' +
+    `${tBot(language, 'ADMIN_PANEL_STATS_CLIENTS_LIST_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
     lines.join('\n\n') +
-    `\n\n📄 Сторінка ${currentPage} з ${pagesTotal}`
+    `\n\n${tBotTemplate(language, 'ADMIN_PANEL_STATS_PAGINATION', { current: currentPage, total: pagesTotal })}`
   );
 }
 
-/**
- * @summary Клавіатура списку фінансової статистики клієнтів.
- */
 export function createAdminStatsClientsListKeyboard(
   page: AdminPanelStatsClientsFeedPage,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   const clientButtons = page.items.map((item, index) => [
     Markup.button.callback(
@@ -503,85 +489,82 @@ export function createAdminStatsClientsListKeyboard(
 
   const pagingRow = [];
   if (page.hasPrevPage) {
-    pagingRow.push(
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_PREV_PAGE, ADMIN_PANEL_ACTION.STATS_CLIENTS_PREV_PAGE),
-    );
+    pagingRow.push(Markup.button.callback(tBot(language, 'ADMIN_PANEL_BTN_PREV'), ADMIN_PANEL_ACTION.STATS_CLIENTS_PREV_PAGE));
   }
   if (page.hasNextPage) {
-    pagingRow.push(
-      Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_NEXT_PAGE, ADMIN_PANEL_ACTION.STATS_CLIENTS_NEXT_PAGE),
-    );
+    pagingRow.push(Markup.button.callback(tBot(language, 'ADMIN_PANEL_BTN_NEXT'), ADMIN_PANEL_ACTION.STATS_CLIENTS_NEXT_PAGE));
   }
 
   return Markup.inlineKeyboard([
     ...clientButtons,
     ...(pagingRow.length > 0 ? [pagingRow] : []),
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK_TO_OVERVIEW, ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK, ADMIN_PANEL_ACTION.STATS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_BACK_TO_OVERVIEW'), ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_BACK'), ADMIN_PANEL_ACTION.STATS_BACK)],
   ]);
 }
 
-/**
- * @summary Текст деталізованої фінансової статистики клієнта.
- */
 export function formatAdminStatsClientDetailsText(
   details: AdminPanelStatsClientDetails,
+  language: BotUiLanguage = 'uk',
 ): string {
   return (
-    '👤 Деталі статистики клієнта\n' +
+    `${tBot(language, 'ADMIN_PANEL_STATS_CLIENT_DETAILS_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👤 Клієнт: ${details.fullName}\n` +
-    `🪪 ID: ${details.clientId}\n\n` +
-    '💰 Витрати клієнта\n' +
-    `📅 За місяць: ${formatMoney(details.spentMonth, details.currencyCode)}\n` +
-    `📅 За 3 місяці: ${formatMoney(details.spent3m, details.currencyCode)}\n` +
-    `📅 За пів року: ${formatMoney(details.spent6m, details.currencyCode)}\n` +
-    `📅 За рік: ${formatMoney(details.spentYear, details.currencyCode)}\n` +
-    `📌 За весь час: ${formatMoney(details.spentTotal, details.currencyCode)}\n\n` +
-    '🏢 Дохід салону від клієнта (15%)\n' +
-    `📅 За місяць: ${formatMoney(details.salonMonth, details.currencyCode)}\n` +
-    `📅 За 3 місяці: ${formatMoney(details.salon3m, details.currencyCode)}\n` +
-    `📅 За пів року: ${formatMoney(details.salon6m, details.currencyCode)}\n` +
-    `📅 За рік: ${formatMoney(details.salonYear, details.currencyCode)}\n` +
-    `📌 За весь час: ${formatMoney(details.salonTotal, details.currencyCode)}\n\n` +
-    '📊 Додаткові показники\n' +
-    `💳 Середній чек: ${formatMoney(details.avgCheck, details.currencyCode)}\n` +
-    `📋 Кількість процедур: ${details.proceduresTotal}\n` +
-    `💎 Найдорожча процедура: ${details.mostExpensiveServiceName ?? '—'}\n` +
-    `💰 Сума: ${formatMoney(details.mostExpensiveServiceAmount, details.currencyCode)}\n` +
-    `🕒 Останній візит: ${formatDate(details.lastVisitAt)}`
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_CLIENT_DETAILS_NAME', { value: details.fullName })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_LABEL_ID_ROW', { value: details.clientId })}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_STATS_CLIENT_DETAILS_SECTION_SPENT')}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_MONTH', { value: formatMoney(details.spentMonth, details.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_3M', { value: formatMoney(details.spent3m, details.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_6M', { value: formatMoney(details.spent6m, details.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_YEAR', { value: formatMoney(details.spentYear, details.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_CLIENT_DETAILS_TOTAL', { value: formatMoney(details.spentTotal, details.currencyCode) })}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_STATS_CLIENT_DETAILS_SECTION_SALON')}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_MONTH', { value: formatMoney(details.salonMonth, details.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_3M', { value: formatMoney(details.salon3m, details.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_6M', { value: formatMoney(details.salon6m, details.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_YEAR', { value: formatMoney(details.salonYear, details.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_CLIENT_DETAILS_TOTAL', { value: formatMoney(details.salonTotal, details.currencyCode) })}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_STATS_MONTHLY_DETAILS_ADDITIONAL')}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_OVERVIEW_ROW_AVG_CHECK', { value: formatMoney(details.avgCheck, details.currencyCode) })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_MONTHLY_LIST_PROCEDURES', { value: details.proceduresTotal })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_CLIENT_DETAILS_MOST_EXPENSIVE_NAME', {
+      value: details.mostExpensiveServiceName ?? tBot(language, 'ADMIN_PANEL_STATS_LABEL_DASH'),
+    })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_CLIENT_DETAILS_MOST_EXPENSIVE_AMOUNT', {
+      value: formatMoney(details.mostExpensiveServiceAmount, details.currencyCode),
+    })}\n` +
+    `${tBotTemplate(language, 'ADMIN_PANEL_STATS_CLIENT_DETAILS_LAST_VISIT', {
+      value: formatDate(details.lastVisitAt, language),
+    })}`
   );
 }
 
-/**
- * @summary Клавіатура деталізованої фінансової статистики клієнта.
- */
-export function createAdminStatsClientDetailsKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminStatsClientDetailsKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_CLIENTS_BACK_TO_LIST, ADMIN_PANEL_ACTION.STATS_CLIENTS_BACK_TO_LIST)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK_TO_OVERVIEW, ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK, ADMIN_PANEL_ACTION.STATS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_CLIENTS_BACK_TO_LIST'), ADMIN_PANEL_ACTION.STATS_CLIENTS_BACK_TO_LIST)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_BACK_TO_OVERVIEW'), ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_BACK'), ADMIN_PANEL_ACTION.STATS_BACK)],
   ]);
 }
 
-/**
- * @summary Текст тимчасово недоступного підрозділу статистики.
- */
-export function formatAdminStatsSectionStubText(title: string): string {
+export function formatAdminStatsSectionStubText(
+  title: string,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
     `${title}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    '⚠️ Розділ тимчасово недоступний.\n' +
-    'Після підключення тут буде деталізована аналітика.'
+    `${tBot(language, 'ADMIN_PANEL_STATS_SECTION_STUB_TEXT')}`
   );
 }
 
-/**
- * @summary Клавіатура для підрозділів статистики.
- */
-export function createAdminStatsSectionStubKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminStatsSectionStubKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK_TO_OVERVIEW, ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.STATS_BACK, ADMIN_PANEL_ACTION.STATS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_BACK_TO_OVERVIEW'), ADMIN_PANEL_ACTION.STATS_BACK_TO_OVERVIEW)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_STATS_BTN_BACK'), ADMIN_PANEL_ACTION.STATS_BACK)],
   ]);
 }
