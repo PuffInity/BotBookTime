@@ -9,6 +9,8 @@ import type {
 } from '../../types/db-helpers/db-master-bookings.types.js';
 import type { MasterTemporaryScheduleDayInput } from '../../types/db-helpers/db-master-schedule.types.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
+import { resolveBotUiLanguage } from '../../helpers/bot/i18n.bot.js';
+import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 import {
   createMasterPanelRootKeyboard,
   createMasterPanelSectionStubKeyboard,
@@ -145,6 +147,7 @@ import {
   makeMasterPanelScheduleVacationDeleteConfirmAction,
 } from '../../types/bot-master-panel.types.js';
 import { getMasterPanelAccessByTelegramId } from '../../helpers/db/db-master-panel.helper.js';
+import { getOrCreateUser } from '../../helpers/db/db-profile.helper.js';
 import {
   addMasterOwnCertificate,
   addMasterOwnService,
@@ -222,6 +225,7 @@ const MIN_TEMPORARY_SCHEDULE_DAYS = 7;
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 type MasterPanelSceneState = {
+  language: BotUiLanguage;
   access: MasterPanelAccess | null;
   ownProfile: MasterOwnProfileData | null;
   pending: MasterPendingBookingItem[];
@@ -1148,6 +1152,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     MASTER_PANEL_SCENE_ID,
     async (ctx) => {
       const state = getSceneState(ctx);
+      state.language = 'uk';
       state.access = null;
       state.ownProfile = null;
       state.pending = [];
@@ -1168,6 +1173,9 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
         await ctx.scene.leave();
         return;
       }
+
+      const user = await getOrCreateUser(ctx);
+      state.language = resolveBotUiLanguage(user.preferredLanguage);
 
       const access = await getMasterPanelAccessByTelegramId(ctx.from.id);
       if (!access) {
