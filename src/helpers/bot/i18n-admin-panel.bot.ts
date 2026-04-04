@@ -140,6 +140,40 @@ export const ADMIN_PANEL_DICTIONARY = {
     ADMIN_PANEL_RECORDS_CHANGE_MASTER_PREVIOUS: '👩‍🎨 Було: {master}',
     ADMIN_PANEL_RECORDS_CHANGE_MASTER_NEW: '👩‍🎨 Стане: {master}',
     ADMIN_PANEL_RECORDS_CHANGE_MASTER_CONFIRM_ASK: 'Підтвердіть зміну майстра.',
+
+    ADMIN_PANEL_RECORDS_MSG_OPEN_CARD_FAILED_RETRY:
+      'Не вдалося відкрити картку запису. Спробуйте ще раз або поверніться до списку.',
+    ADMIN_PANEL_RECORDS_MSG_OPEN_CARD_FAILED_REFRESH:
+      'Не вдалося відкрити картку запису. Спробуйте оновити список.',
+    ADMIN_PANEL_RECORDS_MSG_OPEN_CARD_FAILED_BACK_TO_LIST:
+      'Не вдалося відкрити картку запису. Повертаю до списку.',
+    ADMIN_PANEL_RECORDS_MSG_MASTER_PROFILE_UNAVAILABLE:
+      'Профіль майстра недоступний або вже неактивний.',
+    ADMIN_PANEL_RECORDS_MSG_CURRENT_TIME_UNAVAILABLE:
+      'Не вдалося визначити поточний час запису. Спробуйте відкрити картку запису ще раз.',
+    ADMIN_PANEL_RECORDS_MSG_NO_MORE_PENDING: 'Більше непідтверджених записів зараз немає.',
+    ADMIN_PANEL_RECORDS_MSG_CONFIRMED_AND_NOTIFIED:
+      'Запис підтверджено. Клієнту надіслано сповіщення.',
+    ADMIN_PANEL_RECORDS_MSG_HARD_DELETE_ONLY_INACTIVE:
+      'Цей запис ще активний. Видалення назавжди доступне лише для неактивних записів.',
+    ADMIN_PANEL_RECORDS_MSG_ALREADY_ABSENT: 'Запис уже відсутній у системі.',
+    ADMIN_PANEL_RECORDS_MSG_HARD_DELETE_ABORT_ACTIVE:
+      'Цей запис ще активний. Видалення назавжди скасовано.',
+    ADMIN_PANEL_RECORDS_MSG_NOT_DELETED_ALREADY_CHANGED:
+      'Запис не видалено. Можливо, його вже було видалено або змінено.',
+    ADMIN_PANEL_RECORDS_MSG_HARD_DELETED: 'Запис видалено назавжди.',
+    ADMIN_PANEL_RECORDS_MSG_ACTION_CANCELLED: 'Дію скасовано.\n\nЖодних змін не внесено.',
+    ADMIN_PANEL_RECORDS_MSG_CANCELED_ALREADY_EMPTY: 'Список скасованих записів уже порожній.',
+    ADMIN_PANEL_RECORDS_MSG_CANCELED_CLEARED: 'Скасовані записи очищено. Видалено: {count}.',
+    ADMIN_PANEL_RECORDS_MSG_CANCELED_AND_NOTIFIED:
+      'Запис скасовано. Клієнту надіслано сповіщення.',
+    ADMIN_PANEL_RECORDS_MSG_CANNOT_RESCHEDULE: 'Цей запис уже не можна перенести.',
+    ADMIN_PANEL_RECORDS_MSG_RESCHEDULED_AND_NOTIFIED:
+      'Запис успішно перенесено. Клієнту надіслано сповіщення.',
+    ADMIN_PANEL_RECORDS_MSG_CANNOT_CHANGE_MASTER:
+      'Для цього запису змінити майстра вже не можна.',
+    ADMIN_PANEL_RECORDS_MSG_MASTER_CHANGED_AND_NOTIFIED:
+      'Майстра успішно змінено. Клієнту надіслано сповіщення.',
   },
   en: {
     MENU_ADMIN_PANEL: '🛡 Admin Panel',
@@ -279,6 +313,43 @@ export const ADMIN_PANEL_DICTIONARY = {
     ADMIN_PANEL_RECORDS_CHANGE_MASTER_PREVIOUS: '👩‍🎨 Was: {master}',
     ADMIN_PANEL_RECORDS_CHANGE_MASTER_NEW: '👩‍🎨 Will be: {master}',
     ADMIN_PANEL_RECORDS_CHANGE_MASTER_CONFIRM_ASK: 'Confirm master change.',
+
+    ADMIN_PANEL_RECORDS_MSG_OPEN_CARD_FAILED_RETRY:
+      'Failed to open booking card. Please try again or return to the list.',
+    ADMIN_PANEL_RECORDS_MSG_OPEN_CARD_FAILED_REFRESH:
+      'Failed to open booking card. Try refreshing the list.',
+    ADMIN_PANEL_RECORDS_MSG_OPEN_CARD_FAILED_BACK_TO_LIST:
+      'Failed to open booking card. Returning to list.',
+    ADMIN_PANEL_RECORDS_MSG_MASTER_PROFILE_UNAVAILABLE:
+      'Master profile is unavailable or already inactive.',
+    ADMIN_PANEL_RECORDS_MSG_CURRENT_TIME_UNAVAILABLE:
+      'Failed to resolve current booking time. Please open the booking card again.',
+    ADMIN_PANEL_RECORDS_MSG_NO_MORE_PENDING: 'There are no more pending bookings right now.',
+    ADMIN_PANEL_RECORDS_MSG_CONFIRMED_AND_NOTIFIED:
+      'Booking confirmed. Client has been notified.',
+    ADMIN_PANEL_RECORDS_MSG_HARD_DELETE_ONLY_INACTIVE:
+      'This booking is still active. Hard delete is only available for inactive bookings.',
+    ADMIN_PANEL_RECORDS_MSG_ALREADY_ABSENT: 'Booking is already missing in the system.',
+    ADMIN_PANEL_RECORDS_MSG_HARD_DELETE_ABORT_ACTIVE:
+      'This booking is still active. Hard delete has been canceled.',
+    ADMIN_PANEL_RECORDS_MSG_NOT_DELETED_ALREADY_CHANGED:
+      'Booking was not deleted. It may have already been deleted or changed.',
+    ADMIN_PANEL_RECORDS_MSG_HARD_DELETED: 'Booking has been deleted permanently.',
+    ADMIN_PANEL_RECORDS_MSG_ACTION_CANCELLED: 'Action canceled.\n\nNo changes were made.',
+    ADMIN_PANEL_RECORDS_MSG_CANCELED_ALREADY_EMPTY:
+      'Canceled bookings list is already empty.',
+    ADMIN_PANEL_RECORDS_MSG_CANCELED_CLEARED:
+      'Canceled bookings cleared. Deleted: {count}.',
+    ADMIN_PANEL_RECORDS_MSG_CANCELED_AND_NOTIFIED:
+      'Booking canceled. Client has been notified.',
+    ADMIN_PANEL_RECORDS_MSG_CANNOT_RESCHEDULE:
+      'This booking can no longer be rescheduled.',
+    ADMIN_PANEL_RECORDS_MSG_RESCHEDULED_AND_NOTIFIED:
+      'Booking successfully rescheduled. Client has been notified.',
+    ADMIN_PANEL_RECORDS_MSG_CANNOT_CHANGE_MASTER:
+      'Master can no longer be changed for this booking.',
+    ADMIN_PANEL_RECORDS_MSG_MASTER_CHANGED_AND_NOTIFIED:
+      'Master changed successfully. Client has been notified.',
   },
   cs: {
     MENU_ADMIN_PANEL: '🛡 Admin panel',
@@ -418,5 +489,46 @@ export const ADMIN_PANEL_DICTIONARY = {
     ADMIN_PANEL_RECORDS_CHANGE_MASTER_PREVIOUS: '👩‍🎨 Bylo: {master}',
     ADMIN_PANEL_RECORDS_CHANGE_MASTER_NEW: '👩‍🎨 Bude: {master}',
     ADMIN_PANEL_RECORDS_CHANGE_MASTER_CONFIRM_ASK: 'Potvrďte změnu mistra.',
+
+    ADMIN_PANEL_RECORDS_MSG_OPEN_CARD_FAILED_RETRY:
+      'Nepodařilo se otevřít kartu rezervace. Zkuste to znovu nebo se vraťte na seznam.',
+    ADMIN_PANEL_RECORDS_MSG_OPEN_CARD_FAILED_REFRESH:
+      'Nepodařilo se otevřít kartu rezervace. Zkuste obnovit seznam.',
+    ADMIN_PANEL_RECORDS_MSG_OPEN_CARD_FAILED_BACK_TO_LIST:
+      'Nepodařilo se otevřít kartu rezervace. Vracím na seznam.',
+    ADMIN_PANEL_RECORDS_MSG_MASTER_PROFILE_UNAVAILABLE:
+      'Profil mistra není dostupný nebo je již neaktivní.',
+    ADMIN_PANEL_RECORDS_MSG_CURRENT_TIME_UNAVAILABLE:
+      'Nepodařilo se určit aktuální čas rezervace. Otevřete kartu rezervace znovu.',
+    ADMIN_PANEL_RECORDS_MSG_NO_MORE_PENDING:
+      'Momentálně už nejsou žádné další pending rezervace.',
+    ADMIN_PANEL_RECORDS_MSG_CONFIRMED_AND_NOTIFIED:
+      'Rezervace potvrzena. Klient byl informován.',
+    ADMIN_PANEL_RECORDS_MSG_HARD_DELETE_ONLY_INACTIVE:
+      'Tato rezervace je stále aktivní. Trvalé smazání je dostupné jen pro neaktivní rezervace.',
+    ADMIN_PANEL_RECORDS_MSG_ALREADY_ABSENT:
+      'Rezervace už v systému neexistuje.',
+    ADMIN_PANEL_RECORDS_MSG_HARD_DELETE_ABORT_ACTIVE:
+      'Tato rezervace je stále aktivní. Trvalé smazání bylo zrušeno.',
+    ADMIN_PANEL_RECORDS_MSG_NOT_DELETED_ALREADY_CHANGED:
+      'Rezervace nebyla smazána. Možná už byla smazána nebo změněna.',
+    ADMIN_PANEL_RECORDS_MSG_HARD_DELETED:
+      'Rezervace byla trvale smazána.',
+    ADMIN_PANEL_RECORDS_MSG_ACTION_CANCELLED:
+      'Akce zrušena.\n\nNebyly provedeny žádné změny.',
+    ADMIN_PANEL_RECORDS_MSG_CANCELED_ALREADY_EMPTY:
+      'Seznam zrušených rezervací je už prázdný.',
+    ADMIN_PANEL_RECORDS_MSG_CANCELED_CLEARED:
+      'Zrušené rezervace vyčištěny. Smazáno: {count}.',
+    ADMIN_PANEL_RECORDS_MSG_CANCELED_AND_NOTIFIED:
+      'Rezervace zrušena. Klient byl informován.',
+    ADMIN_PANEL_RECORDS_MSG_CANNOT_RESCHEDULE:
+      'Tuto rezervaci už nelze přesunout.',
+    ADMIN_PANEL_RECORDS_MSG_RESCHEDULED_AND_NOTIFIED:
+      'Rezervace byla úspěšně přesunuta. Klient byl informován.',
+    ADMIN_PANEL_RECORDS_MSG_CANNOT_CHANGE_MASTER:
+      'U této rezervace už nelze změnit mistra.',
+    ADMIN_PANEL_RECORDS_MSG_MASTER_CHANGED_AND_NOTIFIED:
+      'Mistr byl úspěšně změněn. Klient byl informován.',
   },
 } as const;

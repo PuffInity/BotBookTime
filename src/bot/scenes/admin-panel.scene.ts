@@ -42,7 +42,7 @@ import type {
 import type { AdminStudioScheduleData } from '../../types/db-helpers/db-admin-schedule.types.js';
 import type { AdminStudioTemporaryScheduleDayInput } from '../../types/db-helpers/db-admin-schedule.types.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
-import { resolveBotUiLanguage, tBot } from '../../helpers/bot/i18n.bot.js';
+import { resolveBotUiLanguage, tBot, tBotTemplate } from '../../helpers/bot/i18n.bot.js';
 import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 import {
   createAdminRecordsMenuKeyboard,
@@ -3124,7 +3124,7 @@ async function renderAdminBookingCard(ctx: MyContext, item: AdminBookingItem): P
     });
     await replyAdminWarning(
       ctx,
-      'Не вдалося відкрити картку запису. Спробуйте ще раз або поверніться до списку.',
+      tBot(getSceneState(ctx).language, 'ADMIN_PANEL_RECORDS_MSG_OPEN_CARD_FAILED_RETRY'),
     );
   }
 }
@@ -3184,7 +3184,10 @@ async function renderAdminBookingMasterProfile(
 
   const details = await getMasterCatalogDetailsById({ masterId: item.masterId, studioId });
   if (!details) {
-    await replyAdminWarning(ctx, 'Профіль майстра недоступний або вже неактивний.');
+    await replyAdminWarning(
+      ctx,
+      tBot(state.language, 'ADMIN_PANEL_RECORDS_MSG_MASTER_PROFILE_UNAVAILABLE'),
+    );
     await renderAdminBookingCard(ctx, item);
     return;
   }
@@ -3373,7 +3376,7 @@ async function renderRescheduleConfirmStep(ctx: MyContext, preferEdit: boolean):
     resetRecordsActionDrafts(state);
     await replyAdminWarning(
       ctx,
-      'Не вдалося визначити поточний час запису. Спробуйте відкрити картку запису ще раз.',
+      tBot(state.language, 'ADMIN_PANEL_RECORDS_MSG_CURRENT_TIME_UNAVAILABLE'),
     );
     await renderRecordsFallback(ctx, false);
     return;
@@ -8079,7 +8082,10 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           },
           state.access,
         );
-        await replyAdminWarning(ctx, 'Не вдалося відкрити картку запису. Спробуйте оновити список.');
+        await replyAdminWarning(
+          ctx,
+          tBot(state.language, 'ADMIN_PANEL_RECORDS_MSG_OPEN_CARD_FAILED_REFRESH'),
+        );
         await renderRecordsFallback(ctx, false);
         return;
       }
@@ -8109,7 +8115,10 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
           offset: state.recordsFeed?.offset ?? null,
         },
       });
-      await replyAdminWarning(ctx, 'Не вдалося відкрити картку запису. Повертаю до списку.');
+      await replyAdminWarning(
+        ctx,
+        tBot(state.language, 'ADMIN_PANEL_RECORDS_MSG_OPEN_CARD_FAILED_BACK_TO_LIST'),
+      );
       await renderRecordsFallback(ctx, false);
     }
   });
@@ -8168,7 +8177,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     );
     const nextPending = await resolveNextPendingBooking(state, currentAppointmentId);
     if (!nextPending) {
-      await replyAdminInfo(ctx, 'Більше непідтверджених записів зараз немає.');
+      await replyAdminInfo(ctx, tBot(state.language, 'ADMIN_PANEL_RECORDS_MSG_NO_MORE_PENDING'));
       const current = await resolveAdminRecordById(state, currentAppointmentId);
       if (current) {
         await renderAdminBookingCard(ctx, current);
@@ -8225,7 +8234,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 	      },
 	      access,
 	    );
-	    await replyAdminSuccess(ctx, 'Запис підтверджено. Клієнту надіслано сповіщення.');
+	    await replyAdminSuccess(ctx, tBot(state.language, 'ADMIN_PANEL_RECORDS_MSG_CONFIRMED_AND_NOTIFIED'));
     resetRecordsActionDrafts(state);
     await renderRecordsFallback(ctx, true);
   });
@@ -8257,7 +8266,10 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     if (item.status !== 'canceled' && item.status !== 'completed' && item.status !== 'transferred') {
-      await replyAdminWarning(ctx, 'Цей запис ще активний. Видалення назавжди доступне лише для неактивних записів.');
+      await replyAdminWarning(
+        ctx,
+        tBot(state.language, 'ADMIN_PANEL_RECORDS_MSG_HARD_DELETE_ONLY_INACTIVE'),
+      );
       await renderAdminBookingCard(ctx, item);
       return;
     }
@@ -8280,13 +8292,16 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     );
     const target = await resolveAdminRecordById(state, appointmentId);
     if (!target) {
-      await replyAdminInfo(ctx, 'Запис уже відсутній у системі.');
+      await replyAdminInfo(ctx, tBot(state.language, 'ADMIN_PANEL_RECORDS_MSG_ALREADY_ABSENT'));
       await renderRecordsFallback(ctx, true);
       return;
     }
 
     if (target.status !== 'canceled' && target.status !== 'completed' && target.status !== 'transferred') {
-      await replyAdminWarning(ctx, 'Цей запис ще активний. Видалення назавжди скасовано.');
+      await replyAdminWarning(
+        ctx,
+        tBot(state.language, 'ADMIN_PANEL_RECORDS_MSG_HARD_DELETE_ABORT_ACTIVE'),
+      );
       await renderAdminBookingCard(ctx, target);
       return;
     }
@@ -8297,7 +8312,10 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     });
 
     if (!deleted) {
-      await replyAdminInfo(ctx, 'Запис не видалено. Можливо, його вже було видалено або змінено.');
+      await replyAdminInfo(
+        ctx,
+        tBot(state.language, 'ADMIN_PANEL_RECORDS_MSG_NOT_DELETED_ALREADY_CHANGED'),
+      );
       await renderRecordsFallback(ctx, true);
       return;
     }
@@ -8312,7 +8330,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 	      },
 	      access,
 	    );
-	    await replyAdminSuccess(ctx, 'Запис видалено назавжди.');
+	    await replyAdminSuccess(ctx, tBot(state.language, 'ADMIN_PANEL_RECORDS_MSG_HARD_DELETED'));
 
     if (state.recordsFeed) {
       await renderRecordsCategoryWithOffsetFallback(
@@ -8340,20 +8358,21 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       await renderRecordsFallback(ctx, true);
       return;
     }
-    await replyAdminInfo(ctx, 'Дію скасовано.\n\nЖодних змін не внесено.');
+    await replyAdminInfo(ctx, tBot(state.language, 'ADMIN_PANEL_RECORDS_MSG_ACTION_CANCELLED'));
     await renderAdminBookingCard(ctx, item);
   });
 
   scene.action(ADMIN_PANEL_ACTION.RECORDS_CLEAR_CANCELED_REQUEST, async (ctx) => {
     await ctx.answerCbQuery();
-    const feed = getSceneState(ctx).recordsFeed;
+    const state = getSceneState(ctx);
+    const feed = state.recordsFeed;
     if (!feed || feed.category !== 'canceled') {
       await renderRecordsFallback(ctx, true);
       return;
     }
 
     if (feed.total <= 0) {
-      await replyAdminInfo(ctx, 'Список скасованих записів уже порожній.');
+      await replyAdminInfo(ctx, tBot(state.language, 'ADMIN_PANEL_RECORDS_MSG_CANCELED_ALREADY_EMPTY'));
       await renderRecordsCategoryStub(ctx, 'canceled', 0, true);
       return;
     }
@@ -8384,14 +8403,20 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 	      },
 	      access,
 	    );
-	    await replyAdminSuccess(ctx, `Скасовані записи очищено. Видалено: ${deletedCount}.`);
+	    await replyAdminSuccess(
+        ctx,
+        tBotTemplate(state.language, 'ADMIN_PANEL_RECORDS_MSG_CANCELED_CLEARED', {
+          count: deletedCount,
+        }),
+      );
     await renderRecordsCategoryWithOffsetFallback(ctx, 'canceled', 0, true);
   });
 
   scene.action(ADMIN_PANEL_ACTION.RECORDS_CLEAR_CANCELED_CANCEL, async (ctx) => {
     await ctx.answerCbQuery();
-    const feed = getSceneState(ctx).recordsFeed;
-    await replyAdminInfo(ctx, 'Дію скасовано.\n\nЖодних змін не внесено.');
+    const state = getSceneState(ctx);
+    const feed = state.recordsFeed;
+    await replyAdminInfo(ctx, tBot(state.language, 'ADMIN_PANEL_RECORDS_MSG_ACTION_CANCELLED'));
     if (feed?.category === 'canceled') {
       await renderRecordsCategoryStub(ctx, 'canceled', feed.offset, true);
       return;
@@ -8443,7 +8468,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 	      },
 	      access,
 	    );
-	    await replyAdminSuccess(ctx, 'Запис скасовано. Клієнту надіслано сповіщення.');
+	    await replyAdminSuccess(ctx, tBot(state.language, 'ADMIN_PANEL_RECORDS_MSG_CANCELED_AND_NOTIFIED'));
     resetRecordsActionDrafts(state);
     await renderRecordsFallback(ctx, true);
   });
@@ -8459,7 +8484,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     if (item.status !== 'pending' && item.status !== 'confirmed') {
-      await replyAdminWarning(ctx, 'Цей запис уже не можна перенести.');
+      await replyAdminWarning(ctx, tBot(state.language, 'ADMIN_PANEL_RECORDS_MSG_CANNOT_RESCHEDULE'));
       await renderAdminBookingCard(ctx, item);
       return;
     }
@@ -8602,7 +8627,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 	      },
 	      access,
 	    );
-	    await replyAdminSuccess(ctx, 'Запис успішно перенесено. Клієнту надіслано сповіщення.');
+	    await replyAdminSuccess(ctx, tBot(state.language, 'ADMIN_PANEL_RECORDS_MSG_RESCHEDULED_AND_NOTIFIED'));
     state.recordsRescheduleDraft = null;
     await renderRecordsFallback(ctx, true);
   });
@@ -8618,7 +8643,10 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
     }
 
     if (item.status !== 'pending' && item.status !== 'confirmed') {
-      await replyAdminWarning(ctx, 'Для цього запису змінити майстра вже не можна.');
+      await replyAdminWarning(
+        ctx,
+        tBot(state.language, 'ADMIN_PANEL_RECORDS_MSG_CANNOT_CHANGE_MASTER'),
+      );
       await renderAdminBookingCard(ctx, item);
       return;
     }
@@ -8730,7 +8758,10 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 	      },
 	      access,
 	    );
-	    await replyAdminSuccess(ctx, 'Майстра успішно змінено. Клієнту надіслано сповіщення.');
+	    await replyAdminSuccess(
+        ctx,
+        tBot(state.language, 'ADMIN_PANEL_RECORDS_MSG_MASTER_CHANGED_AND_NOTIFIED'),
+      );
     state.recordsChangeMasterDraft = null;
     await renderAdminBookingCard(ctx, updated);
   });
