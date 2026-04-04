@@ -42,6 +42,8 @@ import type {
 import type { AdminStudioScheduleData } from '../../types/db-helpers/db-admin-schedule.types.js';
 import type { AdminStudioTemporaryScheduleDayInput } from '../../types/db-helpers/db-admin-schedule.types.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
+import { resolveBotUiLanguage, tBot } from '../../helpers/bot/i18n.bot.js';
+import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 import {
   createAdminRecordsMenuKeyboard,
   createAdminPanelRootKeyboard,
@@ -318,6 +320,7 @@ import {
   makeAdminPanelScheduleTemporaryDeleteConfirmAction,
 } from '../../types/bot-admin-panel.types.js';
 import { getAdminPanelAccessByTelegramId } from '../../helpers/db/db-admin-panel.helper.js';
+import { getOrCreateUser } from '../../helpers/db/db-profile.helper.js';
 import {
   cancelAdminBooking,
   clearCanceledAdminBookings,
@@ -658,6 +661,7 @@ type AdminSettingsStudioDraft = {
 };
 
 type AdminPanelSceneState = {
+  language: BotUiLanguage;
   access: AdminPanelAccess | null;
   recordsFeed: AdminBookingsFeedPage | null;
   recordsLastCategory: AdminBookingsCategory | null;
@@ -1073,8 +1077,8 @@ async function renderAdminRoot(ctx: MyContext, preferEdit: boolean): Promise<voi
   const state = getSceneState(ctx);
   if (!state.access) return;
 
-  const text = formatAdminPanelRootText(state.access);
-  const keyboard = createAdminPanelRootKeyboard();
+  const text = formatAdminPanelRootText(state.access, state.language);
+  const keyboard = createAdminPanelRootKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1089,8 +1093,9 @@ async function renderAdminRoot(ctx: MyContext, preferEdit: boolean): Promise<voi
 }
 
 async function renderRecordsMenu(ctx: MyContext): Promise<void> {
-  const text = formatAdminRecordsMenuText();
-  const keyboard = createAdminRecordsMenuKeyboard();
+  const state = getSceneState(ctx);
+  const text = formatAdminRecordsMenuText(state.language);
+  const keyboard = createAdminRecordsMenuKeyboard(state.language);
 
   try {
     await ctx.editMessageText(text, keyboard);
@@ -3616,6 +3621,8 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       const telegramId = ctx.from?.id;
       const state = getSceneState(ctx);
 
+      const appUser = telegramId ? await getOrCreateUser(ctx) : null;
+      state.language = resolveBotUiLanguage(appUser?.preferredLanguage ?? 'uk');
       state.access = telegramId ? await getAdminPanelAccessByTelegramId(telegramId) : null;
       state.recordsFeed = null;
       state.recordsLastCategory = null;
@@ -3668,10 +3675,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 
 	      if (!state.access) {
 	        logAdminCriticalAction(ctx, 'Access denied for admin panel');
-	        await ctx.reply(
-	          '🚫 Доступ до адмін-панелі відсутній.\n\n' +
-	            'Якщо доступ має бути відкритий, зверніться до власника салону.',
-	        );
+	        await ctx.reply(tBot(state.language, 'ADMIN_PANEL_ACCESS_DENIED'));
 	        await ctx.scene.leave();
 	        await sendClientMainMenu(ctx);
 	        return;
