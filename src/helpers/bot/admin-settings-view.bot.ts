@@ -1,53 +1,28 @@
 import { Markup } from 'telegraf';
 import {
   ADMIN_PANEL_ACTION,
-  ADMIN_PANEL_BUTTON_TEXT,
   makeAdminPanelSettingsLanguageSelectAction,
   makeAdminPanelSettingsNotificationsToggleAction,
   makeAdminPanelSettingsStudioEditBlockOpenAction,
 } from '../../types/bot-admin-panel.types.js';
-import type { ContentBlockKey } from '../../types/db/dbEnums.type.js';
-import type { LanguageCode } from '../../types/db/dbEnums.type.js';
+import type { ContentBlockKey, LanguageCode } from '../../types/db/dbEnums.type.js';
 import type { AdminStudioAdminMember, AdminStudioUserLookup } from '../../types/db-helpers/db-admin-settings.types.js';
 import type { AdminStudioProfileSettings } from '../../types/db-helpers/db-admin-studio-settings.types.js';
 import type {
   NotificationSettingsState,
   UserDeliveryProfile,
 } from '../../types/db-helpers/db-notification-settings.types.js';
+import {
+  getLanguageLabel as getUiLanguageLabel,
+  tBot,
+  tBotTemplate,
+} from './i18n.bot.js';
+import type { BotUiLanguage } from './i18n.bot.js';
 
 /**
  * @file admin-settings-view.bot.ts
  * @summary UI/helper-и для блоку "Налаштування" в адмін-панелі.
  */
-
-/**
- * @summary Форматує меню налаштувань адмін-панелі.
- */
-export function formatAdminSettingsMenuText(): string {
-  return (
-    '⚙️ Налаштування\n' +
-    '━━━━━━━━━━━━━━\n\n' +
-    'Оберіть розділ, який потрібно відкрити:'
-  );
-}
-
-/**
- * @summary Клавіатура меню блоку "Налаштування".
- */
-export function createAdminSettingsMenuKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
-  return Markup.inlineKeyboard([
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SETTINGS_LANGUAGE, ADMIN_PANEL_ACTION.SETTINGS_OPEN_LANGUAGE)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SETTINGS_ADMINS, ADMIN_PANEL_ACTION.SETTINGS_OPEN_ADMINS)],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SETTINGS_STUDIO, ADMIN_PANEL_ACTION.SETTINGS_OPEN_STUDIO)],
-    [
-      Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_NOTIFICATIONS,
-        ADMIN_PANEL_ACTION.SETTINGS_OPEN_NOTIFICATIONS,
-      ),
-    ],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SETTINGS_BACK, ADMIN_PANEL_ACTION.SETTINGS_BACK)],
-  ]);
-}
 
 const NUMBER_BADGES = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
 
@@ -55,48 +30,77 @@ function getNumberBadge(index: number): string {
   return NUMBER_BADGES[index] ?? `${index + 1}.`;
 }
 
-function formatTelegramLogin(username: string | null): string {
-  return username ? `@${username}` : '—';
+function formatTelegramLogin(username: string | null, language: BotUiLanguage): string {
+  return username ? `@${username}` : tBot(language, 'ADMIN_PANEL_SETTINGS_NOT_SET');
 }
 
-function getLanguageLabel(language: LanguageCode): string {
-  switch (language) {
-    case 'uk':
-      return '🇺🇦 Українська';
-    case 'en':
-      return '🇬🇧 English';
-    case 'cs':
-      return '🇨🇿 Čeština';
-    default:
-      return language;
-  }
+function formatLanguageLabel(language: LanguageCode, uiLanguage: BotUiLanguage): string {
+  return getUiLanguageLabel(language, uiLanguage);
+}
+
+/**
+ * @summary Форматує меню налаштувань адмін-панелі.
+ */
+export function formatAdminSettingsMenuText(language: BotUiLanguage = 'uk'): string {
+  return (
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_MENU_TITLE')}\n` +
+    '━━━━━━━━━━━━━━\n\n' +
+    tBot(language, 'ADMIN_PANEL_SETTINGS_MENU_SUBTITLE')
+  );
+}
+
+/**
+ * @summary Клавіатура меню блоку "Налаштування".
+ */
+export function createAdminSettingsMenuKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_LANGUAGE'), ADMIN_PANEL_ACTION.SETTINGS_OPEN_LANGUAGE)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_ADMINS'), ADMIN_PANEL_ACTION.SETTINGS_OPEN_ADMINS)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_STUDIO'), ADMIN_PANEL_ACTION.SETTINGS_OPEN_STUDIO)],
+    [
+      Markup.button.callback(
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_NOTIFICATIONS'),
+        ADMIN_PANEL_ACTION.SETTINGS_OPEN_NOTIFICATIONS,
+      ),
+    ],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_BACK'), ADMIN_PANEL_ACTION.SETTINGS_BACK)],
+  ]);
 }
 
 /**
  * @summary Форматує екран списку адміністраторів.
  */
-export function formatAdminSettingsAdminsText(admins: AdminStudioAdminMember[]): string {
+export function formatAdminSettingsAdminsText(
+  admins: AdminStudioAdminMember[],
+  language: BotUiLanguage = 'uk',
+): string {
   if (admins.length === 0) {
     return (
-      '👑 Адміністратори\n' +
+      `${tBot(language, 'ADMIN_PANEL_SETTINGS_ADMINS_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
-      'У цьому салоні ще немає активних адміністраторів.\n\n' +
-      'Щоб почати, додайте адміністратора через Telegram ID.'
+      `${tBot(language, 'ADMIN_PANEL_SETTINGS_ADMINS_EMPTY')}\n\n` +
+      tBot(language, 'ADMIN_PANEL_SETTINGS_ADMINS_EMPTY_HINT')
     );
   }
 
   const lines = admins.map((admin, index) => {
     return (
       `${getNumberBadge(index)} ${admin.displayName}\n` +
-      `🆔 Telegram ID: ${admin.telegramUserId}\n` +
-      `🔹 Username: ${formatTelegramLogin(admin.telegramUsername)}`
+      tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_ADMINS_LABEL_TELEGRAM_ID', {
+        id: admin.telegramUserId,
+      }) + '\n' +
+      tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_ADMINS_LABEL_USERNAME', {
+        username: formatTelegramLogin(admin.telegramUsername, language),
+      })
     );
   });
 
   return (
-    '👑 Адміністратори\n' +
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_ADMINS_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Список адміністраторів салону:\n\n' +
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_ADMINS_LIST_TITLE')}\n\n` +
     lines.join('\n\n')
   );
 }
@@ -104,41 +108,48 @@ export function formatAdminSettingsAdminsText(admins: AdminStudioAdminMember[]):
 /**
  * @summary Клавіатура меню адміністраторів.
  */
-export function createAdminSettingsAdminsKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminSettingsAdminsKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_ADMINS_GRANT,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_ADMINS_GRANT'),
         ADMIN_PANEL_ACTION.SETTINGS_ADMINS_GRANT_OPEN,
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_ADMINS_REVOKE,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_ADMINS_REVOKE'),
         ADMIN_PANEL_ACTION.SETTINGS_ADMINS_REVOKE_OPEN,
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_BACK_TO_MENU,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_BACK_TO_MENU'),
         ADMIN_PANEL_ACTION.SETTINGS_BACK_TO_MENU,
       ),
     ],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SETTINGS_BACK, ADMIN_PANEL_ACTION.SETTINGS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_BACK'), ADMIN_PANEL_ACTION.SETTINGS_BACK)],
   ]);
 }
 
 /**
  * @summary Форматує екран налаштування мови адмін-панелі.
  */
-export function formatAdminSettingsLanguageText(currentLanguage: LanguageCode): string {
+export function formatAdminSettingsLanguageText(
+  currentLanguage: LanguageCode,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '🌐 Мова адмін-панелі\n' +
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_LANGUAGE_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'У цьому розділі можна змінити мову інтерфейсу адмін-панелі.\n' +
-    'Ця зміна не впливає на клієнтів або майстрів.\n\n' +
-    `📋 Поточна мова: ${getLanguageLabel(currentLanguage)}\n\n` +
-    'Оберіть нову мову нижче:'
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_LANGUAGE_DESCRIPTION')}\n` +
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_LANGUAGE_NOTE')}\n\n` +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_LANGUAGE_CURRENT', {
+      language: formatLanguageLabel(currentLanguage, language),
+    }) + '\n\n' +
+    tBot(language, 'ADMIN_PANEL_SETTINGS_LANGUAGE_PICK')
   );
 }
 
@@ -147,36 +158,37 @@ export function formatAdminSettingsLanguageText(currentLanguage: LanguageCode): 
  */
 export function createAdminSettingsLanguageKeyboard(
   currentLanguage: LanguageCode,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
-  const withMark = (label: string, language: LanguageCode): string =>
-    language === currentLanguage ? `✅ ${label}` : label;
+  const withMark = (label: string, targetLanguage: LanguageCode): string =>
+    targetLanguage === currentLanguage ? `✅ ${label}` : label;
 
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        withMark(ADMIN_PANEL_BUTTON_TEXT.SETTINGS_LANGUAGE_UK, 'uk'),
+        withMark(tBot(language, 'LANGUAGE_UK'), 'uk'),
         makeAdminPanelSettingsLanguageSelectAction('uk'),
       ),
     ],
     [
       Markup.button.callback(
-        withMark(ADMIN_PANEL_BUTTON_TEXT.SETTINGS_LANGUAGE_EN, 'en'),
+        withMark(tBot(language, 'LANGUAGE_EN'), 'en'),
         makeAdminPanelSettingsLanguageSelectAction('en'),
       ),
     ],
     [
       Markup.button.callback(
-        withMark(ADMIN_PANEL_BUTTON_TEXT.SETTINGS_LANGUAGE_CS, 'cs'),
+        withMark(tBot(language, 'LANGUAGE_CS'), 'cs'),
         makeAdminPanelSettingsLanguageSelectAction('cs'),
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_BACK_TO_MENU,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_BACK_TO_MENU'),
         ADMIN_PANEL_ACTION.SETTINGS_BACK_TO_MENU,
       ),
     ],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SETTINGS_BACK, ADMIN_PANEL_ACTION.SETTINGS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_BACK'), ADMIN_PANEL_ACTION.SETTINGS_BACK)],
   ]);
 }
 
@@ -186,30 +198,37 @@ export function createAdminSettingsLanguageKeyboard(
 export function formatAdminSettingsLanguageConfirmText(
   currentLanguage: LanguageCode,
   nextLanguage: LanguageCode,
+  language: BotUiLanguage = 'uk',
 ): string {
   return (
-    '⚠️ Підтвердження зміни мови\n' +
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_LANGUAGE_CONFIRM_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `🌐 Було: ${getLanguageLabel(currentLanguage)}\n` +
-    `🌐 Стане: ${getLanguageLabel(nextLanguage)}\n\n` +
-    'Підтвердьте, якщо хочете зберегти цю зміну.'
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_LANGUAGE_CONFIRM_FROM', {
+      language: formatLanguageLabel(currentLanguage, language),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_LANGUAGE_CONFIRM_TO', {
+      language: formatLanguageLabel(nextLanguage, language),
+    }) + '\n\n' +
+    tBot(language, 'ADMIN_PANEL_SETTINGS_LANGUAGE_CONFIRM_HINT')
   );
 }
 
 /**
  * @summary Клавіатура підтвердження зміни мови.
  */
-export function createAdminSettingsLanguageConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminSettingsLanguageConfirmKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_LANGUAGE_CONFIRM,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_LANGUAGE_CONFIRM'),
         ADMIN_PANEL_ACTION.SETTINGS_LANGUAGE_CONFIRM,
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_LANGUAGE_CANCEL,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_LANGUAGE_CANCEL'),
         ADMIN_PANEL_ACTION.SETTINGS_LANGUAGE_CANCEL,
       ),
     ],
@@ -219,43 +238,45 @@ export function createAdminSettingsLanguageConfirmKeyboard(): ReturnType<typeof 
 /**
  * @summary Текст кроку введення Telegram ID для надання ролі.
  */
-export function formatAdminSettingsGrantInputText(): string {
+export function formatAdminSettingsGrantInputText(language: BotUiLanguage = 'uk'): string {
   return (
-    '👑 Надання ролі адміністратора\n' +
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_ADMINS_GRANT_INPUT_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Надішліть Telegram ID користувача одним повідомленням.\n\n' +
-    'Формат: лише цифри\n' +
-    'Приклад: 6712153038'
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_ADMINS_INPUT_BODY')}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_ADMINS_INPUT_FORMAT')}\n` +
+    tBot(language, 'ADMIN_PANEL_SETTINGS_ADMINS_INPUT_EXAMPLE')
   );
 }
 
 /**
  * @summary Текст кроку введення Telegram ID для зняття ролі.
  */
-export function formatAdminSettingsRevokeInputText(): string {
+export function formatAdminSettingsRevokeInputText(language: BotUiLanguage = 'uk'): string {
   return (
-    '🚫 Видалення ролі адміністратора\n' +
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_ADMINS_REVOKE_INPUT_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Надішліть Telegram ID адміністратора, у якого потрібно забрати роль.\n\n' +
-    'Формат: лише цифри\n' +
-    'Приклад: 6712153038'
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_ADMINS_REVOKE_INPUT_BODY')}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_ADMINS_INPUT_FORMAT')}\n` +
+    tBot(language, 'ADMIN_PANEL_SETTINGS_ADMINS_INPUT_EXAMPLE')
   );
 }
 
 /**
  * @summary Клавіатура кроку введення ID для надання ролі.
  */
-export function createAdminSettingsGrantInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminSettingsGrantInputKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_ADMINS_CANCEL,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_ADMINS_CANCEL'),
         ADMIN_PANEL_ACTION.SETTINGS_ADMINS_GRANT_CANCEL,
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_BACK_TO_MENU,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_BACK_TO_MENU'),
         ADMIN_PANEL_ACTION.SETTINGS_BACK_TO_MENU,
       ),
     ],
@@ -265,17 +286,19 @@ export function createAdminSettingsGrantInputKeyboard(): ReturnType<typeof Marku
 /**
  * @summary Клавіатура кроку введення ID для зняття ролі.
  */
-export function createAdminSettingsRevokeInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminSettingsRevokeInputKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_ADMINS_CANCEL,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_ADMINS_CANCEL'),
         ADMIN_PANEL_ACTION.SETTINGS_ADMINS_REVOKE_CANCEL,
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_BACK_TO_MENU,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_BACK_TO_MENU'),
         ADMIN_PANEL_ACTION.SETTINGS_BACK_TO_MENU,
       ),
     ],
@@ -285,45 +308,65 @@ export function createAdminSettingsRevokeInputKeyboard(): ReturnType<typeof Mark
 /**
  * @summary Текст підтвердження надання ролі адміністратора.
  */
-export function formatAdminSettingsGrantConfirmText(target: AdminStudioUserLookup): string {
+export function formatAdminSettingsGrantConfirmText(
+  target: AdminStudioUserLookup,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '⚠️ Підтвердження надання ролі\n' +
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_ADMINS_GRANT_CONFIRM_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👤 Користувач: ${target.displayName}\n` +
-    `🆔 Telegram ID: ${target.telegramUserId}\n` +
-    `🔹 Username: ${formatTelegramLogin(target.telegramUsername)}\n\n` +
-    'Після підтвердження користувач отримає повний доступ до адмін-панелі.'
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_ADMINS_LABEL_USER', {
+      user: target.displayName,
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_ADMINS_LABEL_TELEGRAM_ID', {
+      id: target.telegramUserId,
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_ADMINS_LABEL_USERNAME', {
+      username: formatTelegramLogin(target.telegramUsername, language),
+    }) + '\n\n' +
+    tBot(language, 'ADMIN_PANEL_SETTINGS_ADMINS_GRANT_CONFIRM_HINT')
   );
 }
 
 /**
  * @summary Текст підтвердження зняття ролі адміністратора.
  */
-export function formatAdminSettingsRevokeConfirmText(target: AdminStudioUserLookup): string {
+export function formatAdminSettingsRevokeConfirmText(
+  target: AdminStudioUserLookup,
+  language: BotUiLanguage = 'uk',
+): string {
   return (
-    '⚠️ Підтвердження видалення ролі\n' +
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_ADMINS_REVOKE_CONFIRM_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👤 Користувач: ${target.displayName}\n` +
-    `🆔 Telegram ID: ${target.telegramUserId}\n` +
-    `🔹 Username: ${formatTelegramLogin(target.telegramUsername)}\n\n` +
-    'Після підтвердження користувач втратить доступ до адмін-панелі.'
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_ADMINS_LABEL_USER', {
+      user: target.displayName,
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_ADMINS_LABEL_TELEGRAM_ID', {
+      id: target.telegramUserId,
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_ADMINS_LABEL_USERNAME', {
+      username: formatTelegramLogin(target.telegramUsername, language),
+    }) + '\n\n' +
+    tBot(language, 'ADMIN_PANEL_SETTINGS_ADMINS_REVOKE_CONFIRM_HINT')
   );
 }
 
 /**
  * @summary Клавіатура підтвердження надання ролі.
  */
-export function createAdminSettingsGrantConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminSettingsGrantConfirmKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_ADMINS_CONFIRM_GRANT,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_ADMINS_CONFIRM_GRANT'),
         ADMIN_PANEL_ACTION.SETTINGS_ADMINS_GRANT_CONFIRM,
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_ADMINS_CANCEL,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_ADMINS_CANCEL'),
         ADMIN_PANEL_ACTION.SETTINGS_ADMINS_GRANT_CANCEL,
       ),
     ],
@@ -333,41 +376,47 @@ export function createAdminSettingsGrantConfirmKeyboard(): ReturnType<typeof Mar
 /**
  * @summary Клавіатура підтвердження зняття ролі.
  */
-export function createAdminSettingsRevokeConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminSettingsRevokeConfirmKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_ADMINS_CONFIRM_REVOKE,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_ADMINS_CONFIRM_REVOKE'),
         ADMIN_PANEL_ACTION.SETTINGS_ADMINS_REVOKE_CONFIRM,
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_ADMINS_CANCEL,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_ADMINS_CANCEL'),
         ADMIN_PANEL_ACTION.SETTINGS_ADMINS_REVOKE_CANCEL,
       ),
     ],
   ]);
 }
 
+const WEEKDAY_LABELS: Record<BotUiLanguage, Record<number, string>> = {
+  uk: { 1: 'Пн', 2: 'Вт', 3: 'Ср', 4: 'Чт', 5: 'Пт', 6: 'Сб', 7: 'Нд' },
+  en: { 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat', 7: 'Sun' },
+  cs: { 1: 'Po', 2: 'Út', 3: 'St', 4: 'Čt', 5: 'Pá', 6: 'So', 7: 'Ne' },
+};
+
 function formatWeeklyHoursLine(
   item: AdminStudioProfileSettings['weeklyHours'][number],
+  language: BotUiLanguage,
 ): string {
-  const weekdayLabels: Record<number, string> = {
-    1: 'Пн',
-    2: 'Вт',
-    3: 'Ср',
-    4: 'Чт',
-    5: 'Пт',
-    6: 'Сб',
-    7: 'Нд',
-  };
-  const weekday = weekdayLabels[item.weekday] ?? `День ${item.weekday}`;
+  const weekday = WEEKDAY_LABELS[language][item.weekday] ??
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_WEEKDAY_FALLBACK', { day: item.weekday });
 
   if (!item.isOpen || !item.openTime || !item.closeTime) {
-    return `${weekday} — вихідний`;
+    return tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_WEEKLY_OFF', { weekday });
   }
-  return `${weekday} — ${item.openTime.slice(0, 5)}–${item.closeTime.slice(0, 5)}`;
+
+  return tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_WEEKLY_OPEN', {
+    weekday,
+    from: item.openTime.slice(0, 5),
+    to: item.closeTime.slice(0, 5),
+  });
 }
 
 function trimPreview(value: string, max = 220): string {
@@ -376,116 +425,138 @@ function trimPreview(value: string, max = 220): string {
   return `${normalized.slice(0, max).trimEnd()}…`;
 }
 
-export function getAdminStudioBlockTitle(blockKey: ContentBlockKey): string {
+export function getAdminStudioBlockTitle(
+  blockKey: ContentBlockKey,
+  language: BotUiLanguage = 'uk',
+): string {
   switch (blockKey) {
     case 'about':
-      return 'Інформація про студію';
+      return tBot(language, 'ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_ABOUT');
     case 'contacts':
-      return 'Контакти';
+      return tBot(language, 'ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_CONTACTS');
     case 'booking_rules':
-      return 'Правила запису';
+      return tBot(language, 'ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_BOOKING_RULES');
     case 'cancellation_policy':
-      return 'Скасування та перенесення';
+      return tBot(language, 'ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_CANCELLATION');
     case 'preparation':
-      return 'Підготовка до процедури';
+      return tBot(language, 'ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_PREPARATION');
     case 'comfort':
-      return 'Комфорт під час візиту';
+      return tBot(language, 'ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_COMFORT');
     case 'guarantee_service':
-      return 'Гарантія та сервіс';
+      return tBot(language, 'ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_GUARANTEE');
     default:
-      return 'Контент-блок';
+      return tBot(language, 'ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_FALLBACK');
   }
 }
 
 /**
  * @summary Форматує головний екран блоку "Параметри салону".
  */
-export function formatAdminSettingsStudioProfileText(data: AdminStudioProfileSettings): string {
+export function formatAdminSettingsStudioProfileText(
+  data: AdminStudioProfileSettings,
+  language: BotUiLanguage = 'uk',
+): string {
+  const notSet = tBot(language, 'ADMIN_PANEL_SETTINGS_NOT_SET');
   const scheduleText =
     data.weeklyHours.length > 0
       ? data.weeklyHours
           .slice()
           .sort((a, b) => a.weekday - b.weekday)
-          .map(formatWeeklyHoursLine)
+          .map((item) => formatWeeklyHoursLine(item, language))
           .join('\n')
-      : 'Графік ще не налаштований';
+      : tBot(language, 'ADMIN_PANEL_SETTINGS_STUDIO_SCHEDULE_EMPTY');
 
   return (
-    '🏢 Профіль салону\n' +
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_STUDIO_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `🏷 Назва: ${data.studio.name}\n` +
-    `📍 Місто: ${data.studio.city ?? 'Не вказано'}\n` +
-    `📌 Адреса: ${data.studio.addressLine ?? 'Не вказано'}\n` +
-    `📞 Телефон: ${data.studio.phoneE164 ?? 'Не вказано'}\n` +
-    `✉️ Email: ${data.studio.email ?? 'Не вказано'}\n` +
-    `🕒 Таймзона: ${data.studio.timezone}\n\n` +
-    '🗓 Графік роботи\n' +
-    `${scheduleText}\n\n` +
-    'ℹ️ Контент для клієнтів\n' +
-    `• Інформація: ${trimPreview(data.contentBlocks.about, 110)}\n` +
-    `• Контакти: ${trimPreview(data.contentBlocks.contacts, 110)}\n` +
-    `• Правила запису: ${trimPreview(data.contentBlocks.booking_rules, 110)}\n` +
-    `• Скасування: ${trimPreview(data.contentBlocks.cancellation_policy, 110)}\n` +
-    `• Підготовка: ${trimPreview(data.contentBlocks.preparation, 110)}\n` +
-    `• Комфорт: ${trimPreview(data.contentBlocks.comfort, 110)}\n` +
-    `• Гарантія: ${trimPreview(data.contentBlocks.guarantee_service, 110)}`
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_STUDIO_LABEL_NAME', { value: data.studio.name }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_STUDIO_LABEL_CITY', { value: data.studio.city ?? notSet }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_STUDIO_LABEL_ADDRESS', { value: data.studio.addressLine ?? notSet }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_STUDIO_LABEL_PHONE', { value: data.studio.phoneE164 ?? notSet }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_STUDIO_LABEL_EMAIL', { value: data.studio.email ?? notSet }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_STUDIO_LABEL_TIMEZONE', { value: data.studio.timezone }) + '\n\n' +
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_STUDIO_SCHEDULE_TITLE')}\n${scheduleText}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_TITLE')}\n` +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_ABOUT', {
+      value: trimPreview(data.contentBlocks.about, 110),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_CONTACTS', {
+      value: trimPreview(data.contentBlocks.contacts, 110),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_BOOKING_RULES', {
+      value: trimPreview(data.contentBlocks.booking_rules, 110),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_CANCELLATION', {
+      value: trimPreview(data.contentBlocks.cancellation_policy, 110),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_PREPARATION', {
+      value: trimPreview(data.contentBlocks.preparation, 110),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_COMFORT', {
+      value: trimPreview(data.contentBlocks.comfort, 110),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_GUARANTEE', {
+      value: trimPreview(data.contentBlocks.guarantee_service, 110),
+    })
   );
 }
 
 /**
  * @summary Клавіатура блоку "Параметри салону".
  */
-export function createAdminSettingsStudioProfileKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminSettingsStudioProfileKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_STUDIO_EDIT_ABOUT,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_ABOUT'),
         makeAdminPanelSettingsStudioEditBlockOpenAction('about'),
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_STUDIO_EDIT_CONTACTS,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_CONTACTS'),
         makeAdminPanelSettingsStudioEditBlockOpenAction('contacts'),
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_STUDIO_EDIT_BOOKING_RULES,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_BOOKING_RULES'),
         makeAdminPanelSettingsStudioEditBlockOpenAction('booking_rules'),
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_STUDIO_EDIT_CANCELLATION,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_CANCELLATION'),
         makeAdminPanelSettingsStudioEditBlockOpenAction('cancellation_policy'),
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_STUDIO_EDIT_PREPARATION,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_PREPARATION'),
         makeAdminPanelSettingsStudioEditBlockOpenAction('preparation'),
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_STUDIO_EDIT_COMFORT,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_COMFORT'),
         makeAdminPanelSettingsStudioEditBlockOpenAction('comfort'),
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_STUDIO_EDIT_GUARANTEE,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_GUARANTEE'),
         makeAdminPanelSettingsStudioEditBlockOpenAction('guarantee_service'),
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_BACK_TO_MENU,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_BACK_TO_MENU'),
         ADMIN_PANEL_ACTION.SETTINGS_BACK_TO_MENU,
       ),
     ],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SETTINGS_BACK, ADMIN_PANEL_ACTION.SETTINGS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_BACK'), ADMIN_PANEL_ACTION.SETTINGS_BACK)],
   ]);
 }
 
@@ -495,30 +566,33 @@ export function createAdminSettingsStudioProfileKeyboard(): ReturnType<typeof Ma
 export function formatAdminSettingsStudioEditPromptText(
   blockTitle: string,
   currentContent: string,
+  language: BotUiLanguage = 'uk',
 ): string {
   return (
-    `✏️ Редагування: ${blockTitle}\n` +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_STUDIO_EDIT_PROMPT_TITLE', { block: blockTitle }) + '\n' +
     '━━━━━━━━━━━━━━\n\n' +
-    'Поточний текст:\n' +
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_STUDIO_EDIT_PROMPT_CURRENT')}\n` +
     `${currentContent}\n\n` +
-    'Надішліть новий текст одним повідомленням.'
+    tBot(language, 'ADMIN_PANEL_SETTINGS_STUDIO_EDIT_PROMPT_SEND')
   );
 }
 
 /**
  * @summary Клавіатура екрана вводу тексту контент-блоку.
  */
-export function createAdminSettingsStudioEditInputKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminSettingsStudioEditInputKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_STUDIO_CANCEL,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_STUDIO_CANCEL'),
         ADMIN_PANEL_ACTION.SETTINGS_STUDIO_EDIT_BLOCK_CANCEL,
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_BACK_TO_MENU,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_BACK_TO_MENU'),
         ADMIN_PANEL_ACTION.SETTINGS_BACK_TO_MENU,
       ),
     ],
@@ -531,30 +605,33 @@ export function createAdminSettingsStudioEditInputKeyboard(): ReturnType<typeof 
 export function formatAdminSettingsStudioEditConfirmText(
   blockTitle: string,
   newContent: string,
+  language: BotUiLanguage = 'uk',
 ): string {
   return (
-    `⚠️ Підтвердження змін: ${blockTitle}\n` +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_STUDIO_EDIT_CONFIRM_TITLE', { block: blockTitle }) + '\n' +
     '━━━━━━━━━━━━━━\n\n' +
-    'Новий текст:\n' +
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_STUDIO_EDIT_CONFIRM_NEW')}\n` +
     `${newContent}\n\n` +
-    'Підтвердьте, щоб зберегти зміни в профілі салону.'
+    tBot(language, 'ADMIN_PANEL_SETTINGS_STUDIO_EDIT_CONFIRM_HINT')
   );
 }
 
 /**
  * @summary Клавіатура підтвердження редагування контент-блоку.
  */
-export function createAdminSettingsStudioEditConfirmKeyboard(): ReturnType<typeof Markup.inlineKeyboard> {
+export function createAdminSettingsStudioEditConfirmKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_STUDIO_CONFIRM,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_STUDIO_CONFIRM'),
         ADMIN_PANEL_ACTION.SETTINGS_STUDIO_EDIT_BLOCK_CONFIRM,
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_STUDIO_CANCEL,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_STUDIO_CANCEL'),
         ADMIN_PANEL_ACTION.SETTINGS_STUDIO_EDIT_BLOCK_CANCEL,
       ),
     ],
@@ -565,8 +642,10 @@ function getNotificationStatusIcon(enabled: boolean): string {
   return enabled ? '✅' : '⚪';
 }
 
-function getDeliveryStatusLabel(verifiedAt: Date | null): string {
-  return verifiedAt ? 'підтверджено ✅' : 'не підтверджено ⚪';
+function getDeliveryStatusLabel(verifiedAt: Date | null, language: BotUiLanguage): string {
+  return verifiedAt
+    ? tBot(language, 'ADMIN_PANEL_SETTINGS_NOTIFICATIONS_DELIVERY_VERIFIED')
+    : tBot(language, 'ADMIN_PANEL_SETTINGS_NOTIFICATIONS_DELIVERY_UNVERIFIED');
 }
 
 /**
@@ -575,22 +654,30 @@ function getDeliveryStatusLabel(verifiedAt: Date | null): string {
 export function formatAdminSettingsNotificationsText(
   state: NotificationSettingsState,
   deliveryProfile: UserDeliveryProfile | null,
+  language: BotUiLanguage = 'uk',
 ): string {
-  const phone = deliveryProfile?.phoneE164 ?? 'Не вказано';
-  const email = deliveryProfile?.email ?? 'Не вказано';
+  const notSet = tBot(language, 'ADMIN_PANEL_SETTINGS_NOT_SET');
+  const phone = deliveryProfile?.phoneE164 ?? notSet;
+  const email = deliveryProfile?.email ?? notSet;
 
   return (
-    '🔔 Системні сповіщення\n' +
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_NOTIFICATIONS_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    'Керуйте службовими сповіщеннями для вашого адмін-профілю.\n\n' +
-    `${getNotificationStatusIcon(state.booking_confirmation)} Підтвердження запису\n` +
-    `${getNotificationStatusIcon(state.status_change)} Зміни статусу запису\n` +
-    `${getNotificationStatusIcon(state.visit_reminder)} Нагадування\n` +
-    `${getNotificationStatusIcon(state.promo_news)} Акції та новини\n\n` +
-    '📡 Канали доставки\n' +
-    `• Telegram: активний завжди\n` +
-    `• Телефон: ${phone} (${getDeliveryStatusLabel(deliveryProfile?.phoneVerifiedAt ?? null)})\n` +
-    `• Email: ${email} (${getDeliveryStatusLabel(deliveryProfile?.emailVerifiedAt ?? null)})`
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_NOTIFICATIONS_DESCRIPTION')}\n\n` +
+    `${getNotificationStatusIcon(state.booking_confirmation)} ${tBot(language, 'ADMIN_PANEL_SETTINGS_NOTIFICATIONS_BOOKING_CONFIRMATION')}\n` +
+    `${getNotificationStatusIcon(state.status_change)} ${tBot(language, 'ADMIN_PANEL_SETTINGS_NOTIFICATIONS_STATUS_CHANGE')}\n` +
+    `${getNotificationStatusIcon(state.visit_reminder)} ${tBot(language, 'ADMIN_PANEL_SETTINGS_NOTIFICATIONS_VISIT_REMINDER')}\n` +
+    `${getNotificationStatusIcon(state.promo_news)} ${tBot(language, 'ADMIN_PANEL_SETTINGS_NOTIFICATIONS_PROMO_NEWS')}\n\n` +
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_NOTIFICATIONS_CHANNELS_TITLE')}\n` +
+    `${tBot(language, 'ADMIN_PANEL_SETTINGS_NOTIFICATIONS_CHANNEL_TELEGRAM')}\n` +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_NOTIFICATIONS_CHANNEL_PHONE', {
+      phone,
+      status: getDeliveryStatusLabel(deliveryProfile?.phoneVerifiedAt ?? null, language),
+    }) + '\n' +
+    tBotTemplate(language, 'ADMIN_PANEL_SETTINGS_NOTIFICATIONS_CHANNEL_EMAIL', {
+      email,
+      status: getDeliveryStatusLabel(deliveryProfile?.emailVerifiedAt ?? null, language),
+    })
   );
 }
 
@@ -599,48 +686,49 @@ export function formatAdminSettingsNotificationsText(
  */
 export function createAdminSettingsNotificationsKeyboard(
   state: NotificationSettingsState,
+  language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
       Markup.button.callback(
-        `${getNotificationStatusIcon(state.booking_confirmation)} Підтвердження запису`,
+        `${getNotificationStatusIcon(state.booking_confirmation)} ${tBot(language, 'ADMIN_PANEL_SETTINGS_NOTIFICATIONS_BOOKING_CONFIRMATION')}`,
         makeAdminPanelSettingsNotificationsToggleAction('booking_confirmation'),
       ),
     ],
     [
       Markup.button.callback(
-        `${getNotificationStatusIcon(state.status_change)} Зміни статусу`,
+        `${getNotificationStatusIcon(state.status_change)} ${tBot(language, 'ADMIN_PANEL_SETTINGS_NOTIFICATIONS_STATUS_CHANGE_SHORT')}`,
         makeAdminPanelSettingsNotificationsToggleAction('status_change'),
       ),
     ],
     [
       Markup.button.callback(
-        `${getNotificationStatusIcon(state.visit_reminder)} Нагадування`,
+        `${getNotificationStatusIcon(state.visit_reminder)} ${tBot(language, 'ADMIN_PANEL_SETTINGS_NOTIFICATIONS_VISIT_REMINDER')}`,
         makeAdminPanelSettingsNotificationsToggleAction('visit_reminder'),
       ),
     ],
     [
       Markup.button.callback(
-        `${getNotificationStatusIcon(state.promo_news)} Акції та новини`,
+        `${getNotificationStatusIcon(state.promo_news)} ${tBot(language, 'ADMIN_PANEL_SETTINGS_NOTIFICATIONS_PROMO_NEWS')}`,
         makeAdminPanelSettingsNotificationsToggleAction('promo_news'),
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_NOTIFICATIONS_ALL_ON,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_NOTIFICATIONS_ALL_ON'),
         ADMIN_PANEL_ACTION.SETTINGS_NOTIFICATIONS_ALL_ON,
       ),
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_NOTIFICATIONS_ALL_OFF,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_NOTIFICATIONS_ALL_OFF'),
         ADMIN_PANEL_ACTION.SETTINGS_NOTIFICATIONS_ALL_OFF,
       ),
     ],
     [
       Markup.button.callback(
-        ADMIN_PANEL_BUTTON_TEXT.SETTINGS_BACK_TO_MENU,
+        tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_BACK_TO_MENU'),
         ADMIN_PANEL_ACTION.SETTINGS_BACK_TO_MENU,
       ),
     ],
-    [Markup.button.callback(ADMIN_PANEL_BUTTON_TEXT.SETTINGS_BACK, ADMIN_PANEL_ACTION.SETTINGS_BACK)],
+    [Markup.button.callback(tBot(language, 'ADMIN_PANEL_SETTINGS_BTN_BACK'), ADMIN_PANEL_ACTION.SETTINGS_BACK)],
   ]);
 }

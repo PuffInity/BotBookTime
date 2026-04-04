@@ -1183,8 +1183,8 @@ async function renderAdminSettingsMenu(ctx: MyContext, preferEdit: boolean): Pro
   const state = getSceneState(ctx);
   state.settingsCurrentSection = 'menu';
 
-  const text = formatAdminSettingsMenuText();
-  const keyboard = createAdminSettingsMenuKeyboard();
+  const text = formatAdminSettingsMenuText(state.language);
+  const keyboard = createAdminSettingsMenuKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1209,8 +1209,8 @@ async function renderAdminSettingsLanguage(ctx: MyContext, preferEdit: boolean):
   state.settingsCurrentSection = 'language';
   state.settingsLanguageDraft = null;
 
-  const text = formatAdminSettingsLanguageText(currentLanguage);
-  const keyboard = createAdminSettingsLanguageKeyboard(currentLanguage);
+  const text = formatAdminSettingsLanguageText(currentLanguage, state.language);
+  const keyboard = createAdminSettingsLanguageKeyboard(currentLanguage, state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1247,8 +1247,9 @@ async function renderAdminSettingsLanguageConfirm(
   const text = formatAdminSettingsLanguageConfirmText(
     draft.currentLanguage,
     draft.nextLanguage,
+    state.language,
   );
-  const keyboard = createAdminSettingsLanguageConfirmKeyboard();
+  const keyboard = createAdminSettingsLanguageConfirmKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1281,8 +1282,8 @@ async function renderAdminSettingsNotifications(
   state.settingsNotificationsState = notificationState;
   state.settingsNotificationsDeliveryProfile = deliveryProfile;
 
-  const text = formatAdminSettingsNotificationsText(notificationState, deliveryProfile);
-  const keyboard = createAdminSettingsNotificationsKeyboard(notificationState);
+  const text = formatAdminSettingsNotificationsText(notificationState, deliveryProfile, state.language);
+  const keyboard = createAdminSettingsNotificationsKeyboard(notificationState, state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1326,8 +1327,8 @@ async function renderAdminSettingsAdmins(ctx: MyContext, preferEdit: boolean): P
   state.settingsCurrentSection = 'admins';
   state.settingsAdminsDraft = null;
 
-  const text = formatAdminSettingsAdminsText(admins);
-  const keyboard = createAdminSettingsAdminsKeyboard();
+  const text = formatAdminSettingsAdminsText(admins, state.language);
+  const keyboard = createAdminSettingsAdminsKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1355,11 +1356,13 @@ async function renderAdminSettingsAdminsInput(
   };
 
   const text =
-    action === 'grant' ? formatAdminSettingsGrantInputText() : formatAdminSettingsRevokeInputText();
+    action === 'grant'
+      ? formatAdminSettingsGrantInputText(state.language)
+      : formatAdminSettingsRevokeInputText(state.language);
   const keyboard =
     action === 'grant'
-      ? createAdminSettingsGrantInputKeyboard()
-      : createAdminSettingsRevokeInputKeyboard();
+      ? createAdminSettingsGrantInputKeyboard(state.language)
+      : createAdminSettingsRevokeInputKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1378,6 +1381,7 @@ async function renderAdminSettingsAdminsConfirm(
   draft: AdminSettingsAdminsDraft,
   preferEdit: boolean,
 ): Promise<void> {
+  const language = getSceneState(ctx).language;
   if (!draft.target) {
     await renderAdminSettingsAdmins(ctx, preferEdit);
     return;
@@ -1385,12 +1389,12 @@ async function renderAdminSettingsAdminsConfirm(
 
   const text =
     draft.action === 'grant'
-      ? formatAdminSettingsGrantConfirmText(draft.target)
-      : formatAdminSettingsRevokeConfirmText(draft.target);
+      ? formatAdminSettingsGrantConfirmText(draft.target, language)
+      : formatAdminSettingsRevokeConfirmText(draft.target, language);
   const keyboard =
     draft.action === 'grant'
-      ? createAdminSettingsGrantConfirmKeyboard()
-      : createAdminSettingsRevokeConfirmKeyboard();
+      ? createAdminSettingsGrantConfirmKeyboard(language)
+      : createAdminSettingsRevokeConfirmKeyboard(language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1429,8 +1433,8 @@ async function renderAdminSettingsStudioProfile(
   state.settingsCurrentSection = 'studio';
   state.settingsStudioDraft = null;
 
-  const text = formatAdminSettingsStudioProfileText(data);
-  const keyboard = createAdminSettingsStudioProfileKeyboard();
+  const text = formatAdminSettingsStudioProfileText(data, state.language);
+  const keyboard = createAdminSettingsStudioProfileKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1473,7 +1477,7 @@ async function renderAdminSettingsStudioEditPrompt(
 ): Promise<void> {
   const state = getSceneState(ctx);
   const data = state.settingsStudioData ?? (await loadAdminStudioSettings(state));
-  const blockTitle = getAdminStudioBlockTitle(blockKey);
+  const blockTitle = getAdminStudioBlockTitle(blockKey, state.language);
   const currentContent = data.contentBlocks[blockKey] ?? '';
 
   state.settingsCurrentSection = 'studio';
@@ -1485,8 +1489,8 @@ async function renderAdminSettingsStudioEditPrompt(
     draftContent: null,
   };
 
-  const text = formatAdminSettingsStudioEditPromptText(blockTitle, currentContent);
-  const keyboard = createAdminSettingsStudioEditInputKeyboard();
+  const text = formatAdminSettingsStudioEditPromptText(blockTitle, currentContent, state.language);
+  const keyboard = createAdminSettingsStudioEditInputKeyboard(state.language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -1505,8 +1509,13 @@ async function renderAdminSettingsStudioEditConfirm(
   draft: AdminSettingsStudioDraft,
   preferEdit: boolean,
 ): Promise<void> {
-  const text = formatAdminSettingsStudioEditConfirmText(draft.blockTitle, draft.draftContent ?? '');
-  const keyboard = createAdminSettingsStudioEditConfirmKeyboard();
+  const language = getSceneState(ctx).language;
+  const text = formatAdminSettingsStudioEditConfirmText(
+    draft.blockTitle,
+    draft.draftContent ?? '',
+    language,
+  );
+  const keyboard = createAdminSettingsStudioEditConfirmKeyboard(language);
 
   if (preferEdit && ctx.updateType === 'callback_query') {
     try {
@@ -7810,7 +7819,10 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 	        },
 	        state.access,
 	      );
-	      await replyAdminSuccess(ctx, 'Мову адмін-панелі успішно оновлено.');
+	      await replyAdminSuccess(
+          ctx,
+          tBot(state.language, 'ADMIN_PANEL_SETTINGS_MSG_LANGUAGE_UPDATED'),
+        );
       await renderAdminSettingsLanguage(ctx, false);
     } catch (error) {
       if (error instanceof ValidationError) {
@@ -7882,7 +7894,12 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 	        },
 	        access,
 	      );
-	      await replyAdminSuccess(ctx, `Блок "${draft.blockTitle}" успішно оновлено.`);
+	      await replyAdminSuccess(
+          ctx,
+          tBotTemplate(state.language, 'ADMIN_PANEL_SETTINGS_MSG_STUDIO_BLOCK_UPDATED', {
+            block: draft.blockTitle,
+          }),
+        );
       await renderAdminSettingsStudioProfile(ctx, false);
     } catch (error) {
       if (error instanceof ValidationError) {
@@ -7953,8 +7970,11 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 	        access,
 	      );
 	      await ctx.reply(
-	        `✅ Роль адміністратора успішно надано.\n\n👤 ${granted.displayName}\n🆔 ${granted.telegramUserId}`,
-	      );
+          tBotTemplate(state.language, 'ADMIN_PANEL_SETTINGS_MSG_ADMIN_GRANTED', {
+            user: granted.displayName,
+            telegramId: granted.telegramUserId,
+          }),
+        );
       await renderAdminSettingsAdmins(ctx, false);
     } catch (error) {
       if (error instanceof ValidationError) {
@@ -8001,8 +8021,11 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
 	        access,
 	      );
 	      await ctx.reply(
-	        `✅ Роль адміністратора успішно видалено.\n\n👤 ${revoked.displayName}\n🆔 ${revoked.telegramUserId}`,
-	      );
+          tBotTemplate(state.language, 'ADMIN_PANEL_SETTINGS_MSG_ADMIN_REVOKED', {
+            user: revoked.displayName,
+            telegramId: revoked.telegramUserId,
+          }),
+        );
       await renderAdminSettingsAdmins(ctx, false);
     } catch (error) {
       if (error instanceof ValidationError) {
