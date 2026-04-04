@@ -13,9 +13,7 @@ import { resolveBotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 import {
   createMasterPanelRootKeyboard,
-  createMasterPanelSectionStubKeyboard,
   formatMasterPanelRootText,
-  formatMasterPanelSectionStubText,
 } from '../../helpers/bot/master-panel-view.bot.js';
 import {
   createMasterOwnProfileAdditionalKeyboard,
@@ -862,7 +860,7 @@ async function loadBookingsFeedIntoState(
 async function renderView(
   ctx: MyContext,
   text: string,
-  keyboard: ReturnType<typeof createMasterPanelSectionStubKeyboard>,
+  keyboard: ReturnType<typeof createMasterPanelRootKeyboard>,
   preferEdit: boolean,
 ): Promise<void> {
   if (preferEdit && ctx.updateType === 'callback_query') {
@@ -902,8 +900,8 @@ async function renderRoot(ctx: MyContext, preferEdit: boolean): Promise<void> {
 
   await renderView(
     ctx,
-    formatMasterPanelRootText(state.access),
-    createMasterPanelRootKeyboard(),
+    formatMasterPanelRootText(state.access, state.language),
+    createMasterPanelRootKeyboard(state.language),
     preferEdit,
   );
 }
@@ -989,15 +987,6 @@ async function resolveBookingItemById(
     masterId: state.access.masterId,
     appointmentId,
   });
-}
-
-async function renderSectionStub(ctx: MyContext, title: string): Promise<void> {
-  await renderView(
-    ctx,
-    formatMasterPanelSectionStubText(title),
-    createMasterPanelSectionStubKeyboard(),
-    true,
-  );
 }
 
 async function renderRescheduleDateStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
