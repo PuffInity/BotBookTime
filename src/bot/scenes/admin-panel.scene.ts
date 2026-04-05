@@ -3548,7 +3548,10 @@ async function renderChangeMasterConfirmStep(ctx: MyContext, preferEdit: boolean
   }
 }
 
-async function notifyAdminConfirmedBooking(item: AdminBookingItem): Promise<void> {
+async function notifyAdminConfirmedBooking(
+  item: AdminBookingItem,
+  language: BotUiLanguage,
+): Promise<void> {
   try {
     await dispatchNotification({
       userId: item.clientId,
@@ -3558,8 +3561,8 @@ async function notifyAdminConfirmedBooking(item: AdminBookingItem): Promise<void
         studioName: item.studioName,
         serviceName: item.serviceName,
         startAt: item.startAt,
-        statusLabel: 'Підтверджено',
-        message: 'Ваш запис підтверджено адміністратором.',
+        statusLabel: tBot(language, 'ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CONFIRMED'),
+        message: tBot(language, 'ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CONFIRMED'),
       },
       email: {
         template: 'bookingConfirmed',
@@ -3586,7 +3589,10 @@ async function notifyAdminConfirmedBooking(item: AdminBookingItem): Promise<void
   }
 }
 
-async function notifyAdminCanceledBooking(item: AdminBookingItem): Promise<void> {
+async function notifyAdminCanceledBooking(
+  item: AdminBookingItem,
+  language: BotUiLanguage,
+): Promise<void> {
   try {
     await dispatchNotification({
       userId: item.clientId,
@@ -3596,8 +3602,8 @@ async function notifyAdminCanceledBooking(item: AdminBookingItem): Promise<void>
         studioName: item.studioName,
         serviceName: item.serviceName,
         startAt: item.startAt,
-        statusLabel: 'Скасовано',
-        message: 'Ваш запис було скасовано адміністратором.',
+        statusLabel: tBot(language, 'ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CANCELED'),
+        message: tBot(language, 'ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CANCELED'),
       },
       email: {
         template: 'bookingCancelled',
@@ -3608,7 +3614,7 @@ async function notifyAdminCanceledBooking(item: AdminBookingItem): Promise<void>
           serviceName: item.serviceName,
           masterName: item.masterName,
           startAt: item.startAt,
-          cancelReason: 'Скасовано адміністратором через Telegram-бота',
+          cancelReason: tBot(language, 'ADMIN_PANEL_RECORDS_REASON_CANCELED_BY_ADMIN'),
         },
       },
       metadata: { source: 'admin-panel' },
@@ -3625,7 +3631,10 @@ async function notifyAdminCanceledBooking(item: AdminBookingItem): Promise<void>
   }
 }
 
-async function notifyAdminRescheduledBooking(result: RescheduleAdminBookingResult): Promise<void> {
+async function notifyAdminRescheduledBooking(
+  result: RescheduleAdminBookingResult,
+  language: BotUiLanguage,
+): Promise<void> {
   try {
     await dispatchNotification({
       userId: result.current.clientId,
@@ -3635,8 +3644,8 @@ async function notifyAdminRescheduledBooking(result: RescheduleAdminBookingResul
         studioName: result.current.studioName,
         serviceName: result.current.serviceName,
         startAt: result.current.startAt,
-        statusLabel: 'Перенесено',
-        message: 'Ваш запис перенесено адміністратором. Перевірте нову дату та час.',
+        statusLabel: tBot(language, 'ADMIN_PANEL_RECORDS_NOTIFY_STATUS_RESCHEDULED'),
+        message: tBot(language, 'ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_RESCHEDULED'),
       },
       email: {
         template: 'bookingRescheduled',
@@ -3667,6 +3676,7 @@ async function notifyAdminRescheduledBooking(result: RescheduleAdminBookingResul
 async function notifyAdminMasterChangedBooking(
   previous: AdminBookingItem,
   current: AdminBookingItem,
+  language: BotUiLanguage,
 ): Promise<void> {
   try {
     await dispatchNotification({
@@ -3677,8 +3687,8 @@ async function notifyAdminMasterChangedBooking(
         studioName: current.studioName,
         serviceName: current.serviceName,
         startAt: current.startAt,
-        statusLabel: 'Змінено майстра',
-        message: 'Адміністратор призначив нового майстра для вашого запису.',
+        statusLabel: tBot(language, 'ADMIN_PANEL_RECORDS_NOTIFY_STATUS_MASTER_CHANGED'),
+        message: tBot(language, 'ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_MASTER_CHANGED'),
       },
       email: {
         template: 'masterChanged',
@@ -8492,7 +8502,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       throw error;
     }
 
-	    await notifyAdminConfirmedBooking(updated);
+	    await notifyAdminConfirmedBooking(updated, state.language);
 	    logAdminCriticalAction(
 	      ctx,
 	      'Confirmed booking',
@@ -8721,7 +8731,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         studioId: access.studioId,
         actorUserId: access.userId,
         appointmentId,
-        cancelReason: 'Скасовано адміністратором через Telegram-бота',
+        cancelReason: tBot(state.language, 'ADMIN_PANEL_RECORDS_REASON_CANCELED_BY_ADMIN'),
       });
     } catch (error) {
       if (error instanceof ValidationError) {
@@ -8737,7 +8747,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       throw error;
     }
 
-	    await notifyAdminCanceledBooking(canceled);
+	    await notifyAdminCanceledBooking(canceled, state.language);
 	    logAdminCriticalAction(
 	      ctx,
 	      'Canceled booking',
@@ -8888,7 +8898,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
         actorUserId: access.userId,
         appointmentId: draft.appointmentId,
         newStartAt,
-        reason: 'Перенесено адміністратором через Telegram-бота',
+        reason: tBot(state.language, 'ADMIN_PANEL_RECORDS_REASON_RESCHEDULED_BY_ADMIN'),
       });
     } catch (error) {
       if (error instanceof ValidationError) {
@@ -8899,7 +8909,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       throw error;
     }
 
-	    await notifyAdminRescheduledBooking(result);
+	    await notifyAdminRescheduledBooking(result, state.language);
 	    logAdminCriticalAction(
 	      ctx,
 	      'Rescheduled booking',
@@ -9035,7 +9045,7 @@ export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
       throw error;
     }
 
-	    await notifyAdminMasterChangedBooking(previous, updated);
+	    await notifyAdminMasterChangedBooking(previous, updated, state.language);
 	    logAdminCriticalAction(
 	      ctx,
 	      'Changed booking master',

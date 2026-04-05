@@ -1266,6 +1266,20 @@ export const ADMIN_PANEL_DICTIONARY = {
       'Для цього запису змінити майстра вже не можна.',
     ADMIN_PANEL_RECORDS_MSG_MASTER_CHANGED_AND_NOTIFIED:
       'Майстра успішно змінено. Клієнту надіслано сповіщення.',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CONFIRMED: 'Підтверджено',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CANCELED: 'Скасовано',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_RESCHEDULED: 'Перенесено',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_MASTER_CHANGED: 'Змінено майстра',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CONFIRMED: 'Ваш запис підтверджено адміністратором.',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CANCELED: 'Ваш запис було скасовано адміністратором.',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_RESCHEDULED:
+      'Ваш запис перенесено адміністратором. Перевірте нову дату та час.',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_MASTER_CHANGED:
+      'Адміністратор призначив нового майстра для вашого запису.',
+    ADMIN_PANEL_RECORDS_REASON_CANCELED_BY_ADMIN:
+      'Скасовано адміністратором через Telegram-бота',
+    ADMIN_PANEL_RECORDS_REASON_RESCHEDULED_BY_ADMIN:
+      'Перенесено адміністратором через Telegram-бота',
   },
   en: {
     MENU_ADMIN_PANEL: '🛡 Admin Panel',
@@ -2533,6 +2547,22 @@ export const ADMIN_PANEL_DICTIONARY = {
       'Master can no longer be changed for this booking.',
     ADMIN_PANEL_RECORDS_MSG_MASTER_CHANGED_AND_NOTIFIED:
       'Master changed successfully. Client has been notified.',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CONFIRMED: 'Confirmed',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CANCELED: 'Canceled',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_RESCHEDULED: 'Rescheduled',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_MASTER_CHANGED: 'Master changed',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CONFIRMED:
+      'Your booking has been confirmed by the administrator.',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CANCELED:
+      'Your booking has been canceled by the administrator.',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_RESCHEDULED:
+      'Your booking has been rescheduled by the administrator. Please check the new date and time.',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_MASTER_CHANGED:
+      'Administrator assigned a new master for your booking.',
+    ADMIN_PANEL_RECORDS_REASON_CANCELED_BY_ADMIN:
+      'Canceled by administrator via Telegram bot',
+    ADMIN_PANEL_RECORDS_REASON_RESCHEDULED_BY_ADMIN:
+      'Rescheduled by administrator via Telegram bot',
   },
   cs: {
     MENU_ADMIN_PANEL: '🛡 Admin panel',
@@ -3813,5 +3843,21 @@ export const ADMIN_PANEL_DICTIONARY = {
       'U této rezervace už nelze změnit mistra.',
     ADMIN_PANEL_RECORDS_MSG_MASTER_CHANGED_AND_NOTIFIED:
       'Mistr byl úspěšně změněn. Klient byl informován.',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CONFIRMED: 'Potvrzeno',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CANCELED: 'Zrušeno',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_RESCHEDULED: 'Přesunuto',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_MASTER_CHANGED: 'Mistr změněn',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CONFIRMED:
+      'Vaše rezervace byla potvrzena administrátorem.',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CANCELED:
+      'Vaše rezervace byla zrušena administrátorem.',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_RESCHEDULED:
+      'Vaše rezervace byla administrátorem přesunuta. Zkontrolujte nové datum a čas.',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_MASTER_CHANGED:
+      'Administrátor přiřadil k vaší rezervaci nového mistra.',
+    ADMIN_PANEL_RECORDS_REASON_CANCELED_BY_ADMIN:
+      'Zrušeno administrátorem přes Telegram bota',
+    ADMIN_PANEL_RECORDS_REASON_RESCHEDULED_BY_ADMIN:
+      'Přesunuto administrátorem přes Telegram bota',
   },
 } as const;
