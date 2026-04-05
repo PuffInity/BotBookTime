@@ -40,6 +40,7 @@ import type {
     OtpPolicy,
     SendOtpEmailInput,
     SendOtpSmsInput,
+    MailTemplateLanguage,
 } from "../types/nodemailer/nodemailer.types.js";
 
 export type {
@@ -56,6 +57,7 @@ export type {
     OtpPolicy,
     SendOtpEmailInput,
     SendOtpSmsInput,
+    MailTemplateLanguage,
 } from "../types/nodemailer/nodemailer.types.js";
 
 /**
@@ -64,7 +66,10 @@ export type {
  */
 
 type TemplateRegistry = {
-    [K in MailTemplateKey]: (data: MailTemplatePayloadMap[K]) => MailTemplateResult;
+    [K in MailTemplateKey]: (
+        data: MailTemplatePayloadMap[K],
+        language?: MailTemplateLanguage,
+    ) => MailTemplateResult;
 };
 
 const templateRegistry: TemplateRegistry = {
@@ -122,11 +127,11 @@ export const warmupMailer = async (): Promise<void> => {
 export async function sendEmail<K extends MailTemplateKey>(
     input: SendEmailInput<K>,
 ): Promise<SendEmailResult> {
-    const { to, template, data, cc, bcc, replyTo, attachments, headers } = input;
+    const { to, template, data, cc, bcc, replyTo, attachments, headers, language } = input;
 
     try {
         const renderer = templateRegistry[template];
-        const rendered = renderer(data as MailTemplatePayloadMap[K]);
+        const rendered = renderer(data as MailTemplatePayloadMap[K], language);
 
         const mail: SendMailOptions = {
             from: input.from ?? defaultMailFrom,
@@ -144,6 +149,7 @@ export async function sendEmail<K extends MailTemplateKey>(
         const info = await getMailerTransporter().sendMail(mail);
         loggerMailer.info("[mailer] Email sent", {
             template,
+            language: language ?? 'uk',
             messageId: info.messageId,
             accepted: info.accepted,
             rejected: info.rejected,
@@ -160,7 +166,7 @@ export async function sendEmail<K extends MailTemplateKey>(
             scope: "mailer",
             action: "sendEmail failed",
             error,
-            meta: { template, to },
+            meta: { template, to, language: language ?? 'uk' },
         });
         throw error;
     }
@@ -301,6 +307,7 @@ export const sendOtpEmail = async (input: SendOtpEmailInput): Promise<SendEmailR
     return sendEmail({
         to: input.to,
         template: "otpEmail",
+        language: input.language,
         data: {
             code: input.code,
             purpose: input.purpose,

@@ -1,4 +1,5 @@
 import type { SendMailOptions } from "nodemailer";
+import type { LanguageCode } from "../db/dbEnums.type.js";
 
 /**
  * @file nodemailer.types.ts
@@ -10,6 +11,8 @@ export type MailTemplateResult = {
     html: string;
     text: string;
 };
+
+export type MailTemplateLanguage = LanguageCode;
 
 export type BookingCreatedTemplateData = {
     recipientName?: string;
@@ -111,6 +114,7 @@ export type SendEmailInput<K extends MailTemplateKey = MailTemplateKey> = {
     to: string | string[];
     template: K;
     data: MailTemplatePayloadMap[K];
+    language?: MailTemplateLanguage;
     from?: string;
     cc?: string | string[];
     bcc?: string | string[];
@@ -156,6 +160,7 @@ export type SendOtpEmailInput = {
     to: string;
     code: string;
     purpose: OtpEmailPurpose;
+    language?: MailTemplateLanguage;
     recipientName?: string;
     expiresInMinutes: number;
     policy?: Partial<OtpPolicy>;

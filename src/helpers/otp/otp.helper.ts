@@ -114,6 +114,7 @@ export async function resendOTP(
   try {
     await sendEmail({
       to: user.email,
+      language: user.preferredLanguage,
       template: 'otpEmail',
       data: {
         code,

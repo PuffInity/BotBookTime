@@ -591,6 +591,7 @@ export function createBookingScene(): Scenes.WizardScene<MyContext> {
       if (state.profileEmail) {
         const emailSent = await sendClientBookingCreatedEmail({
           to: state.profileEmail,
+          language: state.language,
           recipientName: state.profileName,
           bookingId: result.appointment.id,
           studioName: result.meta.studioName,

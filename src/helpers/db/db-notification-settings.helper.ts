@@ -45,6 +45,7 @@ function mapUserDeliveryProfileRow(row: UserDeliveryProfileRow): UserDeliveryPro
     userId: row.id,
     telegramUserId: row.telegram_user_id,
     firstName: row.first_name,
+    preferredLanguage: row.preferred_language,
     phoneE164: row.phone_e164,
     phoneVerifiedAt: row.phone_verified_at,
     email: row.email,

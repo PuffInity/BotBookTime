@@ -1,3 +1,5 @@
+import type { LanguageCode } from '../db/dbEnums.type.js';
+
 /**
  * @file db-booking-expiration.types.ts
  * @summary Типи для DB helper автоматичного скасування прострочених pending-бронювань.
@@ -9,6 +11,7 @@ export type ExpiredPendingBookingRow = {
   start_at: Date;
   recipient_name: string;
   recipient_email: string | null;
+  preferred_language: LanguageCode;
   studio_name: string;
   service_name: string;
   master_name: string;
@@ -20,6 +23,7 @@ export type ExpiredPendingBookingItem = {
   startAt: Date;
   recipientName: string;
   recipientEmail: string | null;
+  preferredLanguage: LanguageCode;
   studioName: string;
   serviceName: string;
   masterName: string;

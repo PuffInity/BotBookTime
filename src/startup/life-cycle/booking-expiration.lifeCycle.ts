@@ -69,6 +69,7 @@ async function notifyExpiredPendingBooking(item: ExpiredPendingBookingItem): Pro
   try {
     const fallbackSent = await sendClientBookingCancelledEmail({
       to: item.recipientEmail,
+      language: item.preferredLanguage,
       recipientName: item.recipientName,
       bookingId: item.appointmentId,
       studioName: item.studioName,

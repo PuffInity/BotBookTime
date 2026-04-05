@@ -3550,7 +3550,7 @@ async function renderChangeMasterConfirmStep(ctx: MyContext, preferEdit: boolean
 
 async function notifyAdminConfirmedBooking(
   item: AdminBookingItem,
-  language: BotUiLanguage,
+  _language: BotUiLanguage,
 ): Promise<void> {
   try {
     await dispatchNotification({
@@ -3561,8 +3561,8 @@ async function notifyAdminConfirmedBooking(
         studioName: item.studioName,
         serviceName: item.serviceName,
         startAt: item.startAt,
-        statusLabel: tBot(language, 'ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CONFIRMED'),
-        message: tBot(language, 'ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CONFIRMED'),
+        statusLabel: tBot('uk', 'ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CONFIRMED'),
+        message: tBot('uk', 'ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CONFIRMED'),
       },
       email: {
         template: 'bookingConfirmed',
@@ -3591,7 +3591,7 @@ async function notifyAdminConfirmedBooking(
 
 async function notifyAdminCanceledBooking(
   item: AdminBookingItem,
-  language: BotUiLanguage,
+  _language: BotUiLanguage,
 ): Promise<void> {
   try {
     await dispatchNotification({
@@ -3602,8 +3602,8 @@ async function notifyAdminCanceledBooking(
         studioName: item.studioName,
         serviceName: item.serviceName,
         startAt: item.startAt,
-        statusLabel: tBot(language, 'ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CANCELED'),
-        message: tBot(language, 'ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CANCELED'),
+        statusLabel: tBot('uk', 'ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CANCELED'),
+        message: tBot('uk', 'ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CANCELED'),
       },
       email: {
         template: 'bookingCancelled',
@@ -3614,7 +3614,7 @@ async function notifyAdminCanceledBooking(
           serviceName: item.serviceName,
           masterName: item.masterName,
           startAt: item.startAt,
-          cancelReason: tBot(language, 'ADMIN_PANEL_RECORDS_REASON_CANCELED_BY_ADMIN'),
+          cancelReason: tBot('uk', 'ADMIN_PANEL_RECORDS_REASON_CANCELED_BY_ADMIN'),
         },
       },
       metadata: { source: 'admin-panel' },
@@ -3633,7 +3633,7 @@ async function notifyAdminCanceledBooking(
 
 async function notifyAdminRescheduledBooking(
   result: RescheduleAdminBookingResult,
-  language: BotUiLanguage,
+  _language: BotUiLanguage,
 ): Promise<void> {
   try {
     await dispatchNotification({
@@ -3644,8 +3644,8 @@ async function notifyAdminRescheduledBooking(
         studioName: result.current.studioName,
         serviceName: result.current.serviceName,
         startAt: result.current.startAt,
-        statusLabel: tBot(language, 'ADMIN_PANEL_RECORDS_NOTIFY_STATUS_RESCHEDULED'),
-        message: tBot(language, 'ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_RESCHEDULED'),
+        statusLabel: tBot('uk', 'ADMIN_PANEL_RECORDS_NOTIFY_STATUS_RESCHEDULED'),
+        message: tBot('uk', 'ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_RESCHEDULED'),
       },
       email: {
         template: 'bookingRescheduled',
@@ -3676,7 +3676,7 @@ async function notifyAdminRescheduledBooking(
 async function notifyAdminMasterChangedBooking(
   previous: AdminBookingItem,
   current: AdminBookingItem,
-  language: BotUiLanguage,
+  _language: BotUiLanguage,
 ): Promise<void> {
   try {
     await dispatchNotification({
@@ -3687,8 +3687,8 @@ async function notifyAdminMasterChangedBooking(
         studioName: current.studioName,
         serviceName: current.serviceName,
         startAt: current.startAt,
-        statusLabel: tBot(language, 'ADMIN_PANEL_RECORDS_NOTIFY_STATUS_MASTER_CHANGED'),
-        message: tBot(language, 'ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_MASTER_CHANGED'),
+        statusLabel: tBot('uk', 'ADMIN_PANEL_RECORDS_NOTIFY_STATUS_MASTER_CHANGED'),
+        message: tBot('uk', 'ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_MASTER_CHANGED'),
       },
       email: {
         template: 'masterChanged',

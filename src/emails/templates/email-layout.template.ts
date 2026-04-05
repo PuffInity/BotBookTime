@@ -11,6 +11,7 @@ type EmailDetailRow = {
 };
 
 type RenderEmailLayoutInput = {
+    language?: 'uk' | 'en' | 'cs';
     title: string;
     subtitle?: string;
     greeting?: string;
@@ -127,13 +128,20 @@ const renderSecondaryCta = (text?: string, url?: string): string => {
 };
 
 export const renderEmailLayout = (input: RenderEmailLayoutInput): string => {
+    const language = input.language ?? 'uk';
     const footerNote =
         input.footerNote ??
-        "Це автоматичне повідомлення. Якщо дія виконувалась не вами, просто проігноруйте лист.";
+        (
+            language === 'en'
+                ? 'This is an automated message. If this action was not performed by you, simply ignore this email.'
+                : language === 'cs'
+                  ? 'Toto je automatická zpráva. Pokud jste tuto akci neprovedli vy, tento email ignorujte.'
+                  : 'Це автоматичне повідомлення. Якщо дія виконувалась не вами, просто проігноруйте лист.'
+        );
 
     return `
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="${language}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />

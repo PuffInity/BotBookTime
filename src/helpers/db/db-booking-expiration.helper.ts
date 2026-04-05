@@ -42,6 +42,7 @@ function mapExpiredPendingRow(row: ExpiredPendingBookingRow): ExpiredPendingBook
     startAt: new Date(row.start_at),
     recipientName: row.recipient_name,
     recipientEmail: row.recipient_email,
+    preferredLanguage: row.preferred_language,
     studioName: row.studio_name,
     serviceName: row.service_name,
     masterName: row.master_name,

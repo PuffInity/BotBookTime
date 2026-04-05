@@ -14,6 +14,7 @@ export const USER_DELIVERY_PROFILE_SELECT_COLUMNS = `
   id,
   telegram_user_id,
   first_name,
+  preferred_language,
   phone_e164,
   phone_verified_at,
   email,
@@ -66,4 +67,3 @@ export const SQL_SELECT_USER_DELIVERY_PROFILE_BY_ID = `
   WHERE id = $1::bigint
   LIMIT 1
 `;
-

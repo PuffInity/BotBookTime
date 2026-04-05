@@ -1,6 +1,7 @@
 import { sendEmail } from './mailer.helper.js';
 import { handleError } from '../../utils/error.utils.js';
 import { loggerMailer } from '../../utils/logger/loggers-list.js';
+import type { LanguageCode } from '../../types/db/dbEnums.type.js';
 
 /**
  * @file booking-email.helper.ts
@@ -9,6 +10,7 @@ import { loggerMailer } from '../../utils/logger/loggers-list.js';
 
 export type SendClientBookingCreatedEmailInput = {
   to: string;
+  language?: LanguageCode;
   recipientName?: string;
   bookingId: string;
   studioName: string;
@@ -19,6 +21,7 @@ export type SendClientBookingCreatedEmailInput = {
 
 export type SendClientBookingConfirmedEmailInput = {
   to: string;
+  language?: LanguageCode;
   recipientName?: string;
   bookingId: string;
   studioName: string;
@@ -29,6 +32,7 @@ export type SendClientBookingConfirmedEmailInput = {
 
 export type SendClientBookingCancelledEmailInput = {
   to: string;
+  language?: LanguageCode;
   recipientName?: string;
   bookingId: string;
   studioName: string;
@@ -48,6 +52,7 @@ export async function sendClientBookingCreatedEmail(
   try {
     await sendEmail({
       to: input.to,
+      language: input.language,
       template: 'bookingCreated',
       data: {
         recipientName: input.recipientName,
@@ -83,6 +88,7 @@ export async function sendClientBookingConfirmedEmail(
   try {
     await sendEmail({
       to: input.to,
+      language: input.language,
       template: 'bookingConfirmed',
       data: {
         recipientName: input.recipientName,
@@ -117,6 +123,7 @@ export async function sendClientBookingCancelledEmail(
   try {
     await sendEmail({
       to: input.to,
+      language: input.language,
       template: 'bookingCancelled',
       data: {
         recipientName: input.recipientName,

@@ -43,6 +43,7 @@ export const SQL_EXPIRE_PENDING_APPOINTMENTS = `
     u.start_at,
     COALESCE(NULLIF(btrim(u.attendee_name), ''), c.first_name) AS recipient_name,
     COALESCE(NULLIF(btrim(u.attendee_email), ''), c.email::text) AS recipient_email,
+    c.preferred_language,
     st.name AS studio_name,
     s.name AS service_name,
     m.display_name AS master_name

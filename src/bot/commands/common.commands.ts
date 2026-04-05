@@ -378,6 +378,7 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
       if (userEmail) {
         await sendClientBookingCancelledEmail({
           to: userEmail,
+          language,
           recipientName: userFirstName,
           bookingId: item.appointmentId,
           studioName: item.studioName,

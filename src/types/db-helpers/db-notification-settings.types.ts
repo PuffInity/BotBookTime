@@ -1,4 +1,4 @@
-import type { NotificationType } from '../db/dbEnums.type.js';
+import type { LanguageCode, NotificationType } from '../db/dbEnums.type.js';
 
 /**
  * @file db-notification-settings.types.ts
@@ -18,6 +18,7 @@ export type UserDeliveryProfileRow = {
   id: string;
   telegram_user_id: string;
   first_name: string;
+  preferred_language: LanguageCode;
   phone_e164: string | null;
   phone_verified_at: Date | null;
   email: string | null;
@@ -28,6 +29,7 @@ export type UserDeliveryProfile = {
   userId: string;
   telegramUserId: string;
   firstName: string;
+  preferredLanguage: LanguageCode;
   phoneE164: string | null;
   phoneVerifiedAt: Date | null;
   email: string | null;
