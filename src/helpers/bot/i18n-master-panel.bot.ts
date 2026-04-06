@@ -76,6 +76,23 @@ export const MASTER_PANEL_DICTIONARY = {
     MASTER_PANEL_BOOKINGS_STATUS_COMPLETED: '⚪ Завершено',
     MASTER_PANEL_BOOKINGS_STATUS_CANCELED: '🔴 Скасовано',
     MASTER_PANEL_BOOKINGS_STATUS_TRANSFERRED: '🟣 Перенесено',
+    MASTER_PANEL_BOOKINGS_NOTIFY_STATUS_CONFIRMED: 'Підтверджено',
+    MASTER_PANEL_BOOKINGS_NOTIFY_STATUS_CANCELED: 'Скасовано',
+    MASTER_PANEL_BOOKINGS_NOTIFY_STATUS_TRANSFERRED: 'Перенесено',
+    MASTER_PANEL_BOOKINGS_NOTIFY_MESSAGE_CONFIRMED: 'Ваш запис підтверджено майстром.',
+    MASTER_PANEL_BOOKINGS_NOTIFY_MESSAGE_CANCELED: 'Ваш запис було скасовано майстром.',
+    MASTER_PANEL_BOOKINGS_NOTIFY_MESSAGE_TRANSFERRED:
+      'Ваш запис перенесено. Перевірте нову дату та час.',
+    MASTER_PANEL_BOOKINGS_NOTIFY_REASON_CANCELED_BY_MASTER:
+      'Скасовано майстром через Telegram-бота',
+    MASTER_PANEL_BOOKINGS_NOTIFY_REASON_RESCHEDULED_BY_MASTER:
+      'Перенесено майстром через Telegram-бота',
+    MASTER_PANEL_BOOKINGS_CONFIRM_SUCCESS:
+      '✅ Запис підтверджено.\n\nКлієнту надіслано оновлення, а слот зафіксовано у вашому розкладі.',
+    MASTER_PANEL_BOOKINGS_CANCEL_SUCCESS:
+      '🔴 Запис скасовано.\n\nКлієнту надіслано сповіщення про скасування.',
+    MASTER_PANEL_BOOKINGS_RESCHEDULE_SUCCESS:
+      '🟡 Запис успішно перенесено.\n\nКлієнту надіслано повідомлення з новою датою та часом.',
 
     MASTER_PANEL_BOOKINGS_CLIENT_FALLBACK: 'Клієнт',
     MASTER_PANEL_BOOKINGS_NOT_SET: 'Не вказано',
@@ -244,6 +261,12 @@ export const MASTER_PANEL_DICTIONARY = {
       '━━━━━━━━━━━━━━\n\n' +
       '📅 Дата: {date}\n\n' +
       'У цей день клієнти не зможуть записатися на процедури.',
+    MASTER_PANEL_SCHEDULE_SET_DAY_OFF_ERROR_HINT_FORMAT:
+      '\n\nВведіть іншу дату у форматі ДД.ММ.РРРР.',
+    MASTER_PANEL_SCHEDULE_SET_DAY_OFF_ERROR_HINT_CONFLICT:
+      '\n\nОберіть іншу дату або спочатку вирішіть конфлікт із записами.',
+    MASTER_PANEL_SCHEDULE_SET_DAY_OFF_ERROR_HINT_RETRY:
+      '\n\nСпробуйте ще раз у форматі ДД.ММ.РРРР (приклад: 12.03.2026).',
 
     MASTER_PANEL_SCHEDULE_DAYS_OFF_LIST_TITLE: '📋 Ваші вихідні дні',
     MASTER_PANEL_SCHEDULE_DAYS_OFF_LIST_EMPTY: '📭 Найближчих вихідних дат не знайдено.',
@@ -266,6 +289,8 @@ export const MASTER_PANEL_DICTIONARY = {
       '━━━━━━━━━━━━━━\n\n' +
       '📅 Період: {dateFrom} - {dateTo}\n\n' +
       'У цей період ви будете недоступні для нових записів.',
+    MASTER_PANEL_SCHEDULE_VACATION_ERROR_HINT_FORMAT:
+      '\n\nСпробуйте ще раз у форматі ДД.ММ.РРРР - ДД.ММ.РРРР.',
 
     MASTER_PANEL_SCHEDULE_TEMPORARY_LIST_TITLE: '🕒 Тимчасові зміни графіку',
     MASTER_PANEL_SCHEDULE_TEMPORARY_LIST_EMPTY: '📭 Тимчасових змін графіка не знайдено.',
@@ -293,6 +318,16 @@ export const MASTER_PANEL_DICTIONARY = {
       '━━━━━━━━━━━━━━\n\n' +
       '📅 Період дії: {dateFrom} - {dateTo}\n\n' +
       '🕒 Графік:\n{schedule}',
+    MASTER_PANEL_SCHEDULE_TEMPORARY_DAYS_INCOMPLETE:
+      '⚠️ Потрібно налаштувати всі 7 днів тижня. Зараз налаштовано {configured}/7.',
+    MASTER_PANEL_SCHEDULE_TEMPORARY_CONFIRM_RETRY_HINT:
+      '\n\nСкоригуйте налаштування і підтвердіть ще раз.',
+    MASTER_PANEL_SCHEDULE_TEMPORARY_MIN_DAYS_ERROR:
+      'Тимчасовий графік можна встановити лише на період від {days} днів',
+    MASTER_PANEL_SCHEDULE_DAY_OFF_DELETE_SUCCESS: '✅ Вихідний день успішно видалено.',
+    MASTER_PANEL_SCHEDULE_VACATION_DELETE_SUCCESS: '✅ Період відпустки успішно видалено.',
+    MASTER_PANEL_SCHEDULE_TEMPORARY_DELETE_SUCCESS:
+      '✅ Тимчасову зміну графіку успішно видалено.',
 
     MASTER_PANEL_SCHEDULE_DELETE_CONFIRM_TITLE: '⚠️ Підтвердження видалення',
     MASTER_PANEL_SCHEDULE_DELETE_DAY_OFF_BODY:
@@ -493,6 +528,23 @@ export const MASTER_PANEL_DICTIONARY = {
     MASTER_PANEL_BOOKINGS_STATUS_COMPLETED: '⚪ Completed',
     MASTER_PANEL_BOOKINGS_STATUS_CANCELED: '🔴 Canceled',
     MASTER_PANEL_BOOKINGS_STATUS_TRANSFERRED: '🟣 Rescheduled',
+    MASTER_PANEL_BOOKINGS_NOTIFY_STATUS_CONFIRMED: 'Confirmed',
+    MASTER_PANEL_BOOKINGS_NOTIFY_STATUS_CANCELED: 'Canceled',
+    MASTER_PANEL_BOOKINGS_NOTIFY_STATUS_TRANSFERRED: 'Rescheduled',
+    MASTER_PANEL_BOOKINGS_NOTIFY_MESSAGE_CONFIRMED: 'Your booking has been confirmed by the master.',
+    MASTER_PANEL_BOOKINGS_NOTIFY_MESSAGE_CANCELED: 'Your booking has been canceled by the master.',
+    MASTER_PANEL_BOOKINGS_NOTIFY_MESSAGE_TRANSFERRED:
+      'Your booking has been rescheduled. Please check the new date and time.',
+    MASTER_PANEL_BOOKINGS_NOTIFY_REASON_CANCELED_BY_MASTER:
+      'Canceled by master via Telegram bot',
+    MASTER_PANEL_BOOKINGS_NOTIFY_REASON_RESCHEDULED_BY_MASTER:
+      'Rescheduled by master via Telegram bot',
+    MASTER_PANEL_BOOKINGS_CONFIRM_SUCCESS:
+      '✅ Booking confirmed.\n\nThe client has been notified and the slot is fixed in your schedule.',
+    MASTER_PANEL_BOOKINGS_CANCEL_SUCCESS:
+      '🔴 Booking canceled.\n\nThe client has been notified about the cancellation.',
+    MASTER_PANEL_BOOKINGS_RESCHEDULE_SUCCESS:
+      '🟡 Booking rescheduled successfully.\n\nThe client has been notified about the new date and time.',
 
     MASTER_PANEL_BOOKINGS_CLIENT_FALLBACK: 'Client',
     MASTER_PANEL_BOOKINGS_NOT_SET: 'Not set',
@@ -661,6 +713,12 @@ export const MASTER_PANEL_DICTIONARY = {
       '━━━━━━━━━━━━━━\n\n' +
       '📅 Date: {date}\n\n' +
       'Clients will not be able to book procedures on this date.',
+    MASTER_PANEL_SCHEDULE_SET_DAY_OFF_ERROR_HINT_FORMAT:
+      '\n\nEnter another date in DD.MM.YYYY format.',
+    MASTER_PANEL_SCHEDULE_SET_DAY_OFF_ERROR_HINT_CONFLICT:
+      '\n\nChoose another date or resolve booking conflicts first.',
+    MASTER_PANEL_SCHEDULE_SET_DAY_OFF_ERROR_HINT_RETRY:
+      '\n\nTry again in DD.MM.YYYY format (example: 12.03.2026).',
 
     MASTER_PANEL_SCHEDULE_DAYS_OFF_LIST_TITLE: '📋 Your days off',
     MASTER_PANEL_SCHEDULE_DAYS_OFF_LIST_EMPTY: '📭 No upcoming days off found.',
@@ -683,6 +741,8 @@ export const MASTER_PANEL_DICTIONARY = {
       '━━━━━━━━━━━━━━\n\n' +
       '📅 Period: {dateFrom} - {dateTo}\n\n' +
       'You will be unavailable for new bookings during this period.',
+    MASTER_PANEL_SCHEDULE_VACATION_ERROR_HINT_FORMAT:
+      '\n\nTry again in DD.MM.YYYY - DD.MM.YYYY format.',
 
     MASTER_PANEL_SCHEDULE_TEMPORARY_LIST_TITLE: '🕒 Temporary schedule changes',
     MASTER_PANEL_SCHEDULE_TEMPORARY_LIST_EMPTY: '📭 No temporary schedule changes found.',
@@ -710,6 +770,16 @@ export const MASTER_PANEL_DICTIONARY = {
       '━━━━━━━━━━━━━━\n\n' +
       '📅 Active period: {dateFrom} - {dateTo}\n\n' +
       '🕒 Schedule:\n{schedule}',
+    MASTER_PANEL_SCHEDULE_TEMPORARY_DAYS_INCOMPLETE:
+      '⚠️ You need to configure all 7 weekdays. Currently configured: {configured}/7.',
+    MASTER_PANEL_SCHEDULE_TEMPORARY_CONFIRM_RETRY_HINT:
+      '\n\nAdjust your setup and confirm again.',
+    MASTER_PANEL_SCHEDULE_TEMPORARY_MIN_DAYS_ERROR:
+      'Temporary schedule can be set only for a period of at least {days} days',
+    MASTER_PANEL_SCHEDULE_DAY_OFF_DELETE_SUCCESS: '✅ Day off deleted successfully.',
+    MASTER_PANEL_SCHEDULE_VACATION_DELETE_SUCCESS: '✅ Vacation period deleted successfully.',
+    MASTER_PANEL_SCHEDULE_TEMPORARY_DELETE_SUCCESS:
+      '✅ Temporary schedule change deleted successfully.',
 
     MASTER_PANEL_SCHEDULE_DELETE_CONFIRM_TITLE: '⚠️ Deletion confirmation',
     MASTER_PANEL_SCHEDULE_DELETE_DAY_OFF_BODY:
@@ -910,6 +980,25 @@ export const MASTER_PANEL_DICTIONARY = {
     MASTER_PANEL_BOOKINGS_STATUS_COMPLETED: '⚪ Dokončeno',
     MASTER_PANEL_BOOKINGS_STATUS_CANCELED: '🔴 Zrušeno',
     MASTER_PANEL_BOOKINGS_STATUS_TRANSFERRED: '🟣 Přesunuto',
+    MASTER_PANEL_BOOKINGS_NOTIFY_STATUS_CONFIRMED: 'Potvrzeno',
+    MASTER_PANEL_BOOKINGS_NOTIFY_STATUS_CANCELED: 'Zrušeno',
+    MASTER_PANEL_BOOKINGS_NOTIFY_STATUS_TRANSFERRED: 'Přesunuto',
+    MASTER_PANEL_BOOKINGS_NOTIFY_MESSAGE_CONFIRMED:
+      'Vaše rezervace byla potvrzena mistrem.',
+    MASTER_PANEL_BOOKINGS_NOTIFY_MESSAGE_CANCELED:
+      'Vaše rezervace byla zrušena mistrem.',
+    MASTER_PANEL_BOOKINGS_NOTIFY_MESSAGE_TRANSFERRED:
+      'Vaše rezervace byla přesunuta. Zkontrolujte nové datum a čas.',
+    MASTER_PANEL_BOOKINGS_NOTIFY_REASON_CANCELED_BY_MASTER:
+      'Zrušeno mistrem přes Telegram bota',
+    MASTER_PANEL_BOOKINGS_NOTIFY_REASON_RESCHEDULED_BY_MASTER:
+      'Přesunuto mistrem přes Telegram bota',
+    MASTER_PANEL_BOOKINGS_CONFIRM_SUCCESS:
+      '✅ Rezervace potvrzena.\n\nKlient byl informován a slot je zafixován ve vašem rozvrhu.',
+    MASTER_PANEL_BOOKINGS_CANCEL_SUCCESS:
+      '🔴 Rezervace zrušena.\n\nKlient byl informován o zrušení.',
+    MASTER_PANEL_BOOKINGS_RESCHEDULE_SUCCESS:
+      '🟡 Rezervace byla úspěšně přesunuta.\n\nKlient byl informován o novém datu a čase.',
 
     MASTER_PANEL_BOOKINGS_CLIENT_FALLBACK: 'Klient',
     MASTER_PANEL_BOOKINGS_NOT_SET: 'Neuvedeno',
@@ -1078,6 +1167,12 @@ export const MASTER_PANEL_DICTIONARY = {
       '━━━━━━━━━━━━━━\n\n' +
       '📅 Datum: {date}\n\n' +
       'Klienti si v tento den nebudou moci rezervovat procedury.',
+    MASTER_PANEL_SCHEDULE_SET_DAY_OFF_ERROR_HINT_FORMAT:
+      '\n\nZadejte jiné datum ve formátu DD.MM.RRRR.',
+    MASTER_PANEL_SCHEDULE_SET_DAY_OFF_ERROR_HINT_CONFLICT:
+      '\n\nVyberte jiné datum nebo nejdříve vyřešte konflikt rezervací.',
+    MASTER_PANEL_SCHEDULE_SET_DAY_OFF_ERROR_HINT_RETRY:
+      '\n\nZkuste to znovu ve formátu DD.MM.RRRR (příklad: 12.03.2026).',
 
     MASTER_PANEL_SCHEDULE_DAYS_OFF_LIST_TITLE: '📋 Vaše volné dny',
     MASTER_PANEL_SCHEDULE_DAYS_OFF_LIST_EMPTY: '📭 Nebyly nalezeny žádné blízké volné dny.',
@@ -1100,6 +1195,8 @@ export const MASTER_PANEL_DICTIONARY = {
       '━━━━━━━━━━━━━━\n\n' +
       '📅 Období: {dateFrom} - {dateTo}\n\n' +
       'V tomto období budete nedostupní pro nové rezervace.',
+    MASTER_PANEL_SCHEDULE_VACATION_ERROR_HINT_FORMAT:
+      '\n\nZkuste to znovu ve formátu DD.MM.RRRR - DD.MM.RRRR.',
 
     MASTER_PANEL_SCHEDULE_TEMPORARY_LIST_TITLE: '🕒 Dočasné změny rozvrhu',
     MASTER_PANEL_SCHEDULE_TEMPORARY_LIST_EMPTY: '📭 Nebyly nalezeny žádné dočasné změny rozvrhu.',
@@ -1127,6 +1224,17 @@ export const MASTER_PANEL_DICTIONARY = {
       '━━━━━━━━━━━━━━\n\n' +
       '📅 Platnost: {dateFrom} - {dateTo}\n\n' +
       '🕒 Rozvrh:\n{schedule}',
+    MASTER_PANEL_SCHEDULE_TEMPORARY_DAYS_INCOMPLETE:
+      '⚠️ Je potřeba nastavit všech 7 dní týdne. Nyní nastaveno: {configured}/7.',
+    MASTER_PANEL_SCHEDULE_TEMPORARY_CONFIRM_RETRY_HINT:
+      '\n\nUpravte nastavení a potvrďte to znovu.',
+    MASTER_PANEL_SCHEDULE_TEMPORARY_MIN_DAYS_ERROR:
+      'Dočasný rozvrh lze nastavit pouze na období od {days} dní',
+    MASTER_PANEL_SCHEDULE_DAY_OFF_DELETE_SUCCESS: '✅ Volný den byl úspěšně smazán.',
+    MASTER_PANEL_SCHEDULE_VACATION_DELETE_SUCCESS:
+      '✅ Období dovolené bylo úspěšně smazáno.',
+    MASTER_PANEL_SCHEDULE_TEMPORARY_DELETE_SUCCESS:
+      '✅ Dočasná změna rozvrhu byla úspěšně smazána.',
 
     MASTER_PANEL_SCHEDULE_DELETE_CONFIRM_TITLE: '⚠️ Potvrzení smazání',
     MASTER_PANEL_SCHEDULE_DELETE_DAY_OFF_BODY:

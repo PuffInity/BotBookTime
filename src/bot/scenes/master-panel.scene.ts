@@ -1097,15 +1097,14 @@ async function renderRescheduleConfirmStep(ctx: MyContext, preferEdit: boolean):
 }
 
 async function denyMasterPanelAccess(ctx: MyContext): Promise<void> {
-  await ctx.reply(
-    '🔒 Панель майстра недоступна для цього профілю.\n\n' +
-      'Якщо доступ має бути відкритий, зверніться до адміністратора салону.',
-  );
+  const language = getSceneState(ctx).language ?? 'uk';
+  await ctx.reply(tBot(language, 'MASTER_PANEL_ACCESS_DENIED'));
   await sendClientMainMenu(ctx);
 }
 
 async function notifyConfirmedBooking(item: MasterPendingBookingItem): Promise<void> {
   try {
+    const language: BotUiLanguage = 'uk';
     await dispatchNotification({
       userId: item.clientId,
       notificationType: 'booking_confirmation',
@@ -1114,8 +1113,8 @@ async function notifyConfirmedBooking(item: MasterPendingBookingItem): Promise<v
         studioName: item.studioName,
         serviceName: item.serviceName,
         startAt: item.startAt,
-        statusLabel: 'Підтверджено',
-        message: 'Ваш запис підтверджено майстром.',
+        statusLabel: tBot(language, 'MASTER_PANEL_BOOKINGS_NOTIFY_STATUS_CONFIRMED'),
+        message: tBot(language, 'MASTER_PANEL_BOOKINGS_NOTIFY_MESSAGE_CONFIRMED'),
       },
       email: {
         template: 'bookingConfirmed',
@@ -1144,6 +1143,7 @@ async function notifyConfirmedBooking(item: MasterPendingBookingItem): Promise<v
 
 async function notifyCanceledBooking(item: MasterPendingBookingItem): Promise<void> {
   try {
+    const language: BotUiLanguage = 'uk';
     await dispatchNotification({
       userId: item.clientId,
       notificationType: 'status_change',
@@ -1152,8 +1152,8 @@ async function notifyCanceledBooking(item: MasterPendingBookingItem): Promise<vo
         studioName: item.studioName,
         serviceName: item.serviceName,
         startAt: item.startAt,
-        statusLabel: 'Скасовано',
-        message: 'Ваш запис було скасовано майстром.',
+        statusLabel: tBot(language, 'MASTER_PANEL_BOOKINGS_NOTIFY_STATUS_CANCELED'),
+        message: tBot(language, 'MASTER_PANEL_BOOKINGS_NOTIFY_MESSAGE_CANCELED'),
       },
       email: {
         template: 'bookingCancelled',
@@ -1164,7 +1164,7 @@ async function notifyCanceledBooking(item: MasterPendingBookingItem): Promise<vo
           serviceName: item.serviceName,
           masterName: item.masterName,
           startAt: item.startAt,
-          cancelReason: 'Скасовано майстром через Telegram-бота',
+          cancelReason: tBot(language, 'MASTER_PANEL_BOOKINGS_NOTIFY_REASON_CANCELED_BY_MASTER'),
         },
       },
       metadata: { source: 'master-panel' },
@@ -1421,7 +1421,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
             : new ValidationError('Виникла помилка при перевірці дати');
 
           await ctx.reply(
-            `⚠️ ${err.message}\n\nСпробуйте ще раз у форматі ДД.ММ.РРРР (приклад: 12.03.2026).`,
+            `⚠️ ${err.message}${tBot(state.language, 'MASTER_PANEL_SCHEDULE_SET_DAY_OFF_ERROR_HINT_RETRY')}`,
             createMasterScheduleSetDayOffInputKeyboard(state.language),
           );
         }
@@ -1457,7 +1457,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
             : new ValidationError('Виникла помилка при перевірці періоду відпустки');
 
           await ctx.reply(
-            `⚠️ ${err.message}\n\nСпробуйте ще раз у форматі ДД.ММ.РРРР - ДД.ММ.РРРР.`,
+            `⚠️ ${err.message}${tBot(state.language, 'MASTER_PANEL_SCHEDULE_VACATION_ERROR_HINT_FORMAT')}`,
             createMasterScheduleVacationInputKeyboard(state.language),
           );
         }
@@ -1471,7 +1471,9 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
           const rangeDays = countInclusiveDays(dateFrom, dateTo);
           if (rangeDays < MIN_TEMPORARY_SCHEDULE_DAYS) {
             throw new ValidationError(
-              `Тимчасовий графік можна встановити лише на період від ${MIN_TEMPORARY_SCHEDULE_DAYS} днів`,
+              tBotTemplate(state.language, 'MASTER_PANEL_SCHEDULE_TEMPORARY_MIN_DAYS_ERROR', {
+                days: MIN_TEMPORARY_SCHEDULE_DAYS,
+              }),
             );
           }
 
@@ -1503,7 +1505,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
             : new ValidationError('Виникла помилка при перевірці періоду тимчасового графіку');
 
           await ctx.reply(
-            `⚠️ ${err.message}\n\nСпробуйте ще раз у форматі ДД.ММ.РРРР - ДД.ММ.РРРР.`,
+            `⚠️ ${err.message}${tBot(state.language, 'MASTER_PANEL_SCHEDULE_VACATION_ERROR_HINT_FORMAT')}`,
             createMasterScheduleTemporaryPeriodInputKeyboard(state.language),
           );
         }
@@ -2643,9 +2645,9 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
           offDateLabel: null,
         };
 
-        const hint = /формат|некоректн/i.test(error.message)
-          ? '\n\nВведіть іншу дату у форматі ДД.ММ.РРРР.'
-          : '\n\nОберіть іншу дату або спочатку вирішіть конфлікт із записами.';
+        const hint = /формат|некоректн|format|invalid/i.test(error.message)
+          ? tBot(state.language, 'MASTER_PANEL_SCHEDULE_SET_DAY_OFF_ERROR_HINT_FORMAT')
+          : tBot(state.language, 'MASTER_PANEL_SCHEDULE_SET_DAY_OFF_ERROR_HINT_CONFLICT');
 
         await ctx.reply(
           `⚠️ ${error.message}${hint}`,
@@ -2800,7 +2802,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     });
 
     resetScheduleDeleteDraft(state);
-    await ctx.reply('✅ Вихідний день успішно видалено.');
+    await ctx.reply(tBot(state.language, 'MASTER_PANEL_SCHEDULE_DAY_OFF_DELETE_SUCCESS'));
 
     const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
     await renderView(
@@ -2923,7 +2925,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     });
 
     resetScheduleDeleteDraft(state);
-    await ctx.reply('✅ Період відпустки успішно видалено.');
+    await ctx.reply(tBot(state.language, 'MASTER_PANEL_SCHEDULE_VACATION_DELETE_SUCCESS'));
 
     const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
     await renderView(
@@ -3005,7 +3007,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
         };
 
         await ctx.reply(
-          `⚠️ ${error.message}\n\nСпробуйте ще раз у форматі ДД.ММ.РРРР - ДД.ММ.РРРР.`,
+          `⚠️ ${error.message}${tBot(state.language, 'MASTER_PANEL_SCHEDULE_VACATION_ERROR_HINT_FORMAT')}`,
           createMasterScheduleVacationInputKeyboard(state.language),
         );
         return;
@@ -3164,7 +3166,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     });
 
     resetScheduleDeleteDraft(state);
-    await ctx.reply('✅ Тимчасову зміну графіку успішно видалено.');
+    await ctx.reply(tBot(state.language, 'MASTER_PANEL_SCHEDULE_TEMPORARY_DELETE_SUCCESS'));
 
     const schedule = await getMasterScheduleTranslated(access.masterId, 10, state.language);
     await renderView(
@@ -3380,7 +3382,9 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     ) {
       if (draft.days.length < 7) {
         await ctx.reply(
-          `⚠️ Потрібно налаштувати всі 7 днів тижня. Зараз налаштовано ${draft.days.length}/7.`,
+          tBotTemplate(state.language, 'MASTER_PANEL_SCHEDULE_TEMPORARY_DAYS_INCOMPLETE', {
+            configured: draft.days.length,
+          }),
           createMasterScheduleTemporaryDaysConfigKeyboard(draft.days, state.language),
         );
         return;
@@ -3447,7 +3451,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     } catch (error) {
       if (error instanceof ValidationError) {
         await ctx.reply(
-          `⚠️ ${error.message}\n\nСкоригуйте налаштування і підтвердіть ще раз.`,
+          `⚠️ ${error.message}${tBot(state.language, 'MASTER_PANEL_SCHEDULE_TEMPORARY_CONFIRM_RETRY_HINT')}`,
           createMasterScheduleTemporaryDaysConfigKeyboard(draft.days, state.language),
         );
         state.scheduleTemporaryDraft = {
@@ -3561,10 +3565,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     });
 
     await notifyConfirmedBooking(confirmed);
-    await ctx.reply(
-      '✅ Запис підтверджено.\n\n' +
-        'Клієнту надіслано оновлення, а слот зафіксовано у вашому розкладі.',
-    );
+    await ctx.reply(tBot(state.language, 'MASTER_PANEL_BOOKINGS_CONFIRM_SUCCESS'));
 
     await loadPendingIntoState(state);
     await renderPendingQueue(ctx, true);
@@ -3608,14 +3609,11 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     const canceled = await cancelMasterPendingBooking({
       masterId: state.access.masterId,
       appointmentId,
-      cancelReason: 'Скасовано майстром через Telegram-бота',
+      cancelReason: tBot('uk', 'MASTER_PANEL_BOOKINGS_NOTIFY_REASON_CANCELED_BY_MASTER'),
     });
 
     await notifyCanceledBooking(canceled);
-    await ctx.reply(
-      '🔴 Запис скасовано.\n\n' +
-        'Клієнту надіслано сповіщення про скасування.',
-    );
+    await ctx.reply(tBot(state.language, 'MASTER_PANEL_BOOKINGS_CANCEL_SUCCESS'));
 
     if (state.bookingsFeed) {
       await loadBookingsFeedIntoState(state, state.bookingsFeed.category, state.bookingsFeed.offset);
@@ -3752,7 +3750,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
         masterId: access.masterId,
         appointmentId: draft.appointmentId,
         newStartAt,
-        reason: 'Перенесено майстром через Telegram-бота',
+        reason: tBot('uk', 'MASTER_PANEL_BOOKINGS_NOTIFY_REASON_RESCHEDULED_BY_MASTER'),
       });
     } catch (error) {
       if (error instanceof ValidationError) {
@@ -3772,8 +3770,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
           studioName: result.current.studioName,
           serviceName: result.current.serviceName,
           startAt: result.current.startAt,
-          statusLabel: 'Перенесено',
-          message: 'Ваш запис перенесено. Перевірте нову дату та час.',
+          statusLabel: tBot('uk', 'MASTER_PANEL_BOOKINGS_NOTIFY_STATUS_TRANSFERRED'),
+          message: tBot('uk', 'MASTER_PANEL_BOOKINGS_NOTIFY_MESSAGE_TRANSFERRED'),
         },
         email: {
           template: 'bookingRescheduled',
@@ -3800,10 +3798,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       });
     }
 
-    await ctx.reply(
-      '🟡 Запис успішно перенесено.\n\n' +
-        'Клієнту надіслано повідомлення з новою датою та часом.',
-    );
+    await ctx.reply(tBot(state.language, 'MASTER_PANEL_BOOKINGS_RESCHEDULE_SUCCESS'));
 
     resetRescheduleDraft(state);
     if (state.bookingsFeed) {
