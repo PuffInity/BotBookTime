@@ -6,10 +6,13 @@ import {
   bookingDateCodeSchema,
   bookingTimeCodeSchema,
 } from '../../validator/booking-input.schema.js';
-import { listActiveServicesCatalog } from '../../helpers/db/db-services.helper.js';
 import { getOrCreateUser } from '../../helpers/db/db-profile.helper.js';
-import { listActiveMastersByService } from '../../helpers/db/db-masters.helper.js';
-import { createPendingBooking } from '../../helpers/db/db-booking.helper.js';
+import {
+  createPendingBooking,
+  listAvailableMastersForBookingSlot,
+  listAvailableTimeCodesForBookingDate,
+  listBookableServicesForBooking,
+} from '../../helpers/db/db-booking.helper.js';
 import { sendProfileCard } from '../../helpers/bot/profile-view.bot.js';
 import { sendClientBookingCreatedEmail } from '../../helpers/email/booking-email.helper.js';
 import {
@@ -64,6 +67,8 @@ type BookingSceneState = {
   isProfilePhoneVerified: boolean;
   services: ServicesCatalogItem[];
   masters: MasterBookingOption[];
+  availableDateCodes: string[];
+  availableTimeCodes: string[];
   serviceId: string | null;
   serviceName: string | null;
   dateCode: string | null;
@@ -75,6 +80,7 @@ type BookingSceneState = {
 };
 
 const BOOKING_TIME_OPTIONS = buildBookingTimeOptions();
+const BOOKING_TIME_CODES = BOOKING_TIME_OPTIONS.map((item) => item.replace(':', ''));
 
 function getSceneState(ctx: MyContext): BookingSceneState {
   return ctx.wizard.state as BookingSceneState;
@@ -110,6 +116,15 @@ function getTodayDateCode(): string {
   return `${year}${month}${day}`;
 }
 
+function getCandidateTimeCodesForDate(dateCode: string): string[] {
+  if (dateCode !== getTodayDateCode()) {
+    return BOOKING_TIME_CODES;
+  }
+
+  const now = Date.now();
+  return BOOKING_TIME_CODES.filter((timeCode) => toStartAt(dateCode, timeCode).getTime() > now);
+}
+
 function toStartAt(dateCode: string, timeCode: string): Date {
   const year = Number(dateCode.slice(0, 4));
   const month = Number(dateCode.slice(4, 6));
@@ -117,19 +132,6 @@ function toStartAt(dateCode: string, timeCode: string): Date {
   const hour = Number(timeCode.slice(0, 2));
   const minute = Number(timeCode.slice(2, 4));
   return new Date(year, month - 1, day, hour, minute, 0, 0);
-}
-
-function getAvailableTimeOptions(dateCode: string): string[] {
-  if (dateCode !== getTodayDateCode()) {
-    return BOOKING_TIME_OPTIONS;
-  }
-
-  const now = Date.now();
-  return BOOKING_TIME_OPTIONS.filter((timeLabel) => {
-    const timeCode = timeLabel.replace(':', '');
-    const startAt = toStartAt(dateCode, timeCode);
-    return startAt.getTime() > now;
-  });
 }
 
 function createTextStepNavKeyboard(language: BotUiLanguage): ReturnType<typeof Markup.inlineKeyboard> {
@@ -143,6 +145,8 @@ function createTextStepNavKeyboard(language: BotUiLanguage): ReturnType<typeof M
 
 function resetBookingDraft(state: BookingSceneState): void {
   state.masters = [];
+  state.availableDateCodes = [];
+  state.availableTimeCodes = [];
   state.serviceId = null;
   state.serviceName = null;
   state.dateCode = null;
@@ -155,6 +159,8 @@ function resetBookingDraft(state: BookingSceneState): void {
 
 function resetAfterService(state: BookingSceneState): void {
   state.masters = [];
+  state.availableDateCodes = [];
+  state.availableTimeCodes = [];
   state.dateCode = null;
   state.timeCode = null;
   state.masterId = null;
@@ -164,6 +170,7 @@ function resetAfterService(state: BookingSceneState): void {
 }
 
 function resetAfterDate(state: BookingSceneState): void {
+  state.availableTimeCodes = [];
   state.timeCode = null;
   state.masterId = null;
   state.masterName = null;
@@ -206,7 +213,7 @@ async function renderView(
 
 async function renderServiceStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
-  const rawServices = await listActiveServicesCatalog({ studioId: state.studioId });
+  const rawServices = await listBookableServicesForBooking({ studioId: state.studioId });
   state.services = await translateServicesCatalogItems(rawServices, state.language);
 
   await renderView(
@@ -224,10 +231,42 @@ async function renderDateStep(ctx: MyContext, preferEdit: boolean): Promise<void
     return;
   }
 
+  if (!state.studioId || !state.serviceId) {
+    await renderServiceStep(ctx, preferEdit);
+    return;
+  }
+
+  const dateOptions = buildBookingDateOptions(7);
+  const dateCodes = dateOptions.map((date) => {
+    const year = String(date.getFullYear());
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}${month}${day}`;
+  });
+
+  const timeCandidatesByDate = await Promise.all(
+    dateCodes.map((dateCode) =>
+      listAvailableTimeCodesForBookingDate({
+        studioId: state.studioId!,
+        serviceId: state.serviceId!,
+        dateCode,
+        timeCodes: getCandidateTimeCodesForDate(dateCode),
+      }),
+    ),
+  );
+
+  const availableDates = dateOptions.filter((_, index) => timeCandidatesByDate[index].length > 0);
+  state.availableDateCodes = dateCodes.filter((_, index) => timeCandidatesByDate[index].length > 0);
+
+  const text =
+    availableDates.length > 0
+      ? formatBookingDateStepText(state.serviceName, state.language)
+      : `${formatBookingDateStepText(state.serviceName, state.language)}\n\n${tBot(state.language, 'BOOKING_NO_SLOTS')}`;
+
   await renderView(
     ctx,
-    formatBookingDateStepText(state.serviceName, state.language),
-    createBookingDateKeyboard(buildBookingDateOptions(7), state.language),
+    text,
+    createBookingDateKeyboard(availableDates, state.language),
     preferEdit,
   );
 }
@@ -239,7 +278,19 @@ async function renderTimeStep(ctx: MyContext, preferEdit: boolean): Promise<void
     return;
   }
 
-  const availableTimeOptions = getAvailableTimeOptions(state.dateCode);
+  if (!state.studioId || !state.serviceId) {
+    await renderServiceStep(ctx, preferEdit);
+    return;
+  }
+
+  const availableTimeCodes = await listAvailableTimeCodesForBookingDate({
+    studioId: state.studioId,
+    serviceId: state.serviceId,
+    dateCode: state.dateCode,
+    timeCodes: getCandidateTimeCodesForDate(state.dateCode),
+  });
+  state.availableTimeCodes = availableTimeCodes;
+  const availableTimeOptions = availableTimeCodes.map(formatTimeCodeLabel);
   const text =
     availableTimeOptions.length > 0
       ? formatBookingTimeStepText(
@@ -263,9 +314,11 @@ async function renderMasterStep(ctx: MyContext, preferEdit: boolean): Promise<vo
     return;
   }
 
-  state.masters = await listActiveMastersByService({
+  state.masters = await listAvailableMastersForBookingSlot({
     studioId: state.studioId,
     serviceId: state.serviceId,
+    dateCode: state.dateCode,
+    timeCode: state.timeCode,
   });
 
   await renderView(
@@ -365,6 +418,8 @@ export function createBookingScene(): Scenes.WizardScene<MyContext> {
       state.profilePhone = user.phoneE164;
       state.isProfilePhoneVerified = Boolean(user.phoneE164 && user.phoneVerifiedAt);
       state.services = [];
+      state.availableDateCodes = [];
+      state.availableTimeCodes = [];
       resetBookingDraft(state);
 
       await renderServiceStep(ctx, false);
@@ -460,6 +515,28 @@ export function createBookingScene(): Scenes.WizardScene<MyContext> {
     state.dateCode = parsed.data;
     resetAfterDate(state);
 
+    if (!state.studioId || !state.serviceId) {
+      await renderServiceStep(ctx, true);
+      ctx.wizard.selectStep(1);
+      return;
+    }
+
+    const availableTimeCodes = await listAvailableTimeCodesForBookingDate({
+      studioId: state.studioId,
+      serviceId: state.serviceId,
+      dateCode: state.dateCode,
+      timeCodes: getCandidateTimeCodesForDate(state.dateCode),
+    });
+
+    if (availableTimeCodes.length === 0) {
+      await ctx.reply(tBot(state.language, 'BOOKING_NO_SLOTS'));
+      ctx.wizard.selectStep(2);
+      await renderDateStep(ctx, true);
+      return;
+    }
+
+    state.availableTimeCodes = availableTimeCodes;
+
     ctx.wizard.selectStep(3);
     await renderTimeStep(ctx, true);
   });
@@ -481,9 +558,12 @@ export function createBookingScene(): Scenes.WizardScene<MyContext> {
       return;
     }
 
-    const allowedTimeCodes = new Set(
-      getAvailableTimeOptions(state.dateCode).map((item) => item.replace(':', '')),
-    );
+    if (state.availableTimeCodes.length === 0) {
+      await renderTimeStep(ctx, true);
+      return;
+    }
+
+    const allowedTimeCodes = new Set(state.availableTimeCodes);
     if (!allowedTimeCodes.has(parsed.data)) {
       await renderTimeStep(ctx, true);
       return;
@@ -612,17 +692,17 @@ export function createBookingScene(): Scenes.WizardScene<MyContext> {
       }
 
       const message = error.message.toLowerCase();
-      if (hasAnyKeyword(message, ['час', 'слот', 'time', 'slot'])) {
-        ctx.wizard.selectStep(3);
-        await ctx.reply(tBot(state.language, 'BOOKING_NO_SLOTS'));
-        await renderTimeStep(ctx, false);
-        return;
-      }
-
       if (hasAnyKeyword(message, ['майстра', 'послуга', 'master', 'service'])) {
         ctx.wizard.selectStep(4);
         await ctx.reply(tBot(state.language, 'BOOKING_NO_MASTERS'));
         await renderMasterStep(ctx, false);
+        return;
+      }
+
+      if (hasAnyKeyword(message, ['час', 'слот', 'time', 'slot'])) {
+        ctx.wizard.selectStep(3);
+        await ctx.reply(tBot(state.language, 'BOOKING_NO_SLOTS'));
+        await renderTimeStep(ctx, false);
         return;
       }
 

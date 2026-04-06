@@ -35,6 +35,20 @@ export const APPOINTMENTS_SELECT_COLUMNS = `
   updated_at
 `;
 
+export const BOOKING_SERVICES_SELECT_COLUMNS = `
+  s.id,
+  s.studio_id,
+  s.name,
+  s.description,
+  s.duration_minutes,
+  s.base_price,
+  s.currency_code,
+  s.result_description,
+  s.is_active,
+  s.created_at,
+  s.updated_at
+`;
+
 export const SQL_GET_BOOKING_META_BY_MASTER_SERVICE = `
   SELECT
     ms.studio_id,
@@ -63,6 +77,27 @@ export const SQL_GET_BOOKING_META_BY_MASTER_SERVICE = `
     AND s.is_active = TRUE
     AND m.is_bookable = TRUE
   LIMIT 1
+`;
+
+export const SQL_LIST_BOOKABLE_SERVICES_FOR_BOOKING = `
+  SELECT
+    ${BOOKING_SERVICES_SELECT_COLUMNS}
+  FROM services s
+  WHERE s.is_active = TRUE
+    AND ($1::bigint IS NULL OR s.studio_id = $1::bigint)
+    AND EXISTS (
+      SELECT 1
+      FROM master_services ms
+      INNER JOIN masters m
+        ON m.studio_id = ms.studio_id
+       AND m.user_id = ms.master_id
+      WHERE ms.studio_id = s.studio_id
+        AND ms.service_id = s.id
+        AND ms.is_active = TRUE
+        AND m.is_bookable = TRUE
+    )
+  ORDER BY s.id ASC
+  LIMIT $2
 `;
 
 export const SQL_CHECK_MASTER_WORK_SCHEDULE_AT_SLOT = `
@@ -160,6 +195,286 @@ export const SQL_CHECK_APPOINTMENT_CONFLICT = `
       AND tstzrange(a.start_at, a.end_at, '[)')
           && tstzrange($2::timestamptz, $3::timestamptz, '[)')
   ) AS has_conflict
+`;
+
+export const SQL_LIST_AVAILABLE_TIME_CODES_FOR_BOOKING_DATE = `
+  WITH candidates AS (
+    SELECT
+      m.user_id AS master_id,
+      m.studio_id,
+      m.display_name,
+      m.rating_avg,
+      m.rating_count,
+      m.experience_years,
+      COALESCE(ms.custom_duration_minutes, s.duration_minutes) AS duration_minutes,
+      st.timezone AS studio_timezone
+    FROM master_services ms
+    INNER JOIN masters m
+      ON m.studio_id = ms.studio_id
+     AND m.user_id = ms.master_id
+    INNER JOIN services s
+      ON s.studio_id = ms.studio_id
+     AND s.id = ms.service_id
+    INNER JOIN studios st
+      ON st.id = ms.studio_id
+    WHERE ms.studio_id = $1::bigint
+      AND ms.service_id = $2::bigint
+      AND ms.is_active = TRUE
+      AND s.is_active = TRUE
+      AND m.is_bookable = TRUE
+  ),
+  slot_inputs AS (
+    SELECT unnest($4::text[]) AS time_code
+  ),
+  base_slots AS (
+    SELECT
+      c.*,
+      $3::date AS local_date,
+      EXTRACT(ISODOW FROM $3::date)::int AS local_weekday,
+      si.time_code,
+      (
+        $3::date::timestamp
+        + make_interval(
+          hours => SUBSTRING(si.time_code, 1, 2)::int,
+          mins => SUBSTRING(si.time_code, 3, 2)::int
+        )
+      ) AS local_start_at
+    FROM candidates c
+    CROSS JOIN slot_inputs si
+  ),
+  slot_windows AS (
+    SELECT
+      bs.*,
+      (bs.local_start_at + (bs.duration_minutes * interval '1 minute')) AS local_end_at,
+      (bs.local_start_at AT TIME ZONE bs.studio_timezone) AS start_at_utc,
+      ((bs.local_start_at + (bs.duration_minutes * interval '1 minute')) AT TIME ZONE bs.studio_timezone) AS end_at_utc
+    FROM base_slots bs
+  ),
+  schedule_eval AS (
+    SELECT
+      sw.*,
+      EXISTS(
+        SELECT 1
+        FROM master_days_off d
+        WHERE d.master_id = sw.master_id
+          AND d.off_date = sw.local_date
+      ) AS is_day_off,
+      EXISTS(
+        SELECT 1
+        FROM master_vacations v
+        WHERE v.master_id = sw.master_id
+          AND sw.local_date BETWEEN v.date_from AND v.date_to
+      ) AS is_vacation,
+      tr.is_working AS temp_is_working,
+      tr.open_time AS temp_open_time,
+      tr.close_time AS temp_close_time,
+      wr.is_working AS week_is_working,
+      wr.open_time AS week_open_time,
+      wr.close_time AS week_close_time
+    FROM slot_windows sw
+    LEFT JOIN LATERAL (
+      SELECT
+        t.is_working,
+        t.open_time,
+        t.close_time
+      FROM master_temporary_hours t
+      WHERE t.master_id = sw.master_id
+        AND sw.local_date BETWEEN t.date_from AND t.date_to
+        AND t.weekday = sw.local_weekday
+      ORDER BY t.date_from DESC, t.id DESC
+      LIMIT 1
+    ) tr ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT
+        w.is_working,
+        w.open_time,
+        w.close_time
+      FROM master_weekly_hours w
+      WHERE w.master_id = sw.master_id
+        AND w.weekday = sw.local_weekday
+      LIMIT 1
+    ) wr ON TRUE
+  ),
+  effective AS (
+    SELECT
+      se.*,
+      CASE
+        WHEN se.is_day_off OR se.is_vacation THEN FALSE
+        WHEN se.temp_is_working IS NOT NULL THEN se.temp_is_working
+        WHEN se.week_is_working IS NOT NULL THEN se.week_is_working
+        ELSE FALSE
+      END AS is_working,
+      CASE
+        WHEN se.temp_is_working IS NOT NULL THEN se.temp_open_time
+        ELSE se.week_open_time
+      END AS open_time,
+      CASE
+        WHEN se.temp_is_working IS NOT NULL THEN se.temp_close_time
+        ELSE se.week_close_time
+      END AS close_time
+    FROM schedule_eval se
+  ),
+  available AS (
+    SELECT
+      e.time_code
+    FROM effective e
+    WHERE e.is_working = TRUE
+      AND e.open_time IS NOT NULL
+      AND e.close_time IS NOT NULL
+      AND e.local_start_at::time >= e.open_time
+      AND e.local_end_at::time <= e.close_time
+      AND NOT EXISTS (
+        SELECT 1
+        FROM appointments a
+        WHERE a.master_id = e.master_id
+          AND a.deleted_at IS NULL
+          AND a.status IN ('pending', 'confirmed')
+          AND tstzrange(a.start_at, a.end_at, '[)')
+              && tstzrange(e.start_at_utc, e.end_at_utc, '[)')
+      )
+  )
+  SELECT DISTINCT
+    a.time_code
+  FROM available a
+  ORDER BY a.time_code ASC
+`;
+
+export const SQL_LIST_AVAILABLE_MASTERS_FOR_BOOKING_SLOT = `
+  WITH candidates AS (
+    SELECT
+      m.user_id AS master_id,
+      m.studio_id,
+      m.display_name,
+      m.rating_avg,
+      m.rating_count,
+      m.experience_years,
+      COALESCE(ms.custom_duration_minutes, s.duration_minutes) AS duration_minutes,
+      st.timezone AS studio_timezone
+    FROM master_services ms
+    INNER JOIN masters m
+      ON m.studio_id = ms.studio_id
+     AND m.user_id = ms.master_id
+    INNER JOIN services s
+      ON s.studio_id = ms.studio_id
+     AND s.id = ms.service_id
+    INNER JOIN studios st
+      ON st.id = ms.studio_id
+    WHERE ms.studio_id = $1::bigint
+      AND ms.service_id = $2::bigint
+      AND ms.is_active = TRUE
+      AND s.is_active = TRUE
+      AND m.is_bookable = TRUE
+  ),
+  slot_window AS (
+    SELECT
+      c.*,
+      $3::date AS local_date,
+      EXTRACT(ISODOW FROM $3::date)::int AS local_weekday,
+      $4::text AS time_code,
+      (
+        $3::date::timestamp
+        + make_interval(
+          hours => SUBSTRING($4::text, 1, 2)::int,
+          mins => SUBSTRING($4::text, 3, 2)::int
+        )
+      ) AS local_start_at
+    FROM candidates c
+  ),
+  slot_window_calc AS (
+    SELECT
+      sw.*,
+      (sw.local_start_at + (sw.duration_minutes * interval '1 minute')) AS local_end_at,
+      (sw.local_start_at AT TIME ZONE sw.studio_timezone) AS start_at_utc,
+      ((sw.local_start_at + (sw.duration_minutes * interval '1 minute')) AT TIME ZONE sw.studio_timezone) AS end_at_utc
+    FROM slot_window sw
+  ),
+  schedule_eval AS (
+    SELECT
+      sw.*,
+      EXISTS(
+        SELECT 1
+        FROM master_days_off d
+        WHERE d.master_id = sw.master_id
+          AND d.off_date = sw.local_date
+      ) AS is_day_off,
+      EXISTS(
+        SELECT 1
+        FROM master_vacations v
+        WHERE v.master_id = sw.master_id
+          AND sw.local_date BETWEEN v.date_from AND v.date_to
+      ) AS is_vacation,
+      tr.is_working AS temp_is_working,
+      tr.open_time AS temp_open_time,
+      tr.close_time AS temp_close_time,
+      wr.is_working AS week_is_working,
+      wr.open_time AS week_open_time,
+      wr.close_time AS week_close_time
+    FROM slot_window_calc sw
+    LEFT JOIN LATERAL (
+      SELECT
+        t.is_working,
+        t.open_time,
+        t.close_time
+      FROM master_temporary_hours t
+      WHERE t.master_id = sw.master_id
+        AND sw.local_date BETWEEN t.date_from AND t.date_to
+        AND t.weekday = sw.local_weekday
+      ORDER BY t.date_from DESC, t.id DESC
+      LIMIT 1
+    ) tr ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT
+        w.is_working,
+        w.open_time,
+        w.close_time
+      FROM master_weekly_hours w
+      WHERE w.master_id = sw.master_id
+        AND w.weekday = sw.local_weekday
+      LIMIT 1
+    ) wr ON TRUE
+  ),
+  effective AS (
+    SELECT
+      se.*,
+      CASE
+        WHEN se.is_day_off OR se.is_vacation THEN FALSE
+        WHEN se.temp_is_working IS NOT NULL THEN se.temp_is_working
+        WHEN se.week_is_working IS NOT NULL THEN se.week_is_working
+        ELSE FALSE
+      END AS is_working,
+      CASE
+        WHEN se.temp_is_working IS NOT NULL THEN se.temp_open_time
+        ELSE se.week_open_time
+      END AS open_time,
+      CASE
+        WHEN se.temp_is_working IS NOT NULL THEN se.temp_close_time
+        ELSE se.week_close_time
+      END AS close_time
+    FROM schedule_eval se
+  )
+  SELECT
+    e.master_id,
+    e.studio_id,
+    e.display_name,
+    e.rating_avg,
+    e.rating_count,
+    e.experience_years
+  FROM effective e
+  WHERE e.is_working = TRUE
+    AND e.open_time IS NOT NULL
+    AND e.close_time IS NOT NULL
+    AND e.local_start_at::time >= e.open_time
+    AND e.local_end_at::time <= e.close_time
+    AND NOT EXISTS (
+      SELECT 1
+      FROM appointments a
+      WHERE a.master_id = e.master_id
+        AND a.deleted_at IS NULL
+        AND a.status IN ('pending', 'confirmed')
+        AND tstzrange(a.start_at, a.end_at, '[)')
+            && tstzrange(e.start_at_utc, e.end_at_utc, '[)')
+    )
+  ORDER BY e.rating_avg DESC, e.rating_count DESC, e.master_id ASC
 `;
 
 export const SQL_INSERT_PENDING_APPOINTMENT = `

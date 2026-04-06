@@ -1,4 +1,6 @@
 import type { AppointmentsEntity } from '../db/index.js';
+import type { MasterBookingOption } from './db-masters.types.js';
+import type { ServicesCatalogItem } from './db-services.types.js';
 
 /**
  * @file db-booking.types.ts
@@ -54,3 +56,39 @@ export type MasterScheduleAvailabilityRow = {
   is_available: boolean;
   reason_code: string | null;
 };
+
+export type BookingAvailableTimeCodeRow = {
+  time_code: string;
+};
+
+export type BookingAvailableMasterRow = {
+  master_id: string;
+  studio_id: string;
+  display_name: string;
+  rating_avg: string;
+  rating_count: number;
+  experience_years: number | null;
+};
+
+export type ListBookableServicesForBookingInput = {
+  studioId?: string | null;
+  limit?: number;
+};
+
+export type ListAvailableTimeCodesForBookingDateInput = {
+  studioId: string;
+  serviceId: string;
+  dateCode: string;
+  timeCodes: string[];
+};
+
+export type ListAvailableMastersForBookingSlotInput = {
+  studioId: string;
+  serviceId: string;
+  dateCode: string;
+  timeCode: string;
+};
+
+export type ListBookableServicesForBookingResult = ServicesCatalogItem[];
+
+export type ListAvailableMastersForBookingSlotResult = MasterBookingOption[];
