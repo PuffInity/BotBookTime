@@ -329,7 +329,7 @@ function getMessageText(ctx: MyContext): string | null {
   return ctx.message.text.trim();
 }
 
-const MASTER_SCENE_VALIDATION_MESSAGE_KEYS: Record<string, BotDictionaryKey> = {
+const MASTER_SCENE_VALIDATION_MESSAGE_KEYS: Partial<Record<string, BotDictionaryKey>> = {
   'Некоректна callback-дія запису майстра': 'MASTER_PANEL_VALIDATION_INVALID_BOOKING_CALLBACK',
   'Некоректна callback-дія керування послугою майстра':
     'MASTER_PANEL_VALIDATION_INVALID_SERVICE_CALLBACK',
@@ -375,13 +375,28 @@ const MASTER_SCENE_VALIDATION_MESSAGE_KEYS: Record<string, BotDictionaryKey> = {
     'MASTER_PANEL_VALIDATION_CHECK_TEMPORARY_RANGE_FAILED',
 };
 
+const MASTER_SCENE_VALIDATION_KEYS = new Set<BotDictionaryKey>(
+  Object.values(MASTER_SCENE_VALIDATION_MESSAGE_KEYS).filter(
+    (value): value is BotDictionaryKey => Boolean(value),
+  ),
+);
+
+function asMasterSceneValidationError(key: BotDictionaryKey): ValidationError {
+  return new ValidationError(key);
+}
+
 function localizeMasterSceneValidationMessage(
   message: string,
   language: BotUiLanguage,
 ): string {
-  const key = MASTER_SCENE_VALIDATION_MESSAGE_KEYS[message.trim()];
+  const normalized = message.trim();
+  if (MASTER_SCENE_VALIDATION_KEYS.has(normalized as BotDictionaryKey)) {
+    return tBot(language, normalized as BotDictionaryKey);
+  }
+
+  const key = MASTER_SCENE_VALIDATION_MESSAGE_KEYS[normalized];
   if (key) return tBot(language, key);
-  if (message.startsWith('Некоректний ')) {
+  if (normalized.startsWith('Некоректний ')) {
     return tBot(language, 'MASTER_PANEL_VALIDATION_INVALID_VALUE');
   }
   return message;
@@ -393,7 +408,7 @@ function parseAppointmentIdFromAction(ctx: MyContext, regex: RegExp): string {
   const matches = callbackData.match(regex);
 
   if (!matches?.[1]) {
-    throw new ValidationError('Некоректна callback-дія запису майстра');
+    throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_INVALID_BOOKING_CALLBACK');
   }
 
   return matches[1];
@@ -405,7 +420,7 @@ function parseServiceIdFromAction(ctx: MyContext, regex: RegExp): string {
   const matches = callbackData.match(regex);
 
   if (!matches?.[1]) {
-    throw new ValidationError('Некоректна callback-дія керування послугою майстра');
+    throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_INVALID_SERVICE_CALLBACK');
   }
 
   return matches[1];
@@ -499,7 +514,7 @@ function parseDateFromCode(code: string): Date {
   const normalized = code.trim();
   const match = normalized.match(/^(\d{4})(\d{2})(\d{2})$/);
   if (!match) {
-    throw new ValidationError('Некоректний код дати');
+    throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_INVALID_DATE_CODE');
   }
 
   const year = Number(match[1]);
@@ -512,7 +527,7 @@ function parseDateFromCode(code: string): Date {
     parsed.getMonth() !== month - 1 ||
     parsed.getDate() !== day
   ) {
-    throw new ValidationError('Некоректна дата');
+    throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_INVALID_DATE');
   }
 
   return parsed;
@@ -522,7 +537,7 @@ function parseSqlDate(value: string): Date {
   const normalized = value.trim();
   const match = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) {
-    throw new ValidationError('Некоректна дата');
+    throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_INVALID_DATE');
   }
 
   const year = Number(match[1]);
@@ -534,7 +549,7 @@ function parseSqlDate(value: string): Date {
     parsed.getMonth() !== month - 1 ||
     parsed.getDate() !== day
   ) {
-    throw new ValidationError('Некоректна дата');
+    throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_INVALID_DATE');
   }
 
   return parsed;
@@ -544,7 +559,7 @@ function parseDayOffDateInput(input: string): Date {
   const normalized = input.trim();
   const match = normalized.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
   if (!match) {
-    throw new ValidationError('Дата має бути у форматі ДД.ММ.РРРР');
+    throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_INVALID_DATE_FORMAT');
   }
 
   const day = Number(match[1]);
@@ -557,7 +572,7 @@ function parseDayOffDateInput(input: string): Date {
     parsed.getMonth() !== month - 1 ||
     parsed.getDate() !== day
   ) {
-    throw new ValidationError('Введено некоректну дату');
+    throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_INVALID_TYPED_DATE');
   }
 
   const parsedDay = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
@@ -565,7 +580,7 @@ function parseDayOffDateInput(input: string): Date {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   if (parsedDay.getTime() < today.getTime()) {
-    throw new ValidationError('Не можна встановити вихідний день у минулому');
+    throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_DAY_OFF_PAST');
   }
 
   return parsedDay;
@@ -578,14 +593,14 @@ function parseVacationRangeInput(input: string): { dateFrom: Date; dateTo: Date 
   );
 
   if (!match) {
-    throw new ValidationError('Період має бути у форматі ДД.ММ.РРРР - ДД.ММ.РРРР');
+    throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_INVALID_RANGE_FORMAT');
   }
 
   const dateFrom = parseDayOffDateInput(match[1]);
   const dateTo = parseDayOffDateInput(match[2]);
 
   if (dateTo.getTime() < dateFrom.getTime()) {
-    throw new ValidationError('Дата завершення відпустки не може бути раніше дати початку');
+    throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_RANGE_END_BEFORE_START');
   }
 
   return { dateFrom, dateTo };
@@ -599,12 +614,12 @@ function parseTimeInput(value: string): string {
   const normalized = value.trim();
   const match = normalized.match(/^(\d{1,2}):([0-5]\d)$/);
   if (!match) {
-    throw new ValidationError('Час має бути у форматі HH:MM (приклад: 10:00)');
+    throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_INVALID_TIME_FORMAT');
   }
 
   const hour = Number(match[1]);
   if (!Number.isInteger(hour) || hour < 0 || hour > 23) {
-    throw new ValidationError('Година має бути в діапазоні від 0 до 23');
+    throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_INVALID_HOUR_RANGE');
   }
 
   return `${hour}:${match[2]}`;
@@ -629,7 +644,7 @@ function parseWeekdayFromAction(ctx: MyContext, regex: RegExp): number {
   const match = callbackData.match(regex);
   const weekday = match?.[1] ? Number(match[1]) : Number.NaN;
   if (!Number.isInteger(weekday) || weekday < 1 || weekday > 7) {
-    throw new ValidationError('Некоректний день тижня');
+    throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_INVALID_WEEKDAY');
   }
   return weekday;
 }
@@ -656,7 +671,7 @@ function parseTemporaryPeriodFromAction(ctx: MyContext, regex: RegExp): { dateFr
   const dateTo = parseDateFromCode(dateToCode);
 
   if (dateTo.getTime() < dateFrom.getTime()) {
-    throw new ValidationError('Некоректний період тимчасового графіку');
+    throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_INVALID_TEMPORARY_RANGE');
   }
 
   return {
@@ -734,7 +749,7 @@ function normalizeMasterProfileFieldValue(
     case 'procedures_done_total':
       return String(normalizeMasterProceduresDoneTotal(value));
     default:
-      throw new ValidationError('Некоректне поле редагування профілю');
+      throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_INVALID_PROFILE_FIELD');
   }
 }
 
@@ -769,7 +784,7 @@ async function persistMasterProfileField(
       });
       return;
     default:
-      throw new ValidationError('Некоректне поле редагування профілю');
+      throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_INVALID_PROFILE_FIELD');
   }
 }
 
@@ -1311,7 +1326,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
         } catch (error) {
           const err = error instanceof ValidationError
             ? error
-            : new ValidationError('Виникла помилка при перевірці значення');
+            : asMasterSceneValidationError('MASTER_PANEL_VALIDATION_CHECK_VALUE_FAILED');
 
           await ctx.reply(
             `⚠️ ${localizeMasterSceneValidationMessage(err.message, state.language)}`,
@@ -1347,7 +1362,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
         } catch (error) {
           const err = error instanceof ValidationError
             ? error
-            : new ValidationError('Виникла помилка при перевірці назви документа');
+            : asMasterSceneValidationError('MASTER_PANEL_VALIDATION_CHECK_CERT_TITLE_FAILED');
 
           await ctx.reply(
             `⚠️ ${localizeMasterSceneValidationMessage(err.message, state.language)}`,
@@ -1370,7 +1385,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
         try {
           const weekday = configureDayDraft.weekday;
           if (!weekday) {
-            throw new ValidationError('Спочатку оберіть день тижня кнопкою');
+            throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_SELECT_WEEKDAY_FIRST');
           }
 
           const fromTime = parseTimeInput(text);
@@ -1389,7 +1404,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
         } catch (error) {
           const err = error instanceof ValidationError
             ? error
-            : new ValidationError('Виникла помилка при перевірці часу початку');
+            : asMasterSceneValidationError('MASTER_PANEL_VALIDATION_CHECK_TIME_FROM_FAILED');
 
           await ctx.reply(
             `⚠️ ${localizeMasterSceneValidationMessage(err.message, state.language)}${tBot(state.language, 'MASTER_PANEL_SCENE_TIME_INPUT_HINT')}`,
@@ -1410,12 +1425,12 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
             return;
           }
           if (!weekday || !fromTime) {
-            throw new ValidationError('Спочатку оберіть день і вкажіть час початку');
+            throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_SELECT_DAY_AND_FROM_FIRST');
           }
 
           const toTime = parseTimeInput(text);
           if (timeToMinutes(toTime) <= timeToMinutes(fromTime)) {
-            throw new ValidationError('Час завершення має бути пізніше часу початку');
+            throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_TIME_TO_AFTER_FROM');
           }
 
           const updated = await upsertMasterWeeklyDay({
@@ -1449,7 +1464,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
         } catch (error) {
           const err = error instanceof ValidationError
             ? error
-            : new ValidationError('Виникла помилка при перевірці часу завершення');
+            : asMasterSceneValidationError('MASTER_PANEL_VALIDATION_CHECK_TIME_TO_FAILED');
 
           await ctx.reply(
             `⚠️ ${localizeMasterSceneValidationMessage(err.message, state.language)}${tBot(state.language, 'MASTER_PANEL_SCENE_TIME_INPUT_HINT')}`,
@@ -1481,7 +1496,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
         } catch (error) {
           const err = error instanceof ValidationError
             ? error
-            : new ValidationError('Виникла помилка при перевірці дати');
+            : asMasterSceneValidationError('MASTER_PANEL_VALIDATION_CHECK_DATE_FAILED');
 
           await ctx.reply(
             `⚠️ ${localizeMasterSceneValidationMessage(err.message, state.language)}${tBot(state.language, 'MASTER_PANEL_SCHEDULE_SET_DAY_OFF_ERROR_HINT_RETRY')}`,
@@ -1517,7 +1532,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
         } catch (error) {
           const err = error instanceof ValidationError
             ? error
-            : new ValidationError('Виникла помилка при перевірці періоду відпустки');
+            : asMasterSceneValidationError('MASTER_PANEL_VALIDATION_CHECK_VACATION_RANGE_FAILED');
 
           await ctx.reply(
             `⚠️ ${localizeMasterSceneValidationMessage(err.message, state.language)}${tBot(state.language, 'MASTER_PANEL_SCHEDULE_VACATION_ERROR_HINT_FORMAT')}`,
@@ -1565,7 +1580,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
         } catch (error) {
           const err = error instanceof ValidationError
             ? error
-            : new ValidationError('Виникла помилка при перевірці періоду тимчасового графіку');
+            : asMasterSceneValidationError('MASTER_PANEL_VALIDATION_CHECK_TEMPORARY_RANGE_FAILED');
 
           await ctx.reply(
             `⚠️ ${localizeMasterSceneValidationMessage(err.message, state.language)}${tBot(state.language, 'MASTER_PANEL_SCHEDULE_VACATION_ERROR_HINT_FORMAT')}`,
@@ -1579,7 +1594,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
         try {
           const weekday = temporaryDraft.selectedWeekday;
           if (!weekday) {
-            throw new ValidationError('Спочатку оберіть день тижня кнопкою');
+            throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_SELECT_WEEKDAY_FIRST');
           }
 
           const fromTime = parseTimeInput(text);
@@ -1603,7 +1618,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
         } catch (error) {
           const err = error instanceof ValidationError
             ? error
-            : new ValidationError('Виникла помилка при перевірці часу початку');
+            : asMasterSceneValidationError('MASTER_PANEL_VALIDATION_CHECK_TIME_FROM_FAILED');
 
           await ctx.reply(
             `⚠️ ${localizeMasterSceneValidationMessage(err.message, state.language)}${tBot(state.language, 'MASTER_PANEL_SCENE_TIME_INPUT_HINT')}`,
@@ -1619,12 +1634,12 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
           const fromTime = temporaryDraft.pendingFromTime;
 
           if (!weekday || !fromTime) {
-            throw new ValidationError('Спочатку оберіть день і задайте час початку');
+            throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_SELECT_DAY_AND_FROM_FIRST_ALT');
           }
 
           const toTime = parseTimeInput(text);
           if (timeToMinutes(toTime) <= timeToMinutes(fromTime)) {
-            throw new ValidationError('Час завершення має бути пізніше часу початку');
+            throw asMasterSceneValidationError('MASTER_PANEL_VALIDATION_TIME_TO_AFTER_FROM');
           }
 
           const days = upsertTemporaryDay(temporaryDraft.days, {
@@ -1659,7 +1674,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
         } catch (error) {
           const err = error instanceof ValidationError
             ? error
-            : new ValidationError('Виникла помилка при перевірці часу завершення');
+            : asMasterSceneValidationError('MASTER_PANEL_VALIDATION_CHECK_TIME_TO_FAILED');
 
           await ctx.reply(
             `⚠️ ${localizeMasterSceneValidationMessage(err.message, state.language)}${tBot(state.language, 'MASTER_PANEL_SCENE_TIME_INPUT_HINT')}`,

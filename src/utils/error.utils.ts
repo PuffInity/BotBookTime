@@ -429,7 +429,7 @@ export function createTelegrafErrorHandler<C extends BotContextLike>({
     env?: string;
     replyToUser?: boolean;
     isPrivilegedUser?: (ctx: C) => Promise<boolean>;
-    restrictedUserMessage?: string;
+    restrictedUserMessage?: string | ((ctx: C, appError: AppError) => Promise<string> | string);
 }): BotCatchHandler<C> {
     const isProduction = env === "production";
 
@@ -482,7 +482,9 @@ export function createTelegrafErrorHandler<C extends BotContextLike>({
 
             const userMessage = canSeeDetailedError
                 ? getBotUserMessage(appError, isProduction)
-                : restrictedUserMessage;
+                : typeof restrictedUserMessage === "function"
+                    ? await restrictedUserMessage(ctx, appError)
+                    : restrictedUserMessage;
 
             await ctx.reply(userMessage);
         } catch (replyError) {

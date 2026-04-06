@@ -899,12 +899,39 @@ function mergePanelDictionaries(...dictionaries: BotDictionaryMap[]): BotDiction
   };
 }
 
-const BOT_DICTIONARY = mergePanelDictionaries(
-  BOT_LEGACY_DICTIONARY as BotDictionaryMap,
+function keepOnlyMissingLegacyKeys(
+  legacy: BotDictionaryMap,
+  panel: BotDictionaryMap,
+): BotDictionaryMap {
+  const panelKeys = new Set(Object.keys(panel.uk));
+
+  const pickMissing = (languageMap: Record<string, string>): Record<string, string> =>
+    Object.fromEntries(
+      Object.entries(languageMap).filter(([key]) => !panelKeys.has(key)),
+    );
+
+  return {
+    uk: pickMissing(legacy.uk),
+    en: pickMissing(legacy.en),
+    cs: pickMissing(legacy.cs),
+  };
+}
+
+const BOT_PANEL_DICTIONARY = mergePanelDictionaries(
   COMMON_PANEL_DICTIONARY as BotDictionaryMap,
   MAIN_PANEL_DICTIONARY as BotDictionaryMap,
   ADMIN_PANEL_DICTIONARY as BotDictionaryMap,
   MASTER_PANEL_DICTIONARY as BotDictionaryMap,
+);
+
+const BOT_LEGACY_FALLBACK_DICTIONARY = keepOnlyMissingLegacyKeys(
+  BOT_LEGACY_DICTIONARY as BotDictionaryMap,
+  BOT_PANEL_DICTIONARY,
+);
+
+const BOT_DICTIONARY = mergePanelDictionaries(
+  BOT_LEGACY_FALLBACK_DICTIONARY,
+  BOT_PANEL_DICTIONARY,
 );
 
 export type BotDictionaryKey = keyof (typeof BOT_DICTIONARY)['uk'];

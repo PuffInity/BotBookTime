@@ -6,6 +6,8 @@ import { createTelegrafErrorHandler } from '../utils/error.utils.js';
 import { loggerTelegramBot } from '../utils/logger/loggers-list.js';
 import { setTelegramNotificationSender } from '../helpers/notification/notification-telegram.helper.js';
 import { getAdminPanelAccessByTelegramId } from '../helpers/db/db-admin-panel.helper.js';
+import { getUserByTelegramId } from '../helpers/db/db-profile.helper.js';
+import { resolveBotUiLanguage, tBot } from '../helpers/bot/i18n.bot.js';
 
 /**
  * @file createBot.ts
@@ -79,7 +81,18 @@ export function createBot(deps: BotDeps): Telegraf<MyContext> {
         const access = await getAdminPanelAccessByTelegramId(telegramId);
         return Boolean(access);
       },
-      restrictedUserMessage: '⚠️ Тимчасово недоступна або виникла помилка.',
+      restrictedUserMessage: async (ctx) => {
+        const telegramId = ctx.from?.id;
+        if (!telegramId) return tBot('uk', 'BOT_RESTRICTED_ERROR_MESSAGE');
+
+        try {
+          const user = await getUserByTelegramId(telegramId);
+          const language = resolveBotUiLanguage(user?.preferredLanguage);
+          return tBot(language, 'BOT_RESTRICTED_ERROR_MESSAGE');
+        } catch {
+          return tBot('uk', 'BOT_RESTRICTED_ERROR_MESSAGE');
+        }
+      },
     }),
   );
 

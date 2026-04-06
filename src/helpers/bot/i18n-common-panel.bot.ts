@@ -7,6 +7,7 @@ export const COMMON_PANEL_DICTIONARY = {
   uk: {
     HOME: '🏠 Головне меню',
     COMMON_BACK: '⬅️ Назад',
+    BOT_RESTRICTED_ERROR_MESSAGE: '⚠️ Тимчасово недоступна або виникла помилка.',
     LANGUAGE_UK: '🇺🇦 Українська',
     LANGUAGE_EN: '🇬🇧 English',
     LANGUAGE_CS: '🇨🇿 Čeština',
@@ -17,6 +18,7 @@ export const COMMON_PANEL_DICTIONARY = {
   en: {
     HOME: '🏠 Home menu',
     COMMON_BACK: '⬅️ Back',
+    BOT_RESTRICTED_ERROR_MESSAGE: '⚠️ Temporarily unavailable or an error occurred.',
     LANGUAGE_UK: '🇺🇦 Ukrainian',
     LANGUAGE_EN: '🇬🇧 English',
     LANGUAGE_CS: '🇨🇿 Czech',
@@ -27,6 +29,7 @@ export const COMMON_PANEL_DICTIONARY = {
   cs: {
     HOME: '🏠 Hlavní menu',
     COMMON_BACK: '⬅️ Zpět',
+    BOT_RESTRICTED_ERROR_MESSAGE: '⚠️ Dočasně nedostupné nebo došlo k chybě.',
     LANGUAGE_UK: '🇺🇦 Ukrajinština',
     LANGUAGE_EN: '🇬🇧 Angličtina',
     LANGUAGE_CS: '🇨🇿 Čeština',
@@ -35,4 +38,3 @@ export const COMMON_PANEL_DICTIONARY = {
     PROFILE_NOT_VERIFIED: '⚪ neověřeno',
   },
 } as const;
-
