@@ -9,7 +9,13 @@ import type {
 } from '../../types/db-helpers/db-master-bookings.types.js';
 import type { MasterTemporaryScheduleDayInput } from '../../types/db-helpers/db-master-schedule.types.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
-import { resolveBotUiLanguage, tBot, tBotTemplate } from '../../helpers/bot/i18n.bot.js';
+import {
+  findBotDictionaryKeyByText,
+  isBotDictionaryKey,
+  resolveBotUiLanguage,
+  tBot,
+  tBotTemplate,
+} from '../../helpers/bot/i18n.bot.js';
 import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 import type { BotDictionaryKey } from '../../helpers/bot/i18n.bot.js';
 import {
@@ -390,15 +396,29 @@ function localizeMasterSceneValidationMessage(
   language: BotUiLanguage,
 ): string {
   const normalized = message.trim();
-  if (MASTER_SCENE_VALIDATION_KEYS.has(normalized as BotDictionaryKey)) {
+  if (!normalized) return message;
+
+  const findKeyByText = (text: string) =>
+    findBotDictionaryKeyByText(text, language) ?? findBotDictionaryKeyByText(text, 'uk');
+
+  if (MASTER_SCENE_VALIDATION_KEYS.has(normalized as BotDictionaryKey) || isBotDictionaryKey(normalized)) {
     return tBot(language, normalized as BotDictionaryKey);
   }
 
   const key = MASTER_SCENE_VALIDATION_MESSAGE_KEYS[normalized];
   if (key) return tBot(language, key);
+
+  const keyByText = findKeyByText(normalized);
+  if (keyByText) return tBot(language, keyByText);
+
   if (normalized.startsWith('Некоректний ')) {
     return tBot(language, 'MASTER_PANEL_VALIDATION_INVALID_VALUE');
   }
+
+  if (language !== 'uk' && /[А-Яа-яЇїІіЄєҐґ]/.test(normalized)) {
+    return tBot(language, 'MASTER_PANEL_VALIDATION_INVALID_VALUE');
+  }
+
   return message;
 }
 

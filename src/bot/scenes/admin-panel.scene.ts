@@ -42,7 +42,13 @@ import type {
 import type { AdminStudioScheduleData } from '../../types/db-helpers/db-admin-schedule.types.js';
 import type { AdminStudioTemporaryScheduleDayInput } from '../../types/db-helpers/db-admin-schedule.types.js';
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
-import { resolveBotUiLanguage, tBot, tBotTemplate } from '../../helpers/bot/i18n.bot.js';
+import {
+  findBotDictionaryKeyByText,
+  isBotDictionaryKey,
+  resolveBotUiLanguage,
+  tBot,
+  tBotTemplate,
+} from '../../helpers/bot/i18n.bot.js';
 import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 import {
   createAdminRecordsMenuKeyboard,
@@ -437,6 +443,7 @@ import {
  */
 
 export const ADMIN_PANEL_SCENE_ID = 'admin-panel-scene';
+const NOTIFICATION_SOURCE_LANGUAGE: BotUiLanguage = 'uk';
 
 type AdminRescheduleDraft = {
   appointmentId: string;
@@ -3043,7 +3050,8 @@ async function replyAdminSuccess(
   message: string,
   extra?: Parameters<MyContext['reply']>[1],
 ): Promise<void> {
-  await ctx.reply(`✅ ${message}`, extra);
+  const language = resolveAdminUiLanguage(ctx);
+  await ctx.reply(`✅ ${localizeAdminMessage(message, language)}`, extra);
 }
 
 async function replyAdminWarning(
@@ -3051,7 +3059,8 @@ async function replyAdminWarning(
   message: string,
   extra?: Parameters<MyContext['reply']>[1],
 ): Promise<void> {
-  await ctx.reply(`⚠️ ${message}`, extra);
+  const language = resolveAdminUiLanguage(ctx);
+  await ctx.reply(`⚠️ ${localizeAdminMessage(message, language)}`, extra);
 }
 
 async function replyAdminInfo(
@@ -3059,7 +3068,40 @@ async function replyAdminInfo(
   message: string,
   extra?: Parameters<MyContext['reply']>[1],
 ): Promise<void> {
-  await ctx.reply(`ℹ️ ${message}`, extra);
+  const language = resolveAdminUiLanguage(ctx);
+  await ctx.reply(`ℹ️ ${localizeAdminMessage(message, language)}`, extra);
+}
+
+function resolveAdminUiLanguage(ctx: MyContext): BotUiLanguage {
+  const state = (ctx.wizard?.state ?? {}) as Partial<AdminPanelSceneState>;
+  return state.language ?? 'uk';
+}
+
+function localizeAdminMessage(message: string, language: BotUiLanguage): string {
+  const normalized = message.trim();
+  if (!normalized) return message;
+
+  const findKeyByText = (text: string) =>
+    findBotDictionaryKeyByText(text, language) ?? findBotDictionaryKeyByText(text, 'uk');
+
+  const directKey = isBotDictionaryKey(normalized) ? normalized : findKeyByText(normalized);
+  if (directKey) return tBot(language, directKey);
+
+  const parts = normalized.split('\n\n');
+  if (parts.length > 1) {
+    const head = parts[0]?.trim() ?? '';
+    const headKey = isBotDictionaryKey(head) ? head : findKeyByText(head);
+    if (headKey) {
+      const localizedHead = tBot(language, headKey);
+      return [localizedHead, ...parts.slice(1)].join('\n\n');
+    }
+  }
+
+  if (language !== 'uk' && /[А-Яа-яЇїІіЄєҐґ]/.test(normalized)) {
+    return tBot(language, 'BOT_RESTRICTED_ERROR_MESSAGE');
+  }
+
+  return message;
 }
 
 function getAdminActorMeta(ctx: MyContext, access?: AdminPanelAccess | null): Record<string, unknown> {
@@ -3561,8 +3603,8 @@ async function notifyAdminConfirmedBooking(
         studioName: item.studioName,
         serviceName: item.serviceName,
         startAt: item.startAt,
-        statusLabel: tBot('uk', 'ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CONFIRMED'),
-        message: tBot('uk', 'ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CONFIRMED'),
+        statusLabel: tBot(NOTIFICATION_SOURCE_LANGUAGE, 'ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CONFIRMED'),
+        message: tBot(NOTIFICATION_SOURCE_LANGUAGE, 'ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CONFIRMED'),
       },
       email: {
         template: 'bookingConfirmed',
@@ -3602,8 +3644,8 @@ async function notifyAdminCanceledBooking(
         studioName: item.studioName,
         serviceName: item.serviceName,
         startAt: item.startAt,
-        statusLabel: tBot('uk', 'ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CANCELED'),
-        message: tBot('uk', 'ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CANCELED'),
+        statusLabel: tBot(NOTIFICATION_SOURCE_LANGUAGE, 'ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CANCELED'),
+        message: tBot(NOTIFICATION_SOURCE_LANGUAGE, 'ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CANCELED'),
       },
       email: {
         template: 'bookingCancelled',
@@ -3614,7 +3656,7 @@ async function notifyAdminCanceledBooking(
           serviceName: item.serviceName,
           masterName: item.masterName,
           startAt: item.startAt,
-          cancelReason: tBot('uk', 'ADMIN_PANEL_RECORDS_REASON_CANCELED_BY_ADMIN'),
+          cancelReason: tBot(NOTIFICATION_SOURCE_LANGUAGE, 'ADMIN_PANEL_RECORDS_REASON_CANCELED_BY_ADMIN'),
         },
       },
       metadata: { source: 'admin-panel' },
@@ -3644,8 +3686,8 @@ async function notifyAdminRescheduledBooking(
         studioName: result.current.studioName,
         serviceName: result.current.serviceName,
         startAt: result.current.startAt,
-        statusLabel: tBot('uk', 'ADMIN_PANEL_RECORDS_NOTIFY_STATUS_RESCHEDULED'),
-        message: tBot('uk', 'ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_RESCHEDULED'),
+        statusLabel: tBot(NOTIFICATION_SOURCE_LANGUAGE, 'ADMIN_PANEL_RECORDS_NOTIFY_STATUS_RESCHEDULED'),
+        message: tBot(NOTIFICATION_SOURCE_LANGUAGE, 'ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_RESCHEDULED'),
       },
       email: {
         template: 'bookingRescheduled',
@@ -3687,8 +3729,8 @@ async function notifyAdminMasterChangedBooking(
         studioName: current.studioName,
         serviceName: current.serviceName,
         startAt: current.startAt,
-        statusLabel: tBot('uk', 'ADMIN_PANEL_RECORDS_NOTIFY_STATUS_MASTER_CHANGED'),
-        message: tBot('uk', 'ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_MASTER_CHANGED'),
+        statusLabel: tBot(NOTIFICATION_SOURCE_LANGUAGE, 'ADMIN_PANEL_RECORDS_NOTIFY_STATUS_MASTER_CHANGED'),
+        message: tBot(NOTIFICATION_SOURCE_LANGUAGE, 'ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_MASTER_CHANGED'),
       },
       email: {
         template: 'masterChanged',

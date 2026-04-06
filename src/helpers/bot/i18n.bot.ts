@@ -35,6 +35,31 @@ const BOT_DICTIONARY = {
 
 export type BotDictionaryKey = keyof (typeof BOT_DICTIONARY)['uk'];
 
+const BOT_DICTIONARY_KEYS = new Set<BotDictionaryKey>(
+  Object.keys(BOT_DICTIONARY.uk) as BotDictionaryKey[],
+);
+
+function buildReverseDictionary(
+  language: BotUiLanguage,
+): Map<string, BotDictionaryKey> {
+  const reverse = new Map<string, BotDictionaryKey>();
+  const dictionary = BOT_DICTIONARY[language] as Record<BotDictionaryKey, string>;
+
+  for (const [key, value] of Object.entries(dictionary) as Array<[BotDictionaryKey, string]>) {
+    const normalized = value.trim();
+    if (!normalized || reverse.has(normalized)) continue;
+    reverse.set(normalized, key);
+  }
+
+  return reverse;
+}
+
+const BOT_DICTIONARY_REVERSE = {
+  uk: buildReverseDictionary('uk'),
+  en: buildReverseDictionary('en'),
+  cs: buildReverseDictionary('cs'),
+} as const;
+
 /**
  * @summary Повертає UI-мову з урахуванням feature-gate перекладу.
  */
@@ -49,6 +74,25 @@ export function tBot(language: BotUiLanguage, key: BotDictionaryKey): string {
   const dictionary = BOT_DICTIONARY[language] as Partial<Record<BotDictionaryKey, string>>;
   const fallbackDictionary = BOT_DICTIONARY.uk as Record<BotDictionaryKey, string>;
   return dictionary[key] ?? fallbackDictionary[key];
+}
+
+/**
+ * @summary Перевіряє, чи є рядок валідним ключем словника.
+ */
+export function isBotDictionaryKey(value: string): value is BotDictionaryKey {
+  return BOT_DICTIONARY_KEYS.has(value as BotDictionaryKey);
+}
+
+/**
+ * @summary Повертає ключ словника за точним текстом (для зворотної локалізації помилок).
+ */
+export function findBotDictionaryKeyByText(
+  text: string,
+  sourceLanguage: BotUiLanguage = 'uk',
+): BotDictionaryKey | null {
+  const normalized = text.trim();
+  if (!normalized) return null;
+  return BOT_DICTIONARY_REVERSE[sourceLanguage].get(normalized) ?? null;
 }
 
 /**

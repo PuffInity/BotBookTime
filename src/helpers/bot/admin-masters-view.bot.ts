@@ -71,8 +71,34 @@ function formatWorkingRange(language: BotUiLanguage, item: MasterWeeklyScheduleI
   return `${item.openTime.slice(0, 5)}–${item.closeTime.slice(0, 5)}`;
 }
 
-function formatSpecializationLine(item: MasterSpecializationItem): string {
-  return `• ${item.serviceName} — ${item.durationMinutes} хв • ${formatPrice(item.priceAmount, item.currencyCode)}`;
+function formatMasterLabel(language: BotUiLanguage, value: string): string {
+  return tBotTemplate(language, 'ADMIN_PANEL_MASTERS_LABEL_MASTER', { value });
+}
+
+function formatServiceMeta(
+  language: BotUiLanguage,
+  duration: number,
+  price: string,
+): string {
+  return tBotTemplate(language, 'ADMIN_PANEL_MASTERS_LABEL_SERVICE_META', {
+    duration,
+    minutes: tBot(language, 'ADMIN_PANEL_MASTERS_LABEL_MINUTES_SHORT'),
+    price,
+  });
+}
+
+function formatSpecializationLine(
+  item: MasterSpecializationItem,
+  language: BotUiLanguage,
+): string {
+  return (
+    `• ${item.serviceName} — ` +
+    formatServiceMeta(
+      language,
+      item.durationMinutes,
+      formatPrice(item.priceAmount, item.currencyCode),
+    )
+  );
 }
 
 function formatBookingStatusLabel(
@@ -412,7 +438,7 @@ export function formatAdminMasterCreateSchedulePickText(
   return (
     `${tBot(language, 'ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👩‍🎨 Майстер: ${displayName}\n\n` +
+    `${formatMasterLabel(language, displayName)}\n\n` +
     `${lines}\n\n` +
     tBot(language, 'ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_PICK_HINT')
   );
@@ -556,7 +582,7 @@ export function formatAdminMasterDetailsText(
 ): string {
   const specializations =
     details.specializations.length > 0
-      ? details.specializations.map(formatSpecializationLine).join('\n')
+      ? details.specializations.map((item) => formatSpecializationLine(item, language)).join('\n')
       : tBot(language, 'ADMIN_PANEL_MASTERS_DETAILS_SPECIALIZATION_EMPTY');
 
   const weeklySchedule =
@@ -697,7 +723,7 @@ export function formatAdminMasterBookingsFeedText(
     return (
       `${tBot(language, 'ADMIN_PANEL_MASTERS_BOOKINGS_FEED_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
-      `👩‍🎨 Майстер: ${masterName}\n\n` +
+      `${formatMasterLabel(language, masterName)}\n\n` +
       tBot(language, 'ADMIN_PANEL_MASTERS_BOOKINGS_FEED_EMPTY')
     );
   }
@@ -719,7 +745,7 @@ export function formatAdminMasterBookingsFeedText(
   return (
     `${tBot(language, 'ADMIN_PANEL_MASTERS_BOOKINGS_FEED_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👩‍🎨 Майстер: ${masterName}\n\n` +
+    `${formatMasterLabel(language, masterName)}\n\n` +
     `${tBot(language, 'ADMIN_PANEL_MASTERS_BOOKINGS_FEED_PICK')}\n\n` +
     `${lines.join('\n\n⸻\n\n')}\n\n` +
     tBotTemplate(language, 'ADMIN_PANEL_MASTERS_BOOKINGS_FEED_PAGE', {
@@ -858,7 +884,7 @@ export function formatAdminMasterStatsStubText(
   return (
     `${tBot(language, 'ADMIN_PANEL_MASTERS_BTN_OPEN_STATS')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👩‍🎨 Майстер: ${masterName}\n\n` +
+    `${formatMasterLabel(language, masterName)}\n\n` +
     tBot(language, 'ADMIN_PANEL_MASTERS_STATS_STUB_TEXT')
   );
 }
@@ -977,7 +1003,11 @@ export function formatAdminMasterEditServicesMenuText(
           .map((item, index) => {
             return (
               `${getNumberBadge(index)} ${item.serviceName}\n` +
-              `⏱ ${item.durationMinutes} хв • 💰 ${formatPrice(item.priceAmount, item.currencyCode)}`
+              formatServiceMeta(
+                language,
+                item.durationMinutes,
+                formatPrice(item.priceAmount, item.currencyCode),
+              )
             );
           })
           .join('\n\n');
@@ -985,7 +1015,7 @@ export function formatAdminMasterEditServicesMenuText(
   return (
     `${tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_MENU_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👩‍🎨 Майстер: ${masterName}\n\n` +
+    `${formatMasterLabel(language, masterName)}\n\n` +
     `${tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_MENU_ACTIVE_TITLE')}\n` +
     `${list || tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_MENU_EMPTY')}\n\n` +
     tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_MENU_ACTION_HINT')
@@ -1017,7 +1047,7 @@ export function formatAdminMasterEditServicesAddCandidatesText(
     return (
       `${tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_ADD_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
-      `👩‍🎨 Майстер: ${masterName}\n\n` +
+      `${formatMasterLabel(language, masterName)}\n\n` +
       tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_ADD_EMPTY')
     );
   }
@@ -1026,7 +1056,11 @@ export function formatAdminMasterEditServicesAddCandidatesText(
     .map((item, index) => {
       return (
         `${getNumberBadge(index)} ${item.serviceName}\n` +
-        `⏱ ${item.durationMinutes} хв • 💰 ${formatPrice(item.priceAmount, item.currencyCode)}`
+        formatServiceMeta(
+          language,
+          item.durationMinutes,
+          formatPrice(item.priceAmount, item.currencyCode),
+        )
       );
     })
     .join('\n\n');
@@ -1034,7 +1068,7 @@ export function formatAdminMasterEditServicesAddCandidatesText(
   return (
     `${tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_ADD_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👩‍🎨 Майстер: ${masterName}\n\n` +
+    `${formatMasterLabel(language, masterName)}\n\n` +
     `${tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_ADD_PICK')}\n\n` +
     list
   );
@@ -1072,7 +1106,7 @@ export function formatAdminMasterEditServicesRemoveCandidatesText(
     return (
       `${tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_REMOVE_TITLE')}\n` +
       '━━━━━━━━━━━━━━\n\n' +
-      `👩‍🎨 Майстер: ${masterName}\n\n` +
+      `${formatMasterLabel(language, masterName)}\n\n` +
       tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_REMOVE_EMPTY')
     );
   }
@@ -1081,7 +1115,11 @@ export function formatAdminMasterEditServicesRemoveCandidatesText(
     .map((item, index) => {
       return (
         `${getNumberBadge(index)} ${item.serviceName}\n` +
-        `⏱ ${item.durationMinutes} хв • 💰 ${formatPrice(item.priceAmount, item.currencyCode)}`
+        formatServiceMeta(
+          language,
+          item.durationMinutes,
+          formatPrice(item.priceAmount, item.currencyCode),
+        )
       );
     })
     .join('\n\n');
@@ -1089,7 +1127,7 @@ export function formatAdminMasterEditServicesRemoveCandidatesText(
   return (
     `${tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_REMOVE_TITLE')}\n` +
     '━━━━━━━━━━━━━━\n\n' +
-    `👩‍🎨 Майстер: ${masterName}\n\n` +
+    `${formatMasterLabel(language, masterName)}\n\n` +
     `${tBot(language, 'ADMIN_PANEL_MASTERS_SERVICES_REMOVE_PICK')}\n\n` +
     list
   );

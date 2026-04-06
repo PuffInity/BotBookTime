@@ -888,6 +888,9 @@ export const ADMIN_PANEL_DICTIONARY = {
     ADMIN_PANEL_MASTERS_LABEL_WEEKDAY: 'день тижня',
     ADMIN_PANEL_MASTERS_LABEL_MASTER_ID: 'id майстра',
     ADMIN_PANEL_MASTERS_LABEL_BOOKING_ID: 'id запису',
+    ADMIN_PANEL_MASTERS_LABEL_MASTER: '👩‍🎨 Майстер: {value}',
+    ADMIN_PANEL_MASTERS_LABEL_MINUTES_SHORT: 'хв',
+    ADMIN_PANEL_MASTERS_LABEL_SERVICE_META: '⏱ {duration} {minutes} • 💰 {price}',
     ADMIN_PANEL_MASTERS_CREATE_START_TEXT:
       '➕ Створення нового майстра\n' +
       '━━━━━━━━━━━━━━\n\n' +
@@ -2165,6 +2168,9 @@ export const ADMIN_PANEL_DICTIONARY = {
     ADMIN_PANEL_MASTERS_LABEL_WEEKDAY: 'weekday',
     ADMIN_PANEL_MASTERS_LABEL_MASTER_ID: 'master id',
     ADMIN_PANEL_MASTERS_LABEL_BOOKING_ID: 'booking id',
+    ADMIN_PANEL_MASTERS_LABEL_MASTER: '👩‍🎨 Master: {value}',
+    ADMIN_PANEL_MASTERS_LABEL_MINUTES_SHORT: 'min',
+    ADMIN_PANEL_MASTERS_LABEL_SERVICE_META: '⏱ {duration} {minutes} • 💰 {price}',
     ADMIN_PANEL_MASTERS_CREATE_START_TEXT:
       '➕ Create new master\n' +
       '━━━━━━━━━━━━━━\n\n' +
@@ -3454,6 +3460,9 @@ export const ADMIN_PANEL_DICTIONARY = {
     ADMIN_PANEL_MASTERS_LABEL_WEEKDAY: 'den týdne',
     ADMIN_PANEL_MASTERS_LABEL_MASTER_ID: 'id mistra',
     ADMIN_PANEL_MASTERS_LABEL_BOOKING_ID: 'id rezervace',
+    ADMIN_PANEL_MASTERS_LABEL_MASTER: '👩‍🎨 Mistr: {value}',
+    ADMIN_PANEL_MASTERS_LABEL_MINUTES_SHORT: 'min',
+    ADMIN_PANEL_MASTERS_LABEL_SERVICE_META: '⏱ {duration} {minutes} • 💰 {price}',
     ADMIN_PANEL_MASTERS_CREATE_START_TEXT:
       '➕ Vytvoření nového mistra\n' +
       '━━━━━━━━━━━━━━\n\n' +

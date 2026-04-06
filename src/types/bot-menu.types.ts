@@ -8,6 +8,7 @@
  */
 export const CLIENT_MAIN_MENU_BUTTON = {
   PROFILE: '👤 Профіль',
+  LANGUAGE: '🌐 Мова',
   SERVICES: '💼 Послуги',
   MASTERS: '👩‍🎨 Майстри',
   BOOKING: '📅 Бронювання',
@@ -24,6 +25,7 @@ export type ClientMainMenuButton =
  */
 export const MAIN_MENU_ACTION = {
   PROFILE: 'menu:profile',
+  LANGUAGE: 'menu:language',
   SERVICES: 'menu:services',
   MASTERS: 'menu:masters',
   BOOKING: 'menu:booking',

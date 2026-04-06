@@ -7,7 +7,6 @@ import {
   PROFILE_ACTION,
   makeProfileEditLanguageSelectAction,
 } from '../../types/bot-profile.types.js';
-import { shouldShowLanguageControls } from './language-feature.bot.js';
 import { getLanguageLabel, resolveBotUiLanguage, tBot } from './i18n.bot.js';
 import type { BotUiLanguage } from './i18n.bot.js';
 
@@ -95,12 +94,6 @@ export function createProfileInlineKeyboard(
   const secondRow = [
     Markup.button.callback(getPhoneButtonLabel(user, language), PROFILE_ACTION.EDIT_PHONE),
   ];
-
-  if (shouldShowLanguageControls()) {
-    secondRow.push(
-      Markup.button.callback(tBot(language, 'PROFILE_EDIT_LANGUAGE'), PROFILE_ACTION.EDIT_LANGUAGE),
-    );
-  }
 
   const profileRows = [
     [

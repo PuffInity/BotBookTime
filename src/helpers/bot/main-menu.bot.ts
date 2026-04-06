@@ -4,6 +4,7 @@ import { MAIN_MENU_ACTION } from '../../types/bot-menu.types.js';
 import { getMasterPanelAccessByTelegramId } from '../db/db-master-panel.helper.js';
 import { getAdminPanelAccessByTelegramId } from '../db/db-admin-panel.helper.js';
 import { getOrCreateUser } from '../db/db-profile.helper.js';
+import { shouldShowLanguageControls } from './language-feature.bot.js';
 import { resolveBotUiLanguage, tBot } from './i18n.bot.js';
 import type { BotUiLanguage } from './i18n.bot.js';
 
@@ -23,16 +24,29 @@ export function createClientMainMenuKeyboard(
   const rows = [
     [
       Markup.button.callback(tBot(language, 'MENU_PROFILE'), MAIN_MENU_ACTION.PROFILE),
+      Markup.button.callback(tBot(language, 'MENU_LANGUAGE'), MAIN_MENU_ACTION.LANGUAGE),
+    ],
+    [
       Markup.button.callback(tBot(language, 'MENU_SERVICES'), MAIN_MENU_ACTION.SERVICES),
-    ],
-    [
       Markup.button.callback(tBot(language, 'MENU_MASTERS'), MAIN_MENU_ACTION.MASTERS),
-      Markup.button.callback(tBot(language, 'MENU_BOOKING'), MAIN_MENU_ACTION.BOOKING),
     ],
     [
+      Markup.button.callback(tBot(language, 'MENU_BOOKING'), MAIN_MENU_ACTION.BOOKING),
       Markup.button.callback(tBot(language, 'MENU_FAQ'), MAIN_MENU_ACTION.FAQ),
     ],
   ];
+
+  if (!shouldShowLanguageControls()) {
+    rows[0] = [
+      Markup.button.callback(tBot(language, 'MENU_PROFILE'), MAIN_MENU_ACTION.PROFILE),
+      Markup.button.callback(tBot(language, 'MENU_MASTERS'), MAIN_MENU_ACTION.MASTERS),
+    ];
+    rows[1] = [
+      Markup.button.callback(tBot(language, 'MENU_SERVICES'), MAIN_MENU_ACTION.SERVICES),
+      Markup.button.callback(tBot(language, 'MENU_BOOKING'), MAIN_MENU_ACTION.BOOKING),
+    ];
+    rows[2] = [Markup.button.callback(tBot(language, 'MENU_FAQ'), MAIN_MENU_ACTION.FAQ)];
+  }
 
   if (hasMasterPanelAccess) {
     rows.push([

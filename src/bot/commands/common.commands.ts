@@ -49,6 +49,7 @@ import {
 } from '../../helpers/bot/profile-booking-status.bot.js';
 import type { ProfileBookingStatusItem } from '../../types/db-helpers/db-profile-booking.types.js';
 import { resolveBotUiLanguage, tBot, tBotTemplate } from '../../helpers/bot/i18n.bot.js';
+import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 import { translateProfileBookingStatusData } from '../../helpers/translate/translate-db-content.helper.js';
 
 /**
@@ -64,13 +65,17 @@ import { translateProfileBookingStatusData } from '../../helpers/translate/trans
  * - /cancel (вихід зі сцени)
  */
 export function registerCommonCommands(bot: Telegraf<MyContext>): void {
-  function getActionIdFromCallbackData(ctx: MyContext, regex: RegExp): string {
+  function getActionIdFromCallbackData(
+    ctx: MyContext,
+    regex: RegExp,
+    language: BotUiLanguage,
+  ): string {
     const callbackData =
       ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
     const matches = callbackData.match(regex);
 
     if (!matches?.[1]) {
-      throw new ValidationError('Некоректна callback-дія для статусу бронювання');
+      throw new ValidationError(tBot(language, 'MAIN_PANEL_MSG_INVALID_BOOKING_STATUS_CALLBACK'));
     }
 
     return matches[1];
@@ -86,9 +91,9 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     language: 'uk' | 'en' | 'cs';
     item: ProfileBookingStatusItem | null;
   }> {
-    const appointmentId = getActionIdFromCallbackData(ctx, regex);
     const user = await getOrCreateUser(ctx);
     const language = resolveBotUiLanguage(user.preferredLanguage);
+    const appointmentId = getActionIdFromCallbackData(ctx, regex, language);
     const bookingStatusRaw = await getProfileBookingStatus(user.id, 20);
     const bookingStatus = await translateProfileBookingStatusData(bookingStatusRaw, language);
     const available = [bookingStatus.upcoming, ...getHistoryItems(bookingStatus)].filter(
@@ -199,6 +204,31 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
       await ctx.answerCbQuery();
       const user = await getOrCreateUser(ctx);
       await sendProfileCard(ctx, user);
+    }),
+  );
+
+  bot.hears(
+    CLIENT_MAIN_MENU_BUTTON.LANGUAGE,
+    asyncBotHandler(async (ctx) => {
+      if (!canUseLanguageActions()) return;
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+      await ctx.scene.enter(PROFILE_LANGUAGE_SCENE_ID);
+    }),
+  );
+
+  bot.action(
+    MAIN_MENU_ACTION.LANGUAGE,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      if (!canUseLanguageActions()) {
+        return;
+      }
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+      await ctx.scene.enter(PROFILE_LANGUAGE_SCENE_ID);
     }),
   );
 

@@ -15,6 +15,7 @@ import { resolveBotUiLanguage, tBot } from '../helpers/bot/i18n.bot.js';
  */
 
 const botLogger = loggerTelegramBot;
+const DEFAULT_BOT_UI_LANGUAGE = 'uk' as const;
 
 /**
  * createBot = "точка збірки" бота.
@@ -83,14 +84,14 @@ export function createBot(deps: BotDeps): Telegraf<MyContext> {
       },
       restrictedUserMessage: async (ctx) => {
         const telegramId = ctx.from?.id;
-        if (!telegramId) return tBot('uk', 'BOT_RESTRICTED_ERROR_MESSAGE');
+        if (!telegramId) return tBot(DEFAULT_BOT_UI_LANGUAGE, 'BOT_RESTRICTED_ERROR_MESSAGE');
 
         try {
           const user = await getUserByTelegramId(telegramId);
           const language = resolveBotUiLanguage(user?.preferredLanguage);
           return tBot(language, 'BOT_RESTRICTED_ERROR_MESSAGE');
         } catch {
-          return tBot('uk', 'BOT_RESTRICTED_ERROR_MESSAGE');
+          return tBot(DEFAULT_BOT_UI_LANGUAGE, 'BOT_RESTRICTED_ERROR_MESSAGE');
         }
       },
     }),
