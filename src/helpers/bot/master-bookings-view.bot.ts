@@ -534,8 +534,8 @@ export function formatMasterRescheduleConfirmText(
     '━━━━━━━━━━━━━━\n\n' +
     `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_CLIENT')}: ${formatClientDisplayName(item, language)}\n` +
     `${tBot(language, 'MASTER_PANEL_BOOKINGS_LABEL_SERVICE')}: ${item.serviceName}\n\n` +
-    `🕒 ${language === 'en' ? 'Was' : language === 'cs' ? 'Bylo' : 'Було'}: ${formatDateTimeRange(item.startAt, item.endAt, language)}\n` +
-    `🕒 ${language === 'en' ? 'Will be' : language === 'cs' ? 'Bude' : 'Стане'}: ${formatDateTimeRange(newStartAt, newEndAt, language)}\n\n` +
+    `🕒 ${tBot(language, 'MASTER_PANEL_BOOKINGS_RESCHEDULE_LABEL_WAS')}: ${formatDateTimeRange(item.startAt, item.endAt, language)}\n` +
+    `🕒 ${tBot(language, 'MASTER_PANEL_BOOKINGS_RESCHEDULE_LABEL_WILL_BE')}: ${formatDateTimeRange(newStartAt, newEndAt, language)}\n\n` +
     tBot(language, 'MASTER_PANEL_BOOKINGS_RESCHEDULE_CONFIRM')
   );
 }

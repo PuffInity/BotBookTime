@@ -26,10 +26,6 @@ export const MASTER_PANEL_DICTIONARY = {
     MASTER_PANEL_BTN_BACK_TO_PANEL: '⬅️ До панелі майстра',
     MASTER_PANEL_BTN_BACK_TO_SCHEDULE: '⬅️ До розкладу',
 
-    MASTER_PANEL_SECTION_STUB_BODY:
-      'Цей розділ підключимо в наступних блоках реалізації.\n' +
-      'Skeleton панелі вже готовий, рухаємось поетапно.',
-
     MASTER_PANEL_PROFILE_TITLE: '👤 Мій профіль',
     MASTER_PANEL_PROFILE_STATUS_AVAILABLE_SHORT: '🟢 Доступний для запису',
     MASTER_PANEL_PROFILE_STATUS_UNAVAILABLE_SHORT: '🟠 Тимчасово недоступний для запису',
@@ -135,6 +131,8 @@ export const MASTER_PANEL_DICTIONARY = {
     MASTER_PANEL_BOOKINGS_RESCHEDULE_SELECT_DATE: 'Оберіть нову дату для перенесення.',
     MASTER_PANEL_BOOKINGS_RESCHEDULE_SELECT_TIME: 'Оберіть новий час.',
     MASTER_PANEL_BOOKINGS_RESCHEDULE_CONFIRM: 'Підтвердіть перенесення запису.',
+    MASTER_PANEL_BOOKINGS_RESCHEDULE_LABEL_WAS: 'Було',
+    MASTER_PANEL_BOOKINGS_RESCHEDULE_LABEL_WILL_BE: 'Стане',
     MASTER_PANEL_BOOKINGS_RESCHEDULE_WARNING_CONFIRMED:
       '⚠️ Ви змінюєте вже підтверджений запис. Переконайтесь, що новий час узгоджений з клієнтом.',
 
@@ -328,6 +326,56 @@ export const MASTER_PANEL_DICTIONARY = {
     MASTER_PANEL_SCHEDULE_VACATION_DELETE_SUCCESS: '✅ Період відпустки успішно видалено.',
     MASTER_PANEL_SCHEDULE_TEMPORARY_DELETE_SUCCESS:
       '✅ Тимчасову зміну графіку успішно видалено.',
+    MASTER_PANEL_SCENE_TIME_INPUT_HINT: '\n\nВведіть коректний час у форматі HH:MM.',
+    MASTER_PANEL_SCENE_EDIT_CONFIRM_REQUIRED:
+      '⚠️ Щоб завершити редагування, натисніть "✅ Зберегти" або "❌ Скасувати".',
+    MASTER_PANEL_SCENE_CERT_ADD_CONFIRM_REQUIRED:
+      '⚠️ Для завершення додавання документа натисніть "✅ Додати документ" або "❌ Скасувати дію".',
+    MASTER_PANEL_VALIDATION_INVALID_BOOKING_CALLBACK: 'Некоректна callback-дія запису майстра',
+    MASTER_PANEL_VALIDATION_INVALID_SERVICE_CALLBACK:
+      'Некоректна callback-дія керування послугою майстра',
+    MASTER_PANEL_VALIDATION_INVALID_DATE_CODE: 'Некоректний код дати',
+    MASTER_PANEL_VALIDATION_INVALID_DATE: 'Некоректна дата',
+    MASTER_PANEL_VALIDATION_INVALID_DATE_FORMAT: 'Дата має бути у форматі ДД.ММ.РРРР',
+    MASTER_PANEL_VALIDATION_INVALID_TYPED_DATE: 'Введено некоректну дату',
+    MASTER_PANEL_VALIDATION_DAY_OFF_PAST:
+      'Не можна встановити вихідний день у минулому',
+    MASTER_PANEL_VALIDATION_INVALID_RANGE_FORMAT:
+      'Період має бути у форматі ДД.ММ.РРРР - ДД.ММ.РРРР',
+    MASTER_PANEL_VALIDATION_RANGE_END_BEFORE_START:
+      'Дата завершення відпустки не може бути раніше дати початку',
+    MASTER_PANEL_VALIDATION_INVALID_TIME_FORMAT:
+      'Час має бути у форматі HH:MM (приклад: 10:00)',
+    MASTER_PANEL_VALIDATION_INVALID_HOUR_RANGE:
+      'Година має бути в діапазоні від 0 до 23',
+    MASTER_PANEL_VALIDATION_INVALID_WEEKDAY: 'Некоректний день тижня',
+    MASTER_PANEL_VALIDATION_INVALID_TEMPORARY_RANGE:
+      'Некоректний період тимчасового графіку',
+    MASTER_PANEL_VALIDATION_INVALID_VALUE: 'Некоректне значення',
+    MASTER_PANEL_VALIDATION_INVALID_PROFILE_FIELD:
+      'Некоректне поле редагування профілю',
+    MASTER_PANEL_VALIDATION_CHECK_VALUE_FAILED:
+      'Виникла помилка при перевірці значення',
+    MASTER_PANEL_VALIDATION_CHECK_CERT_TITLE_FAILED:
+      'Виникла помилка при перевірці назви документа',
+    MASTER_PANEL_VALIDATION_SELECT_WEEKDAY_FIRST:
+      'Спочатку оберіть день тижня кнопкою',
+    MASTER_PANEL_VALIDATION_CHECK_TIME_FROM_FAILED:
+      'Виникла помилка при перевірці часу початку',
+    MASTER_PANEL_VALIDATION_SELECT_DAY_AND_FROM_FIRST:
+      'Спочатку оберіть день і вкажіть час початку',
+    MASTER_PANEL_VALIDATION_SELECT_DAY_AND_FROM_FIRST_ALT:
+      'Спочатку оберіть день і задайте час початку',
+    MASTER_PANEL_VALIDATION_TIME_TO_AFTER_FROM:
+      'Час завершення має бути пізніше часу початку',
+    MASTER_PANEL_VALIDATION_CHECK_TIME_TO_FAILED:
+      'Виникла помилка при перевірці часу завершення',
+    MASTER_PANEL_VALIDATION_CHECK_DATE_FAILED:
+      'Виникла помилка при перевірці дати',
+    MASTER_PANEL_VALIDATION_CHECK_VACATION_RANGE_FAILED:
+      'Виникла помилка при перевірці періоду відпустки',
+    MASTER_PANEL_VALIDATION_CHECK_TEMPORARY_RANGE_FAILED:
+      'Виникла помилка при перевірці періоду тимчасового графіку',
 
     MASTER_PANEL_SCHEDULE_DELETE_CONFIRM_TITLE: '⚠️ Підтвердження видалення',
     MASTER_PANEL_SCHEDULE_DELETE_DAY_OFF_BODY:
@@ -478,10 +526,6 @@ export const MASTER_PANEL_DICTIONARY = {
     MASTER_PANEL_BTN_BACK_TO_PANEL: '⬅️ Back to master panel',
     MASTER_PANEL_BTN_BACK_TO_SCHEDULE: '⬅️ Back to schedule',
 
-    MASTER_PANEL_SECTION_STUB_BODY:
-      'This section will be connected in the next implementation blocks.\n' +
-      'The panel skeleton is ready, we move step by step.',
-
     MASTER_PANEL_PROFILE_TITLE: '👤 My profile',
     MASTER_PANEL_PROFILE_STATUS_AVAILABLE_SHORT: '🟢 Available for booking',
     MASTER_PANEL_PROFILE_STATUS_UNAVAILABLE_SHORT: '🟠 Temporarily unavailable for booking',
@@ -587,6 +631,8 @@ export const MASTER_PANEL_DICTIONARY = {
     MASTER_PANEL_BOOKINGS_RESCHEDULE_SELECT_DATE: 'Select a new date for rescheduling.',
     MASTER_PANEL_BOOKINGS_RESCHEDULE_SELECT_TIME: 'Select a new time.',
     MASTER_PANEL_BOOKINGS_RESCHEDULE_CONFIRM: 'Confirm booking reschedule.',
+    MASTER_PANEL_BOOKINGS_RESCHEDULE_LABEL_WAS: 'Was',
+    MASTER_PANEL_BOOKINGS_RESCHEDULE_LABEL_WILL_BE: 'Will be',
     MASTER_PANEL_BOOKINGS_RESCHEDULE_WARNING_CONFIRMED:
       '⚠️ You are changing an already confirmed booking. Ensure the new time is agreed with the client.',
 
@@ -780,6 +826,58 @@ export const MASTER_PANEL_DICTIONARY = {
     MASTER_PANEL_SCHEDULE_VACATION_DELETE_SUCCESS: '✅ Vacation period deleted successfully.',
     MASTER_PANEL_SCHEDULE_TEMPORARY_DELETE_SUCCESS:
       '✅ Temporary schedule change deleted successfully.',
+    MASTER_PANEL_SCENE_TIME_INPUT_HINT: '\n\nEnter a valid time in HH:MM format.',
+    MASTER_PANEL_SCENE_EDIT_CONFIRM_REQUIRED:
+      '⚠️ To finish editing, press "✅ Save" or "❌ Cancel".',
+    MASTER_PANEL_SCENE_CERT_ADD_CONFIRM_REQUIRED:
+      '⚠️ To finish adding a document, press "✅ Add document" or "❌ Cancel action".',
+    MASTER_PANEL_VALIDATION_INVALID_BOOKING_CALLBACK:
+      'Invalid booking callback action',
+    MASTER_PANEL_VALIDATION_INVALID_SERVICE_CALLBACK:
+      'Invalid master service callback action',
+    MASTER_PANEL_VALIDATION_INVALID_DATE_CODE: 'Invalid date code',
+    MASTER_PANEL_VALIDATION_INVALID_DATE: 'Invalid date',
+    MASTER_PANEL_VALIDATION_INVALID_DATE_FORMAT:
+      'Date must be in DD.MM.YYYY format',
+    MASTER_PANEL_VALIDATION_INVALID_TYPED_DATE: 'Entered date is invalid',
+    MASTER_PANEL_VALIDATION_DAY_OFF_PAST:
+      'Cannot set a day off in the past',
+    MASTER_PANEL_VALIDATION_INVALID_RANGE_FORMAT:
+      'Period must be in DD.MM.YYYY - DD.MM.YYYY format',
+    MASTER_PANEL_VALIDATION_RANGE_END_BEFORE_START:
+      'Vacation end date cannot be earlier than start date',
+    MASTER_PANEL_VALIDATION_INVALID_TIME_FORMAT:
+      'Time must be in HH:MM format (example: 10:00)',
+    MASTER_PANEL_VALIDATION_INVALID_HOUR_RANGE:
+      'Hour must be in range from 0 to 23',
+    MASTER_PANEL_VALIDATION_INVALID_WEEKDAY: 'Invalid weekday',
+    MASTER_PANEL_VALIDATION_INVALID_TEMPORARY_RANGE:
+      'Invalid temporary schedule period',
+    MASTER_PANEL_VALIDATION_INVALID_VALUE: 'Invalid value',
+    MASTER_PANEL_VALIDATION_INVALID_PROFILE_FIELD:
+      'Invalid profile edit field',
+    MASTER_PANEL_VALIDATION_CHECK_VALUE_FAILED:
+      'Failed to validate value',
+    MASTER_PANEL_VALIDATION_CHECK_CERT_TITLE_FAILED:
+      'Failed to validate document title',
+    MASTER_PANEL_VALIDATION_SELECT_WEEKDAY_FIRST:
+      'Select weekday using buttons first',
+    MASTER_PANEL_VALIDATION_CHECK_TIME_FROM_FAILED:
+      'Failed to validate start time',
+    MASTER_PANEL_VALIDATION_SELECT_DAY_AND_FROM_FIRST:
+      'Select day and start time first',
+    MASTER_PANEL_VALIDATION_SELECT_DAY_AND_FROM_FIRST_ALT:
+      'Select day and start time first',
+    MASTER_PANEL_VALIDATION_TIME_TO_AFTER_FROM:
+      'End time must be later than start time',
+    MASTER_PANEL_VALIDATION_CHECK_TIME_TO_FAILED:
+      'Failed to validate end time',
+    MASTER_PANEL_VALIDATION_CHECK_DATE_FAILED:
+      'Failed to validate date',
+    MASTER_PANEL_VALIDATION_CHECK_VACATION_RANGE_FAILED:
+      'Failed to validate vacation period',
+    MASTER_PANEL_VALIDATION_CHECK_TEMPORARY_RANGE_FAILED:
+      'Failed to validate temporary schedule period',
 
     MASTER_PANEL_SCHEDULE_DELETE_CONFIRM_TITLE: '⚠️ Deletion confirmation',
     MASTER_PANEL_SCHEDULE_DELETE_DAY_OFF_BODY:
@@ -930,10 +1028,6 @@ export const MASTER_PANEL_DICTIONARY = {
     MASTER_PANEL_BTN_BACK_TO_PANEL: '⬅️ Zpět do panelu mistra',
     MASTER_PANEL_BTN_BACK_TO_SCHEDULE: '⬅️ Zpět do rozvrhu',
 
-    MASTER_PANEL_SECTION_STUB_BODY:
-      'Tato sekce bude připojena v dalších blocích implementace.\n' +
-      'Skeleton panelu je připraven, jdeme krok za krokem.',
-
     MASTER_PANEL_PROFILE_TITLE: '👤 Můj profil',
     MASTER_PANEL_PROFILE_STATUS_AVAILABLE_SHORT: '🟢 Dostupný pro rezervace',
     MASTER_PANEL_PROFILE_STATUS_UNAVAILABLE_SHORT: '🟠 Dočasně nedostupný pro rezervace',
@@ -1041,6 +1135,8 @@ export const MASTER_PANEL_DICTIONARY = {
     MASTER_PANEL_BOOKINGS_RESCHEDULE_SELECT_DATE: 'Vyberte nové datum přesunu.',
     MASTER_PANEL_BOOKINGS_RESCHEDULE_SELECT_TIME: 'Vyberte nový čas.',
     MASTER_PANEL_BOOKINGS_RESCHEDULE_CONFIRM: 'Potvrďte přesun rezervace.',
+    MASTER_PANEL_BOOKINGS_RESCHEDULE_LABEL_WAS: 'Bylo',
+    MASTER_PANEL_BOOKINGS_RESCHEDULE_LABEL_WILL_BE: 'Bude',
     MASTER_PANEL_BOOKINGS_RESCHEDULE_WARNING_CONFIRMED:
       '⚠️ Měníte již potvrzenou rezervaci. Ujistěte se, že nový čas je domluven s klientem.',
 
@@ -1235,6 +1331,60 @@ export const MASTER_PANEL_DICTIONARY = {
       '✅ Období dovolené bylo úspěšně smazáno.',
     MASTER_PANEL_SCHEDULE_TEMPORARY_DELETE_SUCCESS:
       '✅ Dočasná změna rozvrhu byla úspěšně smazána.',
+    MASTER_PANEL_SCENE_TIME_INPUT_HINT:
+      '\n\nZadejte správný čas ve formátu HH:MM.',
+    MASTER_PANEL_SCENE_EDIT_CONFIRM_REQUIRED:
+      '⚠️ Pro dokončení úpravy stiskněte "✅ Uložit" nebo "❌ Zrušit".',
+    MASTER_PANEL_SCENE_CERT_ADD_CONFIRM_REQUIRED:
+      '⚠️ Pro dokončení přidání dokumentu stiskněte "✅ Přidat dokument" nebo "❌ Zrušit akci".',
+    MASTER_PANEL_VALIDATION_INVALID_BOOKING_CALLBACK:
+      'Neplatná callback akce rezervace mistra',
+    MASTER_PANEL_VALIDATION_INVALID_SERVICE_CALLBACK:
+      'Neplatná callback akce správy služeb mistra',
+    MASTER_PANEL_VALIDATION_INVALID_DATE_CODE: 'Neplatný kód data',
+    MASTER_PANEL_VALIDATION_INVALID_DATE: 'Neplatné datum',
+    MASTER_PANEL_VALIDATION_INVALID_DATE_FORMAT:
+      'Datum musí být ve formátu DD.MM.RRRR',
+    MASTER_PANEL_VALIDATION_INVALID_TYPED_DATE:
+      'Zadané datum je neplatné',
+    MASTER_PANEL_VALIDATION_DAY_OFF_PAST:
+      'Nelze nastavit volný den v minulosti',
+    MASTER_PANEL_VALIDATION_INVALID_RANGE_FORMAT:
+      'Období musí být ve formátu DD.MM.RRRR - DD.MM.RRRR',
+    MASTER_PANEL_VALIDATION_RANGE_END_BEFORE_START:
+      'Datum konce dovolené nemůže být dříve než datum začátku',
+    MASTER_PANEL_VALIDATION_INVALID_TIME_FORMAT:
+      'Čas musí být ve formátu HH:MM (příklad: 10:00)',
+    MASTER_PANEL_VALIDATION_INVALID_HOUR_RANGE:
+      'Hodina musí být v rozsahu 0 až 23',
+    MASTER_PANEL_VALIDATION_INVALID_WEEKDAY: 'Neplatný den týdne',
+    MASTER_PANEL_VALIDATION_INVALID_TEMPORARY_RANGE:
+      'Neplatné období dočasného rozvrhu',
+    MASTER_PANEL_VALIDATION_INVALID_VALUE: 'Neplatná hodnota',
+    MASTER_PANEL_VALIDATION_INVALID_PROFILE_FIELD:
+      'Neplatné pole úpravy profilu',
+    MASTER_PANEL_VALIDATION_CHECK_VALUE_FAILED:
+      'Při kontrole hodnoty došlo k chybě',
+    MASTER_PANEL_VALIDATION_CHECK_CERT_TITLE_FAILED:
+      'Při kontrole názvu dokumentu došlo k chybě',
+    MASTER_PANEL_VALIDATION_SELECT_WEEKDAY_FIRST:
+      'Nejprve vyberte den týdne tlačítkem',
+    MASTER_PANEL_VALIDATION_CHECK_TIME_FROM_FAILED:
+      'Při kontrole času začátku došlo k chybě',
+    MASTER_PANEL_VALIDATION_SELECT_DAY_AND_FROM_FIRST:
+      'Nejprve vyberte den a zadejte čas začátku',
+    MASTER_PANEL_VALIDATION_SELECT_DAY_AND_FROM_FIRST_ALT:
+      'Nejprve vyberte den a nastavte čas začátku',
+    MASTER_PANEL_VALIDATION_TIME_TO_AFTER_FROM:
+      'Čas konce musí být později než čas začátku',
+    MASTER_PANEL_VALIDATION_CHECK_TIME_TO_FAILED:
+      'Při kontrole času konce došlo k chybě',
+    MASTER_PANEL_VALIDATION_CHECK_DATE_FAILED:
+      'Při kontrole data došlo k chybě',
+    MASTER_PANEL_VALIDATION_CHECK_VACATION_RANGE_FAILED:
+      'Při kontrole období dovolené došlo k chybě',
+    MASTER_PANEL_VALIDATION_CHECK_TEMPORARY_RANGE_FAILED:
+      'Při kontrole období dočasného rozvrhu došlo k chybě',
 
     MASTER_PANEL_SCHEDULE_DELETE_CONFIRM_TITLE: '⚠️ Potvrzení smazání',
     MASTER_PANEL_SCHEDULE_DELETE_DAY_OFF_BODY:

@@ -11,6 +11,7 @@ import type { MasterTemporaryScheduleDayInput } from '../../types/db-helpers/db-
 import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
 import { resolveBotUiLanguage, tBot, tBotTemplate } from '../../helpers/bot/i18n.bot.js';
 import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
+import type { BotDictionaryKey } from '../../helpers/bot/i18n.bot.js';
 import {
   createMasterPanelRootKeyboard,
   formatMasterPanelRootText,
@@ -326,6 +327,64 @@ function getMessageText(ctx: MyContext): string | null {
   if (!ctx.message) return null;
   if (!('text' in ctx.message)) return null;
   return ctx.message.text.trim();
+}
+
+const MASTER_SCENE_VALIDATION_MESSAGE_KEYS: Record<string, BotDictionaryKey> = {
+  'Некоректна callback-дія запису майстра': 'MASTER_PANEL_VALIDATION_INVALID_BOOKING_CALLBACK',
+  'Некоректна callback-дія керування послугою майстра':
+    'MASTER_PANEL_VALIDATION_INVALID_SERVICE_CALLBACK',
+  'Некоректний код дати': 'MASTER_PANEL_VALIDATION_INVALID_DATE_CODE',
+  'Некоректна дата': 'MASTER_PANEL_VALIDATION_INVALID_DATE',
+  'Дата має бути у форматі ДД.ММ.РРРР': 'MASTER_PANEL_VALIDATION_INVALID_DATE_FORMAT',
+  'Введено некоректну дату': 'MASTER_PANEL_VALIDATION_INVALID_TYPED_DATE',
+  'Не можна встановити вихідний день у минулому': 'MASTER_PANEL_VALIDATION_DAY_OFF_PAST',
+  'Період має бути у форматі ДД.ММ.РРРР - ДД.ММ.РРРР':
+    'MASTER_PANEL_VALIDATION_INVALID_RANGE_FORMAT',
+  'Дата завершення відпустки не може бути раніше дати початку':
+    'MASTER_PANEL_VALIDATION_RANGE_END_BEFORE_START',
+  'Час має бути у форматі HH:MM (приклад: 10:00)':
+    'MASTER_PANEL_VALIDATION_INVALID_TIME_FORMAT',
+  'Година має бути в діапазоні від 0 до 23':
+    'MASTER_PANEL_VALIDATION_INVALID_HOUR_RANGE',
+  'Некоректний день тижня': 'MASTER_PANEL_VALIDATION_INVALID_WEEKDAY',
+  'Некоректний період тимчасового графіку':
+    'MASTER_PANEL_VALIDATION_INVALID_TEMPORARY_RANGE',
+  'Некоректне поле редагування профілю':
+    'MASTER_PANEL_VALIDATION_INVALID_PROFILE_FIELD',
+  'Виникла помилка при перевірці значення':
+    'MASTER_PANEL_VALIDATION_CHECK_VALUE_FAILED',
+  'Виникла помилка при перевірці назви документа':
+    'MASTER_PANEL_VALIDATION_CHECK_CERT_TITLE_FAILED',
+  'Спочатку оберіть день тижня кнопкою':
+    'MASTER_PANEL_VALIDATION_SELECT_WEEKDAY_FIRST',
+  'Виникла помилка при перевірці часу початку':
+    'MASTER_PANEL_VALIDATION_CHECK_TIME_FROM_FAILED',
+  'Спочатку оберіть день і вкажіть час початку':
+    'MASTER_PANEL_VALIDATION_SELECT_DAY_AND_FROM_FIRST',
+  'Спочатку оберіть день і задайте час початку':
+    'MASTER_PANEL_VALIDATION_SELECT_DAY_AND_FROM_FIRST_ALT',
+  'Час завершення має бути пізніше часу початку':
+    'MASTER_PANEL_VALIDATION_TIME_TO_AFTER_FROM',
+  'Виникла помилка при перевірці часу завершення':
+    'MASTER_PANEL_VALIDATION_CHECK_TIME_TO_FAILED',
+  'Виникла помилка при перевірці дати':
+    'MASTER_PANEL_VALIDATION_CHECK_DATE_FAILED',
+  'Виникла помилка при перевірці періоду відпустки':
+    'MASTER_PANEL_VALIDATION_CHECK_VACATION_RANGE_FAILED',
+  'Виникла помилка при перевірці періоду тимчасового графіку':
+    'MASTER_PANEL_VALIDATION_CHECK_TEMPORARY_RANGE_FAILED',
+};
+
+function localizeMasterSceneValidationMessage(
+  message: string,
+  language: BotUiLanguage,
+): string {
+  const key = MASTER_SCENE_VALIDATION_MESSAGE_KEYS[message.trim()];
+  if (key) return tBot(language, key);
+  if (message.startsWith('Некоректний ')) {
+    return tBot(language, 'MASTER_PANEL_VALIDATION_INVALID_VALUE');
+  }
+  return message;
 }
 
 function parseAppointmentIdFromAction(ctx: MyContext, regex: RegExp): string {
@@ -1255,7 +1314,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
             : new ValidationError('Виникла помилка при перевірці значення');
 
           await ctx.reply(
-            `⚠️ ${err.message}`,
+            `⚠️ ${localizeMasterSceneValidationMessage(err.message, state.language)}`,
             createMasterOwnProfileEditInputKeyboard(state.language),
           );
         }
@@ -1264,7 +1323,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
       if (profileEditDraft?.mode === 'awaiting_confirm') {
         await ctx.reply(
-          '⚠️ Щоб завершити редагування, натисніть "✅ Зберегти" або "❌ Скасувати".',
+          tBot(state.language, 'MASTER_PANEL_SCENE_EDIT_CONFIRM_REQUIRED'),
           createMasterOwnProfileEditConfirmKeyboard(state.language),
         );
         return;
@@ -1291,7 +1350,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
             : new ValidationError('Виникла помилка при перевірці назви документа');
 
           await ctx.reply(
-            `⚠️ ${err.message}`,
+            `⚠️ ${localizeMasterSceneValidationMessage(err.message, state.language)}`,
             createMasterOwnProfileCertificateInputKeyboard(state.language),
           );
         }
@@ -1300,7 +1359,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
 
       if (certificateAddDraft?.mode === 'awaiting_confirm') {
         await ctx.reply(
-          '⚠️ Для завершення додавання документа натисніть "✅ Додати документ" або "❌ Скасувати дію".',
+          tBot(state.language, 'MASTER_PANEL_SCENE_CERT_ADD_CONFIRM_REQUIRED'),
           createMasterOwnProfileCertificateConfirmKeyboard(state.language),
         );
         return;
@@ -1333,7 +1392,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
             : new ValidationError('Виникла помилка при перевірці часу початку');
 
           await ctx.reply(
-            `⚠️ ${err.message}\n\nВведіть коректний час у форматі HH:MM.`,
+            `⚠️ ${localizeMasterSceneValidationMessage(err.message, state.language)}${tBot(state.language, 'MASTER_PANEL_SCENE_TIME_INPUT_HINT')}`,
             createMasterScheduleConfigureDayInputKeyboard(configureDayDraft.weekday ?? 1, state.language),
           );
         }
@@ -1393,7 +1452,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
             : new ValidationError('Виникла помилка при перевірці часу завершення');
 
           await ctx.reply(
-            `⚠️ ${err.message}\n\nВведіть коректний час у форматі HH:MM.`,
+            `⚠️ ${localizeMasterSceneValidationMessage(err.message, state.language)}${tBot(state.language, 'MASTER_PANEL_SCENE_TIME_INPUT_HINT')}`,
             createMasterScheduleConfigureDayInputKeyboard(configureDayDraft.weekday ?? 1, state.language),
           );
         }
@@ -1425,7 +1484,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
             : new ValidationError('Виникла помилка при перевірці дати');
 
           await ctx.reply(
-            `⚠️ ${err.message}${tBot(state.language, 'MASTER_PANEL_SCHEDULE_SET_DAY_OFF_ERROR_HINT_RETRY')}`,
+            `⚠️ ${localizeMasterSceneValidationMessage(err.message, state.language)}${tBot(state.language, 'MASTER_PANEL_SCHEDULE_SET_DAY_OFF_ERROR_HINT_RETRY')}`,
             createMasterScheduleSetDayOffInputKeyboard(state.language),
           );
         }
@@ -1461,7 +1520,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
             : new ValidationError('Виникла помилка при перевірці періоду відпустки');
 
           await ctx.reply(
-            `⚠️ ${err.message}${tBot(state.language, 'MASTER_PANEL_SCHEDULE_VACATION_ERROR_HINT_FORMAT')}`,
+            `⚠️ ${localizeMasterSceneValidationMessage(err.message, state.language)}${tBot(state.language, 'MASTER_PANEL_SCHEDULE_VACATION_ERROR_HINT_FORMAT')}`,
             createMasterScheduleVacationInputKeyboard(state.language),
           );
         }
@@ -1509,7 +1568,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
             : new ValidationError('Виникла помилка при перевірці періоду тимчасового графіку');
 
           await ctx.reply(
-            `⚠️ ${err.message}${tBot(state.language, 'MASTER_PANEL_SCHEDULE_VACATION_ERROR_HINT_FORMAT')}`,
+            `⚠️ ${localizeMasterSceneValidationMessage(err.message, state.language)}${tBot(state.language, 'MASTER_PANEL_SCHEDULE_VACATION_ERROR_HINT_FORMAT')}`,
             createMasterScheduleTemporaryPeriodInputKeyboard(state.language),
           );
         }
@@ -1547,7 +1606,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
             : new ValidationError('Виникла помилка при перевірці часу початку');
 
           await ctx.reply(
-            `⚠️ ${err.message}\n\nВведіть коректний час у форматі HH:MM.`,
+            `⚠️ ${localizeMasterSceneValidationMessage(err.message, state.language)}${tBot(state.language, 'MASTER_PANEL_SCENE_TIME_INPUT_HINT')}`,
             createMasterScheduleTemporaryDayInputKeyboard(temporaryDraft.selectedWeekday ?? 1, state.language),
           );
         }
@@ -1603,7 +1662,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
             : new ValidationError('Виникла помилка при перевірці часу завершення');
 
           await ctx.reply(
-            `⚠️ ${err.message}\n\nВведіть коректний час у форматі HH:MM.`,
+            `⚠️ ${localizeMasterSceneValidationMessage(err.message, state.language)}${tBot(state.language, 'MASTER_PANEL_SCENE_TIME_INPUT_HINT')}`,
             createMasterScheduleTemporaryDayInputKeyboard(temporaryDraft.selectedWeekday ?? 1, state.language),
           );
         }
@@ -2654,7 +2713,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
           : tBot(state.language, 'MASTER_PANEL_SCHEDULE_SET_DAY_OFF_ERROR_HINT_CONFLICT');
 
         await ctx.reply(
-          `⚠️ ${error.message}${hint}`,
+          `⚠️ ${localizeMasterSceneValidationMessage(error.message, state.language)}${hint}`,
           createMasterScheduleSetDayOffInputKeyboard(state.language),
         );
         return;
@@ -3011,7 +3070,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
         };
 
         await ctx.reply(
-          `⚠️ ${error.message}${tBot(state.language, 'MASTER_PANEL_SCHEDULE_VACATION_ERROR_HINT_FORMAT')}`,
+          `⚠️ ${localizeMasterSceneValidationMessage(error.message, state.language)}${tBot(state.language, 'MASTER_PANEL_SCHEDULE_VACATION_ERROR_HINT_FORMAT')}`,
           createMasterScheduleVacationInputKeyboard(state.language),
         );
         return;
@@ -3455,7 +3514,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     } catch (error) {
       if (error instanceof ValidationError) {
         await ctx.reply(
-          `⚠️ ${error.message}${tBot(state.language, 'MASTER_PANEL_SCHEDULE_TEMPORARY_CONFIRM_RETRY_HINT')}`,
+          `⚠️ ${localizeMasterSceneValidationMessage(error.message, state.language)}${tBot(state.language, 'MASTER_PANEL_SCHEDULE_TEMPORARY_CONFIRM_RETRY_HINT')}`,
           createMasterScheduleTemporaryDaysConfigKeyboard(draft.days, state.language),
         );
         state.scheduleTemporaryDraft = {
@@ -3758,7 +3817,9 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       });
     } catch (error) {
       if (error instanceof ValidationError) {
-        await ctx.reply(`⚠️ ${error.message}`);
+        await ctx.reply(
+          `⚠️ ${localizeMasterSceneValidationMessage(error.message, state.language)}`,
+        );
         await renderRescheduleTimeStep(ctx, false);
         return;
       }
