@@ -1102,9 +1102,11 @@ async function denyMasterPanelAccess(ctx: MyContext): Promise<void> {
   await sendClientMainMenu(ctx);
 }
 
-async function notifyConfirmedBooking(item: MasterPendingBookingItem): Promise<void> {
+async function notifyConfirmedBooking(
+  item: MasterPendingBookingItem,
+  language: BotUiLanguage,
+): Promise<void> {
   try {
-    const language: BotUiLanguage = 'uk';
     await dispatchNotification({
       userId: item.clientId,
       notificationType: 'booking_confirmation',
@@ -1141,9 +1143,11 @@ async function notifyConfirmedBooking(item: MasterPendingBookingItem): Promise<v
   }
 }
 
-async function notifyCanceledBooking(item: MasterPendingBookingItem): Promise<void> {
+async function notifyCanceledBooking(
+  item: MasterPendingBookingItem,
+  language: BotUiLanguage,
+): Promise<void> {
   try {
-    const language: BotUiLanguage = 'uk';
     await dispatchNotification({
       userId: item.clientId,
       notificationType: 'status_change',
@@ -3564,7 +3568,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
       appointmentId,
     });
 
-    await notifyConfirmedBooking(confirmed);
+    await notifyConfirmedBooking(confirmed, state.language);
     await ctx.reply(tBot(state.language, 'MASTER_PANEL_BOOKINGS_CONFIRM_SUCCESS'));
 
     await loadPendingIntoState(state);
@@ -3609,10 +3613,10 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
     const canceled = await cancelMasterPendingBooking({
       masterId: state.access.masterId,
       appointmentId,
-      cancelReason: tBot('uk', 'MASTER_PANEL_BOOKINGS_NOTIFY_REASON_CANCELED_BY_MASTER'),
+      cancelReason: tBot(state.language, 'MASTER_PANEL_BOOKINGS_NOTIFY_REASON_CANCELED_BY_MASTER'),
     });
 
-    await notifyCanceledBooking(canceled);
+    await notifyCanceledBooking(canceled, state.language);
     await ctx.reply(tBot(state.language, 'MASTER_PANEL_BOOKINGS_CANCEL_SUCCESS'));
 
     if (state.bookingsFeed) {
@@ -3750,7 +3754,7 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
         masterId: access.masterId,
         appointmentId: draft.appointmentId,
         newStartAt,
-        reason: tBot('uk', 'MASTER_PANEL_BOOKINGS_NOTIFY_REASON_RESCHEDULED_BY_MASTER'),
+        reason: tBot(state.language, 'MASTER_PANEL_BOOKINGS_NOTIFY_REASON_RESCHEDULED_BY_MASTER'),
       });
     } catch (error) {
       if (error instanceof ValidationError) {
@@ -3770,8 +3774,8 @@ export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
           studioName: result.current.studioName,
           serviceName: result.current.serviceName,
           startAt: result.current.startAt,
-          statusLabel: tBot('uk', 'MASTER_PANEL_BOOKINGS_NOTIFY_STATUS_TRANSFERRED'),
-          message: tBot('uk', 'MASTER_PANEL_BOOKINGS_NOTIFY_MESSAGE_TRANSFERRED'),
+          statusLabel: tBot(state.language, 'MASTER_PANEL_BOOKINGS_NOTIFY_STATUS_TRANSFERRED'),
+          message: tBot(state.language, 'MASTER_PANEL_BOOKINGS_NOTIFY_MESSAGE_TRANSFERRED'),
         },
         email: {
           template: 'bookingRescheduled',
