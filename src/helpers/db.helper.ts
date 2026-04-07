@@ -1,10 +1,10 @@
 import {dbLogger, pool} from "../config/database.config.js";
 import {PoolClient, QueryResultRow} from "pg";
-import {handleError} from "../utils/error.utils.js";
+import {handleError, NotFoundError} from "../utils/error.utils.js";
 
 /**
  * @file db.helper.ts
- * @summary Файлкий виконує дію хелпера для SQL запитів
+ * @summary Файл який виконує дію хелпера для SQL запитів
  */
 
 //==========================================================================================
@@ -94,7 +94,7 @@ export async function executeOne<TRow extends QueryResultRow, TEntity> (
 ): Promise<TEntity> {
     const result = await client.query<TRow>(sql,[...params])
     if (result.rowCount === 0) {
-        throw new Error('executeOne: Очікує мінімум 1 рядок')
+        throw new NotFoundError('executeOne: Очікує мінімум 1 рядок')
     }
     return mapRow(result.rows[0])
 }
@@ -172,13 +172,8 @@ export async function withTransaction<T> (
                 meta: { id },
             })
         }
-        handleError({
-            logger: dbLogger,
-            scope: "db-helper",
-            action: "Помилка транзакції",
-            error,
-            meta: { id },
-        })
+        // Не логуємо основну помилку тут, щоб уникнути дублювання.
+        // Її залогує фінальний обробник (asyncHandler) або caller.
         throw error;
     }finally {
         client.release()

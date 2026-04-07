@@ -1,57 +1,46 @@
-import {Shutdown} from "./shutdown.startup.js";
 import {ILogger} from "../utils/logger/types.logger.js";
+import {Shutdown} from "./shutdown.startup.js";
 import {handleError} from "../utils/error.utils.js";
 
 /**
- * @summary Класс який відповідає за процесси вимикання
- * @param {ILogger} logger - Логер яким ми записуємо логи в файли або консоль
- * @param {Shutdown} shutdownServer - Класс який вимикає сервер
- * @example const example = new ProcessHandlers(logger,Shutdown)
+ * @class ProcessHandlers
+ * @summary Клас який обробляє системні події
  */
 export class ProcessHandlers {
-
     constructor(
-        private logger: ILogger,
-        private shutdownServer: Shutdown,
+        private readonly logger: ILogger,
+        private readonly shutdownServer: Shutdown
     ) {
-        this.handlersProcess()
-    }
-
-    /**
-     * @summary Функція яка реєструє 4 події
-     */
-    public handlersProcess(){
-        this.logger.info('[process] Реєструємо обробники сигналів процесу')
-        /**
-         * SIGTERM - Подія яка викливається сторонім додатком по типу Docker або чимось іншим
-         * викликає звичайне ретельне вимкнення сервера
-         */
-        process.once('SIGTERM',async () => {
-            try{
-                await this.shutdownServer.stop('SIGTERM')
-            }catch(err) {
-                handleError({
-                    logger: this.logger,
-                    scope: "process",
-                    action: "Помилка обробки SIGTERM",
-                    error: err,
-                })
-                /** Якщо this.shutdownServer.shutdown не спрацював, викликаємо жорстоке відключення  */
-                process.exit(1)
-            }
-        })
-        /** SIGINT - Це теж саме що і SIGTERM тільки SIGINT викликається нами за допомогою клавіш Ctrl+C на Windows або control+C на Mac*/
-        process.once('SIGINT', async () => {
+        /** SIGINT - Подія яка викликається в випадку Ctrl+C або зупинки процесу в Docker/PM2 */
+        process.on('SIGINT', async () => {
+            this.logger.info('[process] Отримано сигнал SIGINT (Ctrl+C)')
             try {
                 await this.shutdownServer.stop('SIGINT')
-            }catch(err) {
+                process.exit(0)
+            } catch (err) {
                 handleError({
                     logger: this.logger,
                     scope: "process",
                     action: "Помилка обробки SIGINT",
                     error: err,
                 })
-                /** Якщо this.shutdownServer.shutdown не спрацював, викликаємо жорстоке відключення  */
+                process.exit(1)
+            }
+        })
+
+        /** SIGTERM - Подія яка викликається в випадку зупинки контейнера або завершення процесу */
+        process.on('SIGTERM', async () => {
+            this.logger.info('[process] Отримано сигнал SIGTERM')
+            try {
+                await this.shutdownServer.stop('SIGTERM')
+                process.exit(0)
+            } catch (err) {
+                handleError({
+                    logger: this.logger,
+                    scope: "process",
+                    action: "Помилка обробки SIGTERM",
+                    error: err,
+                })
                 process.exit(1)
             }
         })
@@ -73,7 +62,7 @@ export class ProcessHandlers {
                     action: "Помилка shutdown після uncaughtException",
                     error: err,
                 })
-                /** Якщо this.shutdownServer.shutdown не спрацював, викликаємо жорстоке відключення  */
+            } finally {
                 process.exit(1)
             }
         })
@@ -95,7 +84,7 @@ export class ProcessHandlers {
                     action: "Помилка shutdown після unhandledRejection",
                     error: err,
                 })
-                /** Якщо this.shutdownServer.shutdown не спрацював, викликаємо жорстоке відключення  */
+            } finally {
                 process.exit(1)
             }
         })

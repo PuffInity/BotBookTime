@@ -53,7 +53,7 @@ export class Shutdown {
                 action: `Крок вимкнення "${stepName}" завершився помилкою`,
                 error,
             })
-            process.exitCode = 1
+            process.exitCode = 1 // Встановлюємо код помилки, якщо крок завершився невдачею
         }
     }
 
@@ -69,6 +69,12 @@ export class Shutdown {
             return
         }
         this.isStopping = true
+
+        // Якщо сигнал є фатальною помилкою, гарантуємо exitCode = 1
+        if (signal === 'uncaughtException' || signal === 'unhandledRejection') {
+            process.exitCode = 1
+        }
+
         this.logger.info('[shutdown] Розпочато коректне завершення роботи', { signal })
 
         const app = this.app()
@@ -79,33 +85,32 @@ export class Shutdown {
             this.logger.warn('[shutdown] AppInstance відсутній, крок вимкнення Telegram-бота пропущено', { signal })
         }
 
-        try {
-           await this.runStep('Booking-expiration-worker', stopBookingExpirationWorker)
-           await this.runStep('PostgreSQL', shutDownDb)
-           await this.runStep('Redis', redisShutdown)
+        await this.runStep('Booking-expiration-worker', stopBookingExpirationWorker)
+        await this.runStep('PostgreSQL', shutDownDb)
+        await this.runStep('Redis', redisShutdown)
 
-           try {
-               await this.logger.flush?.()
-               await this.logger.close?.()
-           } catch (error) {
-               handleError({
-                   logger: this.logger,
-                   scope: "shutdown",
-                   action: "Помилка під час закриття logger",
-                   error,
-               })
-               process.exitCode = 1
-           }
-            }finally {
-            this.isStopping = false
-        }
-
-
-        process.exitCode ??= 0
+        // Логуємо фінальний статус перед закриттям логера
         if (process.exitCode === 0) {
             this.logger.info('[shutdown] Завершення роботи виконано успішно', { signal })
         } else {
             this.logger.warn('[shutdown] Завершення роботи виконано з помилками', { signal, exitCode: process.exitCode })
+        }
+
+        // Закриття логера
+        try {
+            await this.logger.flush?.()
+            await this.logger.close?.()
+        } catch (error) {
+            handleError({
+                logger: this.logger,
+                scope: "shutdown",
+                action: "Помилка під час закриття logger",
+                error,
+            })
+            // Якщо логер не закрився, це теж проблема
+            process.exitCode = 1
+        } finally {
+            this.isStopping = false
         }
     }
 }
