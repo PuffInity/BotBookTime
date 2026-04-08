@@ -13,8 +13,7 @@ import type {
 import { queryMany, withTransaction } from '../db.helper.js';
 import { faqEntriesRowToEntity } from '../../utils/mappers/faqEntries.mapp.js';
 import { faqEntryTranslationsRowToEntity } from '../../utils/mappers/faqEntryTranslations.mapp.js';
-import { ValidationError, handleError } from '../../utils/error.utils.js';
-import { loggerDb } from '../../utils/logger/loggers-list.js';
+import { ValidationError } from '../../utils/error.utils.js';
 import {
   SQL_LIST_ACTIVE_FAQ_ENTRIES,
   SQL_LIST_FAQ_TRANSLATIONS_BY_IDS_AND_LANG,
@@ -106,40 +105,29 @@ export async function listFaqCatalog(input: ListFaqCatalogInput): Promise<FaqCat
   const limit = normalizeFaqLimit(input.limit);
   const language = input.language;
 
-  try {
-    return await withTransaction(async (client) => {
-      const entries = await queryMany<FaqEntriesRow, FaqEntriesEntity>(
-        SQL_LIST_ACTIVE_FAQ_ENTRIES,
-        [studioId, limit],
-        faqEntriesRowToEntity,
-        client,
-      );
+  return await withTransaction(async (client) => {
+    const entries = await queryMany<FaqEntriesRow, FaqEntriesEntity>(
+      SQL_LIST_ACTIVE_FAQ_ENTRIES,
+      [studioId, limit],
+      faqEntriesRowToEntity,
+      client,
+    );
 
-      if (entries.length === 0) {
-        return [];
-      }
+    if (entries.length === 0) {
+      return [];
+    }
 
-      const faqIds = entries.map((entry) => entry.id);
+    const faqIds = entries.map((entry) => entry.id);
 
-      const translations = await queryMany<FaqEntryTranslationsRow, FaqEntryTranslationsEntity>(
-        SQL_LIST_FAQ_TRANSLATIONS_BY_IDS_AND_LANG,
-        [faqIds, language],
-        faqEntryTranslationsRowToEntity,
-        client,
-      );
+    const translations = await queryMany<FaqEntryTranslationsRow, FaqEntryTranslationsEntity>(
+      SQL_LIST_FAQ_TRANSLATIONS_BY_IDS_AND_LANG,
+      [faqIds, language],
+      faqEntryTranslationsRowToEntity,
+      client,
+    );
 
-      return buildFaqCatalogItems(entries, translations, language);
-    });
-  } catch (error) {
-    handleError({
-      logger: loggerDb,
-      scope: 'db-faq.helper',
-      action: 'Failed to list FAQ catalog',
-      error,
-      meta: { studioId, language, limit },
-    });
-    throw error;
-  }
+    return buildFaqCatalogItems(entries, translations, language);
+  });
 }
 
 /**
@@ -157,4 +145,3 @@ export async function getFaqCatalogItemById(
 
   return items.find((item) => item.id === faqId) ?? null;
 }
-

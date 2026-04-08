@@ -7,8 +7,7 @@ import type {
   MasterClientProfileRow,
 } from '../../types/db-helpers/db-master-clients.types.js';
 import { queryMany, queryOne, withTransaction } from '../db.helper.js';
-import { ValidationError, handleError } from '../../utils/error.utils.js';
-import { loggerDb } from '../../utils/logger/loggers-list.js';
+import { ValidationError } from '../../utils/error.utils.js';
 import {
   SQL_GET_MASTER_CLIENT_PROFILE_BY_BOOKING,
   SQL_LIST_MASTER_CLIENT_BOOKINGS_HISTORY_BY_BOOKING,
@@ -80,25 +79,14 @@ export async function getMasterClientProfileByBooking(
   const masterId = normalizePositiveBigintId(input.masterId, 'masterId');
   const appointmentId = normalizePositiveBigintId(input.appointmentId, 'appointmentId');
 
-  try {
-    return await withTransaction(async (client) =>
-      queryOne<MasterClientProfileRow, MasterClientProfileItem>(
-        SQL_GET_MASTER_CLIENT_PROFILE_BY_BOOKING,
-        [masterId, appointmentId],
-        mapMasterClientProfileRow,
-        client,
-      ),
-    );
-  } catch (error) {
-    handleError({
-      logger: loggerDb,
-      scope: 'db-master-clients.helper',
-      action: 'Failed to load master client profile by booking',
-      error,
-      meta: { masterId, appointmentId },
-    });
-    throw error;
-  }
+  return await withTransaction(async (client) =>
+    queryOne<MasterClientProfileRow, MasterClientProfileItem>(
+      SQL_GET_MASTER_CLIENT_PROFILE_BY_BOOKING,
+      [masterId, appointmentId],
+      mapMasterClientProfileRow,
+      client,
+    ),
+  );
 }
 
 /**
@@ -111,23 +99,12 @@ export async function listMasterClientBookingsHistoryByBooking(
   const appointmentId = normalizePositiveBigintId(input.appointmentId, 'appointmentId');
   const limit = normalizeHistoryLimit(input.limit);
 
-  try {
-    return await withTransaction(async (client) =>
-      queryMany<MasterClientBookingsHistoryRow, MasterClientBookingsHistoryItem>(
-        SQL_LIST_MASTER_CLIENT_BOOKINGS_HISTORY_BY_BOOKING,
-        [masterId, appointmentId, limit],
-        mapMasterClientBookingsHistoryRow,
-        client,
-      ),
-    );
-  } catch (error) {
-    handleError({
-      logger: loggerDb,
-      scope: 'db-master-clients.helper',
-      action: 'Failed to load master client bookings history by booking',
-      error,
-      meta: { masterId, appointmentId, limit },
-    });
-    throw error;
-  }
+  return await withTransaction(async (client) =>
+    queryMany<MasterClientBookingsHistoryRow, MasterClientBookingsHistoryItem>(
+      SQL_LIST_MASTER_CLIENT_BOOKINGS_HISTORY_BY_BOOKING,
+      [masterId, appointmentId, limit],
+      mapMasterClientBookingsHistoryRow,
+      client,
+    ),
+  );
 }

@@ -10,8 +10,7 @@ import {
   SQL_GET_MASTER_FINANCE_OVERVIEW,
   SQL_GET_MASTER_FINANCE_TOP_SERVICE,
 } from '../db-sql/db-master-finance.sql.js';
-import { ValidationError, handleError } from '../../utils/error.utils.js';
-import { loggerDb } from '../../utils/logger/loggers-list.js';
+import { ValidationError } from '../../utils/error.utils.js';
 
 /**
  * @file db-master-finance.helper.ts
@@ -58,65 +57,53 @@ function mapOverviewRow(row: MasterFinanceOverviewRow): Omit<
 export async function getMasterPanelFinance(masterIdInput: string | number): Promise<MasterPanelFinanceData> {
   const masterId = normalizeMasterId(masterIdInput);
 
-  try {
-    return await withTransaction(async (client) => {
-      const overview = await queryOne<MasterFinanceOverviewRow, Omit<
-        MasterPanelFinanceData,
-        'bestServiceName' | 'bestServiceAmount' | 'bestMonthStart' | 'bestMonthAmount'
-      >>(
-        SQL_GET_MASTER_FINANCE_OVERVIEW,
-        [masterId],
-        mapOverviewRow,
-        client,
-      );
+  return await withTransaction(async (client) => {
+    const overview = await queryOne<MasterFinanceOverviewRow, Omit<
+      MasterPanelFinanceData,
+      'bestServiceName' | 'bestServiceAmount' | 'bestMonthStart' | 'bestMonthAmount'
+    >>(
+      SQL_GET_MASTER_FINANCE_OVERVIEW,
+      [masterId],
+      mapOverviewRow,
+      client,
+    );
 
-      if (!overview) {
-        throw new ValidationError('Фінансову статистику майстра не знайдено');
-      }
+    if (!overview) {
+      throw new ValidationError('Фінансову статистику майстра не знайдено');
+    }
 
-      const topService = await queryOne<MasterFinanceTopServiceRow, {
-        name: string;
-        amount: number;
-      }>(
-        SQL_GET_MASTER_FINANCE_TOP_SERVICE,
-        [masterId],
-        (row) => ({
-          name: row.service_name,
-          amount: toNumber(row.gross_amount),
-        }),
-        client,
-      );
+    const topService = await queryOne<MasterFinanceTopServiceRow, {
+      name: string;
+      amount: number;
+    }>(
+      SQL_GET_MASTER_FINANCE_TOP_SERVICE,
+      [masterId],
+      (row) => ({
+        name: row.service_name,
+        amount: toNumber(row.gross_amount),
+      }),
+      client,
+    );
 
-      const bestMonth = await queryOne<MasterFinanceBestMonthRow, {
-        monthStart: Date;
-        amount: number;
-      }>(
-        SQL_GET_MASTER_FINANCE_BEST_MONTH,
-        [masterId],
-        (row) => ({
-          monthStart: new Date(row.month_start),
-          amount: toNumber(row.gross_amount),
-        }),
-        client,
-      );
+    const bestMonth = await queryOne<MasterFinanceBestMonthRow, {
+      monthStart: Date;
+      amount: number;
+    }>(
+      SQL_GET_MASTER_FINANCE_BEST_MONTH,
+      [masterId],
+      (row) => ({
+        monthStart: new Date(row.month_start),
+        amount: toNumber(row.gross_amount),
+      }),
+      client,
+    );
 
-      return {
-        ...overview,
-        bestServiceName: topService?.name ?? null,
-        bestServiceAmount: topService?.amount ?? 0,
-        bestMonthStart: bestMonth?.monthStart ?? null,
-        bestMonthAmount: bestMonth?.amount ?? 0,
-      };
-    });
-  } catch (error) {
-    handleError({
-      logger: loggerDb,
-      scope: 'db-master-finance.helper',
-      action: 'Failed to load master finance stats',
-      error,
-      meta: { masterId },
-    });
-    throw error;
-  }
+    return {
+      ...overview,
+      bestServiceName: topService?.name ?? null,
+      bestServiceAmount: topService?.amount ?? 0,
+      bestMonthStart: bestMonth?.monthStart ?? null,
+      bestMonthAmount: bestMonth?.amount ?? 0,
+    };
+  });
 }
-

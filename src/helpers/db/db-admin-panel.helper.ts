@@ -3,8 +3,6 @@ import type {
   AdminPanelAccessRow,
 } from '../../types/db-helpers/db-admin-panel.types.js';
 import { queryOne, withTransaction } from '../db.helper.js';
-import { handleError } from '../../utils/error.utils.js';
-import { loggerDb } from '../../utils/logger/loggers-list.js';
 import { normalizeTelegramId } from '../../utils/db/db-profile.js';
 import { SQL_GET_ADMIN_PANEL_ACCESS_BY_TELEGRAM_ID } from '../db-sql/db-admin-panel.sql.js';
 
@@ -32,23 +30,12 @@ export async function getAdminPanelAccessByTelegramId(
 ): Promise<AdminPanelAccess | null> {
   const telegramUserId = normalizeTelegramId(telegramId);
 
-  try {
-    return await withTransaction(async (client) =>
-      queryOne<AdminPanelAccessRow, AdminPanelAccess>(
-        SQL_GET_ADMIN_PANEL_ACCESS_BY_TELEGRAM_ID,
-        [telegramUserId],
-        mapAdminPanelAccessRow,
-        client,
-      ),
-    );
-  } catch (error) {
-    handleError({
-      logger: loggerDb,
-      scope: 'db-admin-panel.helper',
-      action: 'Failed to get admin panel access by telegram id',
-      error,
-      meta: { telegramUserId },
-    });
-    throw error;
-  }
+  return await withTransaction(async (client) =>
+    queryOne<AdminPanelAccessRow, AdminPanelAccess>(
+      SQL_GET_ADMIN_PANEL_ACCESS_BY_TELEGRAM_ID,
+      [telegramUserId],
+      mapAdminPanelAccessRow,
+      client,
+    ),
+  );
 }

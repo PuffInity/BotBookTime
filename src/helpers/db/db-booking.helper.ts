@@ -20,8 +20,7 @@ import { BOOKING_ERROR_CODE } from '../../types/bot-booking.types.js';
 import { appointmentsRowToEntity } from '../../utils/mappers/appointments.mapp.js';
 import { servicesRowToEntity } from '../../utils/mappers/services.mapp.js';
 import { executeOne, queryMany, queryOne, withTransaction } from '../db.helper.js';
-import { ValidationError, handleError } from '../../utils/error.utils.js';
-import { loggerDb } from '../../utils/logger/loggers-list.js';
+import { ValidationError } from '../../utils/error.utils.js';
 import {
   SQL_CHECK_APPOINTMENT_CONFLICT,
   SQL_CHECK_MASTER_WORK_SCHEDULE_AT_SLOT,
@@ -167,27 +166,16 @@ export async function listBookableServicesForBooking(
   const studioId = normalizeOptionalStudioId(input.studioId);
   const limit = normalizeCatalogLimit(input.limit);
 
-  try {
-    return await withTransaction(async (client) => {
-      const services = await queryMany<ServicesRow, ServicesEntity>(
-        SQL_LIST_BOOKABLE_SERVICES_FOR_BOOKING,
-        [studioId, limit],
-        servicesRowToEntity,
-        client,
-      );
+  return await withTransaction(async (client) => {
+    const services = await queryMany<ServicesRow, ServicesEntity>(
+      SQL_LIST_BOOKABLE_SERVICES_FOR_BOOKING,
+      [studioId, limit],
+      servicesRowToEntity,
+      client,
+    );
 
-      return services.map(mapBookableServiceToCatalogItem);
-    });
-  } catch (error) {
-    handleError({
-      logger: loggerDb,
-      scope: 'db-booking.helper',
-      action: 'Failed to list bookable services for booking',
-      error,
-      meta: { studioId, limit },
-    });
-    throw error;
-  }
+    return services.map(mapBookableServiceToCatalogItem);
+  });
 }
 
 /**
@@ -206,25 +194,14 @@ export async function listAvailableTimeCodesForBookingDate(
     return [];
   }
 
-  try {
-    return await withTransaction((client) =>
-      queryMany<BookingAvailableTimeCodeRow, string>(
-        SQL_LIST_AVAILABLE_TIME_CODES_FOR_BOOKING_DATE,
-        [studioId, serviceId, localDate, timeCodes],
-        (row) => row.time_code,
-        client,
-      ),
-    );
-  } catch (error) {
-    handleError({
-      logger: loggerDb,
-      scope: 'db-booking.helper',
-      action: 'Failed to list available time codes for booking date',
-      error,
-      meta: { studioId, serviceId, dateCode, timeCodesCount: timeCodes.length },
-    });
-    throw error;
-  }
+  return await withTransaction((client) =>
+    queryMany<BookingAvailableTimeCodeRow, string>(
+      SQL_LIST_AVAILABLE_TIME_CODES_FOR_BOOKING_DATE,
+      [studioId, serviceId, localDate, timeCodes],
+      (row) => row.time_code,
+      client,
+    ),
+  );
 }
 
 /**
@@ -239,25 +216,14 @@ export async function listAvailableMastersForBookingSlot(
   const timeCode = normalizeTimeCode(input.timeCode);
   const localDate = dateCodeToIsoDate(dateCode);
 
-  try {
-    return await withTransaction((client) =>
-      queryMany<BookingAvailableMasterRow, MasterBookingOption>(
-        SQL_LIST_AVAILABLE_MASTERS_FOR_BOOKING_SLOT,
-        [studioId, serviceId, localDate, timeCode],
-        mapAvailableMasterRowToOption,
-        client,
-      ),
-    );
-  } catch (error) {
-    handleError({
-      logger: loggerDb,
-      scope: 'db-booking.helper',
-      action: 'Failed to list available masters for booking slot',
-      error,
-      meta: { studioId, serviceId, dateCode, timeCode },
-    });
-    throw error;
-  }
+  return await withTransaction((client) =>
+    queryMany<BookingAvailableMasterRow, MasterBookingOption>(
+      SQL_LIST_AVAILABLE_MASTERS_FOR_BOOKING_SLOT,
+      [studioId, serviceId, localDate, timeCode],
+      mapAvailableMasterRowToOption,
+      client,
+    ),
+  );
 }
 
 /**
@@ -274,90 +240,79 @@ export async function createPendingBooking(
   const attendeePhoneE164 = input.attendeePhoneE164.trim();
   const startAt = normalizeFutureDate(input.startAt, 'startAt');
 
-  try {
-    return await withTransaction(async (client) => {
-      const meta = await queryOne<MasterServiceBookingMetaRow, MasterServiceBookingMeta>(
-        SQL_GET_BOOKING_META_BY_MASTER_SERVICE,
-        [studioId, serviceId, masterId],
-        mapBookingMeta,
-        client,
-      );
+  return await withTransaction(async (client) => {
+    const meta = await queryOne<MasterServiceBookingMetaRow, MasterServiceBookingMeta>(
+      SQL_GET_BOOKING_META_BY_MASTER_SERVICE,
+      [studioId, serviceId, masterId],
+      mapBookingMeta,
+      client,
+    );
 
-      if (!meta) {
-        throw new ValidationError('Послуга недоступна для обраного майстра', {
-          code: BOOKING_ERROR_CODE.SERVICE_UNAVAILABLE,
-          studioId,
-          serviceId,
-          masterId,
-        });
-      }
+    if (!meta) {
+      throw new ValidationError('Послуга недоступна для обраного майстра', {
+        code: BOOKING_ERROR_CODE.SERVICE_UNAVAILABLE,
+        studioId,
+        serviceId,
+        masterId,
+      });
+    }
 
-      const endAt = new Date(startAt.getTime() + meta.durationMinutes * 60 * 1000);
+    const endAt = new Date(startAt.getTime() + meta.durationMinutes * 60 * 1000);
 
-      const scheduleAvailability = await queryOne<
-        MasterScheduleAvailabilityRow,
-        MasterScheduleAvailabilityRow
-      >(
-        SQL_CHECK_MASTER_WORK_SCHEDULE_AT_SLOT,
-        [masterId, startAt.toISOString(), endAt.toISOString(), meta.studioTimezone],
-        (row) => row,
-        client,
-      );
+    const scheduleAvailability = await queryOne<
+      MasterScheduleAvailabilityRow,
+      MasterScheduleAvailabilityRow
+    >(
+      SQL_CHECK_MASTER_WORK_SCHEDULE_AT_SLOT,
+      [masterId, startAt.toISOString(), endAt.toISOString(), meta.studioTimezone],
+      (row) => row,
+      client,
+    );
 
-      if (!scheduleAvailability?.is_available) {
-        throw new ValidationError('Майстер недоступний на обраний час за графіком роботи', {
-          code: BOOKING_ERROR_CODE.MASTER_UNAVAILABLE,
-          studioId,
-          serviceId,
-          masterId,
-          reason: scheduleAvailability?.reason_code ?? 'unknown',
-        });
-      }
+    if (!scheduleAvailability?.is_available) {
+      throw new ValidationError('Майстер недоступний на обраний час за графіком роботи', {
+        code: BOOKING_ERROR_CODE.MASTER_UNAVAILABLE,
+        studioId,
+        serviceId,
+        masterId,
+        reason: scheduleAvailability?.reason_code ?? 'unknown',
+      });
+    }
 
-      const conflict = await queryOne<BookingConflictRow, BookingConflictRow>(
-        SQL_CHECK_APPOINTMENT_CONFLICT,
-        [masterId, startAt.toISOString(), endAt.toISOString()],
-        (row) => row,
-        client,
-      );
+    const conflict = await queryOne<BookingConflictRow, BookingConflictRow>(
+      SQL_CHECK_APPOINTMENT_CONFLICT,
+      [masterId, startAt.toISOString(), endAt.toISOString()],
+      (row) => row,
+      client,
+    );
 
-      if (conflict?.has_conflict) {
-        throw new ValidationError('Обраний час вже зайнятий. Будь ласка, виберіть інший слот.', {
-          code: BOOKING_ERROR_CODE.SLOT_CONFLICT,
-        });
-      }
+    if (conflict?.has_conflict) {
+      throw new ValidationError('Обраний час вже зайнятий. Будь ласка, виберіть інший слот.', {
+        code: BOOKING_ERROR_CODE.SLOT_CONFLICT,
+      });
+    }
 
-      const appointment = await executeOne<AppointmentsRow, AppointmentsEntity>(
-        SQL_INSERT_PENDING_APPOINTMENT,
-        [
-          studioId,
-          clientId,
-          masterId,
-          serviceId,
-          attendeeName,
-          attendeePhoneE164,
-          startAt.toISOString(),
-          endAt.toISOString(),
-          meta.priceAmount,
-          meta.currencyCode,
-        ],
-        appointmentsRowToEntity,
-        client,
-      );
+    const appointment = await executeOne<AppointmentsRow, AppointmentsEntity>(
+      SQL_INSERT_PENDING_APPOINTMENT,
+      [
+        studioId,
+        clientId,
+        masterId,
+        serviceId,
+        attendeeName,
+        attendeePhoneE164,
+        startAt.toISOString(),
+        endAt.toISOString(),
+        meta.priceAmount,
+        meta.currencyCode,
+      ],
+      appointmentsRowToEntity,
+      client,
+    );
 
-      return {
-        appointment,
-        meta,
-      };
-    });
-  } catch (error) {
-    handleError({
-      logger: loggerDb,
-      scope: 'db-booking.helper',
-      action: 'Failed to create pending booking',
-      error,
-      meta: { clientId, studioId, serviceId, masterId, startAt: startAt.toISOString() },
-    });
-    throw error;
-  }
+    return {
+      appointment,
+      meta,
+    };
+  });
 }

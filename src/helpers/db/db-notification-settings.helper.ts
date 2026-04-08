@@ -11,8 +11,6 @@ import type {
 } from '../../types/db-helpers/db-notification-settings.types.js';
 import { userNotificationSettingsRowToEntity } from '../../utils/mappers/userNotificationSettings.mapp.js';
 import { executeOne, executeVoid, queryMany, queryOne, withTransaction } from '../db.helper.js';
-import { handleError } from '../../utils/error.utils.js';
-import { loggerDb } from '../../utils/logger/loggers-list.js';
 import {
   normalizeNotificationEnabled,
   normalizeNotificationType,
@@ -85,18 +83,7 @@ export async function getUserNotificationSettingsState(
 ): Promise<NotificationSettingsState> {
   const userId = normalizeNotificationUserId(userIdInput);
 
-  try {
-    return await readSettingsStateTx(userId);
-  } catch (error) {
-    handleError({
-      logger: loggerDb,
-      scope: 'db-notification-settings.helper',
-      action: 'Failed to read notification settings state',
-      error,
-      meta: { userId },
-    });
-    throw error;
-  }
+  return await readSettingsStateTx(userId);
 }
 
 /**
@@ -109,38 +96,27 @@ export async function upsertUserNotificationSetting(
   const notificationType = normalizeNotificationType(input.notificationType);
   const enabled = normalizeNotificationEnabled(input.enabled);
 
-  try {
-    return await withTransaction(async (client) => {
-      await executeOne<UserNotificationSettingsRow, UserNotificationSettingsEntity>(
-        SQL_UPSERT_USER_NOTIFICATION_SETTING,
-        [userId, notificationType, enabled],
-        userNotificationSettingsRowToEntity,
-        client,
-      );
+  return await withTransaction(async (client) => {
+    await executeOne<UserNotificationSettingsRow, UserNotificationSettingsEntity>(
+      SQL_UPSERT_USER_NOTIFICATION_SETTING,
+      [userId, notificationType, enabled],
+      userNotificationSettingsRowToEntity,
+      client,
+    );
 
-      const rows = await queryMany<UserNotificationSettingsRow, UserNotificationSettingsEntity>(
-        SQL_SELECT_USER_NOTIFICATION_SETTINGS_BY_USER_ID,
-        [userId],
-        userNotificationSettingsRowToEntity,
-        client,
-      );
+    const rows = await queryMany<UserNotificationSettingsRow, UserNotificationSettingsEntity>(
+      SQL_SELECT_USER_NOTIFICATION_SETTINGS_BY_USER_ID,
+      [userId],
+      userNotificationSettingsRowToEntity,
+      client,
+    );
 
-      const state = createDefaultSettingsState();
-      for (const row of rows) {
-        state[row.notificationType] = row.enabled;
-      }
-      return state;
-    });
-  } catch (error) {
-    handleError({
-      logger: loggerDb,
-      scope: 'db-notification-settings.helper',
-      action: 'Failed to upsert user notification setting',
-      error,
-      meta: { userId, notificationType, enabled },
-    });
-    throw error;
-  }
+    const state = createDefaultSettingsState();
+    for (const row of rows) {
+      state[row.notificationType] = row.enabled;
+    }
+    return state;
+  });
 }
 
 /**
@@ -152,33 +128,22 @@ export async function setAllUserNotificationSettings(
   const userId = normalizeNotificationUserId(input.userId);
   const enabled = normalizeNotificationEnabled(input.enabled);
 
-  try {
-    return await withTransaction(async (client) => {
-      await executeVoid(SQL_UPSERT_ALL_USER_NOTIFICATION_SETTINGS, [userId, enabled], client);
+  return await withTransaction(async (client) => {
+    await executeVoid(SQL_UPSERT_ALL_USER_NOTIFICATION_SETTINGS, [userId, enabled], client);
 
-      const rows = await queryMany<UserNotificationSettingsRow, UserNotificationSettingsEntity>(
-        SQL_SELECT_USER_NOTIFICATION_SETTINGS_BY_USER_ID,
-        [userId],
-        userNotificationSettingsRowToEntity,
-        client,
-      );
+    const rows = await queryMany<UserNotificationSettingsRow, UserNotificationSettingsEntity>(
+      SQL_SELECT_USER_NOTIFICATION_SETTINGS_BY_USER_ID,
+      [userId],
+      userNotificationSettingsRowToEntity,
+      client,
+    );
 
-      const state = createDefaultSettingsState();
-      for (const row of rows) {
-        state[row.notificationType] = row.enabled;
-      }
-      return state;
-    });
-  } catch (error) {
-    handleError({
-      logger: loggerDb,
-      scope: 'db-notification-settings.helper',
-      action: 'Failed to toggle all user notification settings',
-      error,
-      meta: { userId, enabled },
-    });
-    throw error;
-  }
+    const state = createDefaultSettingsState();
+    for (const row of rows) {
+      state[row.notificationType] = row.enabled;
+    }
+    return state;
+  });
 }
 
 /**
@@ -189,23 +154,12 @@ export async function getUserDeliveryProfileById(
 ): Promise<UserDeliveryProfile | null> {
   const userId = normalizeNotificationUserId(userIdInput);
 
-  try {
-    return await withTransaction(async (client) =>
-      queryOne<UserDeliveryProfileRow, UserDeliveryProfile>(
-        SQL_SELECT_USER_DELIVERY_PROFILE_BY_ID,
-        [userId],
-        mapUserDeliveryProfileRow,
-        client,
-      ),
-    );
-  } catch (error) {
-    handleError({
-      logger: loggerDb,
-      scope: 'db-notification-settings.helper',
-      action: 'Failed to read user delivery profile',
-      error,
-      meta: { userId },
-    });
-    throw error;
-  }
+  return await withTransaction(async (client) =>
+    queryOne<UserDeliveryProfileRow, UserDeliveryProfile>(
+      SQL_SELECT_USER_DELIVERY_PROFILE_BY_ID,
+      [userId],
+      mapUserDeliveryProfileRow,
+      client,
+    ),
+  );
 }

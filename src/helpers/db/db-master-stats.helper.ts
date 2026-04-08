@@ -9,8 +9,7 @@ import {
   SQL_GET_MASTER_PANEL_STATS_OVERVIEW,
   SQL_GET_MASTER_PANEL_STATS_TOP_SERVICES,
 } from '../db-sql/db-master-stats.sql.js';
-import { ValidationError, handleError } from '../../utils/error.utils.js';
-import { loggerDb } from '../../utils/logger/loggers-list.js';
+import { ValidationError } from '../../utils/error.utils.js';
 
 /**
  * @file db-master-stats.helper.ts
@@ -50,40 +49,28 @@ function mapTopServiceRow(row: MasterStatsTopServiceRow): MasterStatsTopServiceI
 export async function getMasterPanelStats(masterIdInput: string | number): Promise<MasterPanelStatsData> {
   const masterId = normalizeMasterId(masterIdInput);
 
-  try {
-    return await withTransaction(async (client) => {
-      const overview = await queryOne<MasterStatsOverviewRow, Omit<MasterPanelStatsData, 'topServices'>>(
-        SQL_GET_MASTER_PANEL_STATS_OVERVIEW,
-        [masterId],
-        mapOverviewRow,
-        client,
-      );
+  return await withTransaction(async (client) => {
+    const overview = await queryOne<MasterStatsOverviewRow, Omit<MasterPanelStatsData, 'topServices'>>(
+      SQL_GET_MASTER_PANEL_STATS_OVERVIEW,
+      [masterId],
+      mapOverviewRow,
+      client,
+    );
 
-      if (!overview) {
-        throw new ValidationError('Статистику майстра не знайдено');
-      }
+    if (!overview) {
+      throw new ValidationError('Статистику майстра не знайдено');
+    }
 
-      const topServices = await queryMany<MasterStatsTopServiceRow, MasterStatsTopServiceItem>(
-        SQL_GET_MASTER_PANEL_STATS_TOP_SERVICES,
-        [masterId],
-        mapTopServiceRow,
-        client,
-      );
+    const topServices = await queryMany<MasterStatsTopServiceRow, MasterStatsTopServiceItem>(
+      SQL_GET_MASTER_PANEL_STATS_TOP_SERVICES,
+      [masterId],
+      mapTopServiceRow,
+      client,
+    );
 
-      return {
-        ...overview,
-        topServices,
-      };
-    });
-  } catch (error) {
-    handleError({
-      logger: loggerDb,
-      scope: 'db-master-stats.helper',
-      action: 'Failed to load master panel stats',
-      error,
-      meta: { masterId },
-    });
-    throw error;
-  }
+    return {
+      ...overview,
+      topServices,
+    };
+  });
 }
-

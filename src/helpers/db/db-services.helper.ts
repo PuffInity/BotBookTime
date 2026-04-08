@@ -16,8 +16,7 @@ import { queryMany, queryOne, withTransaction } from '../db.helper.js';
 import { servicesRowToEntity } from '../../utils/mappers/services.mapp.js';
 import { serviceStepsRowToEntity } from '../../utils/mappers/serviceSteps.mapp.js';
 import { serviceGuaranteesRowToEntity } from '../../utils/mappers/serviceGuarantees.mapp.js';
-import { ValidationError, handleError } from '../../utils/error.utils.js';
-import { loggerDb } from '../../utils/logger/loggers-list.js';
+import { ValidationError } from '../../utils/error.utils.js';
 import {
   SQL_GET_ACTIVE_SERVICE_BY_ID,
   SQL_LIST_ACTIVE_SERVICES_CATALOG,
@@ -82,27 +81,16 @@ export async function listActiveServicesCatalog(
   const studioId = normalizeOptionalStudioId(input.studioId);
   const limit = normalizeCatalogLimit(input.limit);
 
-  try {
-    return await withTransaction(async (client) => {
-      const services = await queryMany<ServicesRow, ServicesEntity>(
-        SQL_LIST_ACTIVE_SERVICES_CATALOG,
-        [studioId, limit],
-        servicesRowToEntity,
-        client,
-      );
+  return await withTransaction(async (client) => {
+    const services = await queryMany<ServicesRow, ServicesEntity>(
+      SQL_LIST_ACTIVE_SERVICES_CATALOG,
+      [studioId, limit],
+      servicesRowToEntity,
+      client,
+    );
 
-      return services.map(toCatalogItem);
-    });
-  } catch (error) {
-    handleError({
-      logger: loggerDb,
-      scope: 'db-services.helper',
-      action: 'Failed to list active services catalog',
-      error,
-      meta: { studioId, limit },
-    });
-    throw error;
-  }
+    return services.map(toCatalogItem);
+  });
 }
 
 /**
@@ -114,48 +102,36 @@ export async function getServiceCatalogDetailsById(
   const serviceId = normalizePositiveBigintId(input.serviceId, 'serviceId');
   const studioId = normalizeOptionalStudioId(input.studioId);
 
-  try {
-    return await withTransaction(async (client) => {
-      const service = await queryOne<ServicesRow, ServicesEntity>(
-        SQL_GET_ACTIVE_SERVICE_BY_ID,
-        [serviceId, studioId],
-        servicesRowToEntity,
-        client,
-      );
+  return await withTransaction(async (client) => {
+    const service = await queryOne<ServicesRow, ServicesEntity>(
+      SQL_GET_ACTIVE_SERVICE_BY_ID,
+      [serviceId, studioId],
+      servicesRowToEntity,
+      client,
+    );
 
-      if (!service) {
-        return null;
-      }
+    if (!service) {
+      return null;
+    }
 
-      const steps = await queryMany<ServiceStepsRow, ServiceStepsEntity>(
-        SQL_LIST_SERVICE_STEPS_BY_SERVICE_ID,
-        [serviceId],
-        serviceStepsRowToEntity,
-        client,
-      );
+    const steps = await queryMany<ServiceStepsRow, ServiceStepsEntity>(
+      SQL_LIST_SERVICE_STEPS_BY_SERVICE_ID,
+      [serviceId],
+      serviceStepsRowToEntity,
+      client,
+    );
 
-      const guarantees = await queryMany<ServiceGuaranteesRow, ServiceGuaranteesEntity>(
-        SQL_LIST_SERVICE_GUARANTEES_BY_SERVICE_ID,
-        [serviceId],
-        serviceGuaranteesRowToEntity,
-        client,
-      );
+    const guarantees = await queryMany<ServiceGuaranteesRow, ServiceGuaranteesEntity>(
+      SQL_LIST_SERVICE_GUARANTEES_BY_SERVICE_ID,
+      [serviceId],
+      serviceGuaranteesRowToEntity,
+      client,
+    );
 
-      return {
-        service: toCatalogItem(service),
-        steps,
-        guarantees,
-      };
-    });
-  } catch (error) {
-    handleError({
-      logger: loggerDb,
-      scope: 'db-services.helper',
-      action: 'Failed to load service catalog details by id',
-      error,
-      meta: { serviceId, studioId },
-    });
-    throw error;
-  }
+    return {
+      service: toCatalogItem(service),
+      steps,
+      guarantees,
+    };
+  });
 }
-
