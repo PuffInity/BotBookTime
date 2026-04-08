@@ -101,16 +101,16 @@ export class Shutdown {
             await this.logger.flush?.()
             await this.logger.close?.()
         } catch (error) {
-            handleError({
-                logger: this.logger,
-                scope: "shutdown",
-                action: "Помилка під час закриття logger",
-                error,
-            })
+            console.error('[shutdown] Помилка під час закриття logger', error);
             // Якщо логер не закрився, це теж проблема
             process.exitCode = 1
         } finally {
             this.isStopping = false
+        }
+
+        // Для фатальних сигналів гарантуємо вихід після завершення shutdown
+        if (signal === 'uncaughtException' || signal === 'unhandledRejection') {
+            process.exit(process.exitCode || 1)
         }
     }
 }

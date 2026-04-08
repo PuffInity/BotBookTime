@@ -47,3 +47,10 @@ export function makeBookingTimeAction(timeCode: string): string {
 export function makeBookingMasterAction(masterId: string): string {
   return `${BOOKING_ACTION.OPEN_MASTER_PREFIX}${masterId}`;
 }
+
+export const BOOKING_ERROR_CODE = {
+  SERVICE_UNAVAILABLE: 'BOOKING_SERVICE_UNAVAILABLE',
+  TIME_UNAVAILABLE: 'BOOKING_TIME_UNAVAILABLE',
+  MASTER_UNAVAILABLE: 'BOOKING_MASTER_UNAVAILABLE',
+  SLOT_CONFLICT: 'BOOKING_SLOT_CONFLICT',
+} as const;

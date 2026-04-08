@@ -21,6 +21,7 @@ import {
   BOOKING_MASTER_ACTION_REGEX,
   BOOKING_SERVICE_ACTION_REGEX,
   BOOKING_TIME_ACTION_REGEX,
+  BOOKING_ERROR_CODE,
 } from '../../types/bot-booking.types.js';
 import type { ServicesCatalogItem } from '../../types/db-helpers/db-services.types.js';
 import type { MasterBookingOption } from '../../types/db-helpers/db-masters.types.js';
@@ -691,15 +692,15 @@ export function createBookingScene(): Scenes.WizardScene<MyContext> {
         throw error;
       }
 
-      const message = error.message.toLowerCase();
-      if (hasAnyKeyword(message, ['майстра', 'послуга', 'master', 'service'])) {
+      const code = error.metadata?.code;
+      if (code === BOOKING_ERROR_CODE.SERVICE_UNAVAILABLE || code === BOOKING_ERROR_CODE.MASTER_UNAVAILABLE) {
         ctx.wizard.selectStep(4);
         await ctx.reply(tBot(state.language, 'BOOKING_NO_MASTERS'));
         await renderMasterStep(ctx, false);
         return;
       }
 
-      if (hasAnyKeyword(message, ['час', 'слот', 'time', 'slot'])) {
+      if (code === BOOKING_ERROR_CODE.SLOT_CONFLICT) {
         ctx.wizard.selectStep(3);
         await ctx.reply(tBot(state.language, 'BOOKING_NO_SLOTS'));
         await renderTimeStep(ctx, false);

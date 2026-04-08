@@ -16,6 +16,7 @@ import type {
 } from '../../types/db-helpers/db-booking.types.js';
 import type { MasterBookingOption } from '../../types/db-helpers/db-masters.types.js';
 import type { ServicesCatalogItem } from '../../types/db-helpers/db-services.types.js';
+import { BOOKING_ERROR_CODE } from '../../types/bot-booking.types.js';
 import { appointmentsRowToEntity } from '../../utils/mappers/appointments.mapp.js';
 import { servicesRowToEntity } from '../../utils/mappers/services.mapp.js';
 import { executeOne, queryMany, queryOne, withTransaction } from '../db.helper.js';
@@ -284,6 +285,7 @@ export async function createPendingBooking(
 
       if (!meta) {
         throw new ValidationError('Послуга недоступна для обраного майстра', {
+          code: BOOKING_ERROR_CODE.SERVICE_UNAVAILABLE,
           studioId,
           serviceId,
           masterId,
@@ -304,6 +306,7 @@ export async function createPendingBooking(
 
       if (!scheduleAvailability?.is_available) {
         throw new ValidationError('Майстер недоступний на обраний час за графіком роботи', {
+          code: BOOKING_ERROR_CODE.MASTER_UNAVAILABLE,
           studioId,
           serviceId,
           masterId,
@@ -319,7 +322,9 @@ export async function createPendingBooking(
       );
 
       if (conflict?.has_conflict) {
-        throw new ValidationError('Обраний час вже зайнятий. Будь ласка, виберіть інший слот.');
+        throw new ValidationError('Обраний час вже зайнятий. Будь ласка, виберіть інший слот.', {
+          code: BOOKING_ERROR_CODE.SLOT_CONFLICT,
+        });
       }
 
       const appointment = await executeOne<AppointmentsRow, AppointmentsEntity>(
