@@ -1,6 +1,6 @@
 import {dbLogger, pool} from "../config/database.config.js";
 import {PoolClient, QueryResultRow} from "pg";
-import {handleError, NotFoundError} from "../utils/error.utils.js";
+import {handleError, DatabaseError} from "../utils/error.utils.js";
 
 /**
  * @file db.helper.ts
@@ -94,7 +94,7 @@ export async function executeOne<TRow extends QueryResultRow, TEntity> (
 ): Promise<TEntity> {
     const result = await client.query<TRow>(sql,[...params])
     if (result.rowCount === 0) {
-        throw new NotFoundError('executeOne: Очікує мінімум 1 рядок')
+        throw new DatabaseError('executeOne: Очікує мінімум 1 рядок', { sql, params })
     }
     return mapRow(result.rows[0])
 }

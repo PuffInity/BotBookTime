@@ -125,55 +125,51 @@ async function translateViaGoogleApi(input: {
     format: 'text',
   };
 
-  try {
-    let status = 500;
-    let payload: GoogleTranslationResponse | null = null;
+  let status = 500;
+  let payload: GoogleTranslationResponse | null = null;
 
-    if (typeof fetch === 'function') {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), input.timeoutMs);
-      try {
-        const response = await fetch(requestUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          signal: controller.signal,
-          body: JSON.stringify(requestBody),
-        });
-        status = response.status;
-        payload = (await response.json()) as GoogleTranslationResponse;
-      } finally {
-        clearTimeout(timer);
-      }
-    } else {
-      const response = await postJsonViaHttps(requestUrl, requestBody, input.timeoutMs);
+  if (typeof fetch === 'function') {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), input.timeoutMs);
+    try {
+      const response = await fetch(requestUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify(requestBody),
+      });
       status = response.status;
-      payload = response.payload;
-      if (!response.ok && !payload?.error) {
-        loggerTranslate.warn('[translate] Provider returned non-ok response', {
-          status,
-          providerErrorCode: undefined,
-          providerErrorStatus: undefined,
-        });
-        return null;
-      }
+      payload = (await response.json()) as GoogleTranslationResponse;
+    } finally {
+      clearTimeout(timer);
     }
-
-    if (status < 200 || status >= 300 || payload?.error) {
+  } else {
+    const response = await postJsonViaHttps(requestUrl, requestBody, input.timeoutMs);
+    status = response.status;
+    payload = response.payload;
+    if (!response.ok && !payload?.error) {
       loggerTranslate.warn('[translate] Provider returned non-ok response', {
         status,
-        providerErrorCode: payload?.error?.code,
-        providerErrorStatus: payload?.error?.status,
+        providerErrorCode: undefined,
+        providerErrorStatus: undefined,
       });
       return null;
     }
+  }
 
-    const translatedText = payload?.data?.translations?.[0]?.translatedText;
-    if (!translatedText || translatedText.trim().length === 0) return null;
-
-    return decodeHtmlEntities(translatedText);
-  } catch {
+  if (status < 200 || status >= 300 || payload?.error) {
+    loggerTranslate.warn('[translate] Provider returned non-ok response', {
+      status,
+      providerErrorCode: payload?.error?.code,
+      providerErrorStatus: payload?.error?.status,
+    });
     return null;
   }
+
+  const translatedText = payload?.data?.translations?.[0]?.translatedText;
+  if (!translatedText || translatedText.trim().length === 0) return null;
+
+  return decodeHtmlEntities(translatedText);
 }
 
 function asOriginal(text: string, status: RuntimeTranslateResult['status']): RuntimeTranslateResult {
