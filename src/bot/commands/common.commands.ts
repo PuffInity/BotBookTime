@@ -3,6 +3,7 @@ import { PROFILE_NAME_SCENE_ID } from '../scenes/profile-name.scene.js';
 import { PROFILE_LANGUAGE_SCENE_ID } from '../scenes/profile-language.scene.js';
 import { PROFILE_EMAIL_VERIFY_SCENE_ID } from '../scenes/profile-email-verify.scene.js';
 import { PROFILE_EMAIL_ADD_SCENE_ID } from '../scenes/profile-email-add.scene.js';
+import { PROFILE_PHONE_ADD_SCENE_ID } from '../scenes/profile-phone-add.scene.js';
 import { PROFILE_NOTIFICATION_SETTINGS_SCENE_ID } from '../scenes/profile-notification-settings.scene.js';
 import { MASTERS_SCENE_ID } from '../scenes/masters.scene.js';
 import { SERVICES_SCENE_ID } from '../scenes/services.scene.js';
@@ -29,7 +30,6 @@ import {
 import { canUseLanguageActions } from '../../helpers/bot/language-feature.bot.js';
 import {
   getEmailProfileActionTitle,
-  getPhoneProfileActionTitle,
   sendProfileCard,
   sendProfileFeatureStub,
 } from '../../helpers/bot/profile-view.bot.js';
@@ -284,9 +284,10 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     PROFILE_ACTION.EDIT_PHONE,
     asyncBotHandler(async (ctx) => {
       await ctx.answerCbQuery();
-      const user = await getOrCreateUser(ctx);
-      const language = resolveBotUiLanguage(user.preferredLanguage);
-      await sendProfileFeatureStub(ctx, getPhoneProfileActionTitle(user, language), language);
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+      await ctx.scene.enter(PROFILE_PHONE_ADD_SCENE_ID);
     }),
   );
 

@@ -58,6 +58,15 @@ export const SQL_UPDATE_USER_EMAIL_BY_TELEGRAM_ID = `
     ${APP_USERS_SELECT_COLUMNS}
 `;
 
+export const SQL_UPDATE_USER_PHONE_BY_TELEGRAM_ID = `
+  UPDATE app_users
+  SET phone_e164 = $2,
+      phone_verified_at = NULL
+  WHERE telegram_user_id = $1
+  RETURNING
+    ${APP_USERS_SELECT_COLUMNS}
+`;
+
 export const SQL_UPDATE_USER_LANGUAGE_BY_TELEGRAM_ID = `
   UPDATE app_users
   SET preferred_language = $2::language_code

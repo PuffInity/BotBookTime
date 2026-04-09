@@ -13,6 +13,7 @@ import type {
   UpdateUserEmailInput,
   UpdateUserLanguageInput,
   UpdateUserNameInput,
+  UpdateUserPhoneInput,
 } from '../../types/db-helpers/db-profile.types.js';
 import { appUsersRowToEntity, toInsertAppUsers } from '../../utils/mappers/appUsers.mapp.js';
 import { verificationCodesRowToEntity } from '../../utils/mappers/verificationCodes.mapp.js';
@@ -25,6 +26,7 @@ import {
   normalizeFirstName,
   normalizeProfileLanguage,
   normalizeProfileEmail,
+  normalizeProfilePhone,
   normalizeTelegramId,
 } from '../../utils/db/db-profile.js';
 import {
@@ -39,6 +41,7 @@ import {
   SQL_UPDATE_USER_EMAIL_BY_TELEGRAM_ID,
   SQL_UPDATE_USER_LANGUAGE_BY_TELEGRAM_ID,
   SQL_UPDATE_USER_NAME_BY_TELEGRAM_ID,
+  SQL_UPDATE_USER_PHONE_BY_TELEGRAM_ID,
 } from '../db-sql/db-profile.sql.js';
 
 /**
@@ -171,6 +174,34 @@ export async function updateUserEmailByTelegramId(data: UpdateUserEmailInput): P
       logger: loggerDb,
       scope: 'db-profile.helper',
       action: 'Failed to update user email',
+      error,
+      meta: { telegramUserId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Updates user phone by telegram id and resets phone verification mark.
+ */
+export async function updateUserPhoneByTelegramId(data: UpdateUserPhoneInput): Promise<AppUsersEntity> {
+  const telegramUserId = normalizeTelegramId(data.telegramId);
+  const phone = normalizeProfilePhone(data.phone);
+
+  try {
+    return await withTransaction(async (client) =>
+      executeOne<AppUsersRow, AppUsersEntity>(
+        SQL_UPDATE_USER_PHONE_BY_TELEGRAM_ID,
+        [telegramUserId, phone],
+        appUsersRowToEntity,
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-profile.helper',
+      action: 'Failed to update user phone',
       error,
       meta: { telegramUserId },
     });

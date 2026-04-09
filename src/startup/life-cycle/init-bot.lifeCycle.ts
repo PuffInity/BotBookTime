@@ -2,7 +2,7 @@ import {botConfig} from '../../validator/bot.schema.js';
 import {createBot} from '../../bot/createBot.js';
 import {createRedisSessionStore} from '../../helpers/bot/redis-session-store.bot.js';
 import type {AppInstance} from '../../types/bot.types.js';
-import {handleError} from "../../utils/error.utils.js";
+import {handleError, InternalServerError} from "../../utils/error.utils.js";
 
 import {RedisClient, SessionConfig} from '../../types/redis.types.js';
 import {loggerBotInit} from '../../utils/logger/loggers-list.js';
@@ -23,7 +23,7 @@ export function botInit(redis: RedisClient, config: SessionConfig): AppInstance 
         const initErrorMessage =
             '[bot] Redis не ініціалізовано перед запуском Telegram-бота';
         loggerBotInit.error(initErrorMessage);
-        throw new Error(initErrorMessage);
+        throw new InternalServerError(initErrorMessage);
     }
 
     loggerBotInit.info('[bot] Ініціалізація Telegram-бота розпочата')

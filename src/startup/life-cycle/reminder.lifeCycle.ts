@@ -5,6 +5,7 @@ import { handleError } from '../../utils/error.utils.js';
 import { loggerInitApp, loggerNotification } from '../../utils/logger/loggers-list.js';
 import { translateTextWithCache } from '../../helpers/translate/translate-provider.helper.js';
 import { resolveBotUiLanguage } from '../../helpers/bot/i18n.bot.js';
+import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 import { getUserDeliveryProfileById } from '../../helpers/db/db-notification-settings.helper.js';
 
 /**
@@ -18,15 +19,22 @@ const REMINDER_BATCH_LIMIT = 100;
 let timer: NodeJS.Timeout | null = null;
 let isRunningTick = false;
 
-async function getLocalizedSmsText(appointment: ReminderAppointment, hoursBefore: number, language: string): Promise<string> {
-  const baseText = `Reminder: Your visit to ${appointment.studioName} at ${appointment.appointment.startAt.toLocaleString()}`;
+async function getLocalizedSmsText(
+  appointment: ReminderAppointment,
+  hoursBefore: number,
+  language: BotUiLanguage,
+): Promise<string> {
+  const baseText =
+    `Нагадування: ваш візит до ${appointment.studioName} ` +
+    `о ${appointment.appointment.startAt.toLocaleString('uk-UA')}. ` +
+    `До початку приблизно ${hoursBefore} год.`;
 
   if (language === 'uk') return baseText;
 
   const translated = await translateTextWithCache({
     text: baseText,
     sourceLanguage: 'uk',
-    targetLanguage: language as any,
+    targetLanguage: language,
     scope: 'reminder-sms',
   });
 
@@ -54,7 +62,7 @@ async function sendReminderForAppointment(appointment: ReminderAppointment, hour
         studioName: appointment.studioName,
         serviceName: appointment.serviceName,
         startAt: appointment.appointment.startAt,
-        message: `Your visit is coming up in about ${hoursBefore} hours.`,
+        message: `Ваш візит розпочнеться приблизно через ${hoursBefore} год.`,
       },
       email: {
         template: 'reminder',

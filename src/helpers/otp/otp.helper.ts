@@ -20,7 +20,7 @@ import {
   saveEmailOtp,
   incrementOtpAttempts,
 } from '../db/db-profile.helper.js';
-import { handleError } from '../../utils/error.utils.js';
+import { handleError, ValidationError } from '../../utils/error.utils.js';
 import { loggerDb } from '../../utils/logger/loggers-list.js';
 
 /**
@@ -62,7 +62,7 @@ export function generateOTP(length = OTP_LENGTH): string {
  */
 export async function saveOTP(user: AppUsersEntity, code: string) {
   if (!user.email) {
-    throw new Error('Email is required to save OTP');
+    throw new ValidationError('Email is required to save OTP');
   }
 
   const expiresAt = new Date(Date.now() + OTP_EXPIRES_MINUTES * 60_000);

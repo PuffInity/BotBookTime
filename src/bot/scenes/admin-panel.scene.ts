@@ -1121,7 +1121,15 @@ async function renderRecordsMenu(ctx: MyContext): Promise<void> {
 
   try {
     await ctx.editMessageText(text, keyboard);
-  } catch {
+  } catch (error) {
+    handleError({
+      logger: loggerAdminPanel,
+      level: 'warn',
+      scope: 'admin-panel.scene',
+      action: 'Failed to edit message, sending new one',
+      error,
+      meta: {},
+    });
     await ctx.reply(text, keyboard);
   }
 }
@@ -1133,7 +1141,15 @@ async function renderScheduleMenu(ctx: MyContext): Promise<void> {
 
   try {
     await ctx.editMessageText(text, keyboard);
-  } catch {
+  } catch (error) {
+    handleError({
+      logger: loggerAdminPanel,
+      level: 'warn',
+      scope: 'admin-panel.scene',
+      action: 'Failed to edit message, sending new one',
+      error,
+      meta: {},
+    });
     await ctx.reply(text, keyboard);
   }
 }

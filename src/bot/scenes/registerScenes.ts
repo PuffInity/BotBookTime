@@ -4,6 +4,7 @@ import { createProfileNameScene } from './profile-name.scene.js';
 import { createProfileLanguageScene } from './profile-language.scene.js';
 import { createProfileEmailVerifyScene } from './profile-email-verify.scene.js';
 import { createProfileEmailAddScene } from './profile-email-add.scene.js';
+import { createProfilePhoneAddScene } from './profile-phone-add.scene.js';
 import { createProfileNotificationSettingsScene } from './profile-notification-settings.scene.js';
 import { createMastersScene } from './masters.scene.js';
 import { createServicesScene } from './services.scene.js';
@@ -23,6 +24,7 @@ export function createBotStage(): Scenes.Stage<MyContext> {
   const profileLanguageScene = createProfileLanguageScene();
   const profileEmailVerifyScene = createProfileEmailVerifyScene();
   const profileEmailAddScene = createProfileEmailAddScene();
+  const profilePhoneAddScene = createProfilePhoneAddScene();
   const profileNotificationSettingsScene = createProfileNotificationSettingsScene();
   const mastersScene = createMastersScene();
   const servicesScene = createServicesScene();
@@ -39,6 +41,7 @@ export function createBotStage(): Scenes.Stage<MyContext> {
     profileLanguageScene,
     profileEmailVerifyScene,
     profileEmailAddScene,
+    profilePhoneAddScene,
     profileNotificationSettingsScene,
     mastersScene,
     servicesScene,

@@ -5,7 +5,7 @@ import type {
 } from '../../types/db-helpers/db-profile.types.js';
 import type { LanguageCode } from '../../types/db/dbEnums.type.js';
 import { profileEmailSchema, telegramUserIdSchema } from '../../validator/bot-input.schema.js';
-import { bookingClientNameSchema } from '../../validator/booking-input.schema.js';
+import { bookingClientNameSchema, bookingClientPhoneSchema } from '../../validator/booking-input.schema.js';
 import { ValidationError } from '../error.utils.js';
 
 /**
@@ -78,6 +78,17 @@ export function normalizeProfileEmail(email: string): string {
   if (!parsed.success) {
     throw new ValidationError('Некоректний формат email', {
       email,
+      issues: parsed.error.issues,
+    });
+  }
+  return parsed.data;
+}
+
+export function normalizeProfilePhone(phone: string): string {
+  const parsed = bookingClientPhoneSchema.safeParse(phone);
+  if (!parsed.success) {
+    throw new ValidationError('Некоректний формат телефону', {
+      phone,
       issues: parsed.error.issues,
     });
   }

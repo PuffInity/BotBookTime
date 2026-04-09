@@ -402,23 +402,10 @@ function sanitizeValue(input: unknown): unknown {
     return result;
 }
 
-function getBotUserMessage(error: AppError, isProduction: boolean): string {
-    if (
-        error instanceof ExternalServiceError &&
-        error.metadata?.provider === "twilio" &&
-        error.metadata?.reason === "not_configured"
-    ) {
-        return "⚠️ Функція підтвердження номера телефону тимчасово недоступна. Спробуйте пізніше.";
-    }
-
+function getBotUserMessage(error: AppError): string {
     const code = String(error.code ?? ERROR_CODE.INTERNAL_SERVER_ERROR);
     const causeMessage = extractCauseMessage(error.cause);
-    const reason =
-        error.statusCode >= 500
-            ? isProduction
-                ? "Сталася внутрішня помилка. Спробуйте ще раз пізніше."
-                : causeMessage ?? error.message
-            : error.message;
+    const reason = causeMessage ?? error.message;
 
     return `⚠️ Помилка [${code}]\nПричина: ${reason}`;
 }
@@ -428,7 +415,7 @@ function getBotUserMessage(error: AppError, isProduction: boolean): string {
  */
 export function createTelegrafErrorHandler<C extends BotContextLike>({
     logger,
-    env = process.env.NODE_ENV ?? "development",
+    env: _env = process.env.NODE_ENV ?? "development",
     replyToUser = true,
     isPrivilegedUser,
     restrictedUserMessage = "⚠️ Ця дія недоступна. Звʼяжіться з адміністратором.",
@@ -439,8 +426,6 @@ export function createTelegrafErrorHandler<C extends BotContextLike>({
     isPrivilegedUser?: (ctx: C) => Promise<boolean>;
     restrictedUserMessage?: string | ((ctx: C, appError: AppError) => Promise<string> | string);
 }): BotCatchHandler<C> {
-    const isProduction = env === "production";
-
     return async (error: unknown, ctx: C): Promise<void> => {
         const appError = normalizeError(error);
 
@@ -489,7 +474,7 @@ export function createTelegrafErrorHandler<C extends BotContextLike>({
             }
 
             const userMessage = canSeeDetailedError
-                ? getBotUserMessage(appError, isProduction)
+                ? getBotUserMessage(appError)
                 : typeof restrictedUserMessage === "function"
                     ? await restrictedUserMessage(ctx, appError)
                     : restrictedUserMessage;

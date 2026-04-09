@@ -13,6 +13,7 @@ export const PROFILE_ACTION = {
   EMAIL_OTP_RESEND: 'profile:email-otp-resend',
   EMAIL_OTP_CANCEL: 'profile:email-otp-cancel',
   EDIT_PHONE: 'profile:edit-phone',
+  ADD_PHONE_CANCEL: 'profile:add-phone-cancel',
   EDIT_LANGUAGE: 'profile:edit-language',
   EDIT_LANGUAGE_SELECT_PREFIX: 'profile:edit-language:select:',
   BOOKING_STATUS: 'profile:booking-status',

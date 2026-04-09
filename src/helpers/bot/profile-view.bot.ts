@@ -179,6 +179,21 @@ export function createProfileEmailAddKeyboard(
 }
 
 /**
+ * @summary Inline-клавіатура для кроку додавання телефону.
+ */
+export function createProfilePhoneAddKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(tBot(language, 'PROFILE_BTN_CANCEL'), PROFILE_ACTION.ADD_PHONE_CANCEL),
+      Markup.button.callback(tBot(language, 'BACK_TO_PROFILE'), PROFILE_ACTION.OPEN),
+    ],
+    [Markup.button.callback(tBot(language, 'HOME'), COMMON_NAV_ACTION.HOME)],
+  ]);
+}
+
+/**
  * @summary Відправляє користувачу головний екран профілю.
  */
 export async function sendProfileCard(ctx: MyContext, user: AppUsersEntity): Promise<void> {
@@ -298,6 +313,48 @@ export async function sendProfileEmailAddCancelledMessage(
   language: BotUiLanguage = 'uk',
 ): Promise<void> {
   await ctx.reply(tBot(language, 'PROFILE_EMAIL_ADD_CANCELLED'), createProfileStubKeyboard(language));
+}
+
+export async function sendProfilePhoneAddPrompt(
+  ctx: MyContext,
+  language: BotUiLanguage = 'uk',
+): Promise<void> {
+  await ctx.reply(
+    tBot(language, 'PROFILE_PHONE_ADD_PROMPT'),
+    createProfilePhoneAddKeyboard(language),
+  );
+}
+
+export async function sendProfilePhoneValidationError(
+  ctx: MyContext,
+  language: BotUiLanguage = 'uk',
+): Promise<void> {
+  await ctx.reply(tBot(language, 'PROFILE_PHONE_INVALID'), createProfilePhoneAddKeyboard(language));
+}
+
+export async function sendProfilePhoneAlreadyUsedError(
+  ctx: MyContext,
+  language: BotUiLanguage = 'uk',
+): Promise<void> {
+  await ctx.reply(tBot(language, 'PROFILE_PHONE_ALREADY_USED'), createProfilePhoneAddKeyboard(language));
+}
+
+export async function sendProfilePhoneAddedMessage(
+  ctx: MyContext,
+  phone: string,
+  language: BotUiLanguage = 'uk',
+): Promise<void> {
+  await ctx.reply(
+    `${tBot(language, 'PROFILE_PHONE_ADDED_TITLE')}\n${tBot(language, 'PROFILE_PHONE_ADDED_VALUE')}: ${phone}\n\n${tBot(language, 'PROFILE_PHONE_ADDED_HINT')}`,
+    createProfileStubKeyboard(language),
+  );
+}
+
+export async function sendProfilePhoneAddCancelledMessage(
+  ctx: MyContext,
+  language: BotUiLanguage = 'uk',
+): Promise<void> {
+  await ctx.reply(tBot(language, 'PROFILE_PHONE_ADD_CANCELLED'), createProfileStubKeyboard(language));
 }
 
 export function formatProfileLanguagePromptText(

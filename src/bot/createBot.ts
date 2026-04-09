@@ -82,16 +82,33 @@ export function createBot(deps: BotDeps): Telegraf<MyContext> {
         const access = await getAdminPanelAccessByTelegramId(telegramId);
         return Boolean(access);
       },
-      restrictedUserMessage: async (ctx) => {
+      restrictedUserMessage: async (ctx, appError) => {
         const telegramId = ctx.from?.id;
-        if (!telegramId) return tBot(DEFAULT_BOT_UI_LANGUAGE, 'BOT_RESTRICTED_ERROR_MESSAGE');
+        if (!telegramId) {
+          return appError.code === 'EXTERNAL_SERVICE_ERROR' &&
+            appError.metadata?.provider === 'twilio' &&
+            appError.metadata?.reason === 'not_configured'
+            ? tBot(DEFAULT_BOT_UI_LANGUAGE, 'BOT_PHONE_VERIFY_UNAVAILABLE')
+            : tBot(DEFAULT_BOT_UI_LANGUAGE, 'BOT_RESTRICTED_ERROR_MESSAGE');
+        }
 
         try {
           const user = await getUserByTelegramId(telegramId);
           const language = resolveBotUiLanguage(user?.preferredLanguage);
+          if (
+            appError.code === 'EXTERNAL_SERVICE_ERROR' &&
+            appError.metadata?.provider === 'twilio' &&
+            appError.metadata?.reason === 'not_configured'
+          ) {
+            return tBot(language, 'BOT_PHONE_VERIFY_UNAVAILABLE');
+          }
           return tBot(language, 'BOT_RESTRICTED_ERROR_MESSAGE');
         } catch {
-          return tBot(DEFAULT_BOT_UI_LANGUAGE, 'BOT_RESTRICTED_ERROR_MESSAGE');
+          return appError.code === 'EXTERNAL_SERVICE_ERROR' &&
+            appError.metadata?.provider === 'twilio' &&
+            appError.metadata?.reason === 'not_configured'
+            ? tBot(DEFAULT_BOT_UI_LANGUAGE, 'BOT_PHONE_VERIFY_UNAVAILABLE')
+            : tBot(DEFAULT_BOT_UI_LANGUAGE, 'BOT_RESTRICTED_ERROR_MESSAGE');
         }
       },
     }),

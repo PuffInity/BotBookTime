@@ -2,10 +2,11 @@ import {ILogger} from "../utils/logger/types.logger.js";
 import {AppInstance} from "../types/bot.types.js";
 import {initRedis, redis} from "./life-cycle/redis.lifeCycle.js";
 import {initDb} from "./life-cycle/dataBase.lifeCycle.js";
-import {handleError} from "../utils/error.utils.js";
+import {handleError, InternalServerError} from "../utils/error.utils.js";
 import {redisConfig} from "../config/redis.config.js";
 import {RedisClient, SessionConfig} from "../types/redis.types.js";
 import {startBookingExpirationWorker} from "./life-cycle/booking-expiration.lifeCycle.js";
+import {startReminderWorker} from "./life-cycle/reminder.lifeCycle.js";
 
 /**
  * Фабрика створення `AppInstance` після отримання готового Redis-клієнта.
@@ -14,7 +15,7 @@ type CreateAppInstance = (redis: RedisClient, config: SessionConfig) => AppInsta
 
 /**
  * @file start.startup.ts
- * @summary Оркестратор старту застосунку (Redis -> PostgreSQL -> Telegram-бот -> booking-expiration worker).
+ * @summary Оркестратор старту застосунку (Redis -> PostgreSQL -> Telegram-бот -> booking-expiration worker -> reminder worker).
  */
 
 /**
@@ -72,6 +73,7 @@ export class StartApp {
      * 2) PostgreSQL
      * 3) Telegram-бот
      * 4) Booking-expiration worker
+     * 5) Reminder worker
      *
      * @returns Promise, який завершується після успішного старту.
      */
@@ -94,7 +96,7 @@ export class StartApp {
 
             if (!redis) {
                 this.logger.error('[startup] Redis не ініціалізовано, запуск зупинено')
-                throw new Error('[startup] Redis не ініціалізовано')
+                throw new InternalServerError('[startup] Redis не ініціалізовано')
             }
 
             await this.runStep('PostgreSQL', initDb)
@@ -103,11 +105,12 @@ export class StartApp {
             const app = this.app
 
             if (!app) {
-                throw new Error('[startup] AppInstance бота не створено, запуск зупинено')
+                throw new InternalServerError('[startup] AppInstance бота не створено, запуск зупинено')
             }
 
             await this.runStep('Telegram-Бот', () => app.start())
             await this.runStep('Booking-expiration-worker', startBookingExpirationWorker)
+            await this.runStep('Reminder-worker', startReminderWorker)
 
         } finally {
             this.starting = false
