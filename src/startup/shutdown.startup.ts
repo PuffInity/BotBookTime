@@ -3,6 +3,7 @@ import {AppInstance} from "../types/bot.types.js";
 import {redisShutdown} from "./life-cycle/redis.lifeCycle.js";
 import {shutDownDb} from "./life-cycle/dataBase.lifeCycle.js";
 import {stopBookingExpirationWorker} from "./life-cycle/booking-expiration.lifeCycle.js";
+import {stopReminderWorker} from "./life-cycle/reminder.lifeCycle.js";
 import {handleError} from "../utils/error.utils.js";
 
 /**
@@ -25,7 +26,8 @@ type getApp = () => AppInstance | null
  * 5) flush/close логера
  */
 export class Shutdown {
-    private isStopping: boolean = false
+    private shutdownPromise: Promise<void> | null = null
+    private isShuttingDown: boolean = false
 
     /**
      * @param logger Логер для shutdown-процесу.
@@ -45,7 +47,7 @@ export class Shutdown {
      */
     private async runStep(stepName: string, action:  () => Promise<void>) {
         try {
-         await action()
+          await action()
         }catch(error){
             handleError({
                 logger: this.logger,
@@ -64,12 +66,16 @@ export class Shutdown {
      * @returns Promise, який завершується після виконання всіх кроків shutdown.
      */
     async stop(signal: string) {
-        if (this.isStopping) {
-            this.logger.warn('[shutdown] Вимкнення вже виконується, повторний виклик проігноровано',{ signal })
-            return
+        if (this.isShuttingDown) {
+            this.logger.warn('[shutdown] Shutdown already in progress, ignoring', { signal })
+            return this.shutdownPromise!
         }
-        this.isStopping = true
+        this.isShuttingDown = true
+        this.shutdownPromise = this.performShutdown(signal)
+        return this.shutdownPromise
+    }
 
+    private async performShutdown(signal: string) {
         // Якщо сигнал є фатальною помилкою, гарантуємо exitCode = 1
         if (signal === 'uncaughtException' || signal === 'unhandledRejection') {
             process.exitCode = 1
@@ -86,14 +92,15 @@ export class Shutdown {
         }
 
         await this.runStep('Booking-expiration-worker', stopBookingExpirationWorker)
+        await this.runStep('Reminder-worker', stopReminderWorker)
         await this.runStep('PostgreSQL', shutDownDb)
         await this.runStep('Redis', redisShutdown)
 
         // Логуємо фінальний статус перед закриттям логера
-        if (process.exitCode === 0) {
+        if ((process.exitCode ?? 0) === 0) {
             this.logger.info('[shutdown] Завершення роботи виконано успішно', { signal })
         } else {
-            this.logger.warn('[shutdown] Завершення роботи виконано з помилками', { signal, exitCode: process.exitCode })
+            this.logger.warn('[shutdown] Завершення роботи виконано з помилками', { signal, exitCode: process.exitCode ?? 1 })
         }
 
         // Закриття логера
@@ -105,12 +112,8 @@ export class Shutdown {
             // Якщо логер не закрився, це теж проблема
             process.exitCode = 1
         } finally {
-            this.isStopping = false
-        }
-
-        // Для фатальних сигналів гарантуємо вихід після завершення shutdown
-        if (signal === 'uncaughtException' || signal === 'unhandledRejection') {
-            process.exit(process.exitCode || 1)
+            this.isShuttingDown = false
+            this.shutdownPromise = null
         }
     }
 }
