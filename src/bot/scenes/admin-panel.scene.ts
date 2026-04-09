@@ -1098,7 +1098,15 @@ async function renderAdminRoot(ctx: MyContext, preferEdit: boolean): Promise<voi
     try {
       await ctx.editMessageText(text, keyboard);
       return;
-    } catch {
+    } catch (error) {
+      handleError({
+        logger: loggerAdminPanel,
+        level: 'warn',
+        scope: 'admin-panel.scene',
+        action: 'Failed to edit message, sending new one',
+        error,
+        meta: {},
+      });
       // Якщо редагувати не вдалося — надсилаємо нове повідомлення.
     }
   }
