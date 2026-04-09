@@ -1,7 +1,15 @@
 import nodemailer, { type SendMailOptions, type Transporter } from "nodemailer";
-import { handleError } from "../utils/error.utils.js";
+import twilio from "twilio";
+import { ExternalServiceError, handleError } from "../utils/error.utils.js";
 import { loggerMailer } from "../utils/logger/loggers-list.js";
 import { defaultMailFrom, nodemailerConfig } from "../config/nodemailer.config.js";
+import {
+    isTwilioConfigured,
+    twilioAccountSid,
+    twilioAuthToken,
+    twilioMissingFields,
+    twilioPhoneNumber,
+} from "../config/twilio.config.js";
 import {
     bookingCreatedTemplate,
 } from "../emails/templates/bookingCreated.template.js";
@@ -324,14 +332,51 @@ export interface SmsSender {
     sendSms(input: { to: string; text: string }): Promise<void>;
 }
 
-class TodoSmsSender implements SmsSender {
-    async sendSms(_: { to: string; text: string }): Promise<void> {
-        // TODO: Інтегрувати реальний SMS-провайдер (Twilio / MessageBird / AWS SNS / інший).
-        throw new Error("SMS sender is not implemented yet.");
+export class TwilioSmsSender implements SmsSender {
+    private client: ReturnType<typeof twilio> | null = null;
+
+    private getClient(): ReturnType<typeof twilio> {
+        if (!isTwilioConfigured() || !twilioAccountSid || !twilioAuthToken || !twilioPhoneNumber) {
+            throw new ExternalServiceError(
+                "Phone verification is temporarily unavailable",
+                {
+                    provider: "twilio",
+                    reason: "not_configured",
+                    missingFields: twilioMissingFields,
+                },
+            );
+        }
+
+        if (!this.client) {
+            this.client = twilio(twilioAccountSid, twilioAuthToken);
+        }
+
+        return this.client;
+    }
+
+    async sendSms(input: { to: string; text: string }): Promise<void> {
+        try {
+            const client = this.getClient();
+            await client.messages.create({
+                body: input.text,
+                from: twilioPhoneNumber ?? undefined,
+                to: input.to,
+            });
+            loggerMailer.info("[sms] SMS sent", { to: input.to });
+        } catch (error) {
+            handleError({
+                logger: loggerMailer,
+                scope: "sms",
+                action: "sendSms failed",
+                error,
+                meta: { to: input.to },
+            });
+            throw error;
+        }
     }
 }
 
-let smsSender: SmsSender = new TodoSmsSender();
+let smsSender: SmsSender = new TwilioSmsSender();
 
 /**
  * @summary Дозволяє підмінити SMS sender на реальну реалізацію.
@@ -342,7 +387,7 @@ export const setSmsSender = (sender: SmsSender): void => {
 };
 
 /**
- * @summary Заглушка для OTP через SMS (з resend-limit і TODO на провайдера).
+ * @summary Відправляє OTP через SMS з перевіркою resend-limit.
  * @param {SendOtpSmsInput} input - Дані OTP.
  * @returns {Promise<void>}
  */

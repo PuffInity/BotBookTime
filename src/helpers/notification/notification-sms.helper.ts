@@ -1,8 +1,9 @@
-import { ExternalServiceError, ValidationError } from '../../utils/error.utils.js';
+import { ValidationError } from '../../utils/error.utils.js';
+import { TwilioSmsSender } from '../mailer.helper.js';
 
 /**
  * @file notification-sms.helper.ts
- * @summary Канал SMS-сповіщень. Поки що працює через заглушку sender-а.
+ * @summary Канал SMS-сповіщень. Використовує Twilio для відправки.
  */
 
 export type SendSmsNotificationInput = {
@@ -12,15 +13,10 @@ export type SendSmsNotificationInput = {
 
 export type SmsNotificationSender = (input: SendSmsNotificationInput) => Promise<void>;
 
-class TodoSmsNotificationSender {
-  async send(_: SendSmsNotificationInput): Promise<void> {
-    // TODO: Підключити production SMS provider (Twilio / MessageBird / AWS SNS).
-    throw new ExternalServiceError('SMS sender is not implemented yet');
-  }
-}
+const twilioSender = new TwilioSmsSender();
 
 let smsNotificationSender: SmsNotificationSender = async (input) => {
-  await new TodoSmsNotificationSender().send(input);
+  await twilioSender.sendSms({ to: input.phoneE164, text: input.text });
 };
 
 /**

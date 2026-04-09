@@ -403,6 +403,14 @@ function sanitizeValue(input: unknown): unknown {
 }
 
 function getBotUserMessage(error: AppError, isProduction: boolean): string {
+    if (
+        error instanceof ExternalServiceError &&
+        error.metadata?.provider === "twilio" &&
+        error.metadata?.reason === "not_configured"
+    ) {
+        return "⚠️ Функція підтвердження номера телефону тимчасово недоступна. Спробуйте пізніше.";
+    }
+
     const code = String(error.code ?? ERROR_CODE.INTERNAL_SERVER_ERROR);
     const causeMessage = extractCauseMessage(error.cause);
     const reason =
