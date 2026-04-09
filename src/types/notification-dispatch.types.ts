@@ -39,6 +39,7 @@ export type DispatchNotificationPolicyInput = {
   profile: UserDeliveryProfile;
   wantsEmail: boolean;
   wantsSms: boolean;
+  smsChannelAvailable?: boolean;
 };
 
 export type DispatchPolicyChannel = {

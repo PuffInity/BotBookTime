@@ -23,6 +23,7 @@ import { resolveBotUiLanguage } from '../bot/i18n.bot.js';
 import { translateTextWithCache } from '../translate/translate-provider.helper.js';
 import type { LanguageCode } from '../../types/db/dbEnums.type.js';
 import type { NotificationEmailPayload } from '../../types/notification-dispatch.types.js';
+import { isTwilioConfigured } from '../../config/twilio.config.js';
 
 /**
  * @file notification-dispatch.helper.ts
@@ -197,6 +198,7 @@ export async function dispatchNotification(
     profile,
     wantsEmail: Boolean(input.email),
     wantsSms: Boolean(input.smsText),
+    smsChannelAvailable: isTwilioConfigured(),
   });
 
   if (!policy.enabled) {

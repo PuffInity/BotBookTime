@@ -28,6 +28,7 @@ export function buildNotificationDispatchPolicy(
 
   const hasVerifiedEmail = Boolean(input.profile.email && input.profile.emailVerifiedAt);
   const hasVerifiedPhone = Boolean(input.profile.phoneE164 && input.profile.phoneVerifiedAt);
+  const smsChannelAvailable = input.smsChannelAvailable ?? true;
 
   return {
     enabled: true,
@@ -41,7 +42,9 @@ export function buildNotificationDispatchPolicy(
           }
       : { allowed: false, reason: 'email_payload_missing' },
     sms: input.wantsSms
-      ? hasVerifiedPhone
+      ? !smsChannelAvailable
+        ? { allowed: false, reason: 'sms_channel_unavailable' }
+        : hasVerifiedPhone
         ? { allowed: true }
         : {
             allowed: false,
