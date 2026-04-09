@@ -1,0 +1,183 @@
+import { getStudioReminderSettings, listUpcomingConfirmedAppointmentsForReminder, getAllActiveStudioIds, type ReminderAppointment } from '../../helpers/db/db-reminder.helper.js';
+import { isReminderSent, markReminderSent } from '../../helpers/redis/redis-reminder.helper.js';
+import { dispatchNotification } from '../../helpers/notification/notification-dispatch.helper.js';
+import { handleError } from '../../utils/error.utils.js';
+import { loggerInitApp, loggerNotification } from '../../utils/logger/loggers-list.js';
+import { translateTextWithCache } from '../../helpers/translate/translate-provider.helper.js';
+import { resolveBotUiLanguage } from '../../helpers/bot/i18n.bot.js';
+import { getUserDeliveryProfileById } from '../../helpers/db/db-notification-settings.helper.js';
+
+/**
+ * @file reminder.lifeCycle.ts
+ * @summary Lifecycle worker для автоматичних нагадувань про візити.
+ */
+
+const REMINDER_CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+const REMINDER_BATCH_LIMIT = 100;
+
+let timer: NodeJS.Timeout | null = null;
+let isRunningTick = false;
+
+async function getLocalizedSmsText(appointment: ReminderAppointment, hoursBefore: number, language: string): Promise<string> {
+  const baseText = `Reminder: Your visit to ${appointment.studioName} at ${appointment.appointment.startAt.toLocaleString()}`;
+
+  if (language === 'uk') return baseText;
+
+  const translated = await translateTextWithCache({
+    text: baseText,
+    sourceLanguage: 'uk',
+    targetLanguage: language as any,
+    scope: 'reminder-sms',
+  });
+
+  return translated.text;
+}
+
+async function sendReminderForAppointment(appointment: ReminderAppointment, hoursBefore: number): Promise<void> {
+  const userId = appointment.appointment.clientId;
+
+  try {
+    const profile = await getUserDeliveryProfileById(userId);
+    if (!profile) {
+      loggerNotification.warn('[reminder] No delivery profile for user', { userId, appointmentId: appointment.appointment.id });
+      return;
+    }
+
+    const language = resolveBotUiLanguage(profile.preferredLanguage);
+    const smsText = await getLocalizedSmsText(appointment, hoursBefore, language);
+
+    const dispatchResult = await dispatchNotification({
+      userId,
+      notificationType: 'visit_reminder',
+      appointmentId: appointment.appointment.id,
+      textPayload: {
+        studioName: appointment.studioName,
+        serviceName: appointment.serviceName,
+        startAt: appointment.appointment.startAt,
+        message: `Your visit is coming up in about ${hoursBefore} hours.`,
+      },
+      email: {
+        template: 'reminder',
+        data: {
+          recipientName: appointment.attendeeName || undefined,
+          bookingId: appointment.appointment.id,
+          studioName: appointment.studioName,
+          serviceName: appointment.serviceName,
+          masterName: appointment.masterDisplayName,
+          startAt: appointment.appointment.startAt,
+          hoursBefore,
+        },
+      },
+      smsText,
+      metadata: { source: 'reminder-worker' },
+    });
+
+    loggerNotification.info('[reminder] Reminder sent', {
+      appointmentId: appointment.appointment.id,
+      userId,
+      channels: dispatchResult.channels,
+    });
+
+    await markReminderSent({
+      appointmentId: appointment.appointment.id,
+      startAt: appointment.appointment.startAt,
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerNotification,
+      level: 'warn',
+      scope: 'reminder.lifeCycle',
+      action: 'Failed to send reminder for appointment',
+      error,
+      meta: { appointmentId: appointment.appointment.id, userId },
+    });
+  }
+}
+
+async function runReminderTick(): Promise<void> {
+  if (isRunningTick) {
+    loggerInitApp.warn('[reminder] Previous tick still running, new one skipped');
+    return;
+  }
+
+  isRunningTick = true;
+
+  try {
+    const studioIds = await getAllActiveStudioIds();
+
+    for (const studioId of studioIds) {
+      try {
+        const settings = await getStudioReminderSettings(studioId);
+        const appointments = await listUpcomingConfirmedAppointmentsForReminder(studioId, settings.reminderBeforeHours);
+
+        if (appointments.length === 0) continue;
+
+        loggerInitApp.info('[reminder] Found upcoming appointments for reminder', {
+          studioId,
+          count: appointments.length,
+          reminderBeforeHours: settings.reminderBeforeHours,
+        });
+
+        for (const appointment of appointments) {
+          const alreadySent = await isReminderSent(appointment.appointment.id);
+          if (alreadySent) continue;
+
+          await sendReminderForAppointment(appointment, settings.reminderBeforeHours);
+        }
+      } catch (error) {
+        handleError({
+          logger: loggerInitApp,
+          scope: 'reminder.lifeCycle',
+          action: 'Failed to process reminders for studio',
+          error,
+          meta: { studioId },
+        });
+      }
+    }
+  } finally {
+    isRunningTick = false;
+  }
+}
+
+/**
+ * @summary Запускає фоновий worker перевірки нагадувань про візити.
+ */
+export async function startReminderWorker(): Promise<void> {
+  if (timer) {
+    loggerInitApp.warn('[reminder] Worker already running, restart ignored');
+    return;
+  }
+
+  loggerInitApp.info('[reminder] Starting reminder worker');
+
+  await runReminderTick();
+
+  timer = setInterval(async () => {
+    try {
+      await runReminderTick();
+    } catch (error) {
+      handleError({
+        logger: loggerInitApp,
+        scope: 'reminder.lifeCycle',
+        action: 'Unhandled worker tick error',
+        error,
+      });
+    }
+  }, REMINDER_CHECK_INTERVAL_MS);
+
+  timer.unref?.();
+}
+
+/**
+ * @summary Зупиняє фоновий worker перевірки нагадувань про візити.
+ */
+export async function stopReminderWorker(): Promise<void> {
+  if (!timer) {
+    loggerInitApp.info('[reminder] Worker not running, stop ignored');
+    return;
+  }
+
+  clearInterval(timer);
+  timer = null;
+  loggerInitApp.info('[reminder] Reminder worker stopped');
+}
