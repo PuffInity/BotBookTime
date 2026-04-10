@@ -3,6 +3,11 @@ import { queryMany, withTransaction } from '../db.helper.js';
 import { ValidationError, handleError } from '../../utils/error.utils.js';
 import { loggerDb } from '../../utils/logger/loggers-list.js';
 import { SQL_GET_STUDIO_REMINDER_SETTINGS, SQL_LIST_UPCOMING_CONFIRMED_APPOINTMENTS_FOR_REMINDER } from '../db-sql/db-reminder.sql.js';
+import type {
+  ActiveStudioIdRow,
+  ReminderAppointmentRow,
+  StudioReminderSettingsRow,
+} from '../../types/db-helpers/db-reminder.types.js';
 
 /**
  * @file db-reminder.helper.ts
@@ -35,7 +40,7 @@ export async function getStudioReminderSettings(studioId: string): Promise<Studi
 
   try {
     return await withTransaction(async (client) => {
-      const rows = await queryMany<any, StudioReminderSettings>(
+      const rows = await queryMany<StudioReminderSettingsRow, StudioReminderSettings>(
         SQL_GET_STUDIO_REMINDER_SETTINGS,
         [normalizedStudioId],
         (row) => ({
@@ -83,7 +88,7 @@ export async function listUpcomingConfirmedAppointmentsForReminder(
       const now = new Date();
       const reminderWindowEnd = new Date(now.getTime() + reminderBeforeHours * 60 * 60 * 1000);
 
-      return await queryMany<any, ReminderAppointment>(
+      return await queryMany<ReminderAppointmentRow, ReminderAppointment>(
         SQL_LIST_UPCOMING_CONFIRMED_APPOINTMENTS_FOR_REMINDER,
         [normalizedStudioId, now.toISOString(), reminderWindowEnd.toISOString()],
         (row) => ({
@@ -147,7 +152,7 @@ export async function listUpcomingConfirmedAppointmentsForReminder(
 export async function getAllActiveStudioIds(): Promise<string[]> {
   try {
     return await withTransaction(async (client) => {
-      const rows = await queryMany<any, string>(
+      const rows = await queryMany<ActiveStudioIdRow, string>(
         `
           SELECT DISTINCT sgs.studio_id
           FROM studio_global_settings sgs

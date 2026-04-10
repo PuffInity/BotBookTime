@@ -30,9 +30,7 @@ import {
 } from '../../types/bot-profile.types.js';
 import { canUseLanguageActions } from '../../helpers/bot/language-feature.bot.js';
 import {
-  getEmailProfileActionTitle,
   sendProfileCard,
-  sendProfileFeatureStub,
 } from '../../helpers/bot/profile-view.bot.js';
 import {
   cancelProfileBookingById,
@@ -258,16 +256,10 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     PROFILE_ACTION.EDIT_EMAIL,
     asyncBotHandler(async (ctx) => {
       await ctx.answerCbQuery();
-      const user = await getOrCreateUser(ctx);
-      if (!user.email) {
-        if (ctx.scene.current) {
-          await ctx.scene.leave();
-        }
-        await ctx.scene.enter(PROFILE_EMAIL_ADD_SCENE_ID);
-        return;
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
       }
-      const language = resolveBotUiLanguage(user.preferredLanguage);
-      await sendProfileFeatureStub(ctx, getEmailProfileActionTitle(user, language), language);
+      await ctx.scene.enter(PROFILE_EMAIL_ADD_SCENE_ID);
     }),
   );
 
