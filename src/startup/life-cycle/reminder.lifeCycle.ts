@@ -14,7 +14,6 @@ import { getUserDeliveryProfileById } from '../../helpers/db/db-notification-set
  */
 
 const REMINDER_CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
-const REMINDER_BATCH_LIMIT = 100;
 
 let timer: NodeJS.Timeout | null = null;
 let isRunningTick = false;

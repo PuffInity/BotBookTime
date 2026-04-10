@@ -23,10 +23,6 @@ function getNumberBadge(index: number): string {
   return NUMBER_BADGES[index] ?? `${index + 1}.`;
 }
 
-function getMinutesUnit(language: BotUiLanguage): string {
-  return language === 'uk' ? 'хв' : 'min';
-}
-
 function formatPrice(price: string, currencyCode: string): string {
   const normalizedPrice = price
     .replace(/[.,]00$/, '')

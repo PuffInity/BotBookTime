@@ -190,10 +190,6 @@ function isPhoneStepRequired(state: BookingSceneState): boolean {
   return !state.profilePhone || !state.isProfilePhoneVerified;
 }
 
-function hasAnyKeyword(message: string, keywords: string[]): boolean {
-  return keywords.some((keyword) => message.includes(keyword));
-}
-
 async function renderView(
   ctx: MyContext,
   text: string,

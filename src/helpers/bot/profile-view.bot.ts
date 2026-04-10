@@ -233,21 +233,6 @@ export async function sendProfileCard(ctx: MyContext, user: AppUsersEntity): Pro
   await ctx.reply(formatProfileCardText(user), createProfileInlineKeyboard(user));
 }
 
-/**
- * @summary Універсальна заглушка для дій у розділі профілю.
- */
-export async function sendProfileFeatureStub(
-  ctx: MyContext,
-  featureTitle: string,
-  language: BotUiLanguage = 'uk',
-): Promise<void> {
-  await ctx.reply(
-    `🛠 ${featureTitle}\n` +
-      tBot(language, 'PROFILE_STUB_BODY'),
-    createProfileStubKeyboard(language),
-  );
-}
-
 export async function sendProfileNameBlockedMessage(
   ctx: MyContext,
   language: BotUiLanguage = 'uk',

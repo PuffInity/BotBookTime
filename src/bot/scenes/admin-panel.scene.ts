@@ -15,7 +15,6 @@ import type {
 import type { MasterOwnProfileServiceManageItem } from '../../types/db-helpers/db-master-profile.types.js';
 import type { AdminMasterCreateScheduleDayInput } from '../../types/db-helpers/db-admin-masters.types.js';
 import type {
-  ServicesCatalogDetails,
   ServicesCatalogItem,
 } from '../../types/db-helpers/db-services.types.js';
 import type { AdminPanelStatsOverview } from '../../types/db-helpers/db-admin-stats.types.js';
