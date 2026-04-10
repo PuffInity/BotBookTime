@@ -7,6 +7,7 @@ import {redisConfig} from "../config/redis.config.js";
 import {RedisClient, SessionConfig} from "../types/redis.types.js";
 import {startBookingExpirationWorker} from "./life-cycle/booking-expiration.lifeCycle.js";
 import {startReminderWorker} from "./life-cycle/reminder.lifeCycle.js";
+import { isTwilioConfigured, twilioMissingFields } from "../config/twilio.config.js";
 
 /**
  * Фабрика створення `AppInstance` після отримання готового Redis-клієнта.
@@ -89,6 +90,11 @@ export class StartApp {
         }
         this.starting = true
         this.logger.info('[startup] Запуск застосунку розпочато')
+        if (!isTwilioConfigured()) {
+            this.logger.warn('[startup] Twilio не налаштовано: підтвердження телефону через SMS тимчасово недоступне', {
+                missingFields: twilioMissingFields,
+            })
+        }
 
 
         try {

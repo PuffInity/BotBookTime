@@ -32,12 +32,16 @@ import {
 import {
   SQL_CREATE_USER,
   SQL_CONSUME_ACTIVE_EMAIL_VERIFY_OTPS,
+  SQL_CONSUME_ACTIVE_PHONE_VERIFY_OTPS,
   SQL_CONSUME_OTP_BY_ID,
   SQL_GET_USER_BY_TELEGRAM_ID,
   SQL_GET_ACTIVE_EMAIL_VERIFY_OTP,
+  SQL_GET_ACTIVE_PHONE_VERIFY_OTP,
   SQL_INCREMENT_OTP_ATTEMPTS_BY_ID,
   SQL_INSERT_EMAIL_VERIFY_OTP,
+  SQL_INSERT_PHONE_VERIFY_OTP,
   SQL_MARK_EMAIL_VERIFIED_BY_USER_ID,
+  SQL_MARK_PHONE_VERIFIED_BY_USER_ID,
   SQL_UPDATE_USER_EMAIL_BY_TELEGRAM_ID,
   SQL_UPDATE_USER_LANGUAGE_BY_TELEGRAM_ID,
   SQL_UPDATE_USER_NAME_BY_TELEGRAM_ID,
@@ -269,6 +273,35 @@ export async function saveEmailOtp(data: SaveEmailOtpInput): Promise<Verificatio
 }
 
 /**
+ * @summary Saves a fresh phone OTP and deactivates previous active OTPs for this user+phone.
+ */
+export async function savePhoneOtp(data: SaveEmailOtpInput): Promise<VerificationCodesEntity> {
+  const maxAttempts = data.maxAttempts ?? 3;
+
+  try {
+    return await withTransaction(async (client) => {
+      await executeVoid(SQL_CONSUME_ACTIVE_PHONE_VERIFY_OTPS, [data.userId, data.destination], client);
+
+      return executeOne<VerificationCodesRow, VerificationCodesEntity>(
+        SQL_INSERT_PHONE_VERIFY_OTP,
+        [data.userId, data.destination, data.codeHash, maxAttempts, data.expiresAt],
+        verificationCodesRowToEntity,
+        client,
+      );
+    });
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-profile.helper',
+      action: 'Failed to save phone OTP',
+      error,
+      meta: { userId: data.userId },
+    });
+    throw error;
+  }
+}
+
+/**
  * @summary Reads active email OTP for user+email.
  */
 export async function getActiveEmailOtp(
@@ -289,6 +322,34 @@ export async function getActiveEmailOtp(
       logger: loggerDb,
       scope: 'db-profile.helper',
       action: 'Failed to load active email OTP',
+      error,
+      meta: { userId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Reads active phone OTP for user+phone.
+ */
+export async function getActivePhoneOtp(
+  userId: string,
+  destination: string,
+): Promise<VerificationCodesEntity | null> {
+  try {
+    return await withTransaction(async (client) =>
+      queryOne<VerificationCodesRow, VerificationCodesEntity>(
+        SQL_GET_ACTIVE_PHONE_VERIFY_OTP,
+        [userId, destination],
+        verificationCodesRowToEntity,
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-profile.helper',
+      action: 'Failed to load active phone OTP',
       error,
       meta: { userId },
     });
@@ -364,6 +425,31 @@ export async function markEmailVerified(userId: string, destination: string): Pr
       logger: loggerDb,
       scope: 'db-profile.helper',
       action: 'Failed to mark email verified',
+      error,
+      meta: { userId },
+    });
+    throw error;
+  }
+}
+
+/**
+ * @summary Marks app user phone as verified. Returns updated user or null when already verified.
+ */
+export async function markPhoneVerified(userId: string, destination: string): Promise<AppUsersEntity | null> {
+  try {
+    return await withTransaction(async (client) =>
+      queryOne<AppUsersRow, AppUsersEntity>(
+        SQL_MARK_PHONE_VERIFIED_BY_USER_ID,
+        [userId, destination],
+        appUsersRowToEntity,
+        client,
+      ),
+    );
+  } catch (error) {
+    handleError({
+      logger: loggerDb,
+      scope: 'db-profile.helper',
+      action: 'Failed to mark phone verified',
       error,
       meta: { userId },
     });

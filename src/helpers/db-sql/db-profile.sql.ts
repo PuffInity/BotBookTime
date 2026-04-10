@@ -100,6 +100,16 @@ export const SQL_CONSUME_ACTIVE_EMAIL_VERIFY_OTPS = `
     AND consumed_at IS NULL
 `;
 
+export const SQL_CONSUME_ACTIVE_PHONE_VERIFY_OTPS = `
+  UPDATE verification_codes
+  SET consumed_at = LEAST(now(), expires_at)
+  WHERE user_id = $1
+    AND channel = 'sms'
+    AND purpose = 'phone_verify'
+    AND destination = $2
+    AND consumed_at IS NULL
+`;
+
 export const SQL_INSERT_EMAIL_VERIFY_OTP = `
   INSERT INTO verification_codes (
     user_id,
@@ -116,6 +126,22 @@ export const SQL_INSERT_EMAIL_VERIFY_OTP = `
     ${VERIFICATION_CODES_SELECT_COLUMNS}
 `;
 
+export const SQL_INSERT_PHONE_VERIFY_OTP = `
+  INSERT INTO verification_codes (
+    user_id,
+    channel,
+    purpose,
+    destination,
+    code_hash,
+    attempts_used,
+    max_attempts,
+    expires_at
+  )
+  VALUES ($1, 'sms', 'phone_verify', $2, $3, 0, $4, $5)
+  RETURNING
+    ${VERIFICATION_CODES_SELECT_COLUMNS}
+`;
+
 export const SQL_GET_ACTIVE_EMAIL_VERIFY_OTP = `
   SELECT
     ${VERIFICATION_CODES_SELECT_COLUMNS}
@@ -123,6 +149,19 @@ export const SQL_GET_ACTIVE_EMAIL_VERIFY_OTP = `
   WHERE user_id = $1
     AND channel = 'email'
     AND purpose = 'email_verify'
+    AND destination = $2
+    AND consumed_at IS NULL
+  ORDER BY created_at DESC
+  LIMIT 1
+`;
+
+export const SQL_GET_ACTIVE_PHONE_VERIFY_OTP = `
+  SELECT
+    ${VERIFICATION_CODES_SELECT_COLUMNS}
+  FROM verification_codes
+  WHERE user_id = $1
+    AND channel = 'sms'
+    AND purpose = 'phone_verify'
     AND destination = $2
     AND consumed_at IS NULL
   ORDER BY created_at DESC
@@ -151,6 +190,16 @@ export const SQL_MARK_EMAIL_VERIFIED_BY_USER_ID = `
   WHERE id = $1
     AND email = $2
     AND email_verified_at IS NULL
+  RETURNING
+    ${APP_USERS_SELECT_COLUMNS}
+`;
+
+export const SQL_MARK_PHONE_VERIFIED_BY_USER_ID = `
+  UPDATE app_users
+  SET phone_verified_at = now()
+  WHERE id = $1
+    AND phone_e164 = $2
+    AND phone_verified_at IS NULL
   RETURNING
     ${APP_USERS_SELECT_COLUMNS}
 `;

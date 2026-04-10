@@ -50,6 +50,11 @@ export type VerifyEmailOtpInput = {
   code: string;
 };
 
+export type VerifyPhoneOtpInput = {
+  telegramId: number | string;
+  code: string;
+};
+
 export type VerifyEmailOtpStatus =
   | 'VERIFIED'
   | 'INVALID'
@@ -58,3 +63,15 @@ export type VerifyEmailOtpStatus =
   | 'NO_ACTIVE_OTP'
   | 'ALREADY_VERIFIED'
   | 'EMAIL_MISSING';
+
+export type VerifyPhoneOtpStatus =
+  | 'VERIFIED'
+  | 'INVALID'
+  | 'EXPIRED'
+  | 'BLOCKED'
+  | 'NO_ACTIVE_OTP'
+  | 'ALREADY_VERIFIED'
+  | 'PHONE_MISSING'
+  | 'SMS_NOT_CONFIGURED'
+  | 'SEND_FAILED'
+  | 'RESEND_LIMIT';

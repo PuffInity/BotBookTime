@@ -9,6 +9,7 @@ import {
 } from '../../types/bot-profile.types.js';
 import { getLanguageLabel, resolveBotUiLanguage, tBot } from './i18n.bot.js';
 import type { BotUiLanguage } from './i18n.bot.js';
+import { isTwilioConfigured } from '../../config/twilio.config.js';
 
 /**
  * @file profile-view.bot.ts
@@ -62,8 +63,13 @@ export function formatProfileCardText(user: AppUsersEntity): string {
     : tBot(language, 'PROFILE_BOOKING_RESTRICTED');
   const hasPhoneValue = hasPhone(user);
   const hasEmailValue = hasEmail(user);
+  const isPhoneVerifyAvailable = isTwilioConfigured();
+  const phoneVerificationLabel =
+    hasPhoneValue && !user.phoneVerifiedAt && !isPhoneVerifyAvailable
+      ? tBot(language, 'PROFILE_PHONE_NOT_VERIFIED_UNAVAILABLE')
+      : getVerificationLabel(user.phoneVerifiedAt, language);
   const phoneVerificationLine = hasPhoneValue
-    ? `${getVerificationLabel(user.phoneVerifiedAt, language)}\n\n`
+    ? `${phoneVerificationLabel}\n\n`
     : '\n\n';
   const emailVerificationLine = hasEmailValue
     ? `${getVerificationLabel(user.emailVerifiedAt, language)}\n\n`
@@ -106,6 +112,15 @@ export function createProfileInlineKeyboard(
   if (hasEmail(user) && !user.emailVerifiedAt) {
     profileRows.push([
       Markup.button.callback(tBot(language, 'PROFILE_VERIFY_EMAIL'), PROFILE_ACTION.VERIFY_EMAIL),
+    ]);
+  }
+
+  if (hasPhone(user) && !user.phoneVerifiedAt) {
+    const verifyPhoneLabel = isTwilioConfigured()
+      ? tBot(language, 'PROFILE_VERIFY_PHONE')
+      : tBot(language, 'PROFILE_VERIFY_PHONE_DISABLED');
+    profileRows.push([
+      Markup.button.callback(verifyPhoneLabel, PROFILE_ACTION.VERIFY_PHONE),
     ]);
   }
 
@@ -155,6 +170,24 @@ export function createProfileEmailOtpKeyboard(
     [
       Markup.button.callback(tBot(language, 'PROFILE_OTP_BTN_RESEND'), PROFILE_ACTION.EMAIL_OTP_RESEND),
       Markup.button.callback(tBot(language, 'PROFILE_OTP_BTN_CANCEL'), PROFILE_ACTION.EMAIL_OTP_CANCEL),
+    ],
+    [
+      Markup.button.callback(tBot(language, 'BACK_TO_PROFILE'), PROFILE_ACTION.OPEN),
+      Markup.button.callback(tBot(language, 'HOME'), COMMON_NAV_ACTION.HOME),
+    ],
+  ]);
+}
+
+/**
+ * @summary Inline-клавіатура для OTP-підтвердження телефону.
+ */
+export function createProfilePhoneOtpKeyboard(
+  language: BotUiLanguage = 'uk',
+): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(tBot(language, 'PROFILE_OTP_BTN_RESEND'), PROFILE_ACTION.PHONE_OTP_RESEND),
+      Markup.button.callback(tBot(language, 'PROFILE_OTP_BTN_CANCEL'), PROFILE_ACTION.PHONE_OTP_CANCEL),
     ],
     [
       Markup.button.callback(tBot(language, 'BACK_TO_PROFILE'), PROFILE_ACTION.OPEN),

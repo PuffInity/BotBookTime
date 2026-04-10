@@ -4,6 +4,7 @@ import { PROFILE_LANGUAGE_SCENE_ID } from '../scenes/profile-language.scene.js';
 import { PROFILE_EMAIL_VERIFY_SCENE_ID } from '../scenes/profile-email-verify.scene.js';
 import { PROFILE_EMAIL_ADD_SCENE_ID } from '../scenes/profile-email-add.scene.js';
 import { PROFILE_PHONE_ADD_SCENE_ID } from '../scenes/profile-phone-add.scene.js';
+import { PROFILE_PHONE_VERIFY_SCENE_ID } from '../scenes/profile-phone-verify.scene.js';
 import { PROFILE_NOTIFICATION_SETTINGS_SCENE_ID } from '../scenes/profile-notification-settings.scene.js';
 import { MASTERS_SCENE_ID } from '../scenes/masters.scene.js';
 import { SERVICES_SCENE_ID } from '../scenes/services.scene.js';
@@ -51,6 +52,7 @@ import type { ProfileBookingStatusItem } from '../../types/db-helpers/db-profile
 import { resolveBotUiLanguage, tBot, tBotTemplate } from '../../helpers/bot/i18n.bot.js';
 import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
 import { translateProfileBookingStatusData } from '../../helpers/translate/translate-db-content.helper.js';
+import { isTwilioConfigured } from '../../config/twilio.config.js';
 
 /**
  * @file common.commands.ts
@@ -288,6 +290,23 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
         await ctx.scene.leave();
       }
       await ctx.scene.enter(PROFILE_PHONE_ADD_SCENE_ID);
+    }),
+  );
+
+  bot.action(
+    PROFILE_ACTION.VERIFY_PHONE,
+    asyncBotHandler(async (ctx) => {
+      await ctx.answerCbQuery();
+      const user = await getOrCreateUser(ctx);
+      const language = resolveBotUiLanguage(user.preferredLanguage);
+      if (!isTwilioConfigured()) {
+        await ctx.reply(tBot(language, 'BOT_PHONE_VERIFY_UNAVAILABLE'));
+        return;
+      }
+      if (ctx.scene.current) {
+        await ctx.scene.leave();
+      }
+      await ctx.scene.enter(PROFILE_PHONE_VERIFY_SCENE_ID);
     }),
   );
 
