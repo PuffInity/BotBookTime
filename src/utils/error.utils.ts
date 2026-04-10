@@ -36,6 +36,8 @@ export const ERROR_CODE = {
     DATABASE_UNIQUE_VIOLATION: "DATABASE_UNIQUE_VIOLATION",
     DATABASE_FOREIGN_KEY_VIOLATION: "DATABASE_FOREIGN_KEY_VIOLATION",
     DATABASE_NOT_NULL_VIOLATION: "DATABASE_NOT_NULL_VIOLATION",
+    DATABASE_EXCLUSION_VIOLATION: "DATABASE_EXCLUSION_VIOLATION",
+    DATABASE_INVALID_TEXT_REPRESENTATION: "DATABASE_INVALID_TEXT_REPRESENTATION",
     AUTHENTICATION_ERROR: "AUTHENTICATION_ERROR",
     AUTHORIZATION_ERROR: "AUTHORIZATION_ERROR",
     NOT_FOUND: "NOT_FOUND",
@@ -324,6 +326,22 @@ export function normalizePgError(error: unknown): AppError | null {
                 metadata,
                 error,
                 ERROR_CODE.DATABASE_NOT_NULL_VIOLATION,
+                400,
+            );
+        case "23P01":
+            return new DatabaseError(
+                "Operation conflicts with existing schedule/slot",
+                metadata,
+                error,
+                ERROR_CODE.DATABASE_EXCLUSION_VIOLATION,
+                409,
+            );
+        case "22P02":
+            return new DatabaseError(
+                "Invalid input format",
+                metadata,
+                error,
+                ERROR_CODE.DATABASE_INVALID_TEXT_REPRESENTATION,
                 400,
             );
         default:
