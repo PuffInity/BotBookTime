@@ -38,6 +38,13 @@ import {
 
 const DEFAULT_CATALOG_LIMIT = 20;
 const MAX_CATALOG_LIMIT = 50;
+const PG_EXCLUSION_VIOLATION_CODE = '23P01';
+const APPOINTMENTS_NO_OVERLAP_CONSTRAINT = 'appointments_no_overlap_for_master';
+
+type PgConstraintError = {
+  code?: string;
+  constraint?: string;
+};
 
 function normalizePositiveBigintId(value: string | number, fieldName: string): string {
   const normalized = String(value).trim();
@@ -155,6 +162,20 @@ function mapAvailableMasterRowToOption(row: BookingAvailableMasterRow): MasterBo
     ratingCount: row.rating_count,
     experienceYears: row.experience_years,
   };
+}
+
+function isPgConstraintError(error: unknown): error is PgConstraintError {
+  if (!error || typeof error !== 'object') return false;
+  const candidate = error as { code?: unknown };
+  return typeof candidate.code === 'string';
+}
+
+function isBookingSlotExclusionError(error: unknown): boolean {
+  if (!isPgConstraintError(error)) return false;
+  if (error.code !== PG_EXCLUSION_VIOLATION_CODE) return false;
+
+  // Додатково фільтруємо по нашому constraint, щоб не маскувати інші помилки 23P01.
+  return error.constraint === APPOINTMENTS_NO_OVERLAP_CONSTRAINT;
 }
 
 /**
@@ -292,23 +313,34 @@ export async function createPendingBooking(
       });
     }
 
-    const appointment = await executeOne<AppointmentsRow, AppointmentsEntity>(
-      SQL_INSERT_PENDING_APPOINTMENT,
-      [
-        studioId,
-        clientId,
-        masterId,
-        serviceId,
-        attendeeName,
-        attendeePhoneE164,
-        startAt.toISOString(),
-        endAt.toISOString(),
-        meta.priceAmount,
-        meta.currencyCode,
-      ],
-      appointmentsRowToEntity,
-      client,
-    );
+    let appointment: AppointmentsEntity;
+    try {
+      appointment = await executeOne<AppointmentsRow, AppointmentsEntity>(
+        SQL_INSERT_PENDING_APPOINTMENT,
+        [
+          studioId,
+          clientId,
+          masterId,
+          serviceId,
+          attendeeName,
+          attendeePhoneE164,
+          startAt.toISOString(),
+          endAt.toISOString(),
+          meta.priceAmount,
+          meta.currencyCode,
+        ],
+        appointmentsRowToEntity,
+        client,
+      );
+    } catch (error) {
+      if (isBookingSlotExclusionError(error)) {
+        throw new ValidationError('Обраний час вже зайнятий. Будь ласка, виберіть інший слот.', {
+          code: BOOKING_ERROR_CODE.SLOT_CONFLICT,
+        });
+      }
+
+      throw error;
+    }
 
     return {
       appointment,
