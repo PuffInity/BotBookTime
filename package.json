@@ -16,7 +16,8 @@
     "script:grant-master": "tsx src/scripts/grant-master-by-telegram-id.script.ts",
     "script:repair-bookings": "tsx src/scripts/repair-booking-statuses.script.ts",
     "script:notification-dry-run": "tsx src/scripts/dry-run-notification-dispatch.script.ts",
-    "script:seed-custom-data": "tsx src/scripts/seed-custom-data.script.ts"
+    "script:seed-custom-data": "tsx src/scripts/seed-custom-data.script.ts",
+    "script:health-check": "tsx src/scripts/health-check.script.ts"
   },
   "dependencies": {
     "@types/nodemailer": "^7.0.11",

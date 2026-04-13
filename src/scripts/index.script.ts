@@ -75,6 +75,15 @@ const COMMANDS: Record<string, ScriptCommandConfig> = {
     },
     example: 'npm run ops -- seed-custom-data',
   },
+  'health-check': {
+    npmScript: 'script:health-check',
+    description: {
+      ua: 'Перевірка стану Postgres/Redis/SMTP/Twilio',
+      en: 'Health check for Postgres/Redis/SMTP/Twilio',
+      cz: 'Kontrola stavu Postgres/Redis/SMTP/Twilio',
+    },
+    example: 'npm run ops -- health-check',
+  },
   migrate: {
     npmScript: 'migrate',
     description: {
