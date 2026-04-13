@@ -1,6 +1,8 @@
 /**
  * @file db-admin-settings.sql.ts
- * @summary SQL constants for admin settings helper.
+ * @summary uk: SQL constants for admin settings helper.
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 // uk: SQL константа / en: SQL constant / cz: SQL konstanta

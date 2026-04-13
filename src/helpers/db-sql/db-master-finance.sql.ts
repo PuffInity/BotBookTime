@@ -1,6 +1,8 @@
 /**
  * @file db-master-finance.sql.ts
- * @summary SQL constants для фінансового блоку статистики майстра.
+ * @summary uk: SQL constants для фінансового блоку статистики майстра.
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 // uk: SQL константа / en: SQL constant / cz: SQL konstanta

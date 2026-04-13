@@ -1,6 +1,8 @@
 /**
  * @file db-booking.sql.ts
- * @summary SQL constants for db-booking helper.
+ * @summary uk: SQL constants for db-booking helper.
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 // uk: SQL константа / en: SQL constant / cz: SQL konstanta

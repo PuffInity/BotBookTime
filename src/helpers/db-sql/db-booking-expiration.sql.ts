@@ -1,6 +1,8 @@
 /**
  * @file db-booking-expiration.sql.ts
- * @summary SQL constants для авто-скасування pending-бронювань після старту слота.
+ * @summary uk: SQL constants для авто-скасування pending-бронювань після старту слота.
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 // uk: SQL константа / en: SQL constant / cz: SQL konstanta

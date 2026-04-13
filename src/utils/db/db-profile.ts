@@ -10,7 +10,9 @@ import { ValidationError } from '../error.utils.js';
 
 /**
  * @file db-profile.ts
- * @summary Normalization/validation helpers for Telegram profile payload.
+ * @summary uk: Normalization/validation helpers for Telegram profile payload.
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 export function normalizeTelegramUsername(username?: string | null): string | null {

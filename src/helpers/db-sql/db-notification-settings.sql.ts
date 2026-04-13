@@ -1,6 +1,8 @@
 /**
  * @file db-notification-settings.sql.ts
- * @summary SQL constants for notification settings and user delivery profile.
+ * @summary uk: SQL constants for notification settings and user delivery profile.
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 // uk: SQL константа / en: SQL constant / cz: SQL konstanta

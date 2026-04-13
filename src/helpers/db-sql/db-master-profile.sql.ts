@@ -1,6 +1,8 @@
 /**
  * @file db-master-profile.sql.ts
- * @summary SQL constants для блоку "Мій профіль майстра".
+ * @summary uk: SQL constants для блоку "Мій профіль майстра".
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 // uk: SQL константа / en: SQL constant / cz: SQL konstanta

@@ -3,7 +3,9 @@ import { TwilioSmsSender } from '../mailer.helper.js';
 
 /**
  * @file notification-sms.helper.ts
- * @summary Канал SMS-сповіщень. Використовує Twilio для відправки.
+ * @summary uk: Канал SMS-сповіщень. Використовує Twilio для відправки.
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 export type SendSmsNotificationInput = {
@@ -20,14 +22,18 @@ let smsNotificationSender: SmsNotificationSender = async (input) => {
 };
 
 /**
- * @summary Реєструє реальний SMS sender.
+ * @summary uk: Реєструє реальний SMS sender.
+ * en: Registers real SMS sender.
+ * cz: Registruje reálný SMS sender.
  */
 export function setSmsNotificationSender(sender: SmsNotificationSender): void {
   smsNotificationSender = sender;
 }
 
 /**
- * @summary Надсилає SMS-сповіщення.
+ * @summary uk: Надсилає SMS-сповіщення.
+ * en: Sends SMS notification.
+ * cz: Odešle SMS notifikaci.
  */
 export async function sendSmsNotification(input: SendSmsNotificationInput): Promise<void> {
   const phoneE164 = input.phoneE164.trim();

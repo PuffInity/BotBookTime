@@ -1,6 +1,8 @@
 /**
  * @file db-masters.sql.ts
- * @summary SQL constants for db-masters helper.
+ * @summary uk: SQL constants for db-masters helper.
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 // uk: SQL константа / en: SQL constant / cz: SQL konstanta

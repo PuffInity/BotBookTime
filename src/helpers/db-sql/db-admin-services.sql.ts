@@ -1,6 +1,8 @@
 /**
  * @file db-admin-services.sql.ts
- * @summary SQL-запити для блоку "Послуги" в адмін-панелі.
+ * @summary uk: SQL-запити для блоку "Послуги" в адмін-панелі.
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 // uk: SQL константа / en: SQL constant / cz: SQL konstanta

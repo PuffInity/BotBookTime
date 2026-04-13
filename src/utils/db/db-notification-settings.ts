@@ -4,13 +4,17 @@ import { ValidationError } from '../error.utils.js';
 
 /**
  * @file db-notification-settings.ts
- * @summary Нормалізація та валідація payload для налаштувань сповіщень.
+ * @summary uk: Нормалізація та валідація payload для налаштувань сповіщень.
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 const NOTIFICATION_TYPE_SET = new Set<NotificationType>(NOTIFICATION_TYPES);
 
 /**
- * @summary Нормалізує userId для SQL BIGINT-параметрів.
+ * @summary uk: Нормалізує userId для SQL BIGINT-параметрів.
+ * en: Normalizes userId for SQL BIGINT parameters.
+ * cz: Normalizuje userId pro SQL BIGINT parametry.
  */
 export function normalizeNotificationUserId(value: string | number): string {
   const normalized = String(value).trim();
@@ -25,7 +29,9 @@ export function normalizeNotificationUserId(value: string | number): string {
 }
 
 /**
- * @summary Нормалізує notification_type до enum-підмножини, дозволеної в системі.
+ * @summary uk: Нормалізує notification_type до enum-підмножини, дозволеної в системі.
+ * en: Normalizes notification_type to allowed enum subset.
+ * cz: Normalizuje notification_type na povolenou enum podmnožinu.
  */
 export function normalizeNotificationType(value: NotificationType | string): NotificationType {
   const normalized = String(value).trim() as NotificationType;
@@ -40,7 +46,9 @@ export function normalizeNotificationType(value: NotificationType | string): Not
 }
 
 /**
- * @summary Перевіряє тип enabled, щоб не пропустити не-булеві значення.
+ * @summary uk: Перевіряє тип enabled, щоб не пропустити не-булеві значення.
+ * en: Validates enabled type to prevent non-boolean values.
+ * cz: Validuje typ enabled, aby neprošly ne-boolean hodnoty.
  */
 export function normalizeNotificationEnabled(value: boolean): boolean {
   if (typeof value !== 'boolean') {

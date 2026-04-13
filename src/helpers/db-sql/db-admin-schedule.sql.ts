@@ -1,6 +1,8 @@
 /**
  * @file db-admin-schedule.sql.ts
- * @summary SQL constants for admin schedule panel helper.
+ * @summary uk: SQL constants for admin schedule panel helper.
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 // uk: SQL константа / en: SQL constant / cz: SQL konstanta

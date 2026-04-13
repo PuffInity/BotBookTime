@@ -1,6 +1,8 @@
 /**
  * @file db-master-schedule.sql.ts
- * @summary SQL constants for master schedule panel helper.
+ * @summary uk: SQL constants for master schedule panel helper.
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 // uk: SQL константа / en: SQL constant / cz: SQL konstanta

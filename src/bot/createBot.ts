@@ -11,7 +11,9 @@ import { resolveBotUiLanguage, tBot } from '../helpers/bot/i18n.bot.js';
 
 /**
  * @file createBot.ts
- * @summary Створює та налаштовує Telegraf-бота (middleware + сцени + команди).
+ * @summary uk: Створює та налаштовує Telegraf-бота (middleware + сцени + команди).
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 const botLogger = loggerTelegramBot;

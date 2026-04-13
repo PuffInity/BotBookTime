@@ -1,6 +1,8 @@
 /**
  * @file db-profile-booking.sql.ts
- * @summary SQL constants for profile booking status helper.
+ * @summary uk: SQL constants for profile booking status helper.
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 // uk: SQL константа / en: SQL constant / cz: SQL konstanta

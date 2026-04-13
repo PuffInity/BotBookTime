@@ -5,7 +5,9 @@ import type { LanguageCode } from '../../types/db/dbEnums.type.js';
 
 /**
  * @file booking-email.helper.ts
- * @summary Helper-и для email-сповіщень клієнта по життєвому циклу бронювання.
+ * @summary uk: Helper-и для email-сповіщень клієнта по життєвому циклу бронювання.
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 export type SendClientBookingCreatedEmailInput = {
@@ -43,7 +45,9 @@ export type SendClientBookingCancelledEmailInput = {
 };
 
 /**
- * @summary Надсилає клієнту email про створення запису зі статусом "очікує підтвердження".
+ * @summary uk: Надсилає клієнту email про створення запису зі статусом "очікує підтвердження".
+ * en: Sends booking-created email to client with pending status.
+ * cz: Odešle klientovi email o vytvoření rezervace ve stavu pending.
  * @returns {Promise<boolean>} true, якщо лист надіслано; false, якщо відправка завершилась помилкою.
  */
 export async function sendClientBookingCreatedEmail(
@@ -79,7 +83,9 @@ export async function sendClientBookingCreatedEmail(
 }
 
 /**
- * @summary Надсилає клієнту email про підтвердження запису майстром.
+ * @summary uk: Надсилає клієнту email про підтвердження запису майстром.
+ * en: Sends booking-confirmed email to client.
+ * cz: Odešle klientovi email o potvrzení rezervace.
  * @returns {Promise<boolean>} true, якщо лист надіслано; false, якщо відправка завершилась помилкою.
  */
 export async function sendClientBookingConfirmedEmail(
@@ -114,7 +120,9 @@ export async function sendClientBookingConfirmedEmail(
 }
 
 /**
- * @summary Надсилає клієнту email про успішне скасування запису.
+ * @summary uk: Надсилає клієнту email про успішне скасування запису.
+ * en: Sends booking-cancelled email to client.
+ * cz: Odešle klientovi email o zrušení rezervace.
  * @returns {Promise<boolean>} true, якщо лист надіслано; false, якщо відправка завершилась помилкою.
  */
 export async function sendClientBookingCancelledEmail(

@@ -1,6 +1,8 @@
 /**
  * @file db-admin-stats.sql.ts
- * @summary SQL constants для блоку статистики адмін-панелі.
+ * @summary uk: SQL constants для блоку статистики адмін-панелі.
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 // uk: SQL константа / en: SQL constant / cz: SQL konstanta

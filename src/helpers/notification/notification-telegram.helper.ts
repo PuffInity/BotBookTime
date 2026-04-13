@@ -3,7 +3,9 @@ import { loggerNotification } from '../../utils/logger/loggers-list.js';
 
 /**
  * @file notification-telegram.helper.ts
- * @summary Канал відправки Telegram-сповіщень через інʼєкцію sender-функції.
+ * @summary uk: Канал відправки Telegram-сповіщень через інʼєкцію sender-функції.
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 export type SendTelegramNotificationInput = {
@@ -16,14 +18,18 @@ export type TelegramNotificationSender = (input: SendTelegramNotificationInput) 
 let telegramNotificationSender: TelegramNotificationSender | null = null;
 
 /**
- * @summary Реєструє transport-функцію Telegram-відправки.
+ * @summary uk: Реєструє transport-функцію Telegram-відправки.
+ * en: Registers Telegram delivery transport function.
+ * cz: Registruje transportní funkci pro Telegram odeslání.
  */
 export function setTelegramNotificationSender(sender: TelegramNotificationSender): void {
   telegramNotificationSender = sender;
 }
 
 /**
- * @summary Надсилає Telegram-сповіщення користувачу.
+ * @summary uk: Надсилає Telegram-сповіщення користувачу.
+ * en: Sends Telegram notification to user.
+ * cz: Odešle Telegram notifikaci uživateli.
  */
 export async function sendTelegramNotification(input: SendTelegramNotificationInput): Promise<void> {
   const telegramUserId = String(input.telegramUserId).trim();

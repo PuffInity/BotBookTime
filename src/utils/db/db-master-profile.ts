@@ -4,7 +4,9 @@ import { bookingClientPhoneSchema } from '../../validator/booking-input.schema.j
 
 /**
  * @file db-master-profile.ts
- * @summary Нормалізація/валідація вхідних полів редагування профілю майстра.
+ * @summary uk: Нормалізація/валідація вхідних полів редагування профілю майстра.
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 export function normalizeMasterBio(value: string): string {

@@ -1,6 +1,8 @@
 /**
  * @file db-reminder.sql.ts
- * @summary SQL запити для нагадувань про візити.
+ * @summary uk: SQL запити для нагадувань про візити.
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 // uk: SQL константа / en: SQL constant / cz: SQL konstanta

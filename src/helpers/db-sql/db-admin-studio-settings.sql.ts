@@ -1,6 +1,8 @@
 /**
  * @file db-admin-studio-settings.sql.ts
- * @summary SQL constants for admin studio settings helper.
+ * @summary uk: SQL constants for admin studio settings helper.
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 // uk: SQL константа / en: SQL constant / cz: SQL konstanta

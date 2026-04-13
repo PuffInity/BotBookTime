@@ -1,6 +1,8 @@
 /**
  * @file db-faq.sql.ts
- * @summary SQL constants for db-faq helper.
+ * @summary uk: SQL constants for db-faq helper.
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 // uk: SQL константа / en: SQL constant / cz: SQL konstanta

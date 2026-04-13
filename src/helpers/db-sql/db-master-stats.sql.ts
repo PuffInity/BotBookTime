@@ -1,6 +1,8 @@
 /**
  * @file db-master-stats.sql.ts
- * @summary SQL constants для блоку статистики панелі майстра.
+ * @summary uk: SQL constants для блоку статистики панелі майстра.
+ * en: Module summary.
+ * cz: Shrnutí modulu.
  */
 
 // uk: SQL константа / en: SQL constant / cz: SQL konstanta
