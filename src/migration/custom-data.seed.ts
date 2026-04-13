@@ -7,6 +7,7 @@
 export const SQL_CUSTOM_DATA_UP = `
 -- ===== studios =====
 INSERT INTO studios (id, name, city, address_line, phone_e164, email, timezone, currency_code, is_active)
+OVERRIDING SYSTEM VALUE
 VALUES
   (1001, 'Nail Studio Prague', 'Prague', 'Vinohradska 120', '+420777111222', 'studio.prague@example.com', 'Europe/Prague', 'CZK', TRUE)
 ON CONFLICT (id) DO NOTHING;
@@ -16,6 +17,7 @@ INSERT INTO app_users (
   id, studio_id, telegram_user_id, telegram_username, first_name, last_name, phone_e164, phone_verified_at,
   email, email_verified_at, preferred_language, timezone, is_active
 )
+OVERRIDING SYSTEM VALUE
 VALUES
   (2001, 1001, 9000000001, 'client_seed', 'Olena', 'Client', '+420601111111', now(), 'olena.client@example.com', now(), 'uk', 'Europe/Prague', TRUE),
   (2002, 1001, 9000000002, 'master_seed', 'Anna', 'Master', '+420602222222', now(), 'anna.master@example.com', now(), 'uk', 'Europe/Prague', TRUE),
@@ -51,6 +53,7 @@ ON CONFLICT (user_id) DO NOTHING;
 
 -- ===== master_certificates =====
 INSERT INTO master_certificates (id, master_id, title, issuer, issued_on, document_url)
+OVERRIDING SYSTEM VALUE
 VALUES
   (3001, 2002, 'Сертифікат апаратного манікюру', 'Beauty Academy', '2021-03-20', 'https://example.com/cert/3001')
 ON CONFLICT (id) DO NOTHING;
@@ -59,6 +62,7 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO services (
   id, studio_id, name, description, duration_minutes, base_price, currency_code, result_description, is_active
 )
+OVERRIDING SYSTEM VALUE
 VALUES
   (4001, 1001, 'Манікюр класичний', 'Базовий догляд за нігтями', 60, 650.00, 'CZK', 'Охайні нігті та доглянута кутикула', TRUE),
   (4002, 1001, 'Покриття гель-лак', 'Стійке покриття гель-лаком', 90, 890.00, 'CZK', 'Стійкий блиск та захист нігтів', TRUE)
@@ -103,12 +107,14 @@ ON CONFLICT (studio_id, weekday) DO NOTHING;
 
 -- ===== studio_days_off =====
 INSERT INTO studio_days_off (id, studio_id, off_date, reason, created_by)
+OVERRIDING SYSTEM VALUE
 VALUES
   (5001, 1001, DATE '2027-01-01', 'Новорічний вихідний', 2003)
 ON CONFLICT (id) DO NOTHING;
 
 -- ===== studio_holidays =====
 INSERT INTO studio_holidays (id, studio_id, holiday_date, holiday_name, created_by)
+OVERRIDING SYSTEM VALUE
 VALUES
   (5002, 1001, DATE '2027-12-24', 'Christmas Eve', 2003)
 ON CONFLICT (id) DO NOTHING;
@@ -117,6 +123,7 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO studio_temporary_hours (
   id, studio_id, date_from, date_to, weekday, is_open, open_time, close_time, note, created_by
 )
+OVERRIDING SYSTEM VALUE
 VALUES
   (5003, 1001, DATE '2027-08-01', DATE '2027-08-31', 6, TRUE, '09:00', '14:00', 'Літній графік суботи', 2003)
 ON CONFLICT (id) DO NOTHING;
@@ -135,12 +142,14 @@ ON CONFLICT (master_id, weekday) DO NOTHING;
 
 -- ===== master_days_off =====
 INSERT INTO master_days_off (id, master_id, off_date, reason, created_by)
+OVERRIDING SYSTEM VALUE
 VALUES
   (5004, 2002, DATE '2027-02-14', 'Особистий вихідний', 2002)
 ON CONFLICT (id) DO NOTHING;
 
 -- ===== master_vacations =====
 INSERT INTO master_vacations (id, master_id, date_from, date_to, reason, created_by)
+OVERRIDING SYSTEM VALUE
 VALUES
   (5005, 2002, DATE '2027-07-10', DATE '2027-07-20', 'Літня відпустка', 2002)
 ON CONFLICT (id) DO NOTHING;
@@ -149,6 +158,7 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO master_temporary_hours (
   id, master_id, date_from, date_to, weekday, is_working, open_time, close_time, note, created_by
 )
+OVERRIDING SYSTEM VALUE
 VALUES
   (5006, 2002, DATE '2027-09-01', DATE '2027-09-30', 3, TRUE, '11:00', '19:00', 'Осінній тимчасовий графік', 2002)
 ON CONFLICT (id) DO NOTHING;
@@ -162,6 +172,7 @@ ON CONFLICT (studio_id, block_key, language) DO NOTHING;
 
 -- ===== faq_entries =====
 INSERT INTO faq_entries (id, studio_id, sort_order, is_active)
+OVERRIDING SYSTEM VALUE
 VALUES
   (6001, 1001, 1, TRUE)
 ON CONFLICT (id) DO NOTHING;
@@ -208,6 +219,7 @@ INSERT INTO rate_limit_buckets (
   id, subject_type, subject_key, action_key, window_started_at, window_ends_at,
   attempts, max_attempts, blocked_until
 )
+OVERRIDING SYSTEM VALUE
 VALUES
   (7001, 'user', '2001', 'booking_create', now() - interval '5 minutes', now() + interval '55 minutes', 1, 10, NULL)
 ON CONFLICT (id) DO NOTHING;
@@ -219,6 +231,7 @@ INSERT INTO appointments (
   start_at, end_at, price_amount, currency_code, created_by, updated_by, confirmed_at,
   canceled_at, completed_at, transferred_at, canceled_reason, deleted_at, deleted_by
 )
+OVERRIDING SYSTEM VALUE
 VALUES
   (
     8001, 1001, 2001, NULL, 2002, 4001, 'telegram_bot', 'confirmed',
@@ -236,12 +249,14 @@ ON CONFLICT (id) DO NOTHING;
 
 -- ===== appointment_transfers =====
 INSERT INTO appointment_transfers (id, from_appointment_id, to_appointment_id, transferred_by, reason)
+OVERRIDING SYSTEM VALUE
 VALUES
   (9001, 8001, 8002, 2003, 'Перенесення на зручніший час')
 ON CONFLICT (id) DO NOTHING;
 
 -- ===== appointment_status_history =====
 INSERT INTO appointment_status_history (id, appointment_id, old_status, new_status, changed_by, comment)
+OVERRIDING SYSTEM VALUE
 VALUES
   (9002, 8001, NULL, 'confirmed', 2002, 'initial status'),
   (9003, 8002, 'confirmed', 'transferred', 2003, 'Перенесено')
@@ -266,6 +281,7 @@ ON CONFLICT (appointment_id) DO NOTHING;
 INSERT INTO notification_queue (
   id, user_id, appointment_id, notification_type, channel, status, payload, scheduled_for, sent_at, attempts, last_error
 )
+OVERRIDING SYSTEM VALUE
 VALUES
   (
     9101, 2001, 8001, 'visit_reminder', 'telegram', 'pending',
@@ -275,6 +291,7 @@ ON CONFLICT (id) DO NOTHING;
 
 -- ===== audit_logs =====
 INSERT INTO audit_logs (id, actor_user_id, entity_type, entity_id, action, payload)
+OVERRIDING SYSTEM VALUE
 VALUES
   (9201, 2003, 'appointment', '8002', 'transfer', '{"reason":"Перенесення на інший час"}'::jsonb)
 ON CONFLICT (id) DO NOTHING;

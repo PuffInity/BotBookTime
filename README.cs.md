@@ -211,12 +211,24 @@ npm run ops -- grant-master --telegram-id=<ID>
 ---
 
 # 13. Lokální spuštění (volitelné)
-Rychlý příklad Redis:
+### Docker Compose (doporučeno)
 ```bash
-docker run -d --name bot-redis -p 6379:6379 redis:7
+docker compose up -d --build
+docker compose logs -f app
 ```
-Dále:
-1. Spusťte lokální PostgreSQL.
+
+Zastavení:
+```bash
+docker compose down
+```
+
+Zastavení a smazání volume:
+```bash
+docker compose down -v
+```
+
+### Bez Dockeru
+1. Spusťte lokální PostgreSQL a Redis.
 2. Doplňte `.env`.
 3. Proveďte migrace.
 4. Spusťte `npm run dev`.

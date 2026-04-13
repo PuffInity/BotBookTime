@@ -211,12 +211,24 @@ npm run ops -- grant-master --telegram-id=<ID>
 ---
 
 # 13. Локальний запуск (опційно)
-Приклад швидкого Redis локально:
+### Docker Compose (рекомендовано)
 ```bash
-docker run -d --name bot-redis -p 6379:6379 redis:7
+docker compose up -d --build
+docker compose logs -f app
 ```
-Далі:
-1. Підняти PostgreSQL локально.
+
+Зупинка:
+```bash
+docker compose down
+```
+
+З повним очищенням томів:
+```bash
+docker compose down -v
+```
+
+### Без Docker
+1. Підняти PostgreSQL і Redis локально.
 2. Заповнити `.env`.
 3. Виконати міграції.
 4. Запустити `npm run dev`.

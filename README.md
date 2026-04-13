@@ -193,12 +193,24 @@ npm run ops -- grant-master --telegram-id=<ID>
 ```
 
 ## 13. Локальний запуск (опційно)
-Приклад швидкого Redis локально:
+### Docker Compose (рекомендовано)
 ```bash
-docker run -d --name bot-redis -p 6379:6379 redis:7
+docker compose up -d --build
+docker compose logs -f app
 ```
-Далі:
-1. Підняти PostgreSQL локально.
+
+Зупинка:
+```bash
+docker compose down
+```
+
+З повним очищенням томів:
+```bash
+docker compose down -v
+```
+
+### Без Docker
+1. Підняти PostgreSQL і Redis локально.
 2. Заповнити `.env`.
 3. Виконати міграції.
 4. Запустити `npm run dev`.
@@ -421,12 +433,24 @@ npm run ops -- grant-master --telegram-id=<ID>
 ```
 
 ## 13. Local Run (Optional)
-Quick Redis example:
+### Docker Compose (recommended)
 ```bash
-docker run -d --name bot-redis -p 6379:6379 redis:7
+docker compose up -d --build
+docker compose logs -f app
 ```
-Then:
-1. Start local PostgreSQL.
+
+Stop:
+```bash
+docker compose down
+```
+
+Stop and remove volumes:
+```bash
+docker compose down -v
+```
+
+### Without Docker
+1. Start local PostgreSQL and Redis.
 2. Fill `.env`.
 3. Run migrations.
 4. Start with `npm run dev`.
@@ -649,12 +673,24 @@ npm run ops -- grant-master --telegram-id=<ID>
 ```
 
 ## 13. Lokální spuštění (volitelné)
-Rychlý příklad Redis:
+### Docker Compose (doporučeno)
 ```bash
-docker run -d --name bot-redis -p 6379:6379 redis:7
+docker compose up -d --build
+docker compose logs -f app
 ```
-Dále:
-1. Spusťte lokální PostgreSQL.
+
+Zastavení:
+```bash
+docker compose down
+```
+
+Zastavení a smazání volume:
+```bash
+docker compose down -v
+```
+
+### Bez Dockeru
+1. Spusťte lokální PostgreSQL a Redis.
 2. Doplňte `.env`.
 3. Proveďte migrace.
 4. Spusťte `npm run dev`.

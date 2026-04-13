@@ -211,12 +211,24 @@ npm run ops -- grant-master --telegram-id=<ID>
 ---
 
 # 13. Local Run (Optional)
-Quick Redis example:
+### Docker Compose (recommended)
 ```bash
-docker run -d --name bot-redis -p 6379:6379 redis:7
+docker compose up -d --build
+docker compose logs -f app
 ```
-Then:
-1. Start local PostgreSQL.
+
+Stop:
+```bash
+docker compose down
+```
+
+Stop and remove volumes:
+```bash
+docker compose down -v
+```
+
+### Without Docker
+1. Start local PostgreSQL and Redis.
 2. Fill `.env`.
 3. Run migrations.
 4. Start with `npm run dev`.
