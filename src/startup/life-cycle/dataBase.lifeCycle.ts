@@ -3,13 +3,16 @@ import type { PoolClient } from "pg";
 import {handleError} from "../../utils/error.utils.js";
 /**
  * @file database.lifeCycle.ts
- * @summary Файл яки відповідає за життя Postgresql
+ * @summary PostgreSQL lifecycle (init/shutdown).
  */
 
+// uk: Стан пулу / en: Pool state / cz: Stav poolu
 let poolStarted = false
 
 /**
- * @summary Функція яка вмикає Postgresql
+ * uk: Ініціалізація PostgreSQL.
+ * en: Initializes PostgreSQL.
+ * cz: Inicializuje PostgreSQL.
  */
 export async function initDb(): Promise<void> {
     if (poolStarted) {
@@ -17,23 +20,17 @@ export async function initDb(): Promise<void> {
         return;
     }
     let client: PoolClient | null = null;
-    /**
-     * broken Індикатор теперішнього стану
-     */
+    // uk: Стан клієнта / en: Client health flag / cz: Stav klienta
     let broken = false;
     try {
-        /**
-         * client - Одне зʼєднання до бази
-         */
+        // uk: Тест-клієнт / en: Probe client / cz: Test klient
         client = await pool.connect();
-        /** Відправляємо тестовий запит та чекаємо відповіді якщо все пройшло успішно база підʼєднана */
+        // uk: Health check / en: Health check / cz: Health check
         await client.query('SELECT 1');
         dbLogger.info('[postgres] Підключення успішне');
         poolStarted = true
     } catch (err) {
-        /**
-         * broken: true - Встановлюємо true тобто зєʼднання бите
-         */
+        // uk: Клієнт зламано / en: Mark client broken / cz: Označit klienta jako poškozený
         broken = true;
         handleError({
             logger: dbLogger,
@@ -43,27 +40,29 @@ export async function initDb(): Promise<void> {
         })
         throw err
     } finally {
-        /** В будь якому випадку(Чи помилка чи успіх) обовʼязково виконати цю дію */
+        // uk: Safe release / en: Safe release / cz: Safe release
         if (client) {
             safeRelease(client, broken)
         }
     }
 }
 /**
- * @summary Функція яка вимикає postgresql
+ * uk: Завершення PostgreSQL.
+ * en: Shuts down PostgreSQL.
+ * cz: Vypne PostgreSQL.
  */
 export async function shutDownDb(): Promise<void> {
-    /** Провірка чи postgresql працює чи вимкнута */
+    // uk: Already stopped / en: Already stopped / cz: Už zastaveno
     if (!poolStarted) {
         dbLogger.info('[postgres] Пул уже закритий');
         return
     }
     try {
-        /** Створюємо timeout який за 10 секунд викличе помилку якщо Postgresql не вимкнеться скоріше */
+        // uk: Timeout guard / en: Timeout guard / cz: Timeout guard
         const timeout = new Promise((_, rej) =>
             setTimeout(() => rej(new Error('pool.end() timeout')), SHUTDOWN_TIMEOUT_MS)
         );
-        /** Створюємо гонку між функцією яка вимкне Postgresql та таймером який викличе помилку за 10 секнуд  */
+        // uk: Race end/timeout / en: Race end/timeout / cz: Race end/timeout
         await Promise.race([pool.end(), timeout]);
         poolStarted = false;
         dbLogger.info('[postgres] Пул закрито')

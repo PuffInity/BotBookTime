@@ -10,17 +10,21 @@ import {startReminderWorker} from "./life-cycle/reminder.lifeCycle.js";
 import { isTwilioConfigured, twilioMissingFields } from "../config/twilio.config.js";
 
 /**
- * Фабрика створення `AppInstance` після отримання готового Redis-клієнта.
+ * uk: Фабрика AppInstance після Redis.
+ * en: AppInstance factory after Redis.
+ * cz: AppInstance factory po Redis.
  */
 type CreateAppInstance = (redis: RedisClient, config: SessionConfig) => AppInstance;
 
 /**
  * @file start.startup.ts
- * @summary Оркестратор старту застосунку (Redis -> PostgreSQL -> Telegram-бот -> booking-expiration worker -> reminder worker).
+ * @summary Startup orchestrator (Redis -> Postgres -> Bot -> workers).
  */
 
 /**
- * Керує послідовністю запуску та захищає від повторних викликів `start()`.
+ * uk: Оркестратор запуску застосунку.
+ * en: Application startup orchestrator.
+ * cz: Orchestrátor spuštění aplikace.
  */
 export class StartApp {
     private started: boolean = false
@@ -28,8 +32,11 @@ export class StartApp {
     private app: AppInstance | null = null
 
     /**
-     * @param logger Логер стартового процесу.
-     * @param botInit Фабрика створення бота.
+     * uk: Конструктор стартового оркестратора.
+     * en: Startup orchestrator constructor.
+     * cz: Konstruktor startup orchestrátoru.
+     * @param logger uk/en/cz: Логер/Logger/Logger.
+     * @param botInit uk/en/cz: Фабрика бота/Bot factory/Bot factory.
      */
     constructor(
         private logger: ILogger,
@@ -38,19 +45,20 @@ export class StartApp {
     }
 
     /**
-     * Повертає поточний `AppInstance`, якщо він уже створений.
-     *
-     * @returns `AppInstance` або `null`, якщо бот ще не ініціалізовано.
+     * uk: Повертає поточний AppInstance.
+     * en: Returns current AppInstance.
+     * cz: Vrací aktuální AppInstance.
      */
     public getApp(): AppInstance | null {
         return this.app
     }
 
     /**
-     * Запускає один крок старту з уніфікованим логуванням помилок.
-     *
-     * @param stepName Назва кроку для логу.
-     * @param action Асинхронна дія кроку.
+     * uk: Виконує один крок startup.
+     * en: Executes one startup step.
+     * cz: Provede jeden startup krok.
+     * @param stepName uk/en/cz: Назва кроку/Step name/Název kroku.
+     * @param action uk/en/cz: Дія/Action/Akce.
      */
     private async runStep(stepName: string, action: () => Promise<void>) {
         try {
@@ -69,14 +77,9 @@ export class StartApp {
     }
 
     /**
-     * Запускає застосунок у фіксованому порядку:
-     * 1) Redis
-     * 2) PostgreSQL
-     * 3) Telegram-бот
-     * 4) Booking-expiration worker
-     * 5) Reminder worker
-     *
-     * @returns Promise, який завершується після успішного старту.
+     * uk: Запускає повний lifecycle застосунку.
+     * en: Starts full application lifecycle.
+     * cz: Spouští celý lifecycle aplikace.
      */
     async start() {
         if (this.starting) {

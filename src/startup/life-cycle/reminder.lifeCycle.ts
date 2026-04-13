@@ -10,14 +10,22 @@ import { getUserDeliveryProfileById } from '../../helpers/db/db-notification-set
 
 /**
  * @file reminder.lifeCycle.ts
- * @summary Lifecycle worker для автоматичних нагадувань про візити.
+ * @summary Worker for automatic visit reminders.
  */
 
+// uk: Інтервал тіка / en: Tick interval / cz: Interval ticku
 const REMINDER_CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 
+// uk: Таймер воркера / en: Worker timer / cz: Timer workeru
 let timer: NodeJS.Timeout | null = null;
+// uk: Захист від overlap / en: Overlap guard / cz: Guard proti overlapu
 let isRunningTick = false;
 
+/**
+ * uk: Локалізує SMS текст нагадування.
+ * en: Localizes reminder SMS text.
+ * cz: Lokalizuje text připomínkové SMS.
+ */
 async function getLocalizedSmsText(
   appointment: ReminderAppointment,
   hoursBefore: number,
@@ -40,6 +48,11 @@ async function getLocalizedSmsText(
   return translated.text;
 }
 
+/**
+ * uk: Надсилає нагадування по запису.
+ * en: Sends reminder for appointment.
+ * cz: Odešle připomínku pro rezervaci.
+ */
 async function sendReminderForAppointment(appointment: ReminderAppointment, hoursBefore: number): Promise<void> {
   const userId = appointment.appointment.clientId;
 
@@ -101,6 +114,11 @@ async function sendReminderForAppointment(appointment: ReminderAppointment, hour
   }
 }
 
+/**
+ * uk: Один tick reminder воркера.
+ * en: Single reminder worker tick.
+ * cz: Jeden tick reminder workeru.
+ */
 async function runReminderTick(): Promise<void> {
   if (isRunningTick) {
     loggerInitApp.warn('[reminder] Previous tick still running, new one skipped');
@@ -147,7 +165,9 @@ async function runReminderTick(): Promise<void> {
 }
 
 /**
- * @summary Запускає фоновий worker перевірки нагадувань про візити.
+ * uk: Старт reminder воркера.
+ * en: Starts reminder worker.
+ * cz: Spustí reminder worker.
  */
 export async function startReminderWorker(): Promise<void> {
   if (timer) {
@@ -176,7 +196,9 @@ export async function startReminderWorker(): Promise<void> {
 }
 
 /**
- * @summary Зупиняє фоновий worker перевірки нагадувань про візити.
+ * uk: Зупинка reminder воркера.
+ * en: Stops reminder worker.
+ * cz: Zastaví reminder worker.
  */
 export async function stopReminderWorker(): Promise<void> {
   if (!timer) {

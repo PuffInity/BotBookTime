@@ -3,12 +3,25 @@ import {Shutdown} from "./shutdown.startup.js";
 import {handleError} from "../utils/error.utils.js";
 
 /**
- * @class ProcessHandlers
- * @summary Клас який обробляє системні події
+ * @file process.startup.ts
+ * @summary Process signal/error handlers for graceful shutdown.
+ */
+
+/**
+ * uk: Обробники процесних подій.
+ * en: Process event handlers.
+ * cz: Handlery procesních událostí.
  */
 export class ProcessHandlers {
     private isExiting: boolean = false;
 
+    /**
+     * uk: Реєструє process handlers.
+     * en: Registers process handlers.
+     * cz: Registruje process handlery.
+     * @param logger uk/en/cz: Логер/Logger/Logger.
+     * @param shutdownServer uk/en/cz: Shutdown сервіс/Shutdown service/Shutdown služba.
+     */
     constructor(
         private readonly logger: ILogger,
         private readonly shutdownServer: Shutdown
@@ -32,19 +45,19 @@ export class ProcessHandlers {
             process.exit(process.exitCode ?? defaultExitCode);
         };
 
-        /** SIGINT - Подія яка викликається в випадку Ctrl+C або зупинки процесу в Docker/PM2 */
+        // uk: SIGINT / en: SIGINT / cz: SIGINT
         process.once('SIGINT', async () => {
             this.logger.info('[process] Отримано сигнал SIGINT (Ctrl+C)')
             await shutdownAndExit('SIGINT', 0);
         })
 
-        /** SIGTERM - Подія яка викликається в випадку зупинки контейнера або завершення процесу */
+        // uk: SIGTERM / en: SIGTERM / cz: SIGTERM
         process.once('SIGTERM', async () => {
             this.logger.info('[process] Отримано сигнал SIGTERM')
             await shutdownAndExit('SIGTERM', 0);
         })
 
-        /** uncaughtException - Подія викликається в випадку необробленої синхроної помилки */
+        // uk: uncaughtException / en: uncaughtException / cz: uncaughtException
         process.once('uncaughtException', async (error) => {
             handleError({
                 logger: this.logger,
@@ -55,7 +68,7 @@ export class ProcessHandlers {
             await shutdownAndExit('uncaughtException', 1);
         })
 
-        /** unhandledRejection - Подія яка викликається в випадку необробленої асинхроної помилки */
+        // uk: unhandledRejection / en: unhandledRejection / cz: unhandledRejection
         process.once('unhandledRejection', async (reason,_promise) => {
             handleError({
                 logger: this.logger,

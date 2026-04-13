@@ -7,20 +7,35 @@ import type { ExpiredPendingBookingItem } from '../../types/db-helpers/db-bookin
 
 /**
  * @file booking-expiration.lifeCycle.ts
- * @summary Lifecycle worker для авто-скасування pending-бронювань, які не підтвердили до часу візиту.
+ * @summary Worker for auto-cancel of expired pending bookings.
  */
 
+// uk: Інтервал тіка / en: Tick interval / cz: Interval ticku
 const EXPIRATION_CHECK_INTERVAL_MS = 30_000;
+// uk: Batch ліміт / en: Batch limit / cz: Batch limit
 const EXPIRATION_BATCH_LIMIT = 50;
+// uk: Причина скасування / en: Cancel reason / cz: Důvod zrušení
 const EXPIRED_CANCEL_REASON = 'Скасовано автоматично (прострочений): запис не було підтверджено до часу візиту.';
 
+// uk: Таймер воркера / en: Worker timer / cz: Timer workeru
 let timer: NodeJS.Timeout | null = null;
+// uk: Захист від overlap / en: Overlap guard / cz: Guard proti overlapu
 let isRunningTick = false;
 
+/**
+ * uk: Перевіряє факт email-відправки.
+ * en: Checks email channel send status.
+ * cz: Ověří stav odeslání email kanálu.
+ */
 function isEmailSent(channels: { channel: string; status: string }[]): boolean {
   return channels.some((item) => item.channel === 'email' && item.status === 'sent');
 }
 
+/**
+ * uk: Надсилає нотифікації про прострочений pending.
+ * en: Sends notifications for expired pending.
+ * cz: Odesílá notifikace o expirovaném pending.
+ */
 async function notifyExpiredPendingBooking(item: ExpiredPendingBookingItem): Promise<void> {
   let emailSentByDispatch = false;
 
@@ -98,6 +113,11 @@ async function notifyExpiredPendingBooking(item: ExpiredPendingBookingItem): Pro
   }
 }
 
+/**
+ * uk: Один tick воркера прострочення.
+ * en: Single expiration worker tick.
+ * cz: Jeden tick expiračního workeru.
+ */
 async function runExpirationTick(): Promise<void> {
   if (isRunningTick) {
     loggerInitApp.warn('[booking-expiration] Попередній tick ще виконується, новий пропущено');
@@ -130,7 +150,9 @@ async function runExpirationTick(): Promise<void> {
 }
 
 /**
- * @summary Запускає фоновий worker перевірки прострочених pending-бронювань.
+ * uk: Старт воркера прострочення.
+ * en: Starts expiration worker.
+ * cz: Spustí expirační worker.
  */
 export async function startBookingExpirationWorker(): Promise<void> {
   if (timer) {
@@ -159,7 +181,9 @@ export async function startBookingExpirationWorker(): Promise<void> {
 }
 
 /**
- * @summary Зупиняє фоновий worker перевірки прострочених pending-бронювань.
+ * uk: Зупинка воркера прострочення.
+ * en: Stops expiration worker.
+ * cz: Zastaví expirační worker.
  */
 export async function stopBookingExpirationWorker(): Promise<void> {
   if (!timer) {

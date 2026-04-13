@@ -8,15 +8,17 @@ import {RedisClient, SessionConfig} from '../../types/redis.types.js';
 import {loggerBotInit} from '../../utils/logger/loggers-list.js';
 
 /**
- * Ініціалізує Telegram-бота та повертає керуючий lifecycle API (`start`, `stop`).
- *
- * Створює Redis session store, інстанс бота та інкапсулює запуск/зупинку
- * застосунку в одному об'єкті.
- *
- * @param redis Підключений Redis-клієнт для зберігання сесій бота.
- * @param config Конфігурація Redis session store.
- * @returns Об'єкт застосунку з методами керування життєвим циклом бота.
- * @throws {Error} Якщо `redis` або `config` не передані.
+ * @file init-bot.lifeCycle.ts
+ * @summary Bot lifecycle factory (start/stop API).
+ */
+
+/**
+ * uk: Створює AppInstance бота.
+ * en: Creates bot AppInstance.
+ * cz: Vytváří bot AppInstance.
+ * @param redis uk/en/cz: Redis client.
+ * @param config uk/en/cz: Session config.
+ * @returns uk/en/cz: App lifecycle instance.
  */
 export function botInit(redis: RedisClient, config: SessionConfig): AppInstance {
     if (!redis || !config) {
@@ -39,10 +41,9 @@ export function botInit(redis: RedisClient, config: SessionConfig): AppInstance 
 
     const instance: AppInstance = {
         /**
-         * Запускає Telegram-бота після попередньої перевірки токена через `getMe()`.
-         *
-         * @returns Promise, що завершується після успішного запуску бота.
-         * @throws {Error} Якщо перевірка токена або запуск бота завершилися помилкою.
+         * uk: Старт бота з preflight getMe().
+         * en: Starts bot with getMe preflight.
+         * cz: Spustí bota s getMe preflight.
          */
         async start() {
             try {
@@ -68,10 +69,10 @@ export function botInit(redis: RedisClient, config: SessionConfig): AppInstance 
         },
 
         /**
-         * Зупиняє Telegram-бота.
-         *
-         * @param signal Назва сигналу/причини зупинки (наприклад, `SIGINT`, `SIGTERM`).
-         * @returns Promise, що завершується після виклику зупинки бота.
+         * uk: Зупинка бота за сигналом.
+         * en: Stops bot by signal.
+         * cz: Zastaví bota podle signálu.
+         * @param signal uk/en/cz: Сигнал/Signal/Signál.
          */
         async stop(signal: string) {
             loggerBotInit.info('[bot] Починаємо зупинку Telegram-бота', {signal});

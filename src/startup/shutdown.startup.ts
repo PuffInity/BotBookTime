@@ -7,31 +7,32 @@ import {stopReminderWorker} from "./life-cycle/reminder.lifeCycle.js";
 import {handleError} from "../utils/error.utils.js";
 
 /**
- * Getter, який повертає актуальний `AppInstance` або `null`,
- * якщо бот ще не був створений.
+ * uk: Getter поточного AppInstance.
+ * en: Getter for current AppInstance.
+ * cz: Getter aktuálního AppInstance.
  */
 type getApp = () => AppInstance | null
 
 /**
  * @file shutdown.startup.ts
- * @summary Оркестратор коректного завершення роботи застосунку.
+ * @summary Graceful shutdown orchestrator.
  */
 
 /**
- * Виконує поетапний shutdown:
- * 1) Telegram-бот
- * 2) Booking-expiration worker
- * 3) PostgreSQL
- * 4) Redis
- * 5) flush/close логера
+ * uk: Оркестратор вимкнення застосунку.
+ * en: Application shutdown orchestrator.
+ * cz: Orchestrátor vypnutí aplikace.
  */
 export class Shutdown {
     private shutdownPromise: Promise<void> | null = null
     private isShuttingDown: boolean = false
 
     /**
-     * @param logger Логер для shutdown-процесу.
-     * @param app Getter для доступу до актуального `AppInstance`.
+     * uk: Конструктор shutdown оркестратора.
+     * en: Shutdown orchestrator constructor.
+     * cz: Konstruktor shutdown orchestrátoru.
+     * @param logger uk/en/cz: Логер/Logger/Logger.
+     * @param app uk/en/cz: Getter app/Get app/Getter app.
      */
     constructor(
         private logger: ILogger,
@@ -40,10 +41,11 @@ export class Shutdown {
 
 
     /**
-     * Виконує один крок shutdown з уніфікованим логуванням помилок.
-     *
-     * @param stepName Назва кроку для логу.
-     * @param action Асинхронна дія кроку.
+     * uk: Виконує один крок shutdown.
+     * en: Executes one shutdown step.
+     * cz: Provede jeden shutdown krok.
+     * @param stepName uk/en/cz: Назва кроку/Step name/Název kroku.
+     * @param action uk/en/cz: Дія/Action/Akce.
      */
     private async runStep(stepName: string, action:  () => Promise<void>) {
         try {
@@ -60,10 +62,10 @@ export class Shutdown {
     }
 
     /**
-     * Коректно зупиняє застосунок.
-     *
-     * @param signal Сигнал завершення (`SIGINT`, `SIGTERM`, `uncaughtException`, ...).
-     * @returns Promise, який завершується після виконання всіх кроків shutdown.
+     * uk: Запускає graceful shutdown.
+     * en: Starts graceful shutdown.
+     * cz: Spustí graceful shutdown.
+     * @param signal uk/en/cz: Сигнал/Signal/Signál.
      */
     async stop(signal: string) {
         if (this.isShuttingDown) {
@@ -75,6 +77,12 @@ export class Shutdown {
         return this.shutdownPromise
     }
 
+    /**
+     * uk: Внутрішній сценарій shutdown.
+     * en: Internal shutdown flow.
+     * cz: Interní shutdown flow.
+     * @param signal uk/en/cz: Сигнал/Signal/Signál.
+     */
     private async performShutdown(signal: string) {
         // Якщо сигнал є фатальною помилкою, гарантуємо exitCode = 1
         if (signal === 'uncaughtException' || signal === 'unhandledRejection') {
