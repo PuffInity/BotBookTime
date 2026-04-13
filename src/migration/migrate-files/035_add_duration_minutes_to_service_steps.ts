@@ -5,6 +5,11 @@ import {BaseMigration, migrationLogger} from '../base.migration.js';
  * @file 035_add_duration_minutes_to_service_steps.ts
  * @summary Додає поле `duration_minutes` для етапів послуг.
  */
+/**
+ * uk: Публічний клас Migration035AddDurationMinutesToServiceSteps.
+ * en: Public class Migration035AddDurationMinutesToServiceSteps.
+ * cz: Veřejná třída Migration035AddDurationMinutesToServiceSteps.
+ */
 export class Migration035AddDurationMinutesToServiceSteps extends BaseMigration {
     /**
      * @summary Додає тривалість етапу в хвилинах.

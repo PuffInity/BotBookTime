@@ -3,6 +3,7 @@
  * @summary Централізований SQL seed (custom data) для базового наповнення БД.
  */
 
+// uk: OPS/CLI константа SQL_CUSTOM_DATA_UP / en: OPS/CLI constant SQL_CUSTOM_DATA_UP / cz: OPS/CLI konstanta SQL_CUSTOM_DATA_UP
 export const SQL_CUSTOM_DATA_UP = `
 -- ===== studios =====
 INSERT INTO studios (id, name, city, address_line, phone_e164, email, timezone, currency_code, is_active)
@@ -279,6 +280,7 @@ VALUES
 ON CONFLICT (id) DO NOTHING;
 `;
 
+// uk: OPS/CLI константа SQL_CUSTOM_DATA_DOWN / en: OPS/CLI constant SQL_CUSTOM_DATA_DOWN / cz: OPS/CLI konstanta SQL_CUSTOM_DATA_DOWN
 export const SQL_CUSTOM_DATA_DOWN = `
 DELETE FROM audit_logs WHERE id = 9201;
 DELETE FROM notification_queue WHERE id = 9101;

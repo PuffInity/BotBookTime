@@ -33,6 +33,7 @@ type AdminsCountRow = {
   total: string;
 };
 
+// uk: OPS/CLI константа HELP_TEXT / en: OPS/CLI constant HELP_TEXT / cz: OPS/CLI konstanta HELP_TEXT
 const HELP_TEXT = [
   'Usage:',
   '  npm run script:revoke-admin -- --telegram-id=<TELEGRAM_ID> [--revoked-by-telegram-id=<TELEGRAM_ID>]',
@@ -42,6 +43,11 @@ const HELP_TEXT = [
   '  --revoked-by-telegram-id    Telegram ID адміністратора-ініціатора (optional)',
 ].join('\n');
 
+/**
+ * uk: Публічна функція getArgValue.
+ * en: Public function getArgValue.
+ * cz: Veřejná funkce getArgValue.
+ */
 function getArgValue(flag: string): string | undefined {
   const direct = process.argv.find((arg) => arg.startsWith(`${flag}=`));
   if (direct) return direct.slice(flag.length + 1).trim();
@@ -52,10 +58,20 @@ function getArgValue(flag: string): string | undefined {
   return undefined;
 }
 
+/**
+ * uk: Публічна функція hasHelpFlag.
+ * en: Public function hasHelpFlag.
+ * cz: Veřejná funkce hasHelpFlag.
+ */
 function hasHelpFlag(): boolean {
   return process.argv.includes('--help') || process.argv.includes('-h');
 }
 
+/**
+ * uk: Публічна функція parseArgs.
+ * en: Public function parseArgs.
+ * cz: Veřejná funkce parseArgs.
+ */
 function parseArgs(): ScriptArgs {
   const telegramIdRaw = getArgValue('--telegram-id');
   const revokedByTelegramIdRaw = getArgValue('--revoked-by-telegram-id');
@@ -70,6 +86,11 @@ function parseArgs(): ScriptArgs {
   };
 }
 
+/**
+ * uk: Публічна функція findUserByTelegramId.
+ * en: Public function findUserByTelegramId.
+ * cz: Veřejná funkce findUserByTelegramId.
+ */
 async function findUserByTelegramId(
   client: { query: <T>(sql: string, params: readonly unknown[]) => Promise<{ rows: T[]; rowCount: number | null }> },
   telegramUserId: string,
@@ -91,6 +112,11 @@ async function findUserByTelegramId(
   return result.rows[0] ?? null;
 }
 
+/**
+ * uk: Публічна функція hasAdminRole.
+ * en: Public function hasAdminRole.
+ * cz: Veřejná funkce hasAdminRole.
+ */
 async function hasAdminRole(
   client: { query: <T>(sql: string, params: readonly unknown[]) => Promise<{ rows: T[]; rowCount: number | null }> },
   userId: string,
@@ -108,6 +134,11 @@ async function hasAdminRole(
   return Boolean(result.rows[0]?.has_role);
 }
 
+/**
+ * uk: Публічна функція countActiveStudioAdmins.
+ * en: Public function countActiveStudioAdmins.
+ * cz: Veřejná funkce countActiveStudioAdmins.
+ */
 async function countActiveStudioAdmins(
   client: { query: <T>(sql: string, params: readonly unknown[]) => Promise<{ rows: T[]; rowCount: number | null }> },
   studioId: string,
@@ -126,6 +157,11 @@ async function countActiveStudioAdmins(
   return Number.isFinite(total) ? total : 0;
 }
 
+/**
+ * uk: Публічна функція revokeAdminRole.
+ * en: Public function revokeAdminRole.
+ * cz: Veřejná funkce revokeAdminRole.
+ */
 async function revokeAdminRole(
   client: { query: <T>(sql: string, params: readonly unknown[]) => Promise<{ rows: T[]; rowCount: number | null }> },
   userId: string,
@@ -138,6 +174,11 @@ async function revokeAdminRole(
   await client.query(sql, [userId]);
 }
 
+/**
+ * uk: Публічна функція main.
+ * en: Public function main.
+ * cz: Veřejná funkce main.
+ */
 async function main(): Promise<void> {
   const [{ pool }, { normalizeTelegramId }, { loggerScripts }] = await Promise.all([
     import('../config/database.config.js'),

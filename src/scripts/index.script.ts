@@ -3,8 +3,7 @@ import { spawn } from 'node:child_process';
 
 /**
  * @file index.script.ts
- * @summary Єдина точка запуску службових скриптів.
- * Якщо команда невідома — виводить повне help-меню з доступними командами.
+ * @summary Unified CLI entry for operational scripts.
  */
 
 dotenv.config();
@@ -19,6 +18,7 @@ type ScriptCommandConfig = {
   example: string;
 };
 
+// uk: Реєстр CLI команд / en: CLI command registry / cz: Registr CLI příkazů
 const COMMANDS: Record<string, ScriptCommandConfig> = {
   'grant-admin': {
     npmScript: 'script:grant-admin',
@@ -115,6 +115,7 @@ const COMMANDS: Record<string, ScriptCommandConfig> = {
 
 type HelpLanguage = 'ua' | 'en' | 'cz';
 
+// uk: Локалізація help / en: Help localization / cz: Lokalizace help
 const HELP_LABELS: Record<
   HelpLanguage,
   {
@@ -140,6 +141,11 @@ const HELP_LABELS: Record<
   },
 };
 
+/**
+ * uk: Публічна функція formatHelpMenu.
+ * en: Public function formatHelpMenu.
+ * cz: Veřejná funkce formatHelpMenu.
+ */
 function formatHelpMenu(language: HelpLanguage): string {
   const rows = Object.entries(COMMANDS).map(([command, config]) => {
     return `- ${command}\n  ${config.description[language]}\n  ${config.example}`;
@@ -148,16 +154,31 @@ function formatHelpMenu(language: HelpLanguage): string {
   return [HELP_LABELS[language].title, ...rows, '', HELP_LABELS[language].usage].join('\n');
 }
 
+/**
+ * uk: Публічна функція hasHelpFlag.
+ * en: Public function hasHelpFlag.
+ * cz: Veřejná funkce hasHelpFlag.
+ */
 function hasHelpFlag(args: string[]): boolean {
   return args.includes('--help') || args.includes('-h');
 }
 
+/**
+ * uk: Публічна функція resolveHelpLanguage.
+ * en: Public function resolveHelpLanguage.
+ * cz: Veřejná funkce resolveHelpLanguage.
+ */
 function resolveHelpLanguage(command?: string): HelpLanguage {
   if (command === 'help-eng') return 'en';
   if (command === 'help-cz') return 'cz';
   return 'ua';
 }
 
+/**
+ * uk: Публічна функція run.
+ * en: Public function run.
+ * cz: Veřejná funkce run.
+ */
 async function run(): Promise<void> {
   const [{ loggerScripts }] = await Promise.all([import('../utils/logger/loggers-list.js')]);
 

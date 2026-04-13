@@ -14,6 +14,7 @@ type RequiredTableCheckRow = {
   regclass_name: string | null;
 };
 
+// uk: OPS/CLI константа REQUIRED_TABLES / en: OPS/CLI constant REQUIRED_TABLES / cz: OPS/CLI konstanta REQUIRED_TABLES
 const REQUIRED_TABLES = [
   'schema_migrations',
   'studios',
@@ -25,6 +26,7 @@ const REQUIRED_TABLES = [
   'appointments',
 ] as const;
 
+// uk: OPS/CLI константа HELP_TEXT / en: OPS/CLI constant HELP_TEXT / cz: OPS/CLI konstanta HELP_TEXT
 const HELP_TEXT = [
   'Usage:',
   '  npm run script:seed-custom-data',
@@ -33,10 +35,20 @@ const HELP_TEXT = [
   '  Додає custom data у таблиці. Перед запуском мають бути виконані міграції.',
 ].join('\n');
 
+/**
+ * uk: Публічна функція hasHelpFlag.
+ * en: Public function hasHelpFlag.
+ * cz: Veřejná funkce hasHelpFlag.
+ */
 function hasHelpFlag(): boolean {
   return process.argv.includes('--help') || process.argv.includes('-h');
 }
 
+/**
+ * uk: Публічна функція ensureRequiredTablesExist.
+ * en: Public function ensureRequiredTablesExist.
+ * cz: Veřejná funkce ensureRequiredTablesExist.
+ */
 async function ensureRequiredTablesExist(client: PoolClient): Promise<void> {
   const sql = `
     SELECT
@@ -58,6 +70,11 @@ async function ensureRequiredTablesExist(client: PoolClient): Promise<void> {
   }
 }
 
+/**
+ * uk: Публічна функція main.
+ * en: Public function main.
+ * cz: Veřejná funkce main.
+ */
 async function main(): Promise<void> {
   const [{ pool }, { loggerScripts }, { handleError }, { SQL_CUSTOM_DATA_UP }] = await Promise.all([
     import('../config/database.config.js'),

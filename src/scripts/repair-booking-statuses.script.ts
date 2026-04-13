@@ -22,8 +22,10 @@ type ScriptArgs = {
 
 type DispatchChannel = { channel: string; status: string };
 
+// uk: OPS/CLI константа DEFAULT_CANCEL_REASON / en: OPS/CLI constant DEFAULT_CANCEL_REASON / cz: OPS/CLI konstanta DEFAULT_CANCEL_REASON
 const DEFAULT_CANCEL_REASON =
   'Скасовано автоматично (прострочений): запис не було підтверджено до часу візиту.';
+// uk: OPS/CLI константа HELP_TEXT / en: OPS/CLI constant HELP_TEXT / cz: OPS/CLI konstanta HELP_TEXT
 const HELP_TEXT = [
   'Usage:',
   '  npm run script:repair-bookings -- [--limit=<N>] [--cancel-reason="<TEXT>"] [--notify=true|false]',
@@ -34,12 +36,22 @@ const HELP_TEXT = [
   '  --notify         Якщо true — відправити клієнтам сповіщення після reconcile (default: false)',
 ].join('\n');
 
+/**
+ * uk: Публічна функція parseBoolean.
+ * en: Public function parseBoolean.
+ * cz: Veřejná funkce parseBoolean.
+ */
 function parseBoolean(value: string | undefined, fallback: boolean): boolean {
   if (!value) return fallback;
   const normalized = value.trim().toLowerCase();
   return normalized === 'true' || normalized === '1' || normalized === 'yes';
 }
 
+/**
+ * uk: Публічна функція getArgValue.
+ * en: Public function getArgValue.
+ * cz: Veřejná funkce getArgValue.
+ */
 function getArgValue(flag: string): string | undefined {
   const direct = process.argv.find((arg) => arg.startsWith(`${flag}=`));
   if (direct) return direct.slice(flag.length + 1).trim();
@@ -50,6 +62,11 @@ function getArgValue(flag: string): string | undefined {
   return undefined;
 }
 
+/**
+ * uk: Публічна функція parseArgs.
+ * en: Public function parseArgs.
+ * cz: Veřejná funkce parseArgs.
+ */
 function parseArgs(): ScriptArgs {
   const limitRaw = getArgValue('--limit');
   const cancelReason = getArgValue('--cancel-reason');
@@ -67,14 +84,29 @@ function parseArgs(): ScriptArgs {
   };
 }
 
+/**
+ * uk: Публічна функція hasHelpFlag.
+ * en: Public function hasHelpFlag.
+ * cz: Veřejná funkce hasHelpFlag.
+ */
 function hasHelpFlag(): boolean {
   return process.argv.includes('--help') || process.argv.includes('-h');
 }
 
+/**
+ * uk: Публічна функція isEmailSent.
+ * en: Public function isEmailSent.
+ * cz: Veřejná funkce isEmailSent.
+ */
 function isEmailSent(channels: DispatchChannel[]): boolean {
   return channels.some((item) => item.channel === 'email' && item.status === 'sent');
 }
 
+/**
+ * uk: Публічна функція main.
+ * en: Public function main.
+ * cz: Veřejná funkce main.
+ */
 async function main(): Promise<void> {
   const [
     { expirePendingBookings },

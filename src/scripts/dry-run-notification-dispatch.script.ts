@@ -21,6 +21,7 @@ type ScriptArgs = {
   withSms: boolean;
 };
 
+// uk: OPS/CLI константа HELP_TEXT / en: OPS/CLI constant HELP_TEXT / cz: OPS/CLI konstanta HELP_TEXT
 const HELP_TEXT = [
   'Usage:',
   '  npm run script:notification-dry-run -- --telegram-id=<TELEGRAM_ID> --notification-type=<TYPE> [--with-email=true|false] [--with-sms=true|false]',
@@ -29,6 +30,11 @@ const HELP_TEXT = [
   '  booking_confirmation | status_change | visit_reminder | promo_news',
 ].join('\n');
 
+/**
+ * uk: Публічна функція getArgValue.
+ * en: Public function getArgValue.
+ * cz: Veřejná funkce getArgValue.
+ */
 function getArgValue(flag: string): string | undefined {
   const direct = process.argv.find((arg) => arg.startsWith(`${flag}=`));
   if (direct) return direct.slice(flag.length + 1).trim();
@@ -39,16 +45,31 @@ function getArgValue(flag: string): string | undefined {
   return undefined;
 }
 
+/**
+ * uk: Публічна функція hasHelpFlag.
+ * en: Public function hasHelpFlag.
+ * cz: Veřejná funkce hasHelpFlag.
+ */
 function hasHelpFlag(): boolean {
   return process.argv.includes('--help') || process.argv.includes('-h');
 }
 
+/**
+ * uk: Публічна функція parseBoolean.
+ * en: Public function parseBoolean.
+ * cz: Veřejná funkce parseBoolean.
+ */
 function parseBoolean(value: string | undefined, fallback: boolean): boolean {
   if (!value) return fallback;
   const normalized = value.trim().toLowerCase();
   return normalized === 'true' || normalized === '1' || normalized === 'yes';
 }
 
+/**
+ * uk: Публічна функція parseNotificationType.
+ * en: Public function parseNotificationType.
+ * cz: Veřejná funkce parseNotificationType.
+ */
 function parseNotificationType(
   value: string | undefined,
 ): 'booking_confirmation' | 'status_change' | 'visit_reminder' | 'promo_news' {
@@ -66,6 +87,11 @@ function parseNotificationType(
   );
 }
 
+/**
+ * uk: Публічна функція parseArgs.
+ * en: Public function parseArgs.
+ * cz: Veřejná funkce parseArgs.
+ */
 function parseArgs(): ScriptArgs {
   const telegramId = getArgValue('--telegram-id');
   if (!telegramId) {
@@ -80,6 +106,11 @@ function parseArgs(): ScriptArgs {
   };
 }
 
+/**
+ * uk: Публічна функція isEmailConfiguredByEnv.
+ * en: Public function isEmailConfiguredByEnv.
+ * cz: Veřejná funkce isEmailConfiguredByEnv.
+ */
 function isEmailConfiguredByEnv(): boolean {
   return Boolean(
     process.env.SMTP_HOST &&
@@ -89,6 +120,11 @@ function isEmailConfiguredByEnv(): boolean {
   );
 }
 
+/**
+ * uk: Публічна функція main.
+ * en: Public function main.
+ * cz: Veřejná funkce main.
+ */
 async function main(): Promise<void> {
   const [
     { loggerScripts },

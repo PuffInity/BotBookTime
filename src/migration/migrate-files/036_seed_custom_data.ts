@@ -6,6 +6,11 @@ import { SQL_CUSTOM_DATA_DOWN, SQL_CUSTOM_DATA_UP } from '../custom-data.seed.js
  * @file 036_seed_custom_data.ts
  * @summary Seed migration: базові custom-дані для dev/staging середовища.
  */
+/**
+ * uk: Публічний клас Migration036SeedCustomData.
+ * en: Public class Migration036SeedCustomData.
+ * cz: Veřejná třída Migration036SeedCustomData.
+ */
 export class Migration036SeedCustomData extends BaseMigration {
   async up(client: PoolClient): Promise<void> {
     try {

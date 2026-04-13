@@ -40,6 +40,7 @@ type MasterRow = {
   is_bookable: boolean;
 };
 
+// uk: OPS/CLI константа HELP_TEXT / en: OPS/CLI constant HELP_TEXT / cz: OPS/CLI konstanta HELP_TEXT
 const HELP_TEXT = [
   'Usage:',
   '  npm run script:grant-master -- --telegram-id=<TELEGRAM_ID> [--granted-by-telegram-id=<TELEGRAM_ID>] [--display-name="<NAME>"]',
@@ -50,6 +51,11 @@ const HELP_TEXT = [
   '  --display-name              Імʼя майстра у профілі masters (optional)',
 ].join('\n');
 
+/**
+ * uk: Публічна функція getArgValue.
+ * en: Public function getArgValue.
+ * cz: Veřejná funkce getArgValue.
+ */
 function getArgValue(flag: string): string | undefined {
   const direct = process.argv.find((arg) => arg.startsWith(`${flag}=`));
   if (direct) return direct.slice(flag.length + 1).trim();
@@ -60,10 +66,20 @@ function getArgValue(flag: string): string | undefined {
   return undefined;
 }
 
+/**
+ * uk: Публічна функція hasHelpFlag.
+ * en: Public function hasHelpFlag.
+ * cz: Veřejná funkce hasHelpFlag.
+ */
 function hasHelpFlag(): boolean {
   return process.argv.includes('--help') || process.argv.includes('-h');
 }
 
+/**
+ * uk: Публічна функція parseArgs.
+ * en: Public function parseArgs.
+ * cz: Veřejná funkce parseArgs.
+ */
 function parseArgs(): ScriptArgs {
   const telegramIdRaw = getArgValue('--telegram-id');
   const grantedByTelegramIdRaw = getArgValue('--granted-by-telegram-id');
@@ -80,6 +96,11 @@ function parseArgs(): ScriptArgs {
   };
 }
 
+/**
+ * uk: Публічна функція makeDisplayName.
+ * en: Public function makeDisplayName.
+ * cz: Veřejná funkce makeDisplayName.
+ */
 function makeDisplayName(firstName: string, lastName: string | null, override?: string): string {
   if (override && override.trim().length > 0) {
     return override.trim();
@@ -88,6 +109,11 @@ function makeDisplayName(firstName: string, lastName: string | null, override?: 
   return fallback || 'Master';
 }
 
+/**
+ * uk: Публічна функція findUserByTelegramId.
+ * en: Public function findUserByTelegramId.
+ * cz: Veřejná funkce findUserByTelegramId.
+ */
 async function findUserByTelegramId(
   client: { query: <T>(sql: string, params: readonly unknown[]) => Promise<{ rows: T[]; rowCount: number | null }> },
   telegramUserId: string,
@@ -111,6 +137,11 @@ async function findUserByTelegramId(
   return result.rows[0] ?? null;
 }
 
+/**
+ * uk: Публічна функція hasMasterRole.
+ * en: Public function hasMasterRole.
+ * cz: Veřejná funkce hasMasterRole.
+ */
 async function hasMasterRole(
   client: { query: <T>(sql: string, params: readonly unknown[]) => Promise<{ rows: T[]; rowCount: number | null }> },
   userId: string,
@@ -128,6 +159,11 @@ async function hasMasterRole(
   return Boolean(result.rows[0]?.has_role);
 }
 
+/**
+ * uk: Публічна функція hasAdminRole.
+ * en: Public function hasAdminRole.
+ * cz: Veřejná funkce hasAdminRole.
+ */
 async function hasAdminRole(
   client: { query: <T>(sql: string, params: readonly unknown[]) => Promise<{ rows: T[]; rowCount: number | null }> },
   userId: string,
@@ -145,6 +181,11 @@ async function hasAdminRole(
   return Boolean(result.rows[0]?.has_role);
 }
 
+/**
+ * uk: Публічна функція getMasterProfileByUserId.
+ * en: Public function getMasterProfileByUserId.
+ * cz: Veřejná funkce getMasterProfileByUserId.
+ */
 async function getMasterProfileByUserId(
   client: { query: <T>(sql: string, params: readonly unknown[]) => Promise<{ rows: T[]; rowCount: number | null }> },
   userId: string,
@@ -164,6 +205,11 @@ async function getMasterProfileByUserId(
   return result.rows[0] ?? null;
 }
 
+/**
+ * uk: Публічна функція insertMasterRole.
+ * en: Public function insertMasterRole.
+ * cz: Veřejná funkce insertMasterRole.
+ */
 async function insertMasterRole(
   client: { query: <T>(sql: string, params: readonly unknown[]) => Promise<{ rows: T[]; rowCount: number | null }> },
   userId: string,
@@ -177,6 +223,11 @@ async function insertMasterRole(
   await client.query(sql, [userId, grantedByUserId]);
 }
 
+/**
+ * uk: Публічна функція insertMasterProfile.
+ * en: Public function insertMasterProfile.
+ * cz: Veřejná funkce insertMasterProfile.
+ */
 async function insertMasterProfile(
   client: { query: <T>(sql: string, params: readonly unknown[]) => Promise<{ rows: T[]; rowCount: number | null }> },
   input: {
@@ -216,6 +267,11 @@ async function insertMasterProfile(
   await client.query(sql, [input.userId, input.studioId, input.displayName, input.phone, input.email]);
 }
 
+/**
+ * uk: Публічна функція activateMasterProfile.
+ * en: Public function activateMasterProfile.
+ * cz: Veřejná funkce activateMasterProfile.
+ */
 async function activateMasterProfile(
   client: { query: <T>(sql: string, params: readonly unknown[]) => Promise<{ rows: T[]; rowCount: number | null }> },
   input: {
@@ -241,6 +297,11 @@ async function activateMasterProfile(
   await client.query(sql, [input.userId, input.displayName, input.phone, input.email]);
 }
 
+/**
+ * uk: Публічна функція main.
+ * en: Public function main.
+ * cz: Veřejná funkce main.
+ */
 async function main(): Promise<void> {
   const [{ pool }, { normalizeTelegramId }, { loggerScripts }] = await Promise.all([
     import('../config/database.config.js'),

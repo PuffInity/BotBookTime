@@ -6,21 +6,25 @@ import {MigrationTracker} from "./table.migration.js";
 import {Migration, migrationLogger} from "./base.migration.js";
 import {handleError} from "../utils/error.utils.js";
 
-
 /**
  * @file runner.migration.ts
- * @summary Файл який виконує опції міграцій
+ * @summary Migration runner for apply/rollback/status operations.
  */
-
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-/** @summary Тип для классу тобто під цей тип підійде любий класс який має методи типа Migration( up() та down() */
+/**
+ * uk: Конструктор класу міграції.
+ * en: Migration class constructor type.
+ * cz: Typ konstruktoru migrační třídy.
+ */
 type MigrationConstructor = new () => Migration
 
 /**
- * @summary Це тип для того щоб визначити яким шляхом було експортоваоно класс міграцій
+ * uk: Тип модуля міграції.
+ * en: Migration module export type.
+ * cz: Typ exportu migračního modulu.
  */
 interface MigrationModule {
     default?: MigrationConstructor
@@ -29,18 +33,22 @@ interface MigrationModule {
 }
 
 /**
- * @summary Класс який виконує головні опціії міграцій
- * */
+ * uk: Runner міграцій.
+ * en: Migration runner.
+ * cz: Migration runner.
+ */
 export class MigrationRunner {
-    /** Константа в якій зберігаємо шлях до директорії з міграціями  */
+    // uk: Директорія міграцій / en: Migrations dir / cz: Adresář migrací
     private static readonly MIGRATION_DIR = path.join(__dirname, './migrate-files')
 
-    /** Отримуємо міграції які були знайдені в дерикторії міграцій */
+    /**
+     * uk: Повертає список файлів міграцій.
+     * en: Returns migration file list.
+     * cz: Vrací seznam migračních souborů.
+     */
     private static async getMigrationFiles(): Promise<string[]> {
         try {
-            /** Читаємо дерикторію та фільтруємо кожен файл який був знайдений по критеріями - Якщо файл був з закінчення ts або якщо
-             * файл має .d.ts тоді його пропускаємо та не враховуємо як маграційний файл
-             * */
+            // uk: Фільтр ts/js без d.ts / en: ts/js filter without d.ts / cz: filtr ts/js bez d.ts
             const files = fs.readdirSync(this.MIGRATION_DIR)
                 .filter((file: string) => (file.endsWith('ts') || file.endsWith('js')) && !file.endsWith('.d.ts'))
                 .sort()
@@ -60,36 +68,35 @@ export class MigrationRunner {
     }
 
     /**
-     * @summary Функція яка провіряє файли міграцій та відає корректні та перевірені файли
+     * uk: Завантажує один migration клас.
+     * en: Loads one migration class.
+     * cz: Načte jednu migration třídu.
+     * @param file uk/en/cz: Імʼя файла/File name/Název souboru.
      */
     private static async loadMigration(file: string): Promise<Migration> {
         try {
-            /** Створюємо шлях до файла маграції */
+            // uk: Шлях файлу / en: File path / cz: Cesta souboru
             const migrationPath = path.join(this.MIGRATION_DIR, file);
-            /** Імпортуємо його та кажемо йому що він MigrationModule */
+            // uk: Динамічний імпорт / en: Dynamic import / cz: Dynamický import
             const migrationObj = await import(migrationPath) as MigrationModule
-            /** Створюємо змінну в яку передаємо тип конструктора */
+            // uk: Конструктор міграції / en: Migration ctor / cz: Konstruktor migrace
             let migrationClass: MigrationConstructor
 
-            /** Провіряємо чи в migrationObj в самому файлі він був імпортований через default якщо так ми відразу знаємо що це наш файл
-             * якщо ні робимо перевірку */
+            // uk: default export або named / en: default or named export / cz: default nebo named export
             if (migrationObj.default) {
                 migrationClass = migrationObj.default
             } else {
-                /** Беремо наш файл та фільтруємо його якщо він підходить типу MigrationConstructor
-                 * та також сам є функкцією та якщо він має прототип,
-                 * беремо типи його його прототипів та провіряємо чи вони функції
-                 * якщо так тоді все чудово */
+                // uk: Пошук класу з up/down / en: Find class with up/down / cz: Najít třídu s up/down
                 const exportedValues = Object.values(migrationObj).filter(
                     (value): value is MigrationConstructor => typeof value === 'function' &&
                         value.prototype &&
                         typeof value.prototype.up === 'function' &&
                         typeof value.prototype.down === 'function'
                 )
-                /** Записуємо в константу відфільтрований результат точніше перший знайдений елемент */
+                // uk: Перший валідний export / en: First valid export / cz: První validní export
                 const migrationClassNotDefault = exportedValues[0]
 
-                /** Провіряємо чи є наша константа пуста */
+                // uk: Перевірка знайденого класу / en: Validate found class / cz: Ověření nalezené třídy
                 if (!migrationClassNotDefault) {
                     migrationLogger.error('Помилка, migrationClassNotDefault є пустим', {
                         file: migrationClassNotDefault,
@@ -97,16 +104,14 @@ export class MigrationRunner {
                     })
                     throw new Error('Помилка з відфільтрованим варіантом маграцій')
                 }
-                /** Якщо все ок записуємо його в змінну */
                 migrationClass = migrationClassNotDefault
             }
-            /** Провіряємо ще раз що ми записали в змінну функцію */
+
             if (typeof migrationClass !== "function") {
                 migrationLogger.error('Помилка, змінна міграцій зʼясувалось була не функцією', {migrationFile: typeof migrationClass,})
                 throw new Error('Помилка файла міграцій ')
             }
 
-            /** Повертаємо провірений та корректний варіант */
             return new migrationClass()
         } catch (error) {
             handleError({
@@ -121,45 +126,41 @@ export class MigrationRunner {
     }
 
     /**
-     * @summary Функція яка запускає міграції
-     *
+     * uk: Запускає pending міграції.
+     * en: Runs pending migrations.
+     * cz: Spustí pending migrace.
      */
     static async runMigrations(): Promise<void> {
         migrationLogger.info('Запуск міграції')
         try {
-            /** Створюємо таблицю міграцій  */
+            // uk: Таблиця трекінгу / en: Tracking table / cz: Tracking tabulka
             await MigrationTracker.createMigrationTable()
-            /** Отримуємо всі міграції */
+            // uk: Всі файли / en: All files / cz: Všechny soubory
             const migrationFiles = await MigrationRunner.getMigrationFiles()
-            /** Отримуємо готові міграції */
+            // uk: Виконані файли / en: Executed files / cz: Provedené soubory
             const executedMigrations = await MigrationTracker.getExecutedMigrations()
-            /** Фільтруємо всі міграції та видаляємо ті міграції які вже виконані */
+            // uk: Pending список / en: Pending list / cz: Pending seznam
             const pendingMigrations = migrationFiles.filter(file => !executedMigrations.includes(file))
-            /** Якщо  нічого немаємо пропускаємо */
+
             if(pendingMigrations.length === 0) {
                 migrationLogger.info('Программа не знайшла міграції для виконання', {migration: pendingMigrations.length})
                 return
             }
+
             migrationLogger.info(`Загружаємо міграції`, {migration: pendingMigrations.length})
-            /** Перебираємо кожну міграцію */
             for(const file of pendingMigrations) {
-                /** Беремо 1 зʼєднання від бази */
                 const client = await pool.connect()
                 migrationLogger.info(`Обробка міграції: ${file}`)
                 try {
-                    /** Знаходимо та загружаємо міграцію */
                     const migration = await MigrationRunner.loadMigration(file)
-                    /** Виконуємо функцію up() */
                     await migration.up(client)
-                    /** Записуємо в таблицю виконану міграцію */
                     await MigrationTracker.recordMigration(file)
                     migrationLogger.info(`Міграція ${file} оброблена`)
-                }finally {
-                    /** Повертаємо зʼєднання в базу даних */
+                } finally {
                     client.release()
                 }
             }
-        }catch(error) {
+        } catch(error) {
             handleError({
                 logger: migrationLogger,
                 scope: "migration-runner",
@@ -171,37 +172,34 @@ export class MigrationRunner {
     }
 
     /**
-     * @summary Функція яка робить rollback в міграціях
+     * uk: Відкочує останню міграцію.
+     * en: Rolls back last migration.
+     * cz: Vrátí poslední migraci.
      */
     static async rollbackMigrations(): Promise<void> {
         migrationLogger.info('Запуск rollback')
         try {
-            /** Беремо виконані міграції  */
+            // uk: Виконані міграції / en: Executed migrations / cz: Provedené migrace
             const executedMigrations = await MigrationTracker.getExecutedMigrations()
-            /** Якщо їх немає пропускаємо */
             if(executedMigrations.length === 0) {
                 migrationLogger.info('Немає міграцій для Rollback', {migration: executedMigrations.length})
                 return;
             }
-            /** Визначаємо останню міграцію яка була виконана */
+
+            // uk: Остання міграція / en: Last migration / cz: Poslední migrace
             const lastMigration = executedMigrations[executedMigrations.length - 1]
             migrationLogger.info(`Остання міграція: ${lastMigration}`)
 
-            /** Знаходимо та загружаємо міграцію */
             const migration = await this.loadMigration(lastMigration)
-            /** Беремо зʼєднання від бази */
             const client = await pool.connect()
             try {
-                /** Викликаємо функцію down() */
                 await migration.down(client)
-                /** Видаляємо міграцію з таблиці */
                 await MigrationTracker.removeMigration(lastMigration)
                 migrationLogger.info(`Міграція ${lastMigration} відкочено назад`)
-            }finally {
-                /** Повертаємо зʼєднання назад */
+            } finally {
                 client.release()
             }
-        }catch(error) {
+        } catch(error) {
             handleError({
                 logger: migrationLogger,
                 scope: "migration-runner",
@@ -213,31 +211,32 @@ export class MigrationRunner {
     }
 
     /**
-     * @summary Функція яка повертає статус міграцій
+     * uk: Показує статус міграцій.
+     * en: Prints migration status.
+     * cz: Vypíše stav migrací.
      */
     static async getMigrationStatus(): Promise<void> {
         migrationLogger.info('Статус міграцій')
         try {
-            /** Отримуємо список всіх міграцій */
+            // uk: Всі файли / en: All files / cz: Všechny soubory
             const migrationFiles = await MigrationRunner.getMigrationFiles()
-            /** Отримаємо список виконаних міграцій */
+            // uk: Виконані файли / en: Executed files / cz: Provedené soubory
             const executedMigrations = await MigrationTracker.getExecutedMigrations()
-            /** Якщо не було знайдено міграцій пропускаємо це */
             if(migrationFiles.length === 0) {
                 migrationLogger.info('Немає міграцій для показу статусу')
                 return
             }
+
             migrationLogger.info(`Знайдено міграційних файлів - ${migrationFiles.length}`)
-            /** Беремо кожен файл міграцій та даємо статус виконаному Виконано а якщо ні то Очікується */
             migrationFiles.forEach(file => {
                 const isExecuted = executedMigrations.includes(file)
                 const status = isExecuted ? 'Виконано' : 'Очікується'
                 migrationLogger.info(`${file} : ${status}`)
             })
-            /** Беремо всі файли та віднімаємо готові отримаємо файли які очікують та будуємо загальний вивід для Всіх міграцій Викониних та в очікуванні */
+
             const pendingCount = migrationFiles.length - executedMigrations.length
             migrationLogger.info(`Загалом:${migrationFiles.length}, Виконано:${executedMigrations.length} Очікується:${pendingCount}`)
-        }catch(error) {
+        } catch(error) {
             handleError({
                 logger: migrationLogger,
                 scope: "migration-runner",

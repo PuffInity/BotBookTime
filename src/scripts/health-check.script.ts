@@ -20,6 +20,7 @@ type CheckResult = {
   details: string;
 };
 
+// uk: OPS/CLI константа HELP_TEXT / en: OPS/CLI constant HELP_TEXT / cz: OPS/CLI konstanta HELP_TEXT
 const HELP_TEXT = [
   'Usage:',
   '  npm run script:health-check',
@@ -28,10 +29,20 @@ const HELP_TEXT = [
   '  Перевіряє доступність Postgres/Redis/SMTP та конфіг Twilio.',
 ].join('\n');
 
+/**
+ * uk: Публічна функція hasHelpFlag.
+ * en: Public function hasHelpFlag.
+ * cz: Veřejná funkce hasHelpFlag.
+ */
 function hasHelpFlag(): boolean {
   return process.argv.includes('--help') || process.argv.includes('-h');
 }
 
+/**
+ * uk: Публічна функція checkPostgres.
+ * en: Public function checkPostgres.
+ * cz: Veřejná funkce checkPostgres.
+ */
 async function checkPostgres(): Promise<CheckResult> {
   try {
     const [{ pool }] = await Promise.all([import('../config/database.config.js')]);
@@ -49,6 +60,11 @@ async function checkPostgres(): Promise<CheckResult> {
   }
 }
 
+/**
+ * uk: Публічна функція checkRedis.
+ * en: Public function checkRedis.
+ * cz: Veřejná funkce checkRedis.
+ */
 async function checkRedis(): Promise<CheckResult> {
   try {
     const [{ redisConfig }] = await Promise.all([import('../config/redis.config.js')]);
@@ -68,6 +84,11 @@ async function checkRedis(): Promise<CheckResult> {
   }
 }
 
+/**
+ * uk: Публічна функція checkSmtp.
+ * en: Public function checkSmtp.
+ * cz: Veřejná funkce checkSmtp.
+ */
 async function checkSmtp(): Promise<CheckResult> {
   try {
     const [{ warmupMailer }] = await Promise.all([import('../helpers/mailer.helper.js')]);
@@ -79,6 +100,11 @@ async function checkSmtp(): Promise<CheckResult> {
   }
 }
 
+/**
+ * uk: Публічна функція checkTwilio.
+ * en: Public function checkTwilio.
+ * cz: Veřejná funkce checkTwilio.
+ */
 async function checkTwilio(): Promise<CheckResult> {
   try {
     const [{ isTwilioConfigured, twilioMissingFields }] = await Promise.all([
@@ -100,6 +126,11 @@ async function checkTwilio(): Promise<CheckResult> {
   }
 }
 
+/**
+ * uk: Публічна функція main.
+ * en: Public function main.
+ * cz: Veřejná funkce main.
+ */
 async function main(): Promise<void> {
   const [{ loggerScripts }] = await Promise.all([import('../utils/logger/loggers-list.js')]);
 
