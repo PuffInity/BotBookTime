@@ -8,22 +8,44 @@ import { loggerR } from '../../utils/logger/loggers-list.js';
  * @summary Redis guards for email OTP flow (resend cooldown + brute-force block).
  */
 
+// uk: helper константа OTP_RESEND_COOLDOWN_SECONDS / en: helper constant OTP_RESEND_COOLDOWN_SECONDS / cz: helper konstanta OTP_RESEND_COOLDOWN_SECONDS
 const OTP_RESEND_COOLDOWN_SECONDS = 60;
+// uk: helper константа OTP_VERIFY_BLOCK_SECONDS / en: helper constant OTP_VERIFY_BLOCK_SECONDS / cz: helper konstanta OTP_VERIFY_BLOCK_SECONDS
 const OTP_VERIFY_BLOCK_SECONDS = 5 * 60;
 
+/**
+ * uk: Внутрішня helper функція getOtpResendCooldownKey.
+ * en: Internal helper function getOtpResendCooldownKey.
+ * cz: Interní helper funkce getOtpResendCooldownKey.
+ */
 function getOtpResendCooldownKey(telegramUserId: string): string {
   return `profile:email-otp:resend:${telegramUserId}`;
 }
 
+/**
+ * uk: Внутрішня helper функція getOtpVerifyBlockKey.
+ * en: Internal helper function getOtpVerifyBlockKey.
+ * cz: Interní helper funkce getOtpVerifyBlockKey.
+ */
 function getOtpVerifyBlockKey(telegramUserId: string): string {
   return `profile:email-otp:block:${telegramUserId}`;
 }
 
+/**
+ * uk: Внутрішня helper функція getReadyRedisClient.
+ * en: Internal helper function getReadyRedisClient.
+ * cz: Interní helper funkce getReadyRedisClient.
+ */
 function getReadyRedisClient() {
   if (!redis || !redis.isOpen) return null;
   return redis;
 }
 
+/**
+ * uk: Публічна helper функція isEmailOtpVerifyBlocked.
+ * en: Public helper function isEmailOtpVerifyBlocked.
+ * cz: Veřejná helper funkce isEmailOtpVerifyBlocked.
+ */
 export async function isEmailOtpVerifyBlocked(telegramId: number | string): Promise<boolean> {
   const telegramUserId = normalizeTelegramId(telegramId);
   const key = getOtpVerifyBlockKey(telegramUserId);
@@ -44,6 +66,11 @@ export async function isEmailOtpVerifyBlocked(telegramId: number | string): Prom
   }
 }
 
+/**
+ * uk: Публічна helper функція setEmailOtpVerifyBlocked.
+ * en: Public helper function setEmailOtpVerifyBlocked.
+ * cz: Veřejná helper funkce setEmailOtpVerifyBlocked.
+ */
 export async function setEmailOtpVerifyBlocked(telegramId: number | string): Promise<void> {
   const telegramUserId = normalizeTelegramId(telegramId);
   const key = getOtpVerifyBlockKey(telegramUserId);
@@ -63,6 +90,11 @@ export async function setEmailOtpVerifyBlocked(telegramId: number | string): Pro
   }
 }
 
+/**
+ * uk: Публічна helper функція getEmailOtpResendRetrySec.
+ * en: Public helper function getEmailOtpResendRetrySec.
+ * cz: Veřejná helper funkce getEmailOtpResendRetrySec.
+ */
 export async function getEmailOtpResendRetrySec(telegramId: number | string): Promise<number> {
   const telegramUserId = normalizeTelegramId(telegramId);
   const key = getOtpResendCooldownKey(telegramUserId);
@@ -84,6 +116,11 @@ export async function getEmailOtpResendRetrySec(telegramId: number | string): Pr
   }
 }
 
+/**
+ * uk: Публічна helper функція markEmailOtpResendCooldown.
+ * en: Public helper function markEmailOtpResendCooldown.
+ * cz: Veřejná helper funkce markEmailOtpResendCooldown.
+ */
 export async function markEmailOtpResendCooldown(telegramId: number | string): Promise<void> {
   const telegramUserId = normalizeTelegramId(telegramId);
   const key = getOtpResendCooldownKey(telegramUserId);
@@ -103,6 +140,11 @@ export async function markEmailOtpResendCooldown(telegramId: number | string): P
   }
 }
 
+/**
+ * uk: Публічна helper функція clearEmailOtpGuards.
+ * en: Public helper function clearEmailOtpGuards.
+ * cz: Veřejná helper funkce clearEmailOtpGuards.
+ */
 export async function clearEmailOtpGuards(telegramId: number | string): Promise<void> {
   const telegramUserId = normalizeTelegramId(telegramId);
   const resendKey = getOtpResendCooldownKey(telegramUserId);

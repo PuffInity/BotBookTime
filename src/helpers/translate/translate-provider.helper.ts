@@ -31,6 +31,11 @@ type GoogleTranslationResponse = {
   };
 };
 
+/**
+ * uk: Внутрішня helper функція decodeHtmlEntities.
+ * en: Internal helper function decodeHtmlEntities.
+ * cz: Interní helper funkce decodeHtmlEntities.
+ */
 function decodeHtmlEntities(input: string): string {
   return input
     .replaceAll('&#39;', "'")
@@ -40,6 +45,11 @@ function decodeHtmlEntities(input: string): string {
     .replaceAll('&gt;', '>');
 }
 
+/**
+ * uk: Внутрішня helper функція postJsonViaHttps.
+ * en: Internal helper function postJsonViaHttps.
+ * cz: Interní helper funkce postJsonViaHttps.
+ */
 async function postJsonViaHttps(
   url: string,
   body: Record<string, unknown>,
@@ -107,6 +117,11 @@ async function postJsonViaHttps(
   });
 }
 
+/**
+ * uk: Внутрішня helper функція translateViaGoogleApi.
+ * en: Internal helper function translateViaGoogleApi.
+ * cz: Interní helper funkce translateViaGoogleApi.
+ */
 async function translateViaGoogleApi(input: {
   text: string;
   sourceLanguage: string;
@@ -172,6 +187,11 @@ async function translateViaGoogleApi(input: {
   return decodeHtmlEntities(translatedText);
 }
 
+/**
+ * uk: Внутрішня helper функція asOriginal.
+ * en: Internal helper function asOriginal.
+ * cz: Interní helper funkce asOriginal.
+ */
 function asOriginal(text: string, status: RuntimeTranslateResult['status']): RuntimeTranslateResult {
   return {
     text,
@@ -180,6 +200,11 @@ function asOriginal(text: string, status: RuntimeTranslateResult['status']): Run
   };
 }
 
+/**
+ * uk: Внутрішня helper функція createCacheInput.
+ * en: Internal helper function createCacheInput.
+ * cz: Interní helper funkce createCacheInput.
+ */
 function createCacheInput(input: {
   text: string;
   sourceLanguage: TranslateTextInput['sourceLanguage'];

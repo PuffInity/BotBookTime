@@ -10,22 +10,43 @@ import { loggerTranslate } from '../../utils/logger/loggers-list.js';
  * @summary Redis кеш перекладів для зменшення вартості і зовнішніх API викликів.
  */
 
+// uk: helper константа TRANSLATE_CACHE_KEY_PREFIX / en: helper constant TRANSLATE_CACHE_KEY_PREFIX / cz: helper konstanta TRANSLATE_CACHE_KEY_PREFIX
 const TRANSLATE_CACHE_KEY_PREFIX = 'translate:cache:v1:';
 
+/**
+ * uk: Внутрішня helper функція getReadyRedisClient.
+ * en: Internal helper function getReadyRedisClient.
+ * cz: Interní helper funkce getReadyRedisClient.
+ */
 function getReadyRedisClient() {
   if (!redis || !redis.isOpen) return null;
   return redis;
 }
 
+/**
+ * uk: Внутрішня helper функція hashText.
+ * en: Internal helper function hashText.
+ * cz: Interní helper funkce hashText.
+ */
 function hashText(text: string): string {
   return createHash('sha256').update(text, 'utf8').digest('hex');
 }
 
+/**
+ * uk: Публічна helper функція buildTranslateCacheKey.
+ * en: Public helper function buildTranslateCacheKey.
+ * cz: Veřejná helper funkce buildTranslateCacheKey.
+ */
 export function buildTranslateCacheKey(input: TranslateCacheKeyInput): string {
   const textHash = hashText(input.text);
   return `${TRANSLATE_CACHE_KEY_PREFIX}${input.provider}:${input.sourceLanguage}:${input.targetLanguage}:${textHash}`;
 }
 
+/**
+ * uk: Публічна helper функція getCachedTranslation.
+ * en: Public helper function getCachedTranslation.
+ * cz: Veřejná helper funkce getCachedTranslation.
+ */
 export async function getCachedTranslation(input: TranslateCacheKeyInput): Promise<string | null> {
   const client = getReadyRedisClient();
   if (!client) return null;
@@ -49,6 +70,11 @@ export async function getCachedTranslation(input: TranslateCacheKeyInput): Promi
   }
 }
 
+/**
+ * uk: Публічна helper функція setCachedTranslation.
+ * en: Public helper function setCachedTranslation.
+ * cz: Veřejná helper funkce setCachedTranslation.
+ */
 export async function setCachedTranslation(
   input: TranslateCacheKeyInput,
   translatedText: string,

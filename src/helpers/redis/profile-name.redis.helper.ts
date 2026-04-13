@@ -8,22 +8,44 @@ import { loggerR } from '../../utils/logger/loggers-list.js';
  * @summary Redis helper for profile-name blocking/cooldown keys.
  */
 
+// uk: helper константа NAME_CHANGE_BLOCK_SECONDS / en: helper constant NAME_CHANGE_BLOCK_SECONDS / cz: helper konstanta NAME_CHANGE_BLOCK_SECONDS
 const NAME_CHANGE_BLOCK_SECONDS = 5 * 60;
+// uk: helper константа NAME_CHANGE_COOLDOWN_SECONDS / en: helper constant NAME_CHANGE_COOLDOWN_SECONDS / cz: helper konstanta NAME_CHANGE_COOLDOWN_SECONDS
 const NAME_CHANGE_COOLDOWN_SECONDS = 24 * 60 * 60;
 
+/**
+ * uk: Внутрішня helper функція getNameChangeBlockKey.
+ * en: Internal helper function getNameChangeBlockKey.
+ * cz: Interní helper funkce getNameChangeBlockKey.
+ */
 function getNameChangeBlockKey(telegramUserId: string): string {
   return `profile:name-change:block:${telegramUserId}`;
 }
 
+/**
+ * uk: Внутрішня helper функція getNameChangeCooldownKey.
+ * en: Internal helper function getNameChangeCooldownKey.
+ * cz: Interní helper funkce getNameChangeCooldownKey.
+ */
 function getNameChangeCooldownKey(telegramUserId: string): string {
   return `profile:name-change:cooldown:${telegramUserId}`;
 }
 
+/**
+ * uk: Внутрішня helper функція getReadyRedisClient.
+ * en: Internal helper function getReadyRedisClient.
+ * cz: Interní helper funkce getReadyRedisClient.
+ */
 function getReadyRedisClient() {
   if (!redis || !redis.isOpen) return null;
   return redis;
 }
 
+/**
+ * uk: Внутрішня helper функція keyExists.
+ * en: Internal helper function keyExists.
+ * cz: Interní helper funkce keyExists.
+ */
 async function keyExists(key: string): Promise<boolean> {
   const client = getReadyRedisClient();
   if (!client) return false;

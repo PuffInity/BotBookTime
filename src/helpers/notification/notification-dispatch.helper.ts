@@ -27,9 +27,14 @@ import { isTwilioConfigured } from '../../config/twilio.config.js';
 
 /**
  * @file notification-dispatch.helper.ts
- * @summary Єдиний helper маршрутизації сповіщень по каналах Telegram/Email/SMS.
+ * @summary Unified dispatcher for Telegram/Email/SMS channels.
  */
 
+/**
+ * uk: Внутрішня helper функція pushSkipped.
+ * en: Internal helper function pushSkipped.
+ * cz: Interní helper funkce pushSkipped.
+ */
 function pushSkipped(
   channels: ChannelDispatchResult[],
   channel: ChannelDispatchResult['channel'],
@@ -38,6 +43,11 @@ function pushSkipped(
   channels.push({ channel, status: 'skipped', reason });
 }
 
+/**
+ * uk: Внутрішня helper функція pushFailed.
+ * en: Internal helper function pushFailed.
+ * cz: Interní helper funkce pushFailed.
+ */
 function pushFailed(
   channels: ChannelDispatchResult[],
   channel: ChannelDispatchResult['channel'],
@@ -47,6 +57,11 @@ function pushFailed(
   channels.push({ channel, status: 'failed', reason, details });
 }
 
+/**
+ * uk: Внутрішня helper функція translateNotificationTextIfNeeded.
+ * en: Internal helper function translateNotificationTextIfNeeded.
+ * cz: Interní helper funkce translateNotificationTextIfNeeded.
+ */
 async function translateNotificationTextIfNeeded(input: {
   text: string;
   targetLanguage: LanguageCode;
@@ -104,6 +119,11 @@ async function translateNotificationTextIfNeeded(input: {
   return translated.text;
 }
 
+/**
+ * uk: Внутрішня helper функція localizePayload.
+ * en: Internal helper function localizePayload.
+ * cz: Interní helper funkce localizePayload.
+ */
 async function localizePayload(
   payload: DispatchNotificationInput['textPayload'],
   targetLanguage: LanguageCode,
@@ -151,6 +171,11 @@ async function localizePayload(
   };
 }
 
+/**
+ * uk: Внутрішня helper функція localizeEmailPayload.
+ * en: Internal helper function localizeEmailPayload.
+ * cz: Interní helper funkce localizeEmailPayload.
+ */
 async function localizeEmailPayload(
   email: NotificationEmailPayload,
   targetLanguage: LanguageCode,
@@ -176,7 +201,11 @@ async function localizeEmailPayload(
 }
 
 /**
- * @summary Відправляє бізнес-сповіщення по доступних каналах доставки.
+ * uk: Диспетчер каналів сповіщень.
+ * en: Notification channel dispatcher.
+ * cz: Dispatcher notifikačních kanálů.
+ * @param input uk/en/cz: Вхід dispatch / Dispatch input / Dispatch vstup.
+ * @returns uk/en/cz: Результат каналів / Channel result / Výsledek kanálů.
  */
 export async function dispatchNotification(
   input: DispatchNotificationInput,
@@ -192,6 +221,7 @@ export async function dispatchNotification(
 
   const channels: ChannelDispatchResult[] = [];
   const recipientLanguage = resolveBotUiLanguage(profile.preferredLanguage);
+  // uk: Policy каналів / en: Channel policy / cz: Policy kanálů
   const policy = buildNotificationDispatchPolicy({
     notificationType: input.notificationType,
     settings,
@@ -236,6 +266,7 @@ export async function dispatchNotification(
     });
   }
 
+  // uk: Канал Telegram / en: Telegram channel / cz: Telegram kanál
   if (policy.telegram.allowed) {
     try {
       await sendTelegramNotification({
@@ -261,6 +292,7 @@ export async function dispatchNotification(
     pushSkipped(channels, 'telegram', policy.telegram.reason ?? 'not_allowed');
   }
 
+  // uk: Канал Email / en: Email channel / cz: Email kanál
   if (policy.email.allowed) {
     try {
       await sendEmail({
@@ -288,6 +320,7 @@ export async function dispatchNotification(
     pushSkipped(channels, 'email', policy.email.reason ?? 'not_allowed');
   }
 
+  // uk: Канал SMS / en: SMS channel / cz: SMS kanál
   if (policy.sms.allowed) {
     const smsText = await translateNotificationTextIfNeeded({
       text: input.smsText as string,

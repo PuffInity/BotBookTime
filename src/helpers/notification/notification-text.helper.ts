@@ -7,6 +7,7 @@ import type { NotificationTextPayload } from '../../types/notification-dispatch.
  * @summary Форматування дефолтного тексту для Telegram-сповіщень.
  */
 
+// uk: helper константа DEFAULT_TIMEZONE / en: helper constant DEFAULT_TIMEZONE / cz: helper konstanta DEFAULT_TIMEZONE
 const DEFAULT_TIMEZONE = 'Europe/Prague';
 
 const LOCALE_BY_LANGUAGE: Record<LanguageCode, string> = {
@@ -15,11 +16,21 @@ const LOCALE_BY_LANGUAGE: Record<LanguageCode, string> = {
   cs: 'cs-CZ',
 };
 
+/**
+ * uk: Внутрішня helper функція resolveLanguage.
+ * en: Internal helper function resolveLanguage.
+ * cz: Interní helper funkce resolveLanguage.
+ */
 function resolveLanguage(language?: LanguageCode): LanguageCode {
   if (language === 'en' || language === 'cs') return language;
   return 'uk';
 }
 
+/**
+ * uk: Внутрішня helper функція formatDateTime.
+ * en: Internal helper function formatDateTime.
+ * cz: Interní helper funkce formatDateTime.
+ */
 function formatDateTime(value?: Date | string, language?: LanguageCode): string | null {
   if (!value) return null;
 
@@ -36,6 +47,11 @@ function formatDateTime(value?: Date | string, language?: LanguageCode): string 
   }).format(date);
 }
 
+/**
+ * uk: Внутрішня helper функція composeHeader.
+ * en: Internal helper function composeHeader.
+ * cz: Interní helper funkce composeHeader.
+ */
 function composeHeader(notificationType: NotificationType, language: LanguageCode): string {
   if (language === 'en') {
     if (notificationType === 'booking_confirmation') return '✅ Booking confirmation';

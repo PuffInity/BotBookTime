@@ -5,16 +5,20 @@ import type {
 
 /**
  * @file notification-policy.helper.ts
- * @summary Policy helper для рішення по каналах доставки сповіщення.
+ * @summary Delivery policy helper for notification channels.
  */
 
 /**
- * @summary Будує політику доставки: Telegram завжди обовʼязковий при enabled=true,
- * email/sms вмикаються тільки за наявності та верифікації контактів.
+ * uk: Будує channel policy доставки.
+ * en: Builds channel delivery policy.
+ * cz: Sestaví channel delivery policy.
+ * @param input uk/en/cz: Вхід policy / Policy input / Policy vstup.
+ * @returns uk/en/cz: Політика каналів / Channel policy / Politika kanálů.
  */
 export function buildNotificationDispatchPolicy(
   input: DispatchNotificationPolicyInput,
 ): DispatchNotificationPolicy {
+  // uk: Глобальний enable / en: Global enable / cz: Globální enable
   const enabled = input.settings[input.notificationType] ?? true;
 
   if (!enabled) {
@@ -26,10 +30,17 @@ export function buildNotificationDispatchPolicy(
     };
   }
 
+  // uk: Policy email / en: Email policy / cz: Email policy
   const hasVerifiedEmail = Boolean(input.profile.email && input.profile.emailVerifiedAt);
+  // uk: Policy sms / en: SMS policy / cz: SMS policy
   const hasVerifiedPhone = Boolean(input.profile.phoneE164 && input.profile.phoneVerifiedAt);
+  // uk: Доступність SMS каналу / en: SMS channel availability / cz: Dostupnost SMS kanálu
   const smsChannelAvailable = input.smsChannelAvailable ?? true;
 
+  // uk: Правило policy / en: Policy rule / cz: Policy pravidlo
+  // uk: Telegram — базовий канал; Email/SMS тільки при верифікованих контактах.
+  // en: Telegram is baseline channel; Email/SMS require verified contacts.
+  // cz: Telegram je základní kanál; Email/SMS vyžadují ověřené kontakty.
   return {
     enabled: true,
     telegram: { allowed: true },

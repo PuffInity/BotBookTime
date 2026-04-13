@@ -41,17 +41,34 @@ import { isTwilioConfigured } from '../../config/twilio.config.js';
  * @summary OTP flow helper for email verification (generate/save/verify/resend).
  */
 
+// uk: helper константа OTP_LENGTH / en: helper constant OTP_LENGTH / cz: helper konstanta OTP_LENGTH
 const OTP_LENGTH = 6;
+// uk: helper константа OTP_EXPIRES_MINUTES / en: helper constant OTP_EXPIRES_MINUTES / cz: helper konstanta OTP_EXPIRES_MINUTES
 const OTP_EXPIRES_MINUTES = 5;
 
+/**
+ * uk: Внутрішня helper функція getOtpSecret.
+ * en: Internal helper function getOtpSecret.
+ * cz: Interní helper funkce getOtpSecret.
+ */
 function getOtpSecret(): string {
   return process.env.OTP_SECRET ?? process.env.BOT_TOKEN ?? 'dev-otp-secret';
 }
 
+/**
+ * uk: Внутрішня helper функція hashOtpCode.
+ * en: Internal helper function hashOtpCode.
+ * cz: Interní helper funkce hashOtpCode.
+ */
 function hashOtpCode(code: string, destination: string): string {
   return createHmac('sha256', getOtpSecret()).update(`${destination}:${code}`).digest('hex');
 }
 
+/**
+ * uk: Внутрішня helper функція safeHashEquals.
+ * en: Internal helper function safeHashEquals.
+ * cz: Interní helper funkce safeHashEquals.
+ */
 function safeHashEquals(actualHash: string, expectedHash: string): boolean {
   const a = Buffer.from(actualHash, 'hex');
   const b = Buffer.from(expectedHash, 'hex');

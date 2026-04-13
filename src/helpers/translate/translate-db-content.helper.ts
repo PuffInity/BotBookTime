@@ -34,6 +34,11 @@ type TranslateTextParams = {
   memo: TranslateMemo;
 };
 
+/**
+ * uk: Внутрішня helper функція buildMemoKey.
+ * en: Internal helper function buildMemoKey.
+ * cz: Interní helper funkce buildMemoKey.
+ */
 function buildMemoKey(input: {
   text: string;
   sourceLanguage: LanguageCode;
@@ -42,6 +47,11 @@ function buildMemoKey(input: {
   return `${input.sourceLanguage}:${input.targetLanguage}:${input.text}`;
 }
 
+/**
+ * uk: Внутрішня helper функція translateTextRuntime.
+ * en: Internal helper function translateTextRuntime.
+ * cz: Interní helper funkce translateTextRuntime.
+ */
 async function translateTextRuntime(params: TranslateTextParams): Promise<string> {
   const raw = params.text;
   const text = raw.trim();
@@ -70,6 +80,11 @@ async function translateTextRuntime(params: TranslateTextParams): Promise<string
   return translationPromise;
 }
 
+/**
+ * uk: Внутрішня helper функція translateOptionalText.
+ * en: Internal helper function translateOptionalText.
+ * cz: Interní helper funkce translateOptionalText.
+ */
 async function translateOptionalText(input: {
   value: string | null;
   sourceLanguage?: LanguageCode;
@@ -88,6 +103,11 @@ async function translateOptionalText(input: {
   });
 }
 
+/**
+ * uk: Публічна helper функція translateServicesCatalogItems.
+ * en: Public helper function translateServicesCatalogItems.
+ * cz: Veřejná helper funkce translateServicesCatalogItems.
+ */
 export async function translateServicesCatalogItems(
   items: ServicesCatalogItem[],
   targetLanguage: LanguageCode,
@@ -122,6 +142,11 @@ export async function translateServicesCatalogItems(
   );
 }
 
+/**
+ * uk: Публічна helper функція translateServicesCatalogDetails.
+ * en: Public helper function translateServicesCatalogDetails.
+ * cz: Veřejná helper funkce translateServicesCatalogDetails.
+ */
 export async function translateServicesCatalogDetails(
   details: ServicesCatalogDetails,
   targetLanguage: LanguageCode,
@@ -198,6 +223,11 @@ export async function translateServicesCatalogDetails(
   };
 }
 
+/**
+ * uk: Публічна helper функція translateMasterCatalogDetails.
+ * en: Public helper function translateMasterCatalogDetails.
+ * cz: Veřejná helper funkce translateMasterCatalogDetails.
+ */
 export async function translateMasterCatalogDetails(
   details: MasterCatalogDetails,
   targetLanguage: LanguageCode,
@@ -308,6 +338,11 @@ export async function translateMasterCatalogDetails(
   };
 }
 
+/**
+ * uk: Публічна helper функція translateFaqCatalogItems.
+ * en: Public helper function translateFaqCatalogItems.
+ * cz: Veřejná helper funkce translateFaqCatalogItems.
+ */
 export async function translateFaqCatalogItems(
   items: FaqCatalogItem[],
   targetLanguage: LanguageCode,
@@ -335,6 +370,11 @@ export async function translateFaqCatalogItems(
   );
 }
 
+/**
+ * uk: Публічна helper функція translateFaqCatalogItem.
+ * en: Public helper function translateFaqCatalogItem.
+ * cz: Veřejná helper funkce translateFaqCatalogItem.
+ */
 export async function translateFaqCatalogItem(
   item: FaqCatalogItem,
   targetLanguage: LanguageCode,
@@ -343,6 +383,11 @@ export async function translateFaqCatalogItem(
   return translated[0];
 }
 
+/**
+ * uk: Публічна helper функція translateBookingMetaForUser.
+ * en: Public helper function translateBookingMetaForUser.
+ * cz: Veřejná helper funkce translateBookingMetaForUser.
+ */
 export async function translateBookingMetaForUser(
   meta: MasterServiceBookingMeta,
   targetLanguage: LanguageCode,
@@ -368,6 +413,11 @@ export async function translateBookingMetaForUser(
   };
 }
 
+/**
+ * uk: Внутрішня helper функція translateProfileBookingStatusItem.
+ * en: Internal helper function translateProfileBookingStatusItem.
+ * cz: Interní helper funkce translateProfileBookingStatusItem.
+ */
 async function translateProfileBookingStatusItem(
   item: ProfileBookingStatusItem,
   targetLanguage: LanguageCode,
@@ -392,6 +442,11 @@ async function translateProfileBookingStatusItem(
   };
 }
 
+/**
+ * uk: Публічна helper функція translateProfileBookingStatusData.
+ * en: Public helper function translateProfileBookingStatusData.
+ * cz: Veřejná helper funkce translateProfileBookingStatusData.
+ */
 export async function translateProfileBookingStatusData(
   data: ProfileBookingStatusData,
   targetLanguage: LanguageCode,
@@ -411,6 +466,11 @@ export async function translateProfileBookingStatusData(
   };
 }
 
+/**
+ * uk: Публічна helper функція translateMasterPendingBookings.
+ * en: Public helper function translateMasterPendingBookings.
+ * cz: Veřejná helper funkce translateMasterPendingBookings.
+ */
 export async function translateMasterPendingBookings(
   items: MasterPendingBookingItem[],
   targetLanguage: LanguageCode,
@@ -431,6 +491,11 @@ export async function translateMasterPendingBookings(
   );
 }
 
+/**
+ * uk: Публічна helper функція translateMasterBookingsFeedPage.
+ * en: Public helper function translateMasterBookingsFeedPage.
+ * cz: Veřejná helper funkce translateMasterBookingsFeedPage.
+ */
 export async function translateMasterBookingsFeedPage(
   page: MasterBookingsFeedPage,
   targetLanguage: LanguageCode,
@@ -442,6 +507,11 @@ export async function translateMasterBookingsFeedPage(
   };
 }
 
+/**
+ * uk: Публічна helper функція translateMasterClientBookingsHistory.
+ * en: Public helper function translateMasterClientBookingsHistory.
+ * cz: Veřejná helper funkce translateMasterClientBookingsHistory.
+ */
 export async function translateMasterClientBookingsHistory(
   items: MasterClientBookingsHistoryItem[],
   targetLanguage: LanguageCode,
@@ -462,6 +532,11 @@ export async function translateMasterClientBookingsHistory(
   );
 }
 
+/**
+ * uk: Публічна helper функція translateMasterOwnProfileData.
+ * en: Public helper function translateMasterOwnProfileData.
+ * cz: Veřejná helper funkce translateMasterOwnProfileData.
+ */
 export async function translateMasterOwnProfileData(
   profile: MasterOwnProfileData,
   targetLanguage: LanguageCode,
@@ -525,6 +600,11 @@ export async function translateMasterOwnProfileData(
   };
 }
 
+/**
+ * uk: Публічна helper функція translateMasterOwnProfileServiceManage.
+ * en: Public helper function translateMasterOwnProfileServiceManage.
+ * cz: Veřejná helper funkce translateMasterOwnProfileServiceManage.
+ */
 export async function translateMasterOwnProfileServiceManage(
   items: MasterOwnProfileServiceManageItem[],
   targetLanguage: LanguageCode,
@@ -545,6 +625,11 @@ export async function translateMasterOwnProfileServiceManage(
   );
 }
 
+/**
+ * uk: Публічна helper функція translateMasterOwnProfileCertificatesManage.
+ * en: Public helper function translateMasterOwnProfileCertificatesManage.
+ * cz: Veřejná helper funkce translateMasterOwnProfileCertificatesManage.
+ */
 export async function translateMasterOwnProfileCertificatesManage(
   items: MasterOwnProfileCertificateManageItem[],
   targetLanguage: LanguageCode,
@@ -572,6 +657,11 @@ export async function translateMasterOwnProfileCertificatesManage(
   );
 }
 
+/**
+ * uk: Публічна helper функція translateMasterPanelStatsData.
+ * en: Public helper function translateMasterPanelStatsData.
+ * cz: Veřejná helper funkce translateMasterPanelStatsData.
+ */
 export async function translateMasterPanelStatsData(
   stats: MasterPanelStatsData,
   targetLanguage: LanguageCode,
@@ -597,6 +687,11 @@ export async function translateMasterPanelStatsData(
   };
 }
 
+/**
+ * uk: Публічна helper функція translateMasterPanelFinanceData.
+ * en: Public helper function translateMasterPanelFinanceData.
+ * cz: Veřejná helper funkce translateMasterPanelFinanceData.
+ */
 export async function translateMasterPanelFinanceData(
   finance: MasterPanelFinanceData,
   targetLanguage: LanguageCode,
@@ -616,6 +711,11 @@ export async function translateMasterPanelFinanceData(
   };
 }
 
+/**
+ * uk: Публічна helper функція translateMasterPanelScheduleData.
+ * en: Public helper function translateMasterPanelScheduleData.
+ * cz: Veřejná helper funkce translateMasterPanelScheduleData.
+ */
 export async function translateMasterPanelScheduleData(
   schedule: MasterPanelScheduleData,
   targetLanguage: LanguageCode,
