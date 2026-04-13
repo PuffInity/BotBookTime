@@ -5,9 +5,14 @@ dotenv.config();
 
 /**
  * @file translate.schema.ts
- * @summary Валідація ENV для feature-gate автоматичного перекладу.
+ * @summary Validates ENV for translation feature gate.
  */
 
+/**
+ * uk: Парсер boolean з ENV.
+ * en: Boolean parser for ENV.
+ * cz: Boolean parser pro ENV.
+ */
 const envBoolean = z.preprocess((value) => {
   if (typeof value === 'boolean') return value;
   if (typeof value !== 'string') return value;
@@ -19,6 +24,11 @@ const envBoolean = z.preprocess((value) => {
   return value;
 }, z.boolean());
 
+/**
+ * uk: Zod схема ENV перекладу.
+ * en: Zod ENV schema for translation.
+ * cz: Zod ENV schéma pro překlad.
+ */
 export const translateEnvSchema = z.object({
   TRANSLATE_ENABLED: envBoolean.default(false),
   TRANSLATE_PROVIDER: z.enum(['google']).default('google'),
@@ -29,5 +39,9 @@ export const translateEnvSchema = z.object({
   TRANSLATE_DEFAULT_SOURCE: z.enum(['uk', 'en', 'cs']).default('uk'),
 });
 
-/** Провалідована конфігурація translate feature. */
+/**
+ * uk: Провалідований translate конфіг.
+ * en: Parsed translate config.
+ * cz: Validovaný translate config.
+ */
 export const translateSchemaConfig = translateEnvSchema.parse(process.env);

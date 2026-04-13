@@ -6,59 +6,63 @@ import {loggerDb} from "../utils/logger/loggers-list.js";
 
 /**
  * @file database.config.ts
- * @summary Конфігурація Бази даних
+ * @summary PostgreSQL pool config + session defaults.
  */
 
 /**
- * @summary Конфігурація пул зʼєднання
+ * uk: Конфіг пулу PostgreSQL.
+ * en: PostgreSQL pool configuration.
+ * cz: Konfigurace PostgreSQL poolu.
  */
 export const pool = new Pool({
-    /** Адреса сервера бази даних */
+    // uk: Хост БД / en: DB host / cz: DB host
     host: dbConfig.PG_HOST,
-    /** Порт бази даних */
+    // uk: Порт БД / en: DB port / cz: DB port
     port: dbConfig.PG_PORT,
-    /** імʼя бази даних */
+    // uk: Назва БД / en: DB name / cz: Název DB
     database: dbConfig.PG_DATABASE,
-    /** Імʼя користувача бази */
+    // uk: Користувач БД / en: DB user / cz: Uživatel DB
     user: dbConfig.PG_USER,
-    /** Пароль користувача */
+    // uk: Пароль БД / en: DB password / cz: Heslo DB
     password: dbConfig.PG_PASSWORD,
-    /** Параметки ssl підключення  */
+    // uk: SSL режим / en: SSL mode / cz: SSL režim
     ssl: undefined, // In production use: { ca: <CA certificate>, rejectUnauthorized: true }
-    /** Максимальна кількість активних зʼєднань в пулі */
+    // uk: Ліміт зʼєднань / en: Pool max / cz: Max spojení
     max: dbConfig.PG_POOL_MAX,
-    /** Час після якого неактивне зʼєднання буде відключене */
+    // uk: Idle timeout / en: Idle timeout / cz: Idle timeout
     idleTimeoutMillis: dbConfig.PG_IDLE_TIMEOUT_MS,
-    /** Скільки часу чекати поки пул створить нове зʼєднання */
+    // uk: Connect timeout / en: Connect timeout / cz: Connect timeout
     connectionTimeoutMillis: dbConfig.PG_CONN_TIMEOUT_MS,
-    /** Максимальний час виконання одного запиту*/
+    // uk: Timeout statement / en: Statement timeout / cz: Statement timeout
     statement_timeout: dbConfig.PG_STATEMENT_TIMEOUT_MS,
-    /** Максимальний час очікування Node.js відповіді від бази */
+    // uk: Timeout query / en: Query timeout / cz: Query timeout
     query_timeout: dbConfig.PG_QUERY_TIMEOUT_MS,
 
-    /** Іʼмя программи якою виконуються запити до бази*/
+    // uk: Назва застосунку / en: App name / cz: Název aplikace
     application_name: dbConfig.APP_NAME,
 
-    /** Підтримує активне TCP зʼєднання між клієнтом та Postgresql */
+    // uk: TCP keep-alive / en: TCP keep-alive / cz: TCP keep-alive
     keepAlive: true,
-    /** Якими періодами надсилати пінг для провірки(Кожні 30 секунд Node.js провірятиме чи підключення триває і далі) */
+    // uk: Старт keep-alive / en: Keep-alive initial delay / cz: Počáteční keep-alive delay
     keepAliveInitialDelayMillis: 30000,
-    /** Максимальна кількість запитів одного зʼєднання перед тим як його перестворити */
+    // uk: Max uses / en: Max uses / cz: Max použití
     maxUses: 7500,
-    /** Максимальна життєва тривалість в пулі після чого зʼєднання буде перестворене */
+    // uk: TTL зʼєднання / en: Connection TTL / cz: TTL spojení
     maxLifetimeSeconds: 3600,
 });
 
+// uk: Timeout shutdown / en: Shutdown timeout / cz: Timeout vypnutí
 export const SHUTDOWN_TIMEOUT_MS = 10000
 
-
-
+// uk: DB логер / en: DB logger / cz: DB logger
 export const dbLogger = loggerDb;
 
 /**
- * @summary safeRelease - Функція яка встановлює статус 1 зʼднання
- * @param {PoolClient} client - Це 1 зʼднання
- * @param {boolean} broken - Це сам статус  true - Зламаний  false - Все чудово
+ * uk: Безпечне звільнення клієнта пулу.
+ * en: Safely releases pooled client.
+ * cz: Bezpečně uvolní klienta poolu.
+ * @param client uk/en/cz: Клієнт/Client/Klient.
+ * @param broken uk/en/cz: Статус зʼєднання/Broken flag/Příznak poškození.
  */
 export function safeRelease(client: PoolClient, broken: boolean) {
     try {
@@ -76,12 +80,10 @@ export function safeRelease(client: PoolClient, broken: boolean) {
 }
 
 /**
- * @summary Встановлює правила для бази даних на самому початку ініцілізації
- * SET TIME ZONE 'UTC' - Встновлює щоб цьому серверу відавали часи в форматі UTC
- * SET idle_in_transaction_session_timeout = '30000ms' - Це встановлює обмеження на транзакції вони можуть тривати максимально тільки 30 секунд
- * SET lock_timeout = '5000ms' - Якщо хтось захоче змінити щось але це буде виконуватись транзакцією і в цей момент хтось також захоче замінити цеж саме
- * то тоді та транзакція яка почала пізніше буде змушена чекати 5 секунд якщо перша транзакція не завершить роботу за цей період робота другої транзакції
- * закінчиться помилкою
+ * uk: Застосовує session defaults.
+ * en: Applies session defaults.
+ * cz: Aplikuje session defaults.
+ * @param client uk/en/cz: Клієнт/Client/Klient.
  */
 async function applySessionDefaults(client: PoolClient) {
     await client.query(`
@@ -92,10 +94,12 @@ async function applySessionDefaults(client: PoolClient) {
 }
 
 /**
- * @summary Функція яка застосовує наші обмеження
- * @param {PoolClient} client - Даємо одне зʼєднання щоб фунція могла відправити
- * @param {number} retries - Кількість спроб(Стандарт 1)
- * @param {number} delayMs - Скільки чекати перед тим як спробувати знову в разі помилки першої спроби(стандарт 150)
+ * uk: Retry-обгортка для session defaults.
+ * en: Retry wrapper for session defaults.
+ * cz: Retry obal pro session defaults.
+ * @param client uk/en/cz: Клієнт/Client/Klient.
+ * @param retries uk/en/cz: Спроби/Retries/Pokusy.
+ * @param delayMs uk/en/cz: Затримка/Delay/Zpoždění.
  */
 async function applyWithRetry(client: PoolClient, retries = 1,delayMs = 150) {
     let lastErr: unknown = null;
@@ -121,8 +125,9 @@ async function applyWithRetry(client: PoolClient, retries = 1,delayMs = 150) {
 }
 
 /**
- * @summary Подія яка здійснюється кожного разу як створюється нове зʼєднання до бази
- * @param {PoolClient} - одне з зʼєднаннь
+ * uk: Хук нового клієнта пулу.
+ * en: Pool client connect hook.
+ * cz: Hook připojení klienta poolu.
  */
 pool.on('connect',async (client) => {
     try {

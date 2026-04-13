@@ -2,13 +2,13 @@ import { z } from 'zod';
 
 /**
  * @file booking-input.schema.ts
- * @summary Валідація полів сценарію бронювання (ім'я та телефон).
+ * @summary Validation schemas for booking scenario fields.
  */
 
 /**
- * Ім'я клієнта:
- * - тільки текст (літери + пробіли + апостроф/дефіс),
- * - мінімум 2 символи.
+ * uk: Ім'я клієнта (мін. 2, тільки текст).
+ * en: Client name (min 2, text only).
+ * cz: Jméno klienta (min 2, pouze text).
  */
 export const bookingClientNameSchema = z
   .string()
@@ -18,10 +18,9 @@ export const bookingClientNameSchema = z
   .regex(/^[\p{L}\s'’-]+$/u, "Ім'я повинно містити тільки літери");
 
 /**
- * Телефон клієнта у форматі Чехії:
- * - обов'язково починається з +420,
- * - рівно 9 цифр після коду країни.
- * Приклад: +420123456789
+ * uk: Телефон у форматі +420XXXXXXXXX.
+ * en: Phone in +420XXXXXXXXX format.
+ * cz: Telefon ve formátu +420XXXXXXXXX.
  */
 export const bookingClientPhoneSchema = z
   .string()
@@ -29,8 +28,9 @@ export const bookingClientPhoneSchema = z
   .regex(/^\+420\d{9}$/, 'Телефон повинен бути у форматі +420123456789');
 
 /**
- * Код дати з callback payload:
- * YYYYMMDD, приклад: 20260320
+ * uk: Код дати YYYYMMDD.
+ * en: Date code YYYYMMDD.
+ * cz: Kód data YYYYMMDD.
  */
 export const bookingDateCodeSchema = z
   .string()
@@ -38,8 +38,9 @@ export const bookingDateCodeSchema = z
   .regex(/^\d{8}$/, 'Некоректний код дати');
 
 /**
- * Код часу з callback payload:
- * HHMM, приклад: 1430
+ * uk: Код часу HHMM.
+ * en: Time code HHMM.
+ * cz: Kód času HHMM.
  */
 export const bookingTimeCodeSchema = z
   .string()

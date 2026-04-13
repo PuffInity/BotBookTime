@@ -2,9 +2,10 @@ import { mailerConfig } from '../validator/nodemailer.schema.js';
 
 /**
  * @file nodemailer.config.ts
- * @summary Централізований SMTP-конфіг для Nodemailer.
+ * @summary Centralized SMTP config for Nodemailer.
  */
 
+// uk: DKIM опції / en: DKIM options / cz: DKIM volby
 const dkim =
   mailerConfig.SMTP_DKIM_DOMAIN_NAME &&
   mailerConfig.SMTP_DKIM_SELECTOR &&
@@ -16,6 +17,7 @@ const dkim =
       }
     : undefined;
 
+// uk: SMTP конфіг / en: SMTP config / cz: SMTP config
 export const nodemailerConfig = {
   host: mailerConfig.SMTP_HOST,
   port: mailerConfig.SMTP_PORT,
@@ -45,5 +47,5 @@ export const nodemailerConfig = {
   dkim,
 };
 
+// uk: Відправник за замовчуванням / en: Default sender / cz: Výchozí odesílatel
 export const defaultMailFrom = mailerConfig.MAIL_FROM;
-

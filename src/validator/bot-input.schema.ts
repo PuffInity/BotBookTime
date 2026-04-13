@@ -2,16 +2,20 @@ import { z } from 'zod';
 
 /**
  * @file bot-input.schema.ts
- * @summary Валідація вхідних даних update-потоку Telegram-бота.
+ * @summary Validation schemas for Telegram update input.
  */
 
 /**
- * Валідний telegram user id для профільних операцій.
+ * uk: Валідний Telegram user id.
+ * en: Valid Telegram user id.
+ * cz: Validní Telegram user id.
  */
 export const telegramUserIdSchema = z.number().int().positive();
 
 /**
- * Валідний email для профільних операцій.
+ * uk: Валідний email профілю.
+ * en: Valid profile email.
+ * cz: Validní profilový email.
  */
 export const profileEmailSchema = z
   .string()

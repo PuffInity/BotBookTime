@@ -5,7 +5,13 @@ dotenv.config();
 
 /**
  * @file nodemailer.schema.ts
- * @summary Валідація ENV-змінних для SMTP/Nodemailer.
+ * @summary Validates SMTP/Nodemailer ENV config.
+ */
+
+/**
+ * uk: Zod схема ENV для SMTP.
+ * en: Zod ENV schema for SMTP.
+ * cz: Zod ENV schéma pro SMTP.
  */
 export const nodemailerEnvSchema = z.object({
   SMTP_HOST: z.string().min(1),
@@ -33,6 +39,9 @@ export const nodemailerEnvSchema = z.object({
   SMTP_DKIM_PRIVATE_KEY: z.string().min(1).optional(),
 });
 
-/** Провалідована конфігурація Nodemailer, зібрана з process.env. */
+/**
+ * uk: Провалідований mailer конфіг.
+ * en: Parsed mailer config.
+ * cz: Validovaný mailer config.
+ */
 export const mailerConfig = nodemailerEnvSchema.parse(process.env);
-
