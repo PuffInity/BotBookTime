@@ -1,6 +1,8 @@
 /**
  * @file db-master-profile.types.ts
- * @summary Типи для DB helper блоку "Мій профіль майстра" у master panel.
+ * @summary uk: Типи для DB helper блоку "Мій профіль майстра" у master panel.
+ * en: DB helper type definitions.
+ * cz: DB helper type definitions.
  */
 
 export type MasterOwnProfileOverviewRow = {

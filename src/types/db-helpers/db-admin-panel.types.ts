@@ -1,6 +1,8 @@
 /**
  * @file db-admin-panel.types.ts
- * @summary Типи для DB helper модуля доступу до адмін-панелі.
+ * @summary uk: Типи для DB helper модуля доступу до адмін-панелі.
+ * en: DB helper type definitions.
+ * cz: DB helper type definitions.
  */
 
 /**

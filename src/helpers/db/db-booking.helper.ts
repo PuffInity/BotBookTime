@@ -33,7 +33,9 @@ import {
 
 /**
  * @file db-booking.helper.ts
- * @summary DB helper модуля створення бронювання клієнта.
+ * @summary uk: DB helper модуля створення бронювання клієнта.
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 const DEFAULT_CATALOG_LIMIT = 20;

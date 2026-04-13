@@ -22,7 +22,9 @@ import {
 
 /**
  * @file db-admin-studio-settings.helper.ts
- * @summary DB helper блоку "Параметри салону" у адмін-панелі.
+ * @summary uk: DB helper блоку "Параметри салону" у адмін-панелі.
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 const DEFAULT_LANGUAGE: LanguageCode = 'uk';

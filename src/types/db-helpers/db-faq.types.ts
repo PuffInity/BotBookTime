@@ -2,7 +2,9 @@ import type { LanguageCode } from '../db/dbEnums.type.js';
 
 /**
  * @file db-faq.types.ts
- * @summary Типи для DB helper модуля FAQ каталогу.
+ * @summary uk: Типи для DB helper модуля FAQ каталогу.
+ * en: DB helper type definitions.
+ * cz: DB helper type definitions.
  */
 
 export type FaqCatalogItem = {

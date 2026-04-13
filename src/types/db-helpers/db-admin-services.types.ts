@@ -1,6 +1,8 @@
 /**
  * @file db-admin-services.types.ts
- * @summary Типи для DB helper модуля "Послуги" в адмін-панелі.
+ * @summary uk: Типи для DB helper модуля "Послуги" в адмін-панелі.
+ * en: DB helper type definitions.
+ * cz: DB helper type definitions.
  */
 
 export type AdminEditableServiceRow = {

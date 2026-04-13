@@ -1,6 +1,8 @@
 /**
  * @file db-admin-schedule.types.ts
- * @summary Типи для DB helper блоку "Розклад" в адмін-панелі.
+ * @summary uk: Типи для DB helper блоку "Розклад" в адмін-панелі.
+ * en: DB helper type definitions.
+ * cz: DB helper type definitions.
  */
 
 export type AdminStudioWeeklyHoursRow = {

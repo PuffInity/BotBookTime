@@ -35,7 +35,9 @@ import {
 
 /**
  * @file db-admin-masters.helper.ts
- * @summary DB helper блоку "Майстри" в адмін-панелі (створення майстра).
+ * @summary uk: DB helper блоку "Майстри" в адмін-панелі (створення майстра).
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 type InsertedMasterIdRow = { master_id: string };

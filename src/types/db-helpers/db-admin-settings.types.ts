@@ -1,6 +1,8 @@
 /**
  * @file db-admin-settings.types.ts
- * @summary Типи для DB helper блоку "Налаштування" адмін-панелі.
+ * @summary uk: Типи для DB helper блоку "Налаштування" адмін-панелі.
+ * en: DB helper type definitions.
+ * cz: DB helper type definitions.
  */
 import type { LanguageCode } from '../db/dbEnums.type.js';
 

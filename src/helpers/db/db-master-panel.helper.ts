@@ -10,7 +10,9 @@ import { SQL_GET_MASTER_PANEL_ACCESS_BY_TELEGRAM_ID } from '../db-sql/db-master-
 
 /**
  * @file db-master-panel.helper.ts
- * @summary DB helper для перевірки доступу і контексту панелі майстра.
+ * @summary uk: DB helper для перевірки доступу і контексту панелі майстра.
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 /**

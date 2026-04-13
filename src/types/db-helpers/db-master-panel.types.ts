@@ -1,6 +1,8 @@
 /**
  * @file db-master-panel.types.ts
- * @summary Типи для DB helper модуля доступу до панелі майстра.
+ * @summary uk: Типи для DB helper модуля доступу до панелі майстра.
+ * en: DB helper type definitions.
+ * cz: DB helper type definitions.
  */
 
 /**

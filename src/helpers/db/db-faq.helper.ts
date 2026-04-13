@@ -21,7 +21,9 @@ import {
 
 /**
  * @file db-faq.helper.ts
- * @summary DB helper для FAQ каталогу у Telegram-боті.
+ * @summary uk: DB helper для FAQ каталогу у Telegram-боті.
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 const DEFAULT_FAQ_LIMIT = 50;

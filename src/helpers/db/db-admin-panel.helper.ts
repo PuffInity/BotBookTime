@@ -8,7 +8,9 @@ import { SQL_GET_ADMIN_PANEL_ACCESS_BY_TELEGRAM_ID } from '../db-sql/db-admin-pa
 
 /**
  * @file db-admin-panel.helper.ts
- * @summary DB helper для перевірки доступу і контексту адмін-панелі.
+ * @summary uk: DB helper для перевірки доступу і контексту адмін-панелі.
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 /**

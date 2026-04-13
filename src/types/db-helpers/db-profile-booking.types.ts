@@ -2,7 +2,9 @@ import type { AppointmentStatus } from '../db/index.js';
 
 /**
  * @file db-profile-booking.types.ts
- * @summary Типи для DB helper розділу "Статус бронювання" у профілі.
+ * @summary uk: Типи для DB helper розділу "Статус бронювання" у профілі.
+ * en: DB helper type definitions.
+ * cz: DB helper type definitions.
  */
 
 export type ProfileBookingStatusRow = {

@@ -15,7 +15,9 @@ import {
 
 /**
  * @file db-master-clients.helper.ts
- * @summary DB helper для блоку "Профіль клієнта" у панелі майстра.
+ * @summary uk: DB helper для блоку "Профіль клієнта" у панелі майстра.
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 /**

@@ -2,7 +2,9 @@ import type { LanguageCode } from '../db/index.js';
 
 /**
  * @file db-master-clients.types.ts
- * @summary Типи для DB helper блоку "Профіль клієнта" у панелі майстра.
+ * @summary uk: Типи для DB helper блоку "Профіль клієнта" у панелі майстра.
+ * en: DB helper type definitions.
+ * cz: DB helper type definitions.
  */
 
 export type MasterClientProfileRow = {

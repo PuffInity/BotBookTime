@@ -1,6 +1,8 @@
 /**
  * @file db-admin-bookings.types.ts
- * @summary Типи для блоку записів адмін-панелі.
+ * @summary uk: Типи для блоку записів адмін-панелі.
+ * en: DB helper type definitions.
+ * cz: DB helper type definitions.
  */
 
 export type AdminBookingsCategory = 'pending' | 'today' | 'tomorrow' | 'all' | 'canceled';

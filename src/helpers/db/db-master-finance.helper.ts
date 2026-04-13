@@ -14,7 +14,9 @@ import { ValidationError } from '../../utils/error.utils.js';
 
 /**
  * @file db-master-finance.helper.ts
- * @summary DB helper для фінансового блоку статистики майстра.
+ * @summary uk: DB helper для фінансового блоку статистики майстра.
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 /**

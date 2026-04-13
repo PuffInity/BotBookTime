@@ -50,7 +50,9 @@ import {
 
 /**
  * @file db-profile.helper.ts
- * @summary DB helper for Telegram user profile lifecycle (get/create/get-or-create).
+ * @summary uk: DB helper for Telegram user profile lifecycle (get/create/get-or-create).
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 /**

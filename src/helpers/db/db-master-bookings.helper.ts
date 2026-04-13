@@ -33,7 +33,9 @@ import { SQL_CHECK_MASTER_WORK_SCHEDULE_AT_SLOT } from '../db-sql/db-booking.sql
 
 /**
  * @file db-master-bookings.helper.ts
- * @summary DB helper для блоку записів у панелі майстра (pending queue).
+ * @summary uk: DB helper для блоку записів у панелі майстра (pending queue).
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 const DEFAULT_PENDING_LIMIT = 20;

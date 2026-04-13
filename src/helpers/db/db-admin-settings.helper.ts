@@ -29,7 +29,9 @@ import {
 
 /**
  * @file db-admin-settings.helper.ts
- * @summary DB helper блоку "Налаштування" в адмін-панелі (підрозділ адміністраторів).
+ * @summary uk: DB helper блоку "Налаштування" в адмін-панелі (підрозділ адміністраторів).
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 /**

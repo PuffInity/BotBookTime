@@ -39,7 +39,9 @@ import { SQL_CHECK_MASTER_WORK_SCHEDULE_AT_SLOT } from '../db-sql/db-booking.sql
 
 /**
  * @file db-admin-bookings.helper.ts
- * @summary DB helper для блоку записів адмін-панелі.
+ * @summary uk: DB helper для блоку записів адмін-панелі.
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 const DEFAULT_FEED_LIMIT = 5;

@@ -1,6 +1,8 @@
 /**
  * @file db-admin-stats.types.ts
- * @summary Типи для блоку статистики адмін-панелі.
+ * @summary uk: Типи для блоку статистики адмін-панелі.
+ * en: DB helper type definitions.
+ * cz: DB helper type definitions.
  */
 
 export type AdminPanelStatsOverviewRow = {

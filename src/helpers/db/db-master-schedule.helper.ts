@@ -51,7 +51,9 @@ import {
 
 /**
  * @file db-master-schedule.helper.ts
- * @summary DB helper для блоку "Мій розклад" у панелі майстра.
+ * @summary uk: DB helper для блоку "Мій розклад" у панелі майстра.
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 const DEFAULT_EXCEPTIONS_LIMIT = 5;

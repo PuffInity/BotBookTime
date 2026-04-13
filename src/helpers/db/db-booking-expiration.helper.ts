@@ -10,7 +10,9 @@ import { SQL_EXPIRE_PENDING_APPOINTMENTS } from '../db-sql/db-booking-expiration
 
 /**
  * @file db-booking-expiration.helper.ts
- * @summary DB helper для автоматичного скасування прострочених pending-бронювань.
+ * @summary uk: DB helper для автоматичного скасування прострочених pending-бронювань.
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 const DEFAULT_BATCH_LIMIT = 50;

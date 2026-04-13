@@ -13,7 +13,9 @@ import { ValidationError } from '../../utils/error.utils.js';
 
 /**
  * @file db-master-stats.helper.ts
- * @summary DB helper для блоку "Моя статистика" у панелі майстра.
+ * @summary uk: DB helper для блоку "Моя статистика" у панелі майстра.
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 /**

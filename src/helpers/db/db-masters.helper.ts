@@ -47,7 +47,9 @@ import {
 
 /**
  * @file db-masters.helper.ts
- * @summary DB helper для каталогу майстрів і вибору майстра у flow бронювання.
+ * @summary uk: DB helper для каталогу майстрів і вибору майстра у flow бронювання.
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 const DEFAULT_CATALOG_LIMIT = 20;

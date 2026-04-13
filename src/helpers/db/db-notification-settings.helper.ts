@@ -26,7 +26,9 @@ import {
 
 /**
  * @file db-notification-settings.helper.ts
- * @summary DB helper для читання і оновлення налаштувань сповіщень.
+ * @summary uk: DB helper для читання і оновлення налаштувань сповіщень.
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 /**

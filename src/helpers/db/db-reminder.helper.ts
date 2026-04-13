@@ -11,7 +11,9 @@ import type {
 
 /**
  * @file db-reminder.helper.ts
- * @summary DB helper для нагадувань про візити.
+ * @summary uk: DB helper для нагадувань про візити.
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 export type ReminderAppointment = {

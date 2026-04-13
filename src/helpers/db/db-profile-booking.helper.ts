@@ -14,7 +14,9 @@ import {
 
 /**
  * @file db-profile-booking.helper.ts
- * @summary DB helper для статусу бронювання у профілі клієнта.
+ * @summary uk: DB helper для статусу бронювання у профілі клієнта.
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 const DEFAULT_RECENT_LIMIT = 5;

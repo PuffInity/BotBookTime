@@ -58,7 +58,9 @@ import {
 
 /**
  * @file db-master-profile.helper.ts
- * @summary DB helper для розділу "Мій профіль" у master panel.
+ * @summary uk: DB helper для розділу "Мій профіль" у master panel.
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 /**

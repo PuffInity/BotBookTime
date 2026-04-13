@@ -45,7 +45,9 @@ import {
 
 /**
  * @file db-admin-services.helper.ts
- * @summary DB helper блоку "Послуги" в адмін-панелі.
+ * @summary uk: DB helper блоку "Послуги" в адмін-панелі.
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 /**

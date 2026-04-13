@@ -2,7 +2,9 @@ import type { ContentBlockKey, LanguageCode } from '../db/dbEnums.type.js';
 
 /**
  * @file db-admin-studio-settings.types.ts
- * @summary Типи для DB helper блоку "Параметри салону" в адмін-панелі.
+ * @summary uk: Типи для DB helper блоку "Параметри салону" в адмін-панелі.
+ * en: DB helper type definitions.
+ * cz: DB helper type definitions.
  */
 
 export type AdminStudioSettingsStudioRow = {

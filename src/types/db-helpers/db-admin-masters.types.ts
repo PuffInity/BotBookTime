@@ -1,6 +1,8 @@
 /**
  * @file db-admin-masters.types.ts
- * @summary Типи для DB helper блоку "Майстри" в адмін-панелі.
+ * @summary uk: Типи для DB helper блоку "Майстри" в адмін-панелі.
+ * en: DB helper type definitions.
+ * cz: DB helper type definitions.
  */
 
 export type AdminMasterCandidateLookupRow = {

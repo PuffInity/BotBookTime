@@ -58,7 +58,9 @@ import { getMasterPanelStats } from './db-master-stats.helper.js';
 
 /**
  * @file db-admin-stats.helper.ts
- * @summary DB helper для блоку статистики адмін-панелі.
+ * @summary uk: DB helper для блоку статистики адмін-панелі.
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 /**

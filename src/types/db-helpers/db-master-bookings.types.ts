@@ -1,6 +1,8 @@
 /**
  * @file db-master-bookings.types.ts
- * @summary Типи для DB helper модуля "записи майстра" (панель майстра).
+ * @summary uk: Типи для DB helper модуля "записи майстра" (панель майстра).
+ * en: DB helper type definitions.
+ * cz: DB helper type definitions.
  */
 
 export type MasterPendingBookingRow = {

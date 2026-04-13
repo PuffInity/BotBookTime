@@ -46,7 +46,9 @@ import {
 
 /**
  * @file db-admin-schedule.helper.ts
- * @summary DB helper для блоку "Розклад" у адмін-панелі.
+ * @summary uk: DB helper для блоку "Розклад" у адмін-панелі.
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 const DEFAULT_EXCEPTIONS_LIMIT = 10;

@@ -26,7 +26,9 @@ import {
 
 /**
  * @file db-services.helper.ts
- * @summary DB helper для каталогу послуг у Telegram-боті.
+ * @summary uk: DB helper для каталогу послуг у Telegram-боті.
+ * en: DB helper module.
+ * cz: DB helper module.
  */
 
 const DEFAULT_CATALOG_LIMIT = 20;
