@@ -33,23 +33,39 @@ const DATE_LOCALE_BY_LANGUAGE: Record<BotUiLanguage, string> = {
   cs: 'cs-CZ',
 };
 
+// uk: UI константа TEMPORARY_WEEKDAY_ROWS / en: UI constant TEMPORARY_WEEKDAY_ROWS / cz: UI konstanta TEMPORARY_WEEKDAY_ROWS
 const TEMPORARY_WEEKDAY_ROWS = [
   [1, 2, 3],
   [4, 5, 6],
   [7],
 ];
 
+/**
+ * uk: Внутрішня bot helper функція toSafeDate.
+ * en: Internal bot helper function toSafeDate.
+ * cz: Interní bot helper funkce toSafeDate.
+ */
 function toSafeDate(value: Date | string): Date | null {
   const parsed = value instanceof Date ? value : new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatDate.
+ * en: Internal bot helper function formatDate.
+ * cz: Interní bot helper funkce formatDate.
+ */
 function formatDate(date: Date | string, language: BotUiLanguage): string {
   const parsed = toSafeDate(date);
   if (!parsed) return tBot(language, 'ADMIN_PANEL_SCHEDULE_UNKNOWN_DATE');
   return parsed.toLocaleDateString(DATE_LOCALE_BY_LANGUAGE[language]);
 }
 
+/**
+ * uk: Внутрішня bot helper функція weekdayLabel.
+ * en: Internal bot helper function weekdayLabel.
+ * cz: Interní bot helper funkce weekdayLabel.
+ */
 function weekdayLabel(weekday: number, language: BotUiLanguage): string {
   return (
     WEEKDAY_LABELS[language][weekday] ??
@@ -57,6 +73,11 @@ function weekdayLabel(weekday: number, language: BotUiLanguage): string {
   );
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatWeeklyLine.
+ * en: Internal bot helper function formatWeeklyLine.
+ * cz: Interní bot helper funkce formatWeeklyLine.
+ */
 function formatWeeklyLine(
   weekday: number,
   isOpen: boolean,
@@ -78,6 +99,11 @@ function formatWeeklyLine(
   });
 }
 
+/**
+ * uk: Внутрішня bot helper функція dateToCode.
+ * en: Internal bot helper function dateToCode.
+ * cz: Interní bot helper funkce dateToCode.
+ */
 function dateToCode(date: Date | string): string | null {
   const parsed = toSafeDate(date);
   if (!parsed) return null;
@@ -628,6 +654,11 @@ type TemporaryPeriod = {
   dateToCode: string;
 };
 
+/**
+ * uk: Внутрішня bot helper функція extractTemporaryPeriods.
+ * en: Internal bot helper function extractTemporaryPeriods.
+ * cz: Interní bot helper funkce extractTemporaryPeriods.
+ */
 function extractTemporaryPeriods(data: AdminStudioScheduleData): TemporaryPeriod[] {
   const unique = new Map<string, TemporaryPeriod>();
 
@@ -696,6 +727,11 @@ export function formatAdminScheduleTemporarySetPeriodText(
   );
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatTemporaryDayState.
+ * en: Internal bot helper function formatTemporaryDayState.
+ * cz: Interní bot helper funkce formatTemporaryDayState.
+ */
 function formatTemporaryDayState(
   day: AdminStudioTemporaryScheduleDayInput | null,
   language: BotUiLanguage,
@@ -785,6 +821,11 @@ export function formatAdminScheduleTemporaryDayToInputText(
   );
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatTemporaryPreviewLines.
+ * en: Internal bot helper function formatTemporaryPreviewLines.
+ * cz: Interní bot helper funkce formatTemporaryPreviewLines.
+ */
 function formatTemporaryPreviewLines(
   days: AdminStudioTemporaryScheduleDayInput[],
   language: BotUiLanguage,

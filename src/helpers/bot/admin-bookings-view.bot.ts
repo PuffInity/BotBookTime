@@ -31,6 +31,11 @@ import type { BotUiLanguage } from './i18n.bot.js';
  * @summary UI/helper-и для блоку "Записи" в адмін-панелі.
  */
 
+/**
+ * uk: Внутрішня bot helper функція toSafeDate.
+ * en: Internal bot helper function toSafeDate.
+ * cz: Interní bot helper funkce toSafeDate.
+ */
 function toSafeDate(value: Date | string): Date | null {
   const parsed = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(parsed.getTime())) {
@@ -45,18 +50,33 @@ const DATE_LOCALE_BY_LANGUAGE: Record<BotUiLanguage, string> = {
   cs: 'cs-CZ',
 };
 
+/**
+ * uk: Внутрішня bot helper функція formatUiDate.
+ * en: Internal bot helper function formatUiDate.
+ * cz: Interní bot helper funkce formatUiDate.
+ */
 function formatUiDate(value: Date | string, language: BotUiLanguage): string {
   const parsed = toSafeDate(value);
   if (!parsed) return tBot(language, 'ADMIN_PANEL_RECORDS_EMPTY_VALUE');
   return parsed.toLocaleDateString(DATE_LOCALE_BY_LANGUAGE[language]);
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatUiTime.
+ * en: Internal bot helper function formatUiTime.
+ * cz: Interní bot helper funkce formatUiTime.
+ */
 function formatUiTime(value: Date | string, language: BotUiLanguage): string {
   const parsed = toSafeDate(value);
   if (!parsed) return tBot(language, 'ADMIN_PANEL_RECORDS_EMPTY_VALUE');
   return parsed.toLocaleTimeString(DATE_LOCALE_BY_LANGUAGE[language], { hour: '2-digit', minute: '2-digit' });
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatDateTimeRange.
+ * en: Internal bot helper function formatDateTimeRange.
+ * cz: Interní bot helper funkce formatDateTimeRange.
+ */
 function formatDateTimeRange(
   startAt: Date | string,
   endAt: Date | string,
@@ -72,11 +92,21 @@ function formatDateTimeRange(
   return `${date} • ${startTime}–${endTime}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatPrice.
+ * en: Internal bot helper function formatPrice.
+ * cz: Interní bot helper funkce formatPrice.
+ */
 function formatPrice(price: string, currencyCode: string): string {
   const normalized = price.replace(/[.,]00$/, '').replace(/([.,]\d)0$/, '$1');
   return `${normalized} ${currencyCode}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatClientDisplayName.
+ * en: Internal bot helper function formatClientDisplayName.
+ * cz: Interní bot helper funkce formatClientDisplayName.
+ */
 function formatClientDisplayName(item: AdminBookingItem, language: BotUiLanguage): string {
   if (item.attendeeName && item.attendeeName.trim().length > 0) {
     return item.attendeeName;
@@ -86,6 +116,11 @@ function formatClientDisplayName(item: AdminBookingItem, language: BotUiLanguage
   return fullName || tBot(language, 'ADMIN_PANEL_RECORDS_CLIENT_FALLBACK');
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatBookingStatusLabel.
+ * en: Internal bot helper function formatBookingStatusLabel.
+ * cz: Interní bot helper funkce formatBookingStatusLabel.
+ */
 function formatBookingStatusLabel(status: AdminBookingItem['status'], language: BotUiLanguage): string {
   switch (status) {
     case 'pending':
@@ -103,11 +138,21 @@ function formatBookingStatusLabel(status: AdminBookingItem['status'], language: 
   }
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatTelegramHandle.
+ * en: Internal bot helper function formatTelegramHandle.
+ * cz: Interní bot helper funkce formatTelegramHandle.
+ */
 function formatTelegramHandle(username: string | null, language: BotUiLanguage): string {
   if (!username) return tBot(language, 'ADMIN_PANEL_RECORDS_NOT_SET');
   return `@${username}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція buildContactChannelsLines.
+ * en: Internal bot helper function buildContactChannelsLines.
+ * cz: Interní bot helper funkce buildContactChannelsLines.
+ */
 function buildContactChannelsLines(item: AdminBookingItem, language: BotUiLanguage): string {
   const lines: string[] = [];
   if (item.clientTelegramUsername) {
@@ -135,6 +180,11 @@ function buildContactChannelsLines(item: AdminBookingItem, language: BotUiLangua
   return lines.join('\n');
 }
 
+/**
+ * uk: Внутрішня bot helper функція categoryTitle.
+ * en: Internal bot helper function categoryTitle.
+ * cz: Interní bot helper funkce categoryTitle.
+ */
 function categoryTitle(category: AdminBookingsCategory, language: BotUiLanguage): string {
   switch (category) {
     case 'pending':
@@ -152,6 +202,11 @@ function categoryTitle(category: AdminBookingsCategory, language: BotUiLanguage)
   }
 }
 
+/**
+ * uk: Внутрішня bot helper функція categoryEmptyText.
+ * en: Internal bot helper function categoryEmptyText.
+ * cz: Interní bot helper funkce categoryEmptyText.
+ */
 function categoryEmptyText(category: AdminBookingsCategory, language: BotUiLanguage): string {
   switch (category) {
     case 'pending':
@@ -169,10 +224,20 @@ function categoryEmptyText(category: AdminBookingsCategory, language: BotUiLangu
   }
 }
 
+/**
+ * uk: Внутрішня bot helper функція cardIndexLabel.
+ * en: Internal bot helper function cardIndexLabel.
+ * cz: Interní bot helper funkce cardIndexLabel.
+ */
 function cardIndexLabel(index: number): string {
   return `${index + 1}️⃣`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatDateLabel.
+ * en: Internal bot helper function formatDateLabel.
+ * cz: Interní bot helper funkce formatDateLabel.
+ */
 function formatDateLabel(date: Date, language: BotUiLanguage): string {
   const weekday = date.toLocaleDateString(DATE_LOCALE_BY_LANGUAGE[language], { weekday: 'short' });
   const day = String(date.getDate()).padStart(2, '0');
@@ -180,6 +245,11 @@ function formatDateLabel(date: Date, language: BotUiLanguage): string {
   return `${weekday} ${day}.${month}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatDateCodeLabel.
+ * en: Internal bot helper function formatDateCodeLabel.
+ * cz: Interní bot helper funkce formatDateCodeLabel.
+ */
 function formatDateCodeLabel(dateCode: string, language: BotUiLanguage): string {
   const year = Number(dateCode.slice(0, 4));
   const month = Number(dateCode.slice(4, 6));

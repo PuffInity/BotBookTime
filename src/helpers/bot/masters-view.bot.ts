@@ -20,12 +20,23 @@ import type { BotUiLanguage } from './i18n.bot.js';
  * @summary UI/helper-и для розділу "Майстри" (тексти + inline-клавіатури).
  */
 
+// uk: UI константа NUMBER_BADGES / en: UI constant NUMBER_BADGES / cz: UI konstanta NUMBER_BADGES
 const NUMBER_BADGES = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
 
+/**
+ * uk: Внутрішня bot helper функція getNumberBadge.
+ * en: Internal bot helper function getNumberBadge.
+ * cz: Interní bot helper funkce getNumberBadge.
+ */
 function getNumberBadge(index: number): string {
   return NUMBER_BADGES[index] ?? `${index + 1}.`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatPrice.
+ * en: Internal bot helper function formatPrice.
+ * cz: Interní bot helper funkce formatPrice.
+ */
 function formatPrice(price: string, currencyCode: string): string {
   const normalizedPrice = price
     .replace(/[.,]00$/, '')
@@ -34,16 +45,31 @@ function formatPrice(price: string, currencyCode: string): string {
   return `${normalizedPrice} ${currencyCode}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція toLocale.
+ * en: Internal bot helper function toLocale.
+ * cz: Interní bot helper funkce toLocale.
+ */
 function toLocale(language: BotUiLanguage): string {
   if (language === 'en') return 'en-US';
   if (language === 'cs') return 'cs-CZ';
   return 'uk-UA';
 }
 
+/**
+ * uk: Внутрішня bot helper функція getMinutesUnit.
+ * en: Internal bot helper function getMinutesUnit.
+ * cz: Interní bot helper funkce getMinutesUnit.
+ */
 function getMinutesUnit(language: BotUiLanguage): string {
   return language === 'uk' ? 'хв' : 'min';
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatDate.
+ * en: Internal bot helper function formatDate.
+ * cz: Interní bot helper funkce formatDate.
+ */
 function formatDate(value: Date | null, language: BotUiLanguage): string | null {
   if (!value) return null;
 
@@ -55,6 +81,11 @@ function formatDate(value: Date | null, language: BotUiLanguage): string | null 
   }).format(value);
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatWeekdayLabel.
+ * en: Internal bot helper function formatWeekdayLabel.
+ * cz: Interní bot helper funkce formatWeekdayLabel.
+ */
 function formatWeekdayLabel(weekday: number, language: BotUiLanguage): string {
   const labels: Record<number, string> = {
     1: language === 'en' ? 'Mon' : language === 'cs' ? 'Po' : 'Пн',
@@ -69,6 +100,11 @@ function formatWeekdayLabel(weekday: number, language: BotUiLanguage): string {
   return labels[weekday] ?? tBotTemplate(language, 'MASTERS_WEEKDAY_FALLBACK', { weekday });
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatWorkingRange.
+ * en: Internal bot helper function formatWorkingRange.
+ * cz: Interní bot helper funkce formatWorkingRange.
+ */
 function formatWorkingRange(item: MasterWeeklyScheduleItem, language: BotUiLanguage): string {
   if (!item.isWorking || !item.openTime || !item.closeTime) {
     return tBot(language, 'MASTERS_DAY_OFF');
@@ -77,6 +113,11 @@ function formatWorkingRange(item: MasterWeeklyScheduleItem, language: BotUiLangu
   return `${item.openTime.slice(0, 5)}–${item.closeTime.slice(0, 5)}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatMasterListLine.
+ * en: Internal bot helper function formatMasterListLine.
+ * cz: Interní bot helper funkce formatMasterListLine.
+ */
 function formatMasterListLine(
   master: MasterCatalogItem,
   index: number,
@@ -93,6 +134,11 @@ function formatMasterListLine(
   );
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatSpecializationLine.
+ * en: Internal bot helper function formatSpecializationLine.
+ * cz: Interní bot helper funkce formatSpecializationLine.
+ */
 function formatSpecializationLine(item: MasterSpecializationItem, language: BotUiLanguage): string {
   return (
     `• ${item.serviceName}\n` +
@@ -100,6 +146,11 @@ function formatSpecializationLine(item: MasterSpecializationItem, language: BotU
   );
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatCertificateLine.
+ * en: Internal bot helper function formatCertificateLine.
+ * cz: Interní bot helper funkce formatCertificateLine.
+ */
 function formatCertificateLine(
   certificate: MasterCatalogCertificate,
   language: BotUiLanguage,
@@ -110,6 +161,11 @@ function formatCertificateLine(
   return `• ${certificate.title}${issuer}${dateLabel}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatSpecializationsBlock.
+ * en: Internal bot helper function formatSpecializationsBlock.
+ * cz: Interní bot helper funkce formatSpecializationsBlock.
+ */
 function formatSpecializationsBlock(details: MasterCatalogDetails, language: BotUiLanguage): string {
   if (details.specializations.length === 0) {
     return `${tBot(language, 'MASTERS_SPECIALIZATION_TITLE')}\n${tBot(language, 'MASTERS_SPECIALIZATION_EMPTY')}`;
@@ -119,6 +175,11 @@ function formatSpecializationsBlock(details: MasterCatalogDetails, language: Bot
   return `${tBot(language, 'MASTERS_SPECIALIZATION_TITLE')}\n${lines.join('\n\n')}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatCertificatesBlock.
+ * en: Internal bot helper function formatCertificatesBlock.
+ * cz: Interní bot helper funkce formatCertificatesBlock.
+ */
 function formatCertificatesBlock(details: MasterCatalogDetails, language: BotUiLanguage): string {
   if (details.certificates.length === 0) {
     return `${tBot(language, 'MASTERS_CERTIFICATES_TITLE')}\n${tBot(language, 'MASTERS_CERTIFICATES_EMPTY')}`;
@@ -128,6 +189,11 @@ function formatCertificatesBlock(details: MasterCatalogDetails, language: BotUiL
   return `${tBot(language, 'MASTERS_CERTIFICATES_TITLE')}\n${lines.join('\n')}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatContactsBlock.
+ * en: Internal bot helper function formatContactsBlock.
+ * cz: Interní bot helper funkce formatContactsBlock.
+ */
 function formatContactsBlock(details: MasterCatalogDetails, language: BotUiLanguage): string {
   return (
     `${tBot(language, 'MASTERS_CONTACTS_TITLE')}\n` +
@@ -136,6 +202,11 @@ function formatContactsBlock(details: MasterCatalogDetails, language: BotUiLangu
   );
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatWeeklyScheduleBlock.
+ * en: Internal bot helper function formatWeeklyScheduleBlock.
+ * cz: Interní bot helper funkce formatWeeklyScheduleBlock.
+ */
 function formatWeeklyScheduleBlock(details: MasterCatalogDetails, language: BotUiLanguage): string {
   if (details.weeklySchedule.length === 0) {
     return `${tBot(language, 'MASTERS_SCHEDULE_TITLE')}\n${tBot(language, 'MASTERS_SCHEDULE_EMPTY')}`;
@@ -149,6 +220,11 @@ function formatWeeklyScheduleBlock(details: MasterCatalogDetails, language: BotU
   return `${tBot(language, 'MASTERS_SCHEDULE_TITLE')}\n${lines.join('\n')}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatScheduleExceptionLine.
+ * en: Internal bot helper function formatScheduleExceptionLine.
+ * cz: Interní bot helper funkce formatScheduleExceptionLine.
+ */
 function formatScheduleExceptionLine(
   item: MasterUpcomingScheduleException,
   language: BotUiLanguage,
@@ -182,6 +258,11 @@ function formatScheduleExceptionLine(
   );
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatUpcomingScheduleExceptionsBlock.
+ * en: Internal bot helper function formatUpcomingScheduleExceptionsBlock.
+ * cz: Interní bot helper funkce formatUpcomingScheduleExceptionsBlock.
+ */
 function formatUpcomingScheduleExceptionsBlock(
   details: MasterCatalogDetails,
   language: BotUiLanguage,

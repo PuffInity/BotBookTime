@@ -3,6 +3,7 @@
  * @summary Тексти адмін-панелі.
  */
 
+// uk: UI константа ADMIN_PANEL_STATS_DICTIONARY / en: UI constant ADMIN_PANEL_STATS_DICTIONARY / cz: UI konstanta ADMIN_PANEL_STATS_DICTIONARY
 const ADMIN_PANEL_STATS_DICTIONARY = {
   uk: {
     ADMIN_PANEL_STATS_BTN_BACK: '⬅️ До адмін-панелі',
@@ -258,6 +259,7 @@ const ADMIN_PANEL_STATS_DICTIONARY = {
   },
 } as const;
 
+// uk: UI константа ADMIN_PANEL_DICTIONARY / en: UI constant ADMIN_PANEL_DICTIONARY / cz: UI konstanta ADMIN_PANEL_DICTIONARY
 export const ADMIN_PANEL_DICTIONARY = {
   uk: {
     ...ADMIN_PANEL_STATS_DICTIONARY.uk,

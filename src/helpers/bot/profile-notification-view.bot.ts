@@ -22,6 +22,11 @@ const NOTIFICATION_ORDER: NotificationType[] = [
   'promo_news',
 ];
 
+/**
+ * uk: Внутрішня bot helper функція getStatusIcon.
+ * en: Internal bot helper function getStatusIcon.
+ * cz: Interní bot helper funkce getStatusIcon.
+ */
 function getStatusIcon(enabled: boolean): string {
   return enabled ? '✅' : '⚪';
 }

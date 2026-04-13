@@ -24,16 +24,32 @@ import type { BotUiLanguage } from './i18n.bot.js';
  * @summary UI/helper-и для блоку "Налаштування" в адмін-панелі.
  */
 
+// uk: UI константа NUMBER_BADGES / en: UI constant NUMBER_BADGES / cz: UI konstanta NUMBER_BADGES
 const NUMBER_BADGES = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
 
+/**
+ * uk: Внутрішня bot helper функція getNumberBadge.
+ * en: Internal bot helper function getNumberBadge.
+ * cz: Interní bot helper funkce getNumberBadge.
+ */
 function getNumberBadge(index: number): string {
   return NUMBER_BADGES[index] ?? `${index + 1}.`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatTelegramLogin.
+ * en: Internal bot helper function formatTelegramLogin.
+ * cz: Interní bot helper funkce formatTelegramLogin.
+ */
 function formatTelegramLogin(username: string | null, language: BotUiLanguage): string {
   return username ? `@${username}` : tBot(language, 'ADMIN_PANEL_SETTINGS_NOT_SET');
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatLanguageLabel.
+ * en: Internal bot helper function formatLanguageLabel.
+ * cz: Interní bot helper funkce formatLanguageLabel.
+ */
 function formatLanguageLabel(language: LanguageCode, uiLanguage: BotUiLanguage): string {
   return getUiLanguageLabel(language, uiLanguage);
 }
@@ -401,6 +417,11 @@ const WEEKDAY_LABELS: Record<BotUiLanguage, Record<number, string>> = {
   cs: { 1: 'Po', 2: 'Út', 3: 'St', 4: 'Čt', 5: 'Pá', 6: 'So', 7: 'Ne' },
 };
 
+/**
+ * uk: Внутрішня bot helper функція formatWeeklyHoursLine.
+ * en: Internal bot helper function formatWeeklyHoursLine.
+ * cz: Interní bot helper funkce formatWeeklyHoursLine.
+ */
 function formatWeeklyHoursLine(
   item: AdminStudioProfileSettings['weeklyHours'][number],
   language: BotUiLanguage,
@@ -419,12 +440,22 @@ function formatWeeklyHoursLine(
   });
 }
 
+/**
+ * uk: Внутрішня bot helper функція trimPreview.
+ * en: Internal bot helper function trimPreview.
+ * cz: Interní bot helper funkce trimPreview.
+ */
 function trimPreview(value: string, max = 220): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length <= max) return normalized;
   return `${normalized.slice(0, max).trimEnd()}…`;
 }
 
+/**
+ * uk: Публічна bot helper функція getAdminStudioBlockTitle.
+ * en: Public bot helper function getAdminStudioBlockTitle.
+ * cz: Veřejná bot helper funkce getAdminStudioBlockTitle.
+ */
 export function getAdminStudioBlockTitle(
   blockKey: ContentBlockKey,
   language: BotUiLanguage = 'uk',
@@ -638,10 +669,20 @@ export function createAdminSettingsStudioEditConfirmKeyboard(
   ]);
 }
 
+/**
+ * uk: Внутрішня bot helper функція getNotificationStatusIcon.
+ * en: Internal bot helper function getNotificationStatusIcon.
+ * cz: Interní bot helper funkce getNotificationStatusIcon.
+ */
 function getNotificationStatusIcon(enabled: boolean): string {
   return enabled ? '✅' : '⚪';
 }
 
+/**
+ * uk: Внутрішня bot helper функція getDeliveryStatusLabel.
+ * en: Internal bot helper function getDeliveryStatusLabel.
+ * cz: Interní bot helper funkce getDeliveryStatusLabel.
+ */
 function getDeliveryStatusLabel(verifiedAt: Date | null, language: BotUiLanguage): string {
   return verifiedAt
     ? tBot(language, 'ADMIN_PANEL_SETTINGS_NOTIFICATIONS_DELIVERY_VERIFIED')

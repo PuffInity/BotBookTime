@@ -23,12 +23,22 @@ import { tBot, tBotTemplate } from './i18n.bot.js';
  * @summary UI/helper-и для блоку "Мої записи" у панелі майстра.
  */
 
+/**
+ * uk: Внутрішня bot helper функція toLocale.
+ * en: Internal bot helper function toLocale.
+ * cz: Interní bot helper funkce toLocale.
+ */
 function toLocale(language: BotUiLanguage): string {
   if (language === 'en') return 'en-US';
   if (language === 'cs') return 'cs-CZ';
   return 'uk-UA';
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatDateTimeRange.
+ * en: Internal bot helper function formatDateTimeRange.
+ * cz: Interní bot helper funkce formatDateTimeRange.
+ */
 function formatDateTimeRange(startAt: Date, endAt: Date, language: BotUiLanguage): string {
   const locale = toLocale(language);
   const date = startAt.toLocaleDateString(locale);
@@ -38,11 +48,21 @@ function formatDateTimeRange(startAt: Date, endAt: Date, language: BotUiLanguage
   return `${date} • ${startTime}–${endTime}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatPrice.
+ * en: Internal bot helper function formatPrice.
+ * cz: Interní bot helper funkce formatPrice.
+ */
 function formatPrice(price: string, currencyCode: string): string {
   const normalized = price.replace(/[.,]00$/, '').replace(/([.,]\d)0$/, '$1');
   return `${normalized} ${currencyCode}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatClientDisplayName.
+ * en: Internal bot helper function formatClientDisplayName.
+ * cz: Interní bot helper funkce formatClientDisplayName.
+ */
 function formatClientDisplayName(item: MasterPendingBookingItem, language: BotUiLanguage): string {
   if (item.attendeeName && item.attendeeName.trim().length > 0) {
     return item.attendeeName;
@@ -52,6 +72,11 @@ function formatClientDisplayName(item: MasterPendingBookingItem, language: BotUi
   return fullName || tBot(language, 'MASTER_PANEL_BOOKINGS_CLIENT_FALLBACK');
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatBookingStatusLabel.
+ * en: Internal bot helper function formatBookingStatusLabel.
+ * cz: Interní bot helper funkce formatBookingStatusLabel.
+ */
 function formatBookingStatusLabel(status: MasterPendingBookingItem['status'], language: BotUiLanguage): string {
   switch (status) {
     case 'pending':
@@ -69,6 +94,11 @@ function formatBookingStatusLabel(status: MasterPendingBookingItem['status'], la
   }
 }
 
+/**
+ * uk: Внутрішня bot helper функція categoryTitle.
+ * en: Internal bot helper function categoryTitle.
+ * cz: Interní bot helper funkce categoryTitle.
+ */
 function categoryTitle(category: MasterBookingsCategory, language: BotUiLanguage): string {
   switch (category) {
     case 'today':
@@ -84,6 +114,11 @@ function categoryTitle(category: MasterBookingsCategory, language: BotUiLanguage
   }
 }
 
+/**
+ * uk: Внутрішня bot helper функція categoryEmptyText.
+ * en: Internal bot helper function categoryEmptyText.
+ * cz: Interní bot helper funkce categoryEmptyText.
+ */
 function categoryEmptyText(category: MasterBookingsCategory, language: BotUiLanguage): string {
   switch (category) {
     case 'today':
@@ -99,6 +134,11 @@ function categoryEmptyText(category: MasterBookingsCategory, language: BotUiLang
   }
 }
 
+/**
+ * uk: Внутрішня bot helper функція cardIndexLabel.
+ * en: Internal bot helper function cardIndexLabel.
+ * cz: Interní bot helper funkce cardIndexLabel.
+ */
 function cardIndexLabel(index: number): string {
   return `${index + 1}️⃣`;
 }
@@ -417,6 +457,11 @@ export function createMasterBookingDetailsCardKeyboard(
   ]);
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatDateLabel.
+ * en: Internal bot helper function formatDateLabel.
+ * cz: Interní bot helper funkce formatDateLabel.
+ */
 function formatDateLabel(date: Date, language: BotUiLanguage): string {
   const locale = toLocale(language);
   const weekday = date.toLocaleDateString(locale, { weekday: 'short' });

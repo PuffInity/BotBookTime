@@ -30,12 +30,23 @@ import type { ServicesCatalogItem } from '../../types/db-helpers/db-services.typ
  * @summary UI/helper-и блоку "Майстри" у адмін-панелі.
  */
 
+// uk: UI константа NUMBER_BADGES / en: UI constant NUMBER_BADGES / cz: UI konstanta NUMBER_BADGES
 const NUMBER_BADGES = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
 
+/**
+ * uk: Внутрішня bot helper функція getNumberBadge.
+ * en: Internal bot helper function getNumberBadge.
+ * cz: Interní bot helper funkce getNumberBadge.
+ */
 function getNumberBadge(index: number): string {
   return NUMBER_BADGES[index] ?? `${index + 1}.`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatPrice.
+ * en: Internal bot helper function formatPrice.
+ * cz: Interní bot helper funkce formatPrice.
+ */
 function formatPrice(price: string, currencyCode: string): string {
   const normalized = price
     .replace(/[.,]00$/, '')
@@ -43,6 +54,11 @@ function formatPrice(price: string, currencyCode: string): string {
   return `${normalized} ${currencyCode}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatWeekdayLabel.
+ * en: Internal bot helper function formatWeekdayLabel.
+ * cz: Interní bot helper funkce formatWeekdayLabel.
+ */
 function formatWeekdayLabel(language: BotUiLanguage, weekday: number): string {
   switch (weekday) {
     case 1:
@@ -64,6 +80,11 @@ function formatWeekdayLabel(language: BotUiLanguage, weekday: number): string {
   }
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatWorkingRange.
+ * en: Internal bot helper function formatWorkingRange.
+ * cz: Interní bot helper funkce formatWorkingRange.
+ */
 function formatWorkingRange(language: BotUiLanguage, item: MasterWeeklyScheduleItem): string {
   if (!item.isWorking || !item.openTime || !item.closeTime) {
     return tBot(language, 'ADMIN_PANEL_MASTERS_LABEL_DAY_OFF');
@@ -71,10 +92,20 @@ function formatWorkingRange(language: BotUiLanguage, item: MasterWeeklyScheduleI
   return `${item.openTime.slice(0, 5)}–${item.closeTime.slice(0, 5)}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatMasterLabel.
+ * en: Internal bot helper function formatMasterLabel.
+ * cz: Interní bot helper funkce formatMasterLabel.
+ */
 function formatMasterLabel(language: BotUiLanguage, value: string): string {
   return tBotTemplate(language, 'ADMIN_PANEL_MASTERS_LABEL_MASTER', { value });
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatServiceMeta.
+ * en: Internal bot helper function formatServiceMeta.
+ * cz: Interní bot helper funkce formatServiceMeta.
+ */
 function formatServiceMeta(
   language: BotUiLanguage,
   duration: number,
@@ -87,6 +118,11 @@ function formatServiceMeta(
   });
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatSpecializationLine.
+ * en: Internal bot helper function formatSpecializationLine.
+ * cz: Interní bot helper funkce formatSpecializationLine.
+ */
 function formatSpecializationLine(
   item: MasterSpecializationItem,
   language: BotUiLanguage,
@@ -101,6 +137,11 @@ function formatSpecializationLine(
   );
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatBookingStatusLabel.
+ * en: Internal bot helper function formatBookingStatusLabel.
+ * cz: Interní bot helper funkce formatBookingStatusLabel.
+ */
 function formatBookingStatusLabel(
   language: BotUiLanguage,
   status: AdminBookingItem['status'],
@@ -121,6 +162,11 @@ function formatBookingStatusLabel(
   }
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatClientDisplayName.
+ * en: Internal bot helper function formatClientDisplayName.
+ * cz: Interní bot helper funkce formatClientDisplayName.
+ */
 function formatClientDisplayName(item: AdminBookingItem, language: BotUiLanguage): string {
   if (item.attendeeName && item.attendeeName.trim().length > 0) {
     return item.attendeeName;
@@ -130,29 +176,54 @@ function formatClientDisplayName(item: AdminBookingItem, language: BotUiLanguage
   return fullName || tBot(language, 'ADMIN_PANEL_MASTERS_LABEL_UNKNOWN_CLIENT');
 }
 
+/**
+ * uk: Внутрішня bot helper функція toSafeDate.
+ * en: Internal bot helper function toSafeDate.
+ * cz: Interní bot helper funkce toSafeDate.
+ */
 function toSafeDate(value: Date | string): Date | null {
   const parsed = value instanceof Date ? value : new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
+/**
+ * uk: Внутрішня bot helper функція resolveLocale.
+ * en: Internal bot helper function resolveLocale.
+ * cz: Interní bot helper funkce resolveLocale.
+ */
 function resolveLocale(language: BotUiLanguage): string {
   if (language === 'en') return 'en-US';
   if (language === 'cs') return 'cs-CZ';
   return 'uk-UA';
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatUiDate.
+ * en: Internal bot helper function formatUiDate.
+ * cz: Interní bot helper funkce formatUiDate.
+ */
 function formatUiDate(value: Date | string, language: BotUiLanguage): string {
   const parsed = toSafeDate(value);
   if (!parsed) return tBot(language, 'ADMIN_PANEL_MASTERS_LABEL_UNKNOWN_DATE');
   return parsed.toLocaleDateString(resolveLocale(language));
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatUiTime.
+ * en: Internal bot helper function formatUiTime.
+ * cz: Interní bot helper funkce formatUiTime.
+ */
 function formatUiTime(value: Date | string, language: BotUiLanguage): string {
   const parsed = toSafeDate(value);
   if (!parsed) return '--:--';
   return parsed.toLocaleTimeString(resolveLocale(language), { hour: '2-digit', minute: '2-digit' });
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatDateTimeRange.
+ * en: Internal bot helper function formatDateTimeRange.
+ * cz: Interní bot helper funkce formatDateTimeRange.
+ */
 function formatDateTimeRange(
   startAt: Date | string,
   endAt: Date | string,
@@ -164,6 +235,11 @@ function formatDateTimeRange(
   return `${date} • ${startTime}–${endTime}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatMasterCatalogLine.
+ * en: Internal bot helper function formatMasterCatalogLine.
+ * cz: Interní bot helper funkce formatMasterCatalogLine.
+ */
 function formatMasterCatalogLine(
   master: MasterCatalogItem,
   index: number,
@@ -411,6 +487,11 @@ export function formatAdminMasterCreateEmailInputText(language: BotUiLanguage = 
   return tBot(language, 'ADMIN_PANEL_MASTERS_CREATE_EMAIL_INPUT_TEXT');
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatSchedulePreviewLine.
+ * en: Internal bot helper function formatSchedulePreviewLine.
+ * cz: Interní bot helper funkce formatSchedulePreviewLine.
+ */
 function formatSchedulePreviewLine(item: AdminMasterCreateScheduleDayView, language: BotUiLanguage): string {
   if (!item.isWorking || !item.openTime || !item.closeTime) {
     return `• ${formatWeekdayLabel(language, item.weekday)}: ${tBot(language, 'ADMIN_PANEL_MASTERS_LABEL_DAY_OFF')}`;
@@ -898,6 +979,11 @@ export type AdminMasterEditableField =
   | 'started_on'
   | 'procedures_done_total';
 
+/**
+ * uk: Внутрішня bot helper функція getEditableFieldLabel.
+ * en: Internal bot helper function getEditableFieldLabel.
+ * cz: Interní bot helper funkce getEditableFieldLabel.
+ */
 function getEditableFieldLabel(
   field: AdminMasterEditableField,
   language: BotUiLanguage = 'uk',

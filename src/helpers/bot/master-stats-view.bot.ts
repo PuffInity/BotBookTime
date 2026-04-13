@@ -8,6 +8,11 @@ import { tBot, type BotUiLanguage } from './i18n.bot.js';
  * @summary UI/helper-и для блоку "Моя статистика" в панелі майстра.
  */
 
+/**
+ * uk: Внутрішня bot helper функція formatTopServices.
+ * en: Internal bot helper function formatTopServices.
+ * cz: Interní bot helper funkce formatTopServices.
+ */
 function formatTopServices(stats: MasterPanelStatsData, language: BotUiLanguage): string {
   if (stats.topServices.length === 0) {
     return tBot(language, 'MASTER_PANEL_STATS_TOP_SERVICES_EMPTY');

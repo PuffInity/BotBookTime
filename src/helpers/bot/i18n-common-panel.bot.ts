@@ -3,6 +3,7 @@
  * @summary Спільні (перевикористовувані) тексти для всіх панелей.
  */
 
+// uk: UI константа COMMON_PANEL_DICTIONARY / en: UI constant COMMON_PANEL_DICTIONARY / cz: UI konstanta COMMON_PANEL_DICTIONARY
 export const COMMON_PANEL_DICTIONARY = {
   uk: {
     HOME: '🏠 Головне меню',

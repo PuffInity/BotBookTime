@@ -15,16 +15,31 @@ import { tBot, type BotUiLanguage } from './i18n.bot.js';
  * @summary UI/helper-и для екрану "Профіль клієнта" в панелі майстра.
  */
 
+/**
+ * uk: Внутрішня bot helper функція localeByLanguage.
+ * en: Internal bot helper function localeByLanguage.
+ * cz: Interní bot helper funkce localeByLanguage.
+ */
 function localeByLanguage(language: BotUiLanguage): string {
   if (language === 'en') return 'en-US';
   if (language === 'cs') return 'cs-CZ';
   return 'uk-UA';
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatDate.
+ * en: Internal bot helper function formatDate.
+ * cz: Interní bot helper funkce formatDate.
+ */
 function formatDate(date: Date, language: BotUiLanguage): string {
   return date.toLocaleDateString(localeByLanguage(language));
 }
 
+/**
+ * uk: Внутрішня bot helper функція languageLabel.
+ * en: Internal bot helper function languageLabel.
+ * cz: Interní bot helper funkce languageLabel.
+ */
 function languageLabel(
   language: MasterClientProfileItem['preferredLanguage'],
   uiLanguage: BotUiLanguage,
@@ -41,10 +56,20 @@ function languageLabel(
   }
 }
 
+/**
+ * uk: Внутрішня bot helper функція fullName.
+ * en: Internal bot helper function fullName.
+ * cz: Interní bot helper funkce fullName.
+ */
 function fullName(profile: MasterClientProfileItem): string {
   return `${profile.firstName}${profile.lastName ? ` ${profile.lastName}` : ''}`.trim();
 }
 
+/**
+ * uk: Внутрішня bot helper функція verificationLabel.
+ * en: Internal bot helper function verificationLabel.
+ * cz: Interní bot helper funkce verificationLabel.
+ */
 function verificationLabel(value: string | null, verified: boolean, uiLanguage: BotUiLanguage): string {
   if (!value) return tBot(uiLanguage, 'MASTER_PANEL_CLIENT_PROFILE_PHONE_NOT_ADDED');
   return verified
@@ -52,11 +77,21 @@ function verificationLabel(value: string | null, verified: boolean, uiLanguage: 
     : tBot(uiLanguage, 'MASTER_PANEL_CLIENT_PROFILE_PHONE_NOT_VERIFIED');
 }
 
+/**
+ * uk: Внутрішня bot helper функція telegramLabel.
+ * en: Internal bot helper function telegramLabel.
+ * cz: Interní bot helper funkce telegramLabel.
+ */
 function telegramLabel(username: string | null, uiLanguage: BotUiLanguage): string {
   if (!username) return tBot(uiLanguage, 'PROFILE_NOT_SET');
   return username.startsWith('@') ? username : `@${username}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція statusLabel.
+ * en: Internal bot helper function statusLabel.
+ * cz: Interní bot helper funkce statusLabel.
+ */
 function statusLabel(status: MasterClientBookingsHistoryItem['status'], uiLanguage: BotUiLanguage): string {
   switch (status) {
     case 'pending':
@@ -74,6 +109,11 @@ function statusLabel(status: MasterClientBookingsHistoryItem['status'], uiLangua
   }
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatPrice.
+ * en: Internal bot helper function formatPrice.
+ * cz: Interní bot helper funkce formatPrice.
+ */
 function formatPrice(price: string, currencyCode: string): string {
   const normalized = price.replace(/[.,]00$/, '').replace(/([.,]\d)0$/, '$1');
   return `${normalized} ${currencyCode}`;

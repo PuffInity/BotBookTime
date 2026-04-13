@@ -18,12 +18,22 @@ import { tBot, tBotTemplate, type BotUiLanguage } from './i18n.bot.js';
  * @summary UI/helper-и блоку "Мій профіль майстра" у master panel.
  */
 
+/**
+ * uk: Внутрішня bot helper функція localeByLanguage.
+ * en: Internal bot helper function localeByLanguage.
+ * cz: Interní bot helper funkce localeByLanguage.
+ */
 function localeByLanguage(language: BotUiLanguage): string {
   if (language === 'en') return 'en-US';
   if (language === 'cs') return 'cs-CZ';
   return 'uk-UA';
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatDate.
+ * en: Internal bot helper function formatDate.
+ * cz: Interní bot helper funkce formatDate.
+ */
 function formatDate(value: Date | string | null, language: BotUiLanguage): string {
   if (!value) return tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_INPUT_NOT_SET');
 
@@ -35,23 +45,43 @@ function formatDate(value: Date | string | null, language: BotUiLanguage): strin
   return parsed.toLocaleDateString(localeByLanguage(language));
 }
 
+/**
+ * uk: Внутрішня bot helper функція telegramLabel.
+ * en: Internal bot helper function telegramLabel.
+ * cz: Interní bot helper funkce telegramLabel.
+ */
 function telegramLabel(username: string | null, language: BotUiLanguage): string {
   if (!username) return tBot(language, 'MASTER_PANEL_OWN_PROFILE_EDIT_INPUT_NOT_SET');
   return username.startsWith('@') ? username : `@${username}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція statusLabel.
+ * en: Internal bot helper function statusLabel.
+ * cz: Interní bot helper funkce statusLabel.
+ */
 function statusLabel(isBookable: boolean, language: BotUiLanguage): string {
   return isBookable
     ? tBot(language, 'MASTER_PANEL_PROFILE_STATUS_AVAILABLE_SHORT')
     : tBot(language, 'MASTER_PANEL_PROFILE_STATUS_UNAVAILABLE_SHORT');
 }
 
+/**
+ * uk: Внутрішня bot helper функція serviceStatusLabel.
+ * en: Internal bot helper function serviceStatusLabel.
+ * cz: Interní bot helper funkce serviceStatusLabel.
+ */
 function serviceStatusLabel(isActive: boolean, language: BotUiLanguage): string {
   return isActive
     ? tBot(language, 'MASTER_PANEL_OWN_PROFILE_SERVICE_STATUS_ACTIVE')
     : tBot(language, 'MASTER_PANEL_OWN_PROFILE_SERVICE_STATUS_INACTIVE');
 }
 
+/**
+ * uk: Внутрішня bot helper функція serviceMetaLabel.
+ * en: Internal bot helper function serviceMetaLabel.
+ * cz: Interní bot helper funkce serviceMetaLabel.
+ */
 function serviceMetaLabel(
   service: MasterOwnProfileServiceManageItem,
   language: BotUiLanguage,
@@ -73,6 +103,11 @@ export type MasterOwnProfileEditableField =
   | 'started_on'
   | 'procedures_done_total';
 
+/**
+ * uk: Внутрішня bot helper функція editableFieldLabel.
+ * en: Internal bot helper function editableFieldLabel.
+ * cz: Interní bot helper funkce editableFieldLabel.
+ */
 function editableFieldLabel(field: MasterOwnProfileEditableField, language: BotUiLanguage): string {
   switch (field) {
     case 'bio':

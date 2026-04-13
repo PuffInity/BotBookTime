@@ -16,39 +16,84 @@ import { isTwilioConfigured } from '../../config/twilio.config.js';
  * @summary UI/helper-и для екрана профілю клієнта (текст + inline-кнопки).
  */
 
+/**
+ * uk: Внутрішня bot helper функція getFullName.
+ * en: Internal bot helper function getFullName.
+ * cz: Interní bot helper funkce getFullName.
+ */
 function getFullName(user: AppUsersEntity): string {
   return `${user.firstName}${user.lastName ? ` ${user.lastName}` : ''}`.trim();
 }
 
+/**
+ * uk: Внутрішня bot helper функція getTelegramLabel.
+ * en: Internal bot helper function getTelegramLabel.
+ * cz: Interní bot helper funkce getTelegramLabel.
+ */
 function getTelegramLabel(user: AppUsersEntity): string {
   const language = resolveBotUiLanguage(user.preferredLanguage);
   return user.telegramUsername ? `@${user.telegramUsername}` : tBot(language, 'PROFILE_NOT_SET');
 }
 
+/**
+ * uk: Внутрішня bot helper функція getVerificationLabel.
+ * en: Internal bot helper function getVerificationLabel.
+ * cz: Interní bot helper funkce getVerificationLabel.
+ */
 function getVerificationLabel(verifiedAt: Date | null, language: BotUiLanguage): string {
   return verifiedAt ? tBot(language, 'PROFILE_VERIFIED') : tBot(language, 'PROFILE_NOT_VERIFIED');
 }
 
+/**
+ * uk: Внутрішня bot helper функція hasEmail.
+ * en: Internal bot helper function hasEmail.
+ * cz: Interní bot helper funkce hasEmail.
+ */
 function hasEmail(user: AppUsersEntity): boolean {
   return Boolean(user.email && user.email.trim().length > 0);
 }
 
+/**
+ * uk: Внутрішня bot helper функція hasPhone.
+ * en: Internal bot helper function hasPhone.
+ * cz: Interní bot helper funkce hasPhone.
+ */
 function hasPhone(user: AppUsersEntity): boolean {
   return Boolean(user.phoneE164 && user.phoneE164.trim().length > 0);
 }
 
+/**
+ * uk: Внутрішня bot helper функція getEmailButtonLabel.
+ * en: Internal bot helper function getEmailButtonLabel.
+ * cz: Interní bot helper funkce getEmailButtonLabel.
+ */
 function getEmailButtonLabel(user: AppUsersEntity, language: BotUiLanguage): string {
   return hasEmail(user) ? tBot(language, 'PROFILE_EDIT_EMAIL') : tBot(language, 'PROFILE_ADD_EMAIL');
 }
 
+/**
+ * uk: Внутрішня bot helper функція getPhoneButtonLabel.
+ * en: Internal bot helper function getPhoneButtonLabel.
+ * cz: Interní bot helper funkce getPhoneButtonLabel.
+ */
 function getPhoneButtonLabel(user: AppUsersEntity, language: BotUiLanguage): string {
   return hasPhone(user) ? tBot(language, 'PROFILE_EDIT_PHONE') : tBot(language, 'PROFILE_ADD_PHONE');
 }
 
+/**
+ * uk: Публічна bot helper функція getEmailProfileActionTitle.
+ * en: Public bot helper function getEmailProfileActionTitle.
+ * cz: Veřejná bot helper funkce getEmailProfileActionTitle.
+ */
 export function getEmailProfileActionTitle(user: AppUsersEntity, language: BotUiLanguage): string {
   return hasEmail(user) ? tBot(language, 'PROFILE_EDIT_EMAIL') : tBot(language, 'PROFILE_ADD_EMAIL');
 }
 
+/**
+ * uk: Публічна bot helper функція getPhoneProfileActionTitle.
+ * en: Public bot helper function getPhoneProfileActionTitle.
+ * cz: Veřejná bot helper funkce getPhoneProfileActionTitle.
+ */
 export function getPhoneProfileActionTitle(user: AppUsersEntity, language: BotUiLanguage): string {
   return hasPhone(user) ? tBot(language, 'PROFILE_EDIT_PHONE') : tBot(language, 'PROFILE_ADD_PHONE');
 }
@@ -233,6 +278,11 @@ export async function sendProfileCard(ctx: MyContext, user: AppUsersEntity): Pro
   await ctx.reply(formatProfileCardText(user), createProfileInlineKeyboard(user));
 }
 
+/**
+ * uk: Публічна bot helper функція sendProfileNameBlockedMessage.
+ * en: Public bot helper function sendProfileNameBlockedMessage.
+ * cz: Veřejná bot helper funkce sendProfileNameBlockedMessage.
+ */
 export async function sendProfileNameBlockedMessage(
   ctx: MyContext,
   language: BotUiLanguage = 'uk',
@@ -243,6 +293,11 @@ export async function sendProfileNameBlockedMessage(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція sendProfileNameCooldownMessage.
+ * en: Public bot helper function sendProfileNameCooldownMessage.
+ * cz: Veřejná bot helper funkce sendProfileNameCooldownMessage.
+ */
 export async function sendProfileNameCooldownMessage(
   ctx: MyContext,
   language: BotUiLanguage = 'uk',
@@ -253,6 +308,11 @@ export async function sendProfileNameCooldownMessage(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція sendProfileNamePrompt.
+ * en: Public bot helper function sendProfileNamePrompt.
+ * cz: Veřejná bot helper funkce sendProfileNamePrompt.
+ */
 export async function sendProfileNamePrompt(
   ctx: MyContext,
   language: BotUiLanguage = 'uk',
@@ -263,6 +323,11 @@ export async function sendProfileNamePrompt(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція sendProfileNameValidationError.
+ * en: Public bot helper function sendProfileNameValidationError.
+ * cz: Veřejná bot helper funkce sendProfileNameValidationError.
+ */
 export async function sendProfileNameValidationError(
   ctx: MyContext,
   language: BotUiLanguage = 'uk',
@@ -273,6 +338,11 @@ export async function sendProfileNameValidationError(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція sendProfileNameUpdatedMessage.
+ * en: Public bot helper function sendProfileNameUpdatedMessage.
+ * cz: Veřejná bot helper funkce sendProfileNameUpdatedMessage.
+ */
 export async function sendProfileNameUpdatedMessage(
   ctx: MyContext,
   firstName: string,
@@ -284,6 +354,11 @@ export async function sendProfileNameUpdatedMessage(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція sendProfileNameCancelledMessage.
+ * en: Public bot helper function sendProfileNameCancelledMessage.
+ * cz: Veřejná bot helper funkce sendProfileNameCancelledMessage.
+ */
 export async function sendProfileNameCancelledMessage(
   ctx: MyContext,
   language: BotUiLanguage = 'uk',
@@ -291,6 +366,11 @@ export async function sendProfileNameCancelledMessage(
   await ctx.reply(tBot(language, 'PROFILE_NAME_CANCELLED'), createProfileStubKeyboard(language));
 }
 
+/**
+ * uk: Публічна bot helper функція sendProfileEmailAddPrompt.
+ * en: Public bot helper function sendProfileEmailAddPrompt.
+ * cz: Veřejná bot helper funkce sendProfileEmailAddPrompt.
+ */
 export async function sendProfileEmailAddPrompt(
   ctx: MyContext,
   language: BotUiLanguage = 'uk',
@@ -301,6 +381,11 @@ export async function sendProfileEmailAddPrompt(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція sendProfileEmailValidationError.
+ * en: Public bot helper function sendProfileEmailValidationError.
+ * cz: Veřejná bot helper funkce sendProfileEmailValidationError.
+ */
 export async function sendProfileEmailValidationError(
   ctx: MyContext,
   language: BotUiLanguage = 'uk',
@@ -308,6 +393,11 @@ export async function sendProfileEmailValidationError(
   await ctx.reply(tBot(language, 'PROFILE_EMAIL_INVALID'), createProfileEmailAddKeyboard(language));
 }
 
+/**
+ * uk: Публічна bot helper функція sendProfileEmailAlreadyUsedError.
+ * en: Public bot helper function sendProfileEmailAlreadyUsedError.
+ * cz: Veřejná bot helper funkce sendProfileEmailAlreadyUsedError.
+ */
 export async function sendProfileEmailAlreadyUsedError(
   ctx: MyContext,
   language: BotUiLanguage = 'uk',
@@ -315,6 +405,11 @@ export async function sendProfileEmailAlreadyUsedError(
   await ctx.reply(tBot(language, 'PROFILE_EMAIL_ALREADY_USED'), createProfileEmailAddKeyboard(language));
 }
 
+/**
+ * uk: Публічна bot helper функція sendProfileEmailAddedMessage.
+ * en: Public bot helper function sendProfileEmailAddedMessage.
+ * cz: Veřejná bot helper funkce sendProfileEmailAddedMessage.
+ */
 export async function sendProfileEmailAddedMessage(
   ctx: MyContext,
   email: string,
@@ -326,6 +421,11 @@ export async function sendProfileEmailAddedMessage(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція sendProfileEmailAddCancelledMessage.
+ * en: Public bot helper function sendProfileEmailAddCancelledMessage.
+ * cz: Veřejná bot helper funkce sendProfileEmailAddCancelledMessage.
+ */
 export async function sendProfileEmailAddCancelledMessage(
   ctx: MyContext,
   language: BotUiLanguage = 'uk',
@@ -333,6 +433,11 @@ export async function sendProfileEmailAddCancelledMessage(
   await ctx.reply(tBot(language, 'PROFILE_EMAIL_ADD_CANCELLED'), createProfileStubKeyboard(language));
 }
 
+/**
+ * uk: Публічна bot helper функція sendProfilePhoneAddPrompt.
+ * en: Public bot helper function sendProfilePhoneAddPrompt.
+ * cz: Veřejná bot helper funkce sendProfilePhoneAddPrompt.
+ */
 export async function sendProfilePhoneAddPrompt(
   ctx: MyContext,
   language: BotUiLanguage = 'uk',
@@ -343,6 +448,11 @@ export async function sendProfilePhoneAddPrompt(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція sendProfilePhoneValidationError.
+ * en: Public bot helper function sendProfilePhoneValidationError.
+ * cz: Veřejná bot helper funkce sendProfilePhoneValidationError.
+ */
 export async function sendProfilePhoneValidationError(
   ctx: MyContext,
   language: BotUiLanguage = 'uk',
@@ -350,6 +460,11 @@ export async function sendProfilePhoneValidationError(
   await ctx.reply(tBot(language, 'PROFILE_PHONE_INVALID'), createProfilePhoneAddKeyboard(language));
 }
 
+/**
+ * uk: Публічна bot helper функція sendProfilePhoneAlreadyUsedError.
+ * en: Public bot helper function sendProfilePhoneAlreadyUsedError.
+ * cz: Veřejná bot helper funkce sendProfilePhoneAlreadyUsedError.
+ */
 export async function sendProfilePhoneAlreadyUsedError(
   ctx: MyContext,
   language: BotUiLanguage = 'uk',
@@ -357,6 +472,11 @@ export async function sendProfilePhoneAlreadyUsedError(
   await ctx.reply(tBot(language, 'PROFILE_PHONE_ALREADY_USED'), createProfilePhoneAddKeyboard(language));
 }
 
+/**
+ * uk: Публічна bot helper функція sendProfilePhoneAddedMessage.
+ * en: Public bot helper function sendProfilePhoneAddedMessage.
+ * cz: Veřejná bot helper funkce sendProfilePhoneAddedMessage.
+ */
 export async function sendProfilePhoneAddedMessage(
   ctx: MyContext,
   phone: string,
@@ -368,6 +488,11 @@ export async function sendProfilePhoneAddedMessage(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція sendProfilePhoneAddCancelledMessage.
+ * en: Public bot helper function sendProfilePhoneAddCancelledMessage.
+ * cz: Veřejná bot helper funkce sendProfilePhoneAddCancelledMessage.
+ */
 export async function sendProfilePhoneAddCancelledMessage(
   ctx: MyContext,
   language: BotUiLanguage = 'uk',
@@ -375,6 +500,11 @@ export async function sendProfilePhoneAddCancelledMessage(
   await ctx.reply(tBot(language, 'PROFILE_PHONE_ADD_CANCELLED'), createProfileStubKeyboard(language));
 }
 
+/**
+ * uk: Публічна bot helper функція formatProfileLanguagePromptText.
+ * en: Public bot helper function formatProfileLanguagePromptText.
+ * cz: Veřejná bot helper funkce formatProfileLanguagePromptText.
+ */
 export function formatProfileLanguagePromptText(
   currentLanguage: LanguageCode,
   language: BotUiLanguage,
@@ -387,6 +517,11 @@ export function formatProfileLanguagePromptText(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція createProfileLanguageKeyboard.
+ * en: Public bot helper function createProfileLanguageKeyboard.
+ * cz: Veřejná bot helper funkce createProfileLanguageKeyboard.
+ */
 export function createProfileLanguageKeyboard(
   currentLanguage: LanguageCode,
   language: BotUiLanguage,
@@ -420,6 +555,11 @@ export function createProfileLanguageKeyboard(
   ]);
 }
 
+/**
+ * uk: Публічна bot helper функція sendProfileLanguageUpdatedMessage.
+ * en: Public bot helper function sendProfileLanguageUpdatedMessage.
+ * cz: Veřejná bot helper funkce sendProfileLanguageUpdatedMessage.
+ */
 export async function sendProfileLanguageUpdatedMessage(
   ctx: MyContext,
   language: LanguageCode,

@@ -25,18 +25,33 @@ import type { BotUiLanguage } from './i18n.bot.js';
  * @summary UI/helper-и для блоку "Статистика" в адмін-панелі.
  */
 
+/**
+ * uk: Внутрішня bot helper функція resolveLocale.
+ * en: Internal bot helper function resolveLocale.
+ * cz: Interní bot helper funkce resolveLocale.
+ */
 function resolveLocale(language: BotUiLanguage): string {
   if (language === 'en') return 'en-US';
   if (language === 'cs') return 'cs-CZ';
   return 'uk-UA';
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatMoney.
+ * en: Internal bot helper function formatMoney.
+ * cz: Interní bot helper funkce formatMoney.
+ */
 function formatMoney(value: number, currencyCode: string): string {
   const rounded = Number.isFinite(value) ? value : 0;
   const normalized = rounded.toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
   return `${normalized} ${currencyCode}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatDate.
+ * en: Internal bot helper function formatDate.
+ * cz: Interní bot helper funkce formatDate.
+ */
 function formatDate(value: Date | null, language: BotUiLanguage): string {
   if (!value) return tBot(language, 'ADMIN_PANEL_STATS_LABEL_DASH');
   return new Intl.DateTimeFormat(resolveLocale(language), {
@@ -47,6 +62,11 @@ function formatDate(value: Date | null, language: BotUiLanguage): string {
   }).format(value);
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatMonthCode.
+ * en: Internal bot helper function formatMonthCode.
+ * cz: Interní bot helper funkce formatMonthCode.
+ */
 function formatMonthCode(monthCode: string, language: BotUiLanguage): string {
   const match = monthCode.match(/^(\d{4})(\d{2})$/);
   if (!match) return monthCode;
@@ -67,12 +87,23 @@ function formatMonthCode(monthCode: string, language: BotUiLanguage): string {
   return monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
 }
 
+// uk: UI константа NUMBER_BADGES / en: UI constant NUMBER_BADGES / cz: UI konstanta NUMBER_BADGES
 const NUMBER_BADGES = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
 
+/**
+ * uk: Внутрішня bot helper функція getNumberBadge.
+ * en: Internal bot helper function getNumberBadge.
+ * cz: Interní bot helper funkce getNumberBadge.
+ */
 function getNumberBadge(index: number): string {
   return NUMBER_BADGES[index] ?? `${index + 1}.`;
 }
 
+/**
+ * uk: Публічна bot helper функція formatAdminStatsOverviewText.
+ * en: Public bot helper function formatAdminStatsOverviewText.
+ * cz: Veřejná bot helper funkce formatAdminStatsOverviewText.
+ */
 export function formatAdminStatsOverviewText(
   data: AdminPanelStatsOverview,
   language: BotUiLanguage = 'uk',
@@ -98,6 +129,11 @@ export function formatAdminStatsOverviewText(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція createAdminStatsOverviewKeyboard.
+ * en: Public bot helper function createAdminStatsOverviewKeyboard.
+ * cz: Veřejná bot helper funkce createAdminStatsOverviewKeyboard.
+ */
 export function createAdminStatsOverviewKeyboard(
   language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
@@ -115,6 +151,11 @@ export function createAdminStatsOverviewKeyboard(
   ]);
 }
 
+/**
+ * uk: Публічна bot helper функція formatAdminStatsMastersListText.
+ * en: Public bot helper function formatAdminStatsMastersListText.
+ * cz: Veřejná bot helper funkce formatAdminStatsMastersListText.
+ */
 export function formatAdminStatsMastersListText(
   page: AdminPanelStatsMastersFeedPage,
   language: BotUiLanguage = 'uk',
@@ -151,6 +192,11 @@ export function formatAdminStatsMastersListText(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція createAdminStatsMastersListKeyboard.
+ * en: Public bot helper function createAdminStatsMastersListKeyboard.
+ * cz: Veřejná bot helper funkce createAdminStatsMastersListKeyboard.
+ */
 export function createAdminStatsMastersListKeyboard(
   page: AdminPanelStatsMastersFeedPage,
   language: BotUiLanguage = 'uk',
@@ -178,6 +224,11 @@ export function createAdminStatsMastersListKeyboard(
   ]);
 }
 
+/**
+ * uk: Публічна bot helper функція formatAdminStatsMasterDetailsText.
+ * en: Public bot helper function formatAdminStatsMasterDetailsText.
+ * cz: Veřejná bot helper funkce formatAdminStatsMasterDetailsText.
+ */
 export function formatAdminStatsMasterDetailsText(
   details: AdminPanelStatsMasterDetails,
   language: BotUiLanguage = 'uk',
@@ -220,6 +271,11 @@ export function formatAdminStatsMasterDetailsText(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція createAdminStatsMasterDetailsKeyboard.
+ * en: Public bot helper function createAdminStatsMasterDetailsKeyboard.
+ * cz: Veřejná bot helper funkce createAdminStatsMasterDetailsKeyboard.
+ */
 export function createAdminStatsMasterDetailsKeyboard(
   language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
@@ -230,6 +286,11 @@ export function createAdminStatsMasterDetailsKeyboard(
   ]);
 }
 
+/**
+ * uk: Публічна bot helper функція formatAdminStatsServicesListText.
+ * en: Public bot helper function formatAdminStatsServicesListText.
+ * cz: Veřejná bot helper funkce formatAdminStatsServicesListText.
+ */
 export function formatAdminStatsServicesListText(
   page: AdminPanelStatsServicesFeedPage,
   language: BotUiLanguage = 'uk',
@@ -266,6 +327,11 @@ export function formatAdminStatsServicesListText(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція createAdminStatsServicesListKeyboard.
+ * en: Public bot helper function createAdminStatsServicesListKeyboard.
+ * cz: Veřejná bot helper funkce createAdminStatsServicesListKeyboard.
+ */
 export function createAdminStatsServicesListKeyboard(
   page: AdminPanelStatsServicesFeedPage,
   language: BotUiLanguage = 'uk',
@@ -293,6 +359,11 @@ export function createAdminStatsServicesListKeyboard(
   ]);
 }
 
+/**
+ * uk: Публічна bot helper функція formatAdminStatsServiceDetailsText.
+ * en: Public bot helper function formatAdminStatsServiceDetailsText.
+ * cz: Veřejná bot helper funkce formatAdminStatsServiceDetailsText.
+ */
 export function formatAdminStatsServiceDetailsText(
   details: AdminPanelStatsServiceDetails,
   language: BotUiLanguage = 'uk',
@@ -326,6 +397,11 @@ export function formatAdminStatsServiceDetailsText(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція createAdminStatsServiceDetailsKeyboard.
+ * en: Public bot helper function createAdminStatsServiceDetailsKeyboard.
+ * cz: Veřejná bot helper funkce createAdminStatsServiceDetailsKeyboard.
+ */
 export function createAdminStatsServiceDetailsKeyboard(
   language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
@@ -336,6 +412,11 @@ export function createAdminStatsServiceDetailsKeyboard(
   ]);
 }
 
+/**
+ * uk: Публічна bot helper функція formatAdminStatsMonthlyListText.
+ * en: Public bot helper function formatAdminStatsMonthlyListText.
+ * cz: Veřejná bot helper funkce formatAdminStatsMonthlyListText.
+ */
 export function formatAdminStatsMonthlyListText(
   page: AdminPanelStatsMonthlyFeedPage,
   language: BotUiLanguage = 'uk',
@@ -369,6 +450,11 @@ export function formatAdminStatsMonthlyListText(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція createAdminStatsMonthlyListKeyboard.
+ * en: Public bot helper function createAdminStatsMonthlyListKeyboard.
+ * cz: Veřejná bot helper funkce createAdminStatsMonthlyListKeyboard.
+ */
 export function createAdminStatsMonthlyListKeyboard(
   page: AdminPanelStatsMonthlyFeedPage,
   language: BotUiLanguage = 'uk',
@@ -396,6 +482,11 @@ export function createAdminStatsMonthlyListKeyboard(
   ]);
 }
 
+/**
+ * uk: Публічна bot helper функція formatAdminStatsMonthlyReportDetailsText.
+ * en: Public bot helper function formatAdminStatsMonthlyReportDetailsText.
+ * cz: Veřejná bot helper funkce formatAdminStatsMonthlyReportDetailsText.
+ */
 export function formatAdminStatsMonthlyReportDetailsText(
   details: AdminPanelStatsMonthlyReportDetails,
   language: BotUiLanguage = 'uk',
@@ -433,6 +524,11 @@ export function formatAdminStatsMonthlyReportDetailsText(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція createAdminStatsMonthlyReportDetailsKeyboard.
+ * en: Public bot helper function createAdminStatsMonthlyReportDetailsKeyboard.
+ * cz: Veřejná bot helper funkce createAdminStatsMonthlyReportDetailsKeyboard.
+ */
 export function createAdminStatsMonthlyReportDetailsKeyboard(
   language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
@@ -443,6 +539,11 @@ export function createAdminStatsMonthlyReportDetailsKeyboard(
   ]);
 }
 
+/**
+ * uk: Публічна bot helper функція formatAdminStatsClientsListText.
+ * en: Public bot helper function formatAdminStatsClientsListText.
+ * cz: Veřejná bot helper funkce formatAdminStatsClientsListText.
+ */
 export function formatAdminStatsClientsListText(
   page: AdminPanelStatsClientsFeedPage,
   language: BotUiLanguage = 'uk',
@@ -476,6 +577,11 @@ export function formatAdminStatsClientsListText(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція createAdminStatsClientsListKeyboard.
+ * en: Public bot helper function createAdminStatsClientsListKeyboard.
+ * cz: Veřejná bot helper funkce createAdminStatsClientsListKeyboard.
+ */
 export function createAdminStatsClientsListKeyboard(
   page: AdminPanelStatsClientsFeedPage,
   language: BotUiLanguage = 'uk',
@@ -503,6 +609,11 @@ export function createAdminStatsClientsListKeyboard(
   ]);
 }
 
+/**
+ * uk: Публічна bot helper функція formatAdminStatsClientDetailsText.
+ * en: Public bot helper function formatAdminStatsClientDetailsText.
+ * cz: Veřejná bot helper funkce formatAdminStatsClientDetailsText.
+ */
 export function formatAdminStatsClientDetailsText(
   details: AdminPanelStatsClientDetails,
   language: BotUiLanguage = 'uk',
@@ -539,6 +650,11 @@ export function formatAdminStatsClientDetailsText(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція createAdminStatsClientDetailsKeyboard.
+ * en: Public bot helper function createAdminStatsClientDetailsKeyboard.
+ * cz: Veřejná bot helper funkce createAdminStatsClientDetailsKeyboard.
+ */
 export function createAdminStatsClientDetailsKeyboard(
   language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {
@@ -549,6 +665,11 @@ export function createAdminStatsClientDetailsKeyboard(
   ]);
 }
 
+/**
+ * uk: Публічна bot helper функція formatAdminStatsSectionStubText.
+ * en: Public bot helper function formatAdminStatsSectionStubText.
+ * cz: Veřejná bot helper funkce formatAdminStatsSectionStubText.
+ */
 export function formatAdminStatsSectionStubText(
   title: string,
   language: BotUiLanguage = 'uk',
@@ -560,6 +681,11 @@ export function formatAdminStatsSectionStubText(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція createAdminStatsSectionStubKeyboard.
+ * en: Public bot helper function createAdminStatsSectionStubKeyboard.
+ * cz: Veřejná bot helper funkce createAdminStatsSectionStubKeyboard.
+ */
 export function createAdminStatsSectionStubKeyboard(
   language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {

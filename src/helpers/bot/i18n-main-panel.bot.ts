@@ -3,6 +3,7 @@
  * @summary Тексти головної (клієнтської) панелі.
  */
 
+// uk: UI константа MAIN_PANEL_DICTIONARY / en: UI constant MAIN_PANEL_DICTIONARY / cz: UI konstanta MAIN_PANEL_DICTIONARY
 export const MAIN_PANEL_DICTIONARY = {
   uk: {
     BACK_TO_PROFILE: "⬅️ Повернутися до профілю",

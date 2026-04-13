@@ -17,12 +17,23 @@ import type { BotUiLanguage } from './i18n.bot.js';
  * @summary UI/helper-и для сцени "Бронювання" (тексти + inline-клавіатури).
  */
 
+// uk: UI константа NUMBER_BADGES / en: UI constant NUMBER_BADGES / cz: UI konstanta NUMBER_BADGES
 const NUMBER_BADGES = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
 
+/**
+ * uk: Внутрішня bot helper функція getNumberBadge.
+ * en: Internal bot helper function getNumberBadge.
+ * cz: Interní bot helper funkce getNumberBadge.
+ */
 function getNumberBadge(index: number): string {
   return NUMBER_BADGES[index] ?? `${index + 1}.`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatPrice.
+ * en: Internal bot helper function formatPrice.
+ * cz: Interní bot helper funkce formatPrice.
+ */
 function formatPrice(price: string, currencyCode: string): string {
   const normalizedPrice = price
     .replace(/[.,]00$/, '')
@@ -31,12 +42,22 @@ function formatPrice(price: string, currencyCode: string): string {
   return `${normalizedPrice} ${currencyCode}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція toLocale.
+ * en: Internal bot helper function toLocale.
+ * cz: Interní bot helper funkce toLocale.
+ */
 function toLocale(language: BotUiLanguage): string {
   if (language === 'en') return 'en-US';
   if (language === 'cs') return 'cs-CZ';
   return 'uk-UA';
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatDateLabel.
+ * en: Internal bot helper function formatDateLabel.
+ * cz: Interní bot helper funkce formatDateLabel.
+ */
 function formatDateLabel(date: Date, language: BotUiLanguage): string {
   const weekday = new Intl.DateTimeFormat(toLocale(language), { weekday: 'short' }).format(date);
   const day = String(date.getDate()).padStart(2, '0');
@@ -44,6 +65,11 @@ function formatDateLabel(date: Date, language: BotUiLanguage): string {
   return `${weekday} ${day}.${month}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatDateTimeLabel.
+ * en: Internal bot helper function formatDateTimeLabel.
+ * cz: Interní bot helper funkce formatDateTimeLabel.
+ */
 function formatDateTimeLabel(startAt: Date, language: BotUiLanguage): string {
   return new Intl.DateTimeFormat(toLocale(language), {
     year: 'numeric',
@@ -56,6 +82,11 @@ function formatDateTimeLabel(startAt: Date, language: BotUiLanguage): string {
   }).format(startAt);
 }
 
+/**
+ * uk: Публічна bot helper функція buildBookingDateOptions.
+ * en: Public bot helper function buildBookingDateOptions.
+ * cz: Veřejná bot helper funkce buildBookingDateOptions.
+ */
 export function buildBookingDateOptions(days = 7): Date[] {
   const options: Date[] = [];
   const now = new Date();
@@ -70,6 +101,11 @@ export function buildBookingDateOptions(days = 7): Date[] {
   return options;
 }
 
+/**
+ * uk: Публічна bot helper функція buildBookingTimeOptions.
+ * en: Public bot helper function buildBookingTimeOptions.
+ * cz: Veřejná bot helper funkce buildBookingTimeOptions.
+ */
 export function buildBookingTimeOptions(): string[] {
   const slots: string[] = [];
 
@@ -83,6 +119,11 @@ export function buildBookingTimeOptions(): string[] {
   return slots;
 }
 
+/**
+ * uk: Внутрішня bot helper функція getDateCode.
+ * en: Internal bot helper function getDateCode.
+ * cz: Interní bot helper funkce getDateCode.
+ */
 function getDateCode(date: Date): string {
   const year = String(date.getFullYear());
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -90,10 +131,20 @@ function getDateCode(date: Date): string {
   return `${year}${month}${day}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція getTimeCode.
+ * en: Internal bot helper function getTimeCode.
+ * cz: Interní bot helper funkce getTimeCode.
+ */
 function getTimeCode(timeLabel: string): string {
   return timeLabel.replace(':', '');
 }
 
+/**
+ * uk: Публічна bot helper функція formatBookingServiceStepText.
+ * en: Public bot helper function formatBookingServiceStepText.
+ * cz: Veřejná bot helper funkce formatBookingServiceStepText.
+ */
 export function formatBookingServiceStepText(
   services: ServicesCatalogItem[],
   language: BotUiLanguage,
@@ -114,6 +165,11 @@ export function formatBookingServiceStepText(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція createBookingServiceKeyboard.
+ * en: Public bot helper function createBookingServiceKeyboard.
+ * cz: Veřejná bot helper funkce createBookingServiceKeyboard.
+ */
 export function createBookingServiceKeyboard(
   services: ServicesCatalogItem[],
   language: BotUiLanguage,
@@ -131,6 +187,11 @@ export function createBookingServiceKeyboard(
   ]);
 }
 
+/**
+ * uk: Публічна bot helper функція formatBookingDateStepText.
+ * en: Public bot helper function formatBookingDateStepText.
+ * cz: Veřejná bot helper funkce formatBookingDateStepText.
+ */
 export function formatBookingDateStepText(serviceName: string, language: BotUiLanguage): string {
   return (
     `${tBot(language, 'BOOKING_STEP_2_TITLE')}\n` +
@@ -140,6 +201,11 @@ export function formatBookingDateStepText(serviceName: string, language: BotUiLa
   );
 }
 
+/**
+ * uk: Публічна bot helper функція createBookingDateKeyboard.
+ * en: Public bot helper function createBookingDateKeyboard.
+ * cz: Veřejná bot helper funkce createBookingDateKeyboard.
+ */
 export function createBookingDateKeyboard(
   dates: Date[],
   language: BotUiLanguage,
@@ -157,6 +223,11 @@ export function createBookingDateKeyboard(
   ]);
 }
 
+/**
+ * uk: Публічна bot helper функція formatBookingTimeStepText.
+ * en: Public bot helper function formatBookingTimeStepText.
+ * cz: Veřejná bot helper funkce formatBookingTimeStepText.
+ */
 export function formatBookingTimeStepText(
   serviceName: string,
   dateLabel: string,
@@ -171,6 +242,11 @@ export function formatBookingTimeStepText(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція createBookingTimeKeyboard.
+ * en: Public bot helper function createBookingTimeKeyboard.
+ * cz: Veřejná bot helper funkce createBookingTimeKeyboard.
+ */
 export function createBookingTimeKeyboard(
   timeLabels: string[],
   language: BotUiLanguage,
@@ -198,6 +274,11 @@ export function createBookingTimeKeyboard(
   ]);
 }
 
+/**
+ * uk: Публічна bot helper функція formatBookingMasterStepText.
+ * en: Public bot helper function formatBookingMasterStepText.
+ * cz: Veřejná bot helper funkce formatBookingMasterStepText.
+ */
 export function formatBookingMasterStepText(
   serviceName: string,
   dateLabel: string,
@@ -226,6 +307,11 @@ export function formatBookingMasterStepText(
   );
 }
 
+/**
+ * uk: Публічна bot helper функція createBookingMasterKeyboard.
+ * en: Public bot helper function createBookingMasterKeyboard.
+ * cz: Veřejná bot helper funkce createBookingMasterKeyboard.
+ */
 export function createBookingMasterKeyboard(
   masters: MasterBookingOption[],
   language: BotUiLanguage,
@@ -249,6 +335,11 @@ export function createBookingMasterKeyboard(
   ]);
 }
 
+/**
+ * uk: Публічна bot helper функція formatBookingPhoneStepText.
+ * en: Public bot helper function formatBookingPhoneStepText.
+ * cz: Veřejná bot helper funkce formatBookingPhoneStepText.
+ */
 export function formatBookingPhoneStepText(name: string, language: BotUiLanguage): string {
   return (
     `${tBot(language, 'BOOKING_STEP_5_TITLE')}\n` +
@@ -259,6 +350,11 @@ export function formatBookingPhoneStepText(name: string, language: BotUiLanguage
   );
 }
 
+/**
+ * uk: Публічна bot helper функція formatBookingPhoneUnverifiedStepText.
+ * en: Public bot helper function formatBookingPhoneUnverifiedStepText.
+ * cz: Veřejná bot helper funkce formatBookingPhoneUnverifiedStepText.
+ */
 export function formatBookingPhoneUnverifiedStepText(input: {
   name: string;
   phone: string;
@@ -272,6 +368,11 @@ export function formatBookingPhoneUnverifiedStepText(input: {
   );
 }
 
+/**
+ * uk: Публічна bot helper функція createBookingPhoneUnverifiedKeyboard.
+ * en: Public bot helper function createBookingPhoneUnverifiedKeyboard.
+ * cz: Veřejná bot helper funkce createBookingPhoneUnverifiedKeyboard.
+ */
 export function createBookingPhoneUnverifiedKeyboard(
   language: BotUiLanguage,
 ): ReturnType<typeof Markup.inlineKeyboard> {
@@ -290,6 +391,11 @@ export function createBookingPhoneUnverifiedKeyboard(
   ]);
 }
 
+/**
+ * uk: Публічна bot helper функція formatBookingConfirmStepText.
+ * en: Public bot helper function formatBookingConfirmStepText.
+ * cz: Veřejná bot helper funkce formatBookingConfirmStepText.
+ */
 export function formatBookingConfirmStepText(input: {
   serviceName: string;
   masterName: string;
@@ -309,6 +415,11 @@ export function formatBookingConfirmStepText(input: {
   );
 }
 
+/**
+ * uk: Публічна bot helper функція createBookingConfirmKeyboard.
+ * en: Public bot helper function createBookingConfirmKeyboard.
+ * cz: Veřejná bot helper funkce createBookingConfirmKeyboard.
+ */
 export function createBookingConfirmKeyboard(language: BotUiLanguage): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [Markup.button.callback(tBot(language, 'BOOKING_BTN_CONFIRM'), BOOKING_ACTION.CONFIRM)],
@@ -319,6 +430,11 @@ export function createBookingConfirmKeyboard(language: BotUiLanguage): ReturnTyp
   ]);
 }
 
+/**
+ * uk: Публічна bot helper функція formatBookingSuccessText.
+ * en: Public bot helper function formatBookingSuccessText.
+ * cz: Veřejná bot helper funkce formatBookingSuccessText.
+ */
 export function formatBookingSuccessText(
   result: CreatePendingBookingResult,
   language: BotUiLanguage,

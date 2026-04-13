@@ -9,6 +9,11 @@ import type { BotUiLanguage } from './i18n.bot.js';
  * @summary UI/helper-и для адмін-панелі.
  */
 
+/**
+ * uk: Внутрішня bot helper функція getAdminDisplayName.
+ * en: Internal bot helper function getAdminDisplayName.
+ * cz: Interní bot helper funkce getAdminDisplayName.
+ */
 function getAdminDisplayName(access: AdminPanelAccess): string {
   return `${access.firstName}${access.lastName ? ` ${access.lastName}` : ''}`.trim();
 }

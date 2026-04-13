@@ -8,6 +8,11 @@ import type { BotUiLanguage } from './i18n.bot.js';
  * @summary Універсальна inline-навігація для карток/екранів поза сценами.
  */
 
+/**
+ * uk: Публічна bot helper функція createBackHomeInlineKeyboard.
+ * en: Public bot helper function createBackHomeInlineKeyboard.
+ * cz: Veřejná bot helper funkce createBackHomeInlineKeyboard.
+ */
 export function createBackHomeInlineKeyboard(
   language: BotUiLanguage = 'uk',
 ): ReturnType<typeof Markup.inlineKeyboard> {

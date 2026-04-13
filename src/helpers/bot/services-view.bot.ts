@@ -16,22 +16,43 @@ import type { BotUiLanguage } from './i18n.bot.js';
  * @summary UI/helper-и для розділу "Послуги" (тексти + inline-клавіатури).
  */
 
+// uk: UI константа NUMBER_BADGES / en: UI constant NUMBER_BADGES / cz: UI konstanta NUMBER_BADGES
 const NUMBER_BADGES = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
 
+/**
+ * uk: Внутрішня bot helper функція getNumberBadge.
+ * en: Internal bot helper function getNumberBadge.
+ * cz: Interní bot helper funkce getNumberBadge.
+ */
 function getNumberBadge(index: number): string {
   return NUMBER_BADGES[index] ?? `${index + 1}.`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція getMinutesUnit.
+ * en: Internal bot helper function getMinutesUnit.
+ * cz: Interní bot helper funkce getMinutesUnit.
+ */
 function getMinutesUnit(language: BotUiLanguage): string {
   return language === 'uk' ? 'хв' : 'min';
 }
 
+/**
+ * uk: Внутрішня bot helper функція getDaysUnit.
+ * en: Internal bot helper function getDaysUnit.
+ * cz: Interní bot helper funkce getDaysUnit.
+ */
 function getDaysUnit(language: BotUiLanguage): string {
   if (language === 'en') return 'days';
   if (language === 'cs') return 'dnů';
   return 'дн.';
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatPrice.
+ * en: Internal bot helper function formatPrice.
+ * cz: Interní bot helper funkce formatPrice.
+ */
 function formatPrice(price: string, currencyCode: string): string {
   const normalizedPrice = price
     .replace(/[.,]00$/, '')
@@ -40,6 +61,11 @@ function formatPrice(price: string, currencyCode: string): string {
   return `${normalizedPrice} ${currencyCode}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatServiceListLine.
+ * en: Internal bot helper function formatServiceListLine.
+ * cz: Interní bot helper funkce formatServiceListLine.
+ */
 function formatServiceListLine(
   service: ServicesCatalogItem,
   index: number,
@@ -51,6 +77,11 @@ function formatServiceListLine(
   );
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatStepsBlock.
+ * en: Internal bot helper function formatStepsBlock.
+ * cz: Interní bot helper funkce formatStepsBlock.
+ */
 function formatStepsBlock(details: ServicesCatalogDetails, language: BotUiLanguage): string {
   if (details.steps.length === 0) {
     return `${tBot(language, 'SERVICES_STEPS_TITLE')}\n${tBot(language, 'SERVICES_STEPS_EMPTY')}`;
@@ -63,6 +94,11 @@ function formatStepsBlock(details: ServicesCatalogDetails, language: BotUiLangua
   return `${tBot(language, 'SERVICES_STEPS_TITLE')}\n${lines.join('\n\n')}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatGuaranteesBlock.
+ * en: Internal bot helper function formatGuaranteesBlock.
+ * cz: Interní bot helper funkce formatGuaranteesBlock.
+ */
 function formatGuaranteesBlock(details: ServicesCatalogDetails, language: BotUiLanguage): string {
   if (details.guarantees.length === 0) {
     return `${tBot(language, 'SERVICES_GUARANTEES_TITLE')}\n${tBot(language, 'SERVICES_GUARANTEES_EMPTY')}`;

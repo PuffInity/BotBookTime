@@ -3,6 +3,7 @@
  * @summary Тексти панелі майстра.
  */
 
+// uk: UI константа MASTER_PANEL_DICTIONARY / en: UI constant MASTER_PANEL_DICTIONARY / cz: UI konstanta MASTER_PANEL_DICTIONARY
 export const MASTER_PANEL_DICTIONARY = {
   uk: {
     MENU_MASTER_PANEL: '🛠 Панель майстра',

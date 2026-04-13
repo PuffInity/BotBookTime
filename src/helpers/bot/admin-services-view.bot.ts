@@ -20,12 +20,23 @@ import type { BotUiLanguage } from './i18n.bot.js';
  * @summary UI/helper-и блоку "Послуги" у адмін-панелі.
  */
 
+// uk: UI константа NUMBER_BADGES / en: UI constant NUMBER_BADGES / cz: UI konstanta NUMBER_BADGES
 const NUMBER_BADGES = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
 
+/**
+ * uk: Внутрішня bot helper функція getNumberBadge.
+ * en: Internal bot helper function getNumberBadge.
+ * cz: Interní bot helper funkce getNumberBadge.
+ */
 function getNumberBadge(index: number): string {
   return NUMBER_BADGES[index] ?? `${index + 1}.`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatPrice.
+ * en: Internal bot helper function formatPrice.
+ * cz: Interní bot helper funkce formatPrice.
+ */
 function formatPrice(price: string, currencyCode: string): string {
   const normalized = price
     .replace(/[.,]00$/, '')
@@ -33,6 +44,11 @@ function formatPrice(price: string, currencyCode: string): string {
   return `${normalized} ${currencyCode}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatServiceLine.
+ * en: Internal bot helper function formatServiceLine.
+ * cz: Interní bot helper funkce formatServiceLine.
+ */
 function formatServiceLine(
   service: ServicesCatalogItem,
   index: number,
@@ -44,6 +60,11 @@ function formatServiceLine(
   );
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatSteps.
+ * en: Internal bot helper function formatSteps.
+ * cz: Interní bot helper funkce formatSteps.
+ */
 function formatSteps(details: ServicesCatalogDetails, language: BotUiLanguage): string {
   if (details.steps.length === 0) {
     return tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_STEP_EMPTY');
@@ -54,6 +75,11 @@ function formatSteps(details: ServicesCatalogDetails, language: BotUiLanguage): 
     .join('\n');
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatGuarantees.
+ * en: Internal bot helper function formatGuarantees.
+ * cz: Interní bot helper funkce formatGuarantees.
+ */
 function formatGuarantees(details: ServicesCatalogDetails, language: BotUiLanguage): string {
   if (details.guarantees.length === 0) {
     return tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_GUARANTEE_EMPTY');
@@ -433,6 +459,11 @@ export function createAdminServiceDetailsKeyboard(
   ]);
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatOptionalText.
+ * en: Internal bot helper function formatOptionalText.
+ * cz: Interní bot helper funkce formatOptionalText.
+ */
 function formatOptionalText(value: string | null, language: BotUiLanguage): string {
   const normalized = value?.trim();
   return normalized ? normalized : tBot(language, 'ADMIN_PANEL_SERVICES_LABEL_NOT_SPECIFIED');
@@ -496,6 +527,11 @@ type AdminServiceStepOption = {
   title: string;
 };
 
+/**
+ * uk: Внутрішня bot helper функція compactText.
+ * en: Internal bot helper function compactText.
+ * cz: Interní bot helper funkce compactText.
+ */
 function compactText(value: string, max = 64): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length <= max) return normalized;

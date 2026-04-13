@@ -59,6 +59,11 @@ const DATE_LOCALE_BY_LANGUAGE: Record<BotUiLanguage, string> = {
   cs: 'cs-CZ',
 };
 
+/**
+ * uk: Внутрішня bot helper функція getWeekdayLabel.
+ * en: Internal bot helper function getWeekdayLabel.
+ * cz: Interní bot helper funkce getWeekdayLabel.
+ */
 function getWeekdayLabel(weekday: number, language: BotUiLanguage): string {
   return (
     WEEKDAY_LABELS[language]?.[weekday] ??
@@ -66,10 +71,20 @@ function getWeekdayLabel(weekday: number, language: BotUiLanguage): string {
   );
 }
 
+/**
+ * uk: Внутрішня bot helper функція dateLabel.
+ * en: Internal bot helper function dateLabel.
+ * cz: Interní bot helper funkce dateLabel.
+ */
 function dateLabel(date: Date, language: BotUiLanguage): string {
   return date.toLocaleDateString(DATE_LOCALE_BY_LANGUAGE[language]);
 }
 
+/**
+ * uk: Внутрішня bot helper функція dateCode.
+ * en: Internal bot helper function dateCode.
+ * cz: Interní bot helper funkce dateCode.
+ */
 function dateCode(date: Date): string {
   const year = String(date.getFullYear());
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -77,6 +92,11 @@ function dateCode(date: Date): string {
   return `${year}${month}${day}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція timeRangeLabel.
+ * en: Internal bot helper function timeRangeLabel.
+ * cz: Interní bot helper funkce timeRangeLabel.
+ */
 function timeRangeLabel(item: MasterScheduleWeeklyItem, language: BotUiLanguage): string {
   if (!item.isWorking || !item.openTime || !item.closeTime) {
     return `🚫 ${tBot(language, 'MASTER_PANEL_SCHEDULE_DAY_OFF')}`;
@@ -85,6 +105,11 @@ function timeRangeLabel(item: MasterScheduleWeeklyItem, language: BotUiLanguage)
   return `${item.openTime.slice(0, 5)}–${item.closeTime.slice(0, 5)}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція tempTimeRangeLabel.
+ * en: Internal bot helper function tempTimeRangeLabel.
+ * cz: Interní bot helper funkce tempTimeRangeLabel.
+ */
 function tempTimeRangeLabel(item: MasterScheduleTemporaryHoursItem, language: BotUiLanguage): string {
   if (!item.isWorking || !item.openTime || !item.closeTime) {
     return `🚫 ${tBot(language, 'MASTER_PANEL_SCHEDULE_DAY_OFF')}`;
@@ -92,6 +117,11 @@ function tempTimeRangeLabel(item: MasterScheduleTemporaryHoursItem, language: Bo
   return `${item.openTime.slice(0, 5)}–${item.closeTime.slice(0, 5)}`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatWeeklyBlock.
+ * en: Internal bot helper function formatWeeklyBlock.
+ * cz: Interní bot helper funkce formatWeeklyBlock.
+ */
 function formatWeeklyBlock(data: MasterPanelScheduleData, language: BotUiLanguage): string {
   if (data.weeklyHours.length === 0) {
     return tBot(language, 'MASTER_PANEL_SCHEDULE_WEEKLY_NOT_CONFIGURED');
@@ -115,6 +145,11 @@ function formatWeeklyBlock(data: MasterPanelScheduleData, language: BotUiLanguag
   return lines.join('\n');
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatTemporaryBlock.
+ * en: Internal bot helper function formatTemporaryBlock.
+ * cz: Interní bot helper funkce formatTemporaryBlock.
+ */
 function formatTemporaryBlock(data: MasterPanelScheduleData, language: BotUiLanguage): string {
   if (data.upcomingTemporaryHours.length === 0) {
     return tBot(language, 'MASTER_PANEL_SCHEDULE_LIST_EMPTY');
@@ -133,6 +168,11 @@ function formatTemporaryBlock(data: MasterPanelScheduleData, language: BotUiLang
     .join('\n\n');
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatDaysOffBlock.
+ * en: Internal bot helper function formatDaysOffBlock.
+ * cz: Interní bot helper funkce formatDaysOffBlock.
+ */
 function formatDaysOffBlock(data: MasterPanelScheduleData, language: BotUiLanguage): string {
   if (data.upcomingDaysOff.length === 0) {
     return tBot(language, 'MASTER_PANEL_SCHEDULE_LIST_EMPTY');
@@ -147,6 +187,11 @@ function formatDaysOffBlock(data: MasterPanelScheduleData, language: BotUiLangua
     .join('\n');
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatVacationsBlock.
+ * en: Internal bot helper function formatVacationsBlock.
+ * cz: Interní bot helper funkce formatVacationsBlock.
+ */
 function formatVacationsBlock(data: MasterPanelScheduleData, language: BotUiLanguage): string {
   if (data.upcomingVacations.length === 0) {
     return tBot(language, 'MASTER_PANEL_SCHEDULE_LIST_EMPTY');
@@ -161,6 +206,11 @@ function formatVacationsBlock(data: MasterPanelScheduleData, language: BotUiLang
     .join('\n');
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatDaysOffList.
+ * en: Internal bot helper function formatDaysOffList.
+ * cz: Interní bot helper funkce formatDaysOffList.
+ */
 function formatDaysOffList(data: MasterPanelScheduleData, language: BotUiLanguage): string {
   if (data.upcomingDaysOff.length === 0) {
     return tBot(language, 'MASTER_PANEL_SCHEDULE_DAYS_OFF_LIST_EMPTY');
@@ -175,6 +225,11 @@ function formatDaysOffList(data: MasterPanelScheduleData, language: BotUiLanguag
     .join('\n\n');
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatVacationsList.
+ * en: Internal bot helper function formatVacationsList.
+ * cz: Interní bot helper funkce formatVacationsList.
+ */
 function formatVacationsList(data: MasterPanelScheduleData, language: BotUiLanguage): string {
   if (data.upcomingVacations.length === 0) {
     return tBot(language, 'MASTER_PANEL_SCHEDULE_VACATION_LIST_EMPTY');
@@ -189,6 +244,11 @@ function formatVacationsList(data: MasterPanelScheduleData, language: BotUiLangu
     .join('\n\n');
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatTemporaryHoursList.
+ * en: Internal bot helper function formatTemporaryHoursList.
+ * cz: Interní bot helper funkce formatTemporaryHoursList.
+ */
 function formatTemporaryHoursList(data: MasterPanelScheduleData, language: BotUiLanguage): string {
   if (data.upcomingTemporaryHours.length === 0) {
     return tBot(language, 'MASTER_PANEL_SCHEDULE_TEMPORARY_LIST_EMPTY');
@@ -231,6 +291,11 @@ type MasterTemporarySchedulePeriodView = {
   dateToCode: string;
 };
 
+/**
+ * uk: Внутрішня bot helper функція extractTemporaryPeriods.
+ * en: Internal bot helper function extractTemporaryPeriods.
+ * cz: Interní bot helper funkce extractTemporaryPeriods.
+ */
 function extractTemporaryPeriods(data: MasterPanelScheduleData): MasterTemporarySchedulePeriodView[] {
   const periodMap = new Map<string, MasterTemporarySchedulePeriodView>();
   for (const item of data.upcomingTemporaryHours) {
@@ -799,6 +864,11 @@ type TemporaryPreviewDay = {
   closeTime: string | null;
 };
 
+/**
+ * uk: Внутрішня bot helper функція formatTemporaryPreviewLines.
+ * en: Internal bot helper function formatTemporaryPreviewLines.
+ * cz: Interní bot helper funkce formatTemporaryPreviewLines.
+ */
 function formatTemporaryPreviewLines(days: TemporaryPreviewDay[], language: BotUiLanguage): string {
   return days
     .sort((a, b) => a.weekday - b.weekday)
@@ -812,6 +882,11 @@ function formatTemporaryPreviewLines(days: TemporaryPreviewDay[], language: BotU
     .join('\n');
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatTemporaryDayState.
+ * en: Internal bot helper function formatTemporaryDayState.
+ * cz: Interní bot helper funkce formatTemporaryDayState.
+ */
 function formatTemporaryDayState(
   day: MasterTemporaryScheduleDayInput | null,
   language: BotUiLanguage,

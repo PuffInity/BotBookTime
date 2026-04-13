@@ -12,6 +12,7 @@ import { MASTER_PANEL_DICTIONARY } from './i18n-master-panel.bot.js';
 
 export type BotUiLanguage = 'uk' | 'en' | 'cs';
 
+// uk: UI константа BOT_DICTIONARY / en: UI constant BOT_DICTIONARY / cz: UI konstanta BOT_DICTIONARY
 const BOT_DICTIONARY = {
   uk: {
     ...COMMON_PANEL_DICTIONARY.uk,
@@ -35,10 +36,16 @@ const BOT_DICTIONARY = {
 
 export type BotDictionaryKey = keyof (typeof BOT_DICTIONARY)['uk'];
 
+// uk: UI константа BOT_DICTIONARY_KEYS / en: UI constant BOT_DICTIONARY_KEYS / cz: UI konstanta BOT_DICTIONARY_KEYS
 const BOT_DICTIONARY_KEYS = new Set<BotDictionaryKey>(
   Object.keys(BOT_DICTIONARY.uk) as BotDictionaryKey[],
 );
 
+/**
+ * uk: Внутрішня bot helper функція buildReverseDictionary.
+ * en: Internal bot helper function buildReverseDictionary.
+ * cz: Interní bot helper funkce buildReverseDictionary.
+ */
 function buildReverseDictionary(
   language: BotUiLanguage,
 ): Map<string, BotDictionaryKey> {
@@ -54,6 +61,7 @@ function buildReverseDictionary(
   return reverse;
 }
 
+// uk: UI константа BOT_DICTIONARY_REVERSE / en: UI constant BOT_DICTIONARY_REVERSE / cz: UI konstanta BOT_DICTIONARY_REVERSE
 const BOT_DICTIONARY_REVERSE = {
   uk: buildReverseDictionary('uk'),
   en: buildReverseDictionary('en'),

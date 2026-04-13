@@ -8,12 +8,22 @@ import { tBot, type BotUiLanguage } from './i18n.bot.js';
  * @summary UI/helper-и для підблоку "Фінанси" у статистиці майстра.
  */
 
+/**
+ * uk: Внутрішня bot helper функція localeByLanguage.
+ * en: Internal bot helper function localeByLanguage.
+ * cz: Interní bot helper funkce localeByLanguage.
+ */
 function localeByLanguage(language: BotUiLanguage): string {
   if (language === 'en') return 'en-US';
   if (language === 'cs') return 'cs-CZ';
   return 'uk-UA';
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatMoney.
+ * en: Internal bot helper function formatMoney.
+ * cz: Interní bot helper funkce formatMoney.
+ */
 function formatMoney(value: number, language: BotUiLanguage): string {
   const formatter = new Intl.NumberFormat(localeByLanguage(language), {
     minimumFractionDigits: 0,
@@ -23,6 +33,11 @@ function formatMoney(value: number, language: BotUiLanguage): string {
   return `${formatter.format(Math.round(value))} Kč`;
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatBestMonthLabel.
+ * en: Internal bot helper function formatBestMonthLabel.
+ * cz: Interní bot helper funkce formatBestMonthLabel.
+ */
 function formatBestMonthLabel(bestMonthStart: Date | null, language: BotUiLanguage): string {
   if (!bestMonthStart) {
     return tBot(language, 'MASTER_PANEL_FINANCE_EMPTY_VALUE');
@@ -36,6 +51,11 @@ function formatBestMonthLabel(bestMonthStart: Date | null, language: BotUiLangua
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
+/**
+ * uk: Внутрішня bot helper функція formatBestServiceName.
+ * en: Internal bot helper function formatBestServiceName.
+ * cz: Interní bot helper funkce formatBestServiceName.
+ */
 function formatBestServiceName(name: string | null, language: BotUiLanguage): string {
   return name?.trim() || tBot(language, 'MASTER_PANEL_FINANCE_EMPTY_VALUE');
 }
