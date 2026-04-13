@@ -1,3 +1,7 @@
+/**
+ * @file appointmentReviews.type.ts
+ * @summary Database table type definitions.
+ */
 export type AppointmentReviewsRow = {
     appointment_id: string,
     client_id: string,

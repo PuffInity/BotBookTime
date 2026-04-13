@@ -1,3 +1,7 @@
+/**
+ * @file dbEnums.type.ts
+ * @summary Database table type definitions.
+ */
 export type LanguageCode = 'uk' | 'en' | 'cs'
 
 export type UserRole = 'client' | 'master' | 'admin'

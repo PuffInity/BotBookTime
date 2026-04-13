@@ -1,3 +1,7 @@
+/**
+ * @file masterVacations.type.ts
+ * @summary Database table type definitions.
+ */
 export type MasterVacationsRow = {
     id: string,
     master_id: string,

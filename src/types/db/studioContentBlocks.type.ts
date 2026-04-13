@@ -1,3 +1,7 @@
+/**
+ * @file studioContentBlocks.type.ts
+ * @summary Database table type definitions.
+ */
 import type { ContentBlockKey, LanguageCode } from './dbEnums.type.js';
 
 export type StudioContentBlocksRow = {

@@ -1,3 +1,7 @@
+/**
+ * @file auditLogs.type.ts
+ * @summary Database table type definitions.
+ */
 export type AuditLogsRow = {
     id: string,
     actor_user_id: string | null,

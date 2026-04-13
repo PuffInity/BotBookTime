@@ -1,3 +1,7 @@
+/**
+ * @file masterWeeklyHours.type.ts
+ * @summary Database table type definitions.
+ */
 export type MasterWeeklyHoursRow = {
     master_id: string,
     weekday: number,

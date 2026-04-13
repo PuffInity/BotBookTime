@@ -1,3 +1,7 @@
+/**
+ * @file masterDaysOff.type.ts
+ * @summary Database table type definitions.
+ */
 export type MasterDaysOffRow = {
     id: string,
     master_id: string,

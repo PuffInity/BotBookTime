@@ -1,3 +1,7 @@
+/**
+ * @file userRoles.type.ts
+ * @summary Database table type definitions.
+ */
 import type { UserRole } from './dbEnums.type.js';
 
 export type UserRolesRow = {

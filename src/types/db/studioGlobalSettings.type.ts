@@ -1,3 +1,7 @@
+/**
+ * @file studioGlobalSettings.type.ts
+ * @summary Database table type definitions.
+ */
 import type { LanguageCode } from './dbEnums.type.js';
 
 export type StudioGlobalSettingsRow = {

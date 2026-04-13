@@ -1,3 +1,7 @@
+/**
+ * @file serviceGuarantees.type.ts
+ * @summary Database table type definitions.
+ */
 export type ServiceGuaranteesRow = {
     service_id: string,
     guarantee_no: number,

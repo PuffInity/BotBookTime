@@ -1,3 +1,7 @@
+/**
+ * @file rateLimitBuckets.type.ts
+ * @summary Database table type definitions.
+ */
 import type { RateLimitSubject } from './dbEnums.type.js';
 
 export type RateLimitBucketsRow = {

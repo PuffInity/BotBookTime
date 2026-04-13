@@ -1,3 +1,7 @@
+/**
+ * @file notificationQueue.type.ts
+ * @summary Database table type definitions.
+ */
 import type { NotificationType, NotificationChannel, QueueStatus } from './dbEnums.type.js';
 
 export type NotificationQueueRow = {

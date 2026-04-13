@@ -1,3 +1,7 @@
+/**
+ * @file serviceSteps.type.ts
+ * @summary Database table type definitions.
+ */
 export type ServiceStepsRow = {
     service_id: string,
     step_no: number,

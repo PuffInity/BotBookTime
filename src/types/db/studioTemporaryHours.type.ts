@@ -1,3 +1,7 @@
+/**
+ * @file studioTemporaryHours.type.ts
+ * @summary Database table type definitions.
+ */
 export type StudioTemporaryHoursRow = {
     id: string,
     studio_id: string,

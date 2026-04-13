@@ -1,3 +1,7 @@
+/**
+ * @file studioDaysOff.type.ts
+ * @summary Database table type definitions.
+ */
 export type StudioDaysOffRow = {
     id: string,
     studio_id: string,

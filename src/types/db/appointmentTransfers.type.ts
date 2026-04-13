@@ -1,3 +1,7 @@
+/**
+ * @file appointmentTransfers.type.ts
+ * @summary Database table type definitions.
+ */
 export type AppointmentTransfersRow = {
     id: string,
     from_appointment_id: string,

@@ -1,3 +1,7 @@
+/**
+ * @file masterCertificates.type.ts
+ * @summary Database table type definitions.
+ */
 export type MasterCertificatesRow = {
     id: string,
     master_id: string,

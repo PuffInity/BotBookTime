@@ -1,3 +1,7 @@
+/**
+ * @file appointmentStatusHistory.type.ts
+ * @summary Database table type definitions.
+ */
 import type { AppointmentStatus } from './dbEnums.type.js';
 
 export type AppointmentStatusHistoryRow = {

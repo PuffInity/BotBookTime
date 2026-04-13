@@ -1,3 +1,7 @@
+/**
+ * @file userNotificationSettings.type.ts
+ * @summary Database table type definitions.
+ */
 import type { NotificationType } from './dbEnums.type.js';
 
 export type UserNotificationSettingsRow = {
