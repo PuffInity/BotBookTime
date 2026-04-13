@@ -1,5 +1,6 @@
 {
   "name": "telegram-bot",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "tsx src/index.ts",
