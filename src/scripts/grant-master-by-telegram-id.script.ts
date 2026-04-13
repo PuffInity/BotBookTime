@@ -40,6 +40,16 @@ type MasterRow = {
   is_bookable: boolean;
 };
 
+const HELP_TEXT = [
+  'Usage:',
+  '  npm run script:grant-master -- --telegram-id=<TELEGRAM_ID> [--granted-by-telegram-id=<TELEGRAM_ID>] [--display-name="<NAME>"]',
+  '',
+  'Options:',
+  '  --telegram-id               Telegram ID користувача, якому видаємо master',
+  '  --granted-by-telegram-id    Telegram ID адміністратора-ініціатора (optional)',
+  '  --display-name              Імʼя майстра у профілі masters (optional)',
+].join('\n');
+
 function getArgValue(flag: string): string | undefined {
   const direct = process.argv.find((arg) => arg.startsWith(`${flag}=`));
   if (direct) return direct.slice(flag.length + 1).trim();
@@ -48,6 +58,10 @@ function getArgValue(flag: string): string | undefined {
   if (index >= 0) return process.argv[index + 1]?.trim();
 
   return undefined;
+}
+
+function hasHelpFlag(): boolean {
+  return process.argv.includes('--help') || process.argv.includes('-h');
 }
 
 function parseArgs(): ScriptArgs {
@@ -235,6 +249,10 @@ async function main(): Promise<void> {
   ]);
 
   const logger = loggerScripts;
+  if (hasHelpFlag()) {
+    logger.info(HELP_TEXT);
+    return;
+  }
   let args: ScriptArgs;
   try {
     args = parseArgs();

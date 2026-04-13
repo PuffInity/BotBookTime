@@ -43,3 +43,6 @@ export const loggerTranslateConfig = createAppLogger({service: 'translate-config
 
 /** Логер runtime перекладу (provider/cache/fallback). */
 export const loggerTranslate = createAppLogger({service: 'translate'})
+
+/** Логер службових CLI-скриптів (операційні задачі). */
+export const loggerScripts = createAppLogger({service: 'scripts'})

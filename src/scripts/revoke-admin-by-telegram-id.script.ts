@@ -33,6 +33,15 @@ type AdminsCountRow = {
   total: string;
 };
 
+const HELP_TEXT = [
+  'Usage:',
+  '  npm run script:revoke-admin -- --telegram-id=<TELEGRAM_ID> [--revoked-by-telegram-id=<TELEGRAM_ID>]',
+  '',
+  'Options:',
+  '  --telegram-id               Telegram ID користувача, у якого знімаємо admin',
+  '  --revoked-by-telegram-id    Telegram ID адміністратора-ініціатора (optional)',
+].join('\n');
+
 function getArgValue(flag: string): string | undefined {
   const direct = process.argv.find((arg) => arg.startsWith(`${flag}=`));
   if (direct) return direct.slice(flag.length + 1).trim();
@@ -41,6 +50,10 @@ function getArgValue(flag: string): string | undefined {
   if (index >= 0) return process.argv[index + 1]?.trim();
 
   return undefined;
+}
+
+function hasHelpFlag(): boolean {
+  return process.argv.includes('--help') || process.argv.includes('-h');
 }
 
 function parseArgs(): ScriptArgs {
@@ -133,6 +146,10 @@ async function main(): Promise<void> {
   ]);
 
   const logger = loggerScripts;
+  if (hasHelpFlag()) {
+    logger.info(HELP_TEXT);
+    return;
+  }
   let args: ScriptArgs;
 
   try {
