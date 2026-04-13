@@ -1,10 +1,10 @@
-import {AsyncLocalStorage} from "node:async_hooks";
-
 /**
- * uk: Контекст request id
- * en: Request id context
- * cz: Kontext request id
+ * @file requestId.utils.ts
+ * @summary uk: AsyncLocalStorage контекст requestId.
+ * en: AsyncLocalStorage context for requestId.
+ * cz: AsyncLocalStorage kontext pro requestId.
  */
+import {AsyncLocalStorage} from "node:async_hooks";
 
 /**
  * uk: Тип контексту

@@ -1,3 +1,9 @@
+/**
+ * @file index.ts
+ * @summary uk: Точка входу застосунку.
+ * en: Application entrypoint.
+ * cz: Vstupní bod aplikace.
+ */
 import dotenv from "dotenv";
 import {StartApp} from "./startup/start.startup.js";
 import {ProcessHandlers} from "./startup/process.startup.js";

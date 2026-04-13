@@ -1,11 +1,11 @@
+/**
+ * @file types.logger.ts
+ * @summary uk: Типи logger-контрактів.
+ * en: Logger contract types.
+ * cz: Typy logger kontraktů.
+ */
 import {Logger} from "winston";
 import TransportStream from "winston-transport";
-
-/**
- * uk: Типи логера
- * en: Logger types
- * cz: Typy loggeru
- */
 
 /**
  * uk: Контракт логера

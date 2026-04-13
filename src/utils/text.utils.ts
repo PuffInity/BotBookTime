@@ -1,7 +1,8 @@
 /**
- * uk: Текстові helper-и
- * en: Text helpers
- * cz: Textové helpery
+ * @file text.utils.ts
+ * @summary uk: Текстові helper-функції бота.
+ * en: Bot text helper functions.
+ * cz: Textové helper funkce bota.
  */
 import { tBot, tBotTemplate } from '../helpers/bot/i18n.bot.js';
 import type { BotUiLanguage } from '../helpers/bot/i18n.bot.js';

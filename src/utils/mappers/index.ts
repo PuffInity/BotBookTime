@@ -1,3 +1,9 @@
+/**
+ * @file index.ts
+ * @summary uk: Експорти DB mapper-утиліт.
+ * en: Exports for DB mapper utilities.
+ * cz: Exporty DB mapper utilit.
+ */
 export * from './appUsers.mapp.js';
 export * from './appointmentFinancials.mapp.js';
 export * from './appointmentReviews.mapp.js';

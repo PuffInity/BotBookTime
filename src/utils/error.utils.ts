@@ -1,12 +1,12 @@
+/**
+ * @file error.utils.ts
+ * @summary uk: Централізована обробка помилок.
+ * en: Centralized error handling utilities.
+ * cz: Centralizované utility pro error handling.
+ */
 import { ZodError } from "zod";
 import type { ILogger } from "./logger/types.logger.js";
 import {loggerErrorUtils} from "./logger/loggers-list.js";
-
-/**
- * uk: Error модуль
- * en: Error module
- * cz: Error modul
- */
 
 type ErrorLogLevel = "warn" | "error";
 const errorUtilsLogger = loggerErrorUtils;

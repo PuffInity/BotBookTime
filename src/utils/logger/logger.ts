@@ -1,3 +1,9 @@
+/**
+ * @file logger.ts
+ * @summary uk: Winston logger фабрика.
+ * en: Winston logger factory.
+ * cz: Winston logger factory.
+ */
 import { createLogger, format as wformat, transports } from 'winston';
 import { ILogger, ILoggerFactory, WinstonLogger, LogContext, hasClose } from './types.logger.js';
 import TransportStream from 'winston-transport';
@@ -6,12 +12,6 @@ import DailyRotateFile from 'winston-daily-rotate-file';
 import path from 'path';
 import fs from 'fs';
 import { RequestContext } from '../requestId.utils.js';
-
-/**
- * uk: Winston адаптер
- * en: Winston adapter
- * cz: Winston adaptér
- */
 
 /** uk: Прод режим | en: Prod mode | cz: Prod režim */
 const isProd = process.env.NODE_ENV === 'production';

@@ -1,10 +1,10 @@
-import {createAppLogger} from "./logger.js";
-
 /**
- * uk: Список логерів
- * en: Logger list
- * cz: Seznam loggerů
+ * @file loggers-list.ts
+ * @summary uk: Реєстр логерів проєкту.
+ * en: Project logger registry.
+ * cz: Registry loggerů projektu.
  */
+import {createAppLogger} from "./logger.js";
 
 /** uk: Redis lifecycle | en: Redis lifecycle | cz: Redis lifecycle */
 export const loggerR = createAppLogger({service: 'redis-life-cycle'})
