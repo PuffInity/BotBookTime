@@ -4,7 +4,9 @@ import type { ServicesCatalogItem } from './db-services.types.js';
 
 /**
  * @file db-booking.types.ts
- * @summary Типи для DB helper модуля створення бронювання.
+ * @summary uk: Типи для DB бронювання.
+ * en: Types for booking DB helper.
+ * cz: Typy pro booking DB helper.
  */
 
 export type MasterServiceBookingMetaRow = {

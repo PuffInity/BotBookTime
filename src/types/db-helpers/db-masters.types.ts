@@ -1,6 +1,8 @@
 /**
  * @file db-masters.types.ts
- * @summary Типи для DB helper модуля каталогу майстрів і сценарію бронювання.
+ * @summary uk: Типи каталогу майстрів.
+ * en: Master catalog helper types.
+ * cz: Typy helperu katalogu mistrů.
  */
 
 export type MasterCatalogItem = {

@@ -1,6 +1,8 @@
 /**
  * @file db-profile.types.ts
- * @summary Shared types for db-profile helper and normalization utils.
+ * @summary uk: Типи профілю користувача.
+ * en: User profile helper types.
+ * cz: Typy helperu profilu uživatele.
  */
 
 export type CreateUserInput = {

@@ -2,7 +2,9 @@ import type { LanguageCode, NotificationType } from '../db/dbEnums.type.js';
 
 /**
  * @file db-notification-settings.types.ts
- * @summary Типи для DB helper модуля налаштувань сповіщень.
+ * @summary uk: Типи налаштувань сповіщень.
+ * en: Notification settings helper types.
+ * cz: Typy helperu nastavení notifikací.
  */
 
 export const NOTIFICATION_TYPES: NotificationType[] = [

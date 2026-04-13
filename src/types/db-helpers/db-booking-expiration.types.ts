@@ -2,7 +2,9 @@ import type { LanguageCode } from '../db/dbEnums.type.js';
 
 /**
  * @file db-booking-expiration.types.ts
- * @summary Типи для DB helper автоматичного скасування прострочених pending-бронювань.
+ * @summary uk: Типи прострочення бронювань.
+ * en: Expired booking helper types.
+ * cz: Typy helperu expirovaných rezervací.
  */
 
 export type ExpiredPendingBookingRow = {

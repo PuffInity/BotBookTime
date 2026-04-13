@@ -2,7 +2,9 @@ import type { AppointmentSource, AppointmentStatus } from '../db/dbEnums.type.js
 
 /**
  * @file db-reminder.types.ts
- * @summary Types for reminder DB helper query rows/entities.
+ * @summary uk: Типи reminder helper.
+ * en: Types for reminder helper.
+ * cz: Typy pro reminder helper.
  */
 
 export type StudioReminderSettingsRow = {

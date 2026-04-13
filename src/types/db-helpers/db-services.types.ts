@@ -6,7 +6,9 @@ import type {
 
 /**
  * @file db-services.types.ts
- * @summary Типи для DB helper модуля каталогу послуг.
+ * @summary uk: Типи каталогу послуг.
+ * en: Service catalog helper types.
+ * cz: Typy helperu katalogu služeb.
  */
 
 export type ServicesCatalogItem = Pick<
@@ -37,4 +39,3 @@ export type GetServiceCatalogDetailsInput = {
   serviceId: string | number;
   studioId?: string | null;
 };
-
