@@ -4,11 +4,15 @@
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc",
+    "migrate": "tsx src/migration/index.migration.ts migrate",
+    "rollback": "tsx src/migration/index.migration.ts rollback",
+    "migration:status": "tsx src/migration/index.migration.ts status",
     "script:grant-admin": "tsx src/scripts/grant-admin-by-telegram-id.script.ts",
     "script:revoke-admin": "tsx src/scripts/revoke-admin-by-telegram-id.script.ts",
     "script:grant-master": "tsx src/scripts/grant-master-by-telegram-id.script.ts",
     "script:repair-bookings": "tsx src/scripts/repair-booking-statuses.script.ts",
-    "script:notification-dry-run": "tsx src/scripts/dry-run-notification-dispatch.script.ts"
+    "script:notification-dry-run": "tsx src/scripts/dry-run-notification-dispatch.script.ts",
+    "script:seed-custom-data": "tsx src/scripts/seed-custom-data.script.ts"
   },
   "dependencies": {
     "@types/nodemailer": "^7.0.11",
