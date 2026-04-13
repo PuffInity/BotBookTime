@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc",
+    "ops": "tsx src/scripts/index.script.ts",
     "migrate": "tsx src/migration/index.migration.ts migrate",
     "rollback": "tsx src/migration/index.migration.ts rollback",
     "migration:status": "tsx src/migration/index.migration.ts status",
