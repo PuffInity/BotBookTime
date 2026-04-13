@@ -31,8 +31,10 @@ import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
  * @summary Scene for "change first name" flow in profile settings.
  */
 
+// uk: Flow/UI константа PROFILE_NAME_SCENE_ID / en: Flow/UI constant PROFILE_NAME_SCENE_ID / cz: Flow/UI konstanta PROFILE_NAME_SCENE_ID
 export const PROFILE_NAME_SCENE_ID = 'profile-name-scene';
 
+// uk: Flow/UI константа MAX_INVALID_NAME_ATTEMPTS / en: Flow/UI constant MAX_INVALID_NAME_ATTEMPTS / cz: Flow/UI konstanta MAX_INVALID_NAME_ATTEMPTS
 const MAX_INVALID_NAME_ATTEMPTS = 3;
 
 type ProfileNameSceneState = {
@@ -40,21 +42,41 @@ type ProfileNameSceneState = {
   language: BotUiLanguage;
 };
 
+/**
+ * uk: Внутрішня flow-функція getSceneState.
+ * en: Internal flow function getSceneState.
+ * cz: Interní flow funkce getSceneState.
+ */
 function getSceneState(ctx: MyContext): ProfileNameSceneState {
   return ctx.wizard.state as ProfileNameSceneState;
 }
 
+/**
+ * uk: Внутрішня flow-функція getMessageText.
+ * en: Internal flow function getMessageText.
+ * cz: Interní flow funkce getMessageText.
+ */
 function getMessageText(ctx: MyContext): string | null {
   if (!ctx.message) return null;
   if (!('text' in ctx.message)) return null;
   return ctx.message.text.trim();
 }
 
+/**
+ * uk: Внутрішня flow-функція sendFreshProfileCard.
+ * en: Internal flow function sendFreshProfileCard.
+ * cz: Interní flow funkce sendFreshProfileCard.
+ */
 async function sendFreshProfileCard(ctx: MyContext): Promise<void> {
   const user = await getOrCreateUser(ctx);
   await sendProfileCard(ctx, user);
 }
 
+/**
+ * uk: Публічна flow-функція createProfileNameScene.
+ * en: Public flow function createProfileNameScene.
+ * cz: Veřejná flow funkce createProfileNameScene.
+ */
 export function createProfileNameScene(): Scenes.WizardScene<MyContext> {
   const scene = new Scenes.WizardScene<MyContext>(
     PROFILE_NAME_SCENE_ID,

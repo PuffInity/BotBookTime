@@ -7,6 +7,11 @@ import { registerCommonCommands } from './common.commands.js';
  * @summary Центральна точка реєстрації блоків команд.
  */
 
+/**
+ * uk: Публічна flow-функція registerCommands.
+ * en: Public flow function registerCommands.
+ * cz: Veřejná flow funkce registerCommands.
+ */
 export function registerCommands(bot: Telegraf<MyContext>): void {
   // Блок 1: базові/загальні команди
   registerCommonCommands(bot);

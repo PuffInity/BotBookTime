@@ -24,6 +24,7 @@ import { translateMasterCatalogDetails } from '../../helpers/translate/translate
  * @summary Scene для перегляду каталогу майстрів і детальної картки майстра.
  */
 
+// uk: Flow/UI константа MASTERS_SCENE_ID / en: Flow/UI constant MASTERS_SCENE_ID / cz: Flow/UI konstanta MASTERS_SCENE_ID
 export const MASTERS_SCENE_ID = 'masters-scene';
 
 type MastersSceneState = {
@@ -31,16 +32,31 @@ type MastersSceneState = {
   language: BotUiLanguage;
 };
 
+/**
+ * uk: Внутрішня flow-функція getSceneState.
+ * en: Internal flow function getSceneState.
+ * cz: Interní flow funkce getSceneState.
+ */
 function getSceneState(ctx: MyContext): MastersSceneState {
   return ctx.wizard.state as MastersSceneState;
 }
 
+/**
+ * uk: Внутрішня flow-функція getMessageText.
+ * en: Internal flow function getMessageText.
+ * cz: Interní flow funkce getMessageText.
+ */
 function getMessageText(ctx: MyContext): string | null {
   if (!ctx.message) return null;
   if (!('text' in ctx.message)) return null;
   return ctx.message.text.trim();
 }
 
+/**
+ * uk: Внутрішня flow-функція renderView.
+ * en: Internal flow function renderView.
+ * cz: Interní flow funkce renderView.
+ */
 async function renderView(
   ctx: MyContext,
   text: string,
@@ -59,6 +75,11 @@ async function renderView(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderCatalog.
+ * en: Internal flow function renderCatalog.
+ * cz: Interní flow funkce renderCatalog.
+ */
 async function renderCatalog(
   ctx: MyContext,
   masters: MasterCatalogItem[],
@@ -73,12 +94,22 @@ async function renderCatalog(
   );
 }
 
+/**
+ * uk: Внутрішня flow-функція loadAndRenderCatalog.
+ * en: Internal flow function loadAndRenderCatalog.
+ * cz: Interní flow funkce loadAndRenderCatalog.
+ */
 async function loadAndRenderCatalog(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   const masters = await listActiveMastersCatalog({ studioId: state.studioId });
   await renderCatalog(ctx, masters, preferEdit);
 }
 
+/**
+ * uk: Публічна flow-функція createMastersScene.
+ * en: Public flow function createMastersScene.
+ * cz: Veřejná flow funkce createMastersScene.
+ */
 export function createMastersScene(): Scenes.WizardScene<MyContext> {
   const scene = new Scenes.WizardScene<MyContext>(
     MASTERS_SCENE_ID,

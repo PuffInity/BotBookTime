@@ -28,6 +28,7 @@ import { sendProfileCard } from '../../helpers/bot/profile-view.bot.js';
  * @summary Scene для керування налаштуваннями сповіщень користувача у профілі.
  */
 
+// uk: Flow/UI константа PROFILE_NOTIFICATION_SETTINGS_SCENE_ID / en: Flow/UI constant PROFILE_NOTIFICATION_SETTINGS_SCENE_ID / cz: Flow/UI konstanta PROFILE_NOTIFICATION_SETTINGS_SCENE_ID
 export const PROFILE_NOTIFICATION_SETTINGS_SCENE_ID = 'profile-notification-settings-scene';
 
 type ProfileNotificationSettingsSceneState = {
@@ -35,16 +36,31 @@ type ProfileNotificationSettingsSceneState = {
   language: BotUiLanguage;
 };
 
+/**
+ * uk: Внутрішня flow-функція getSceneState.
+ * en: Internal flow function getSceneState.
+ * cz: Interní flow funkce getSceneState.
+ */
 function getSceneState(ctx: MyContext): ProfileNotificationSettingsSceneState {
   return ctx.wizard.state as ProfileNotificationSettingsSceneState;
 }
 
+/**
+ * uk: Внутрішня flow-функція getMessageText.
+ * en: Internal flow function getMessageText.
+ * cz: Interní flow funkce getMessageText.
+ */
 function getMessageText(ctx: MyContext): string | null {
   if (!ctx.message) return null;
   if (!('text' in ctx.message)) return null;
   return ctx.message.text.trim();
 }
 
+/**
+ * uk: Внутрішня flow-функція renderSettingsView.
+ * en: Internal flow function renderSettingsView.
+ * cz: Interní flow funkce renderSettingsView.
+ */
 async function renderSettingsView(
   ctx: MyContext,
   userId: string,
@@ -67,11 +83,21 @@ async function renderSettingsView(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція sendFreshProfileCard.
+ * en: Internal flow function sendFreshProfileCard.
+ * cz: Interní flow funkce sendFreshProfileCard.
+ */
 async function sendFreshProfileCard(ctx: MyContext): Promise<void> {
   const user = await getOrCreateUser(ctx);
   await sendProfileCard(ctx, user);
 }
 
+/**
+ * uk: Публічна flow-функція createProfileNotificationSettingsScene.
+ * en: Public flow function createProfileNotificationSettingsScene.
+ * cz: Veřejná flow funkce createProfileNotificationSettingsScene.
+ */
 export function createProfileNotificationSettingsScene(): Scenes.WizardScene<MyContext> {
   const scene = new Scenes.WizardScene<MyContext>(
     PROFILE_NOTIFICATION_SETTINGS_SCENE_ID,

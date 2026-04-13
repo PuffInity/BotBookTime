@@ -23,27 +23,48 @@ import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
  * @summary Scene for profile language selection flow.
  */
 
+// uk: Flow/UI константа PROFILE_LANGUAGE_SCENE_ID / en: Flow/UI constant PROFILE_LANGUAGE_SCENE_ID / cz: Flow/UI konstanta PROFILE_LANGUAGE_SCENE_ID
 export const PROFILE_LANGUAGE_SCENE_ID = 'profile-language-scene';
 
 type ProfileLanguageSceneState = {
   language: BotUiLanguage;
 };
 
+/**
+ * uk: Внутрішня flow-функція getSceneState.
+ * en: Internal flow function getSceneState.
+ * cz: Interní flow funkce getSceneState.
+ */
 function getSceneState(ctx: MyContext): ProfileLanguageSceneState {
   return ctx.wizard.state as ProfileLanguageSceneState;
 }
 
+/**
+ * uk: Внутрішня flow-функція getMessageText.
+ * en: Internal flow function getMessageText.
+ * cz: Interní flow funkce getMessageText.
+ */
 function getMessageText(ctx: MyContext): string | null {
   if (!ctx.message) return null;
   if (!('text' in ctx.message)) return null;
   return ctx.message.text.trim();
 }
 
+/**
+ * uk: Внутрішня flow-функція sendFreshProfileCard.
+ * en: Internal flow function sendFreshProfileCard.
+ * cz: Interní flow funkce sendFreshProfileCard.
+ */
 async function sendFreshProfileCard(ctx: MyContext): Promise<void> {
   const user = await getOrCreateUser(ctx);
   await sendProfileCard(ctx, user);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderLanguagePrompt.
+ * en: Internal flow function renderLanguagePrompt.
+ * cz: Interní flow funkce renderLanguagePrompt.
+ */
 async function renderLanguagePrompt(
   ctx: MyContext,
   currentLanguage: LanguageCode,
@@ -55,6 +76,11 @@ async function renderLanguagePrompt(
   );
 }
 
+/**
+ * uk: Публічна flow-функція createProfileLanguageScene.
+ * en: Public flow function createProfileLanguageScene.
+ * cz: Veřejná flow funkce createProfileLanguageScene.
+ */
 export function createProfileLanguageScene(): Scenes.WizardScene<MyContext> {
   const scene = new Scenes.WizardScene<MyContext>(
     PROFILE_LANGUAGE_SCENE_ID,

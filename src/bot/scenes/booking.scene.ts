@@ -56,6 +56,7 @@ import {
  * @summary Покроковий сценарій бронювання клієнта (service → date → time → master → phone → confirm).
  */
 
+// uk: Flow/UI константа BOOKING_SCENE_ID / en: Flow/UI constant BOOKING_SCENE_ID / cz: Flow/UI konstanta BOOKING_SCENE_ID
 export const BOOKING_SCENE_ID = 'booking-scene';
 
 type BookingSceneState = {
@@ -80,24 +81,46 @@ type BookingSceneState = {
   attendeePhone: string | null;
 };
 
+// uk: Flow/UI константа BOOKING_TIME_OPTIONS / en: Flow/UI constant BOOKING_TIME_OPTIONS / cz: Flow/UI konstanta BOOKING_TIME_OPTIONS
 const BOOKING_TIME_OPTIONS = buildBookingTimeOptions();
+// uk: Flow/UI константа BOOKING_TIME_CODES / en: Flow/UI constant BOOKING_TIME_CODES / cz: Flow/UI konstanta BOOKING_TIME_CODES
 const BOOKING_TIME_CODES = BOOKING_TIME_OPTIONS.map((item) => item.replace(':', ''));
 
+/**
+ * uk: Внутрішня flow-функція getSceneState.
+ * en: Internal flow function getSceneState.
+ * cz: Interní flow funkce getSceneState.
+ */
 function getSceneState(ctx: MyContext): BookingSceneState {
   return ctx.wizard.state as BookingSceneState;
 }
 
+/**
+ * uk: Внутрішня flow-функція getMessageText.
+ * en: Internal flow function getMessageText.
+ * cz: Interní flow funkce getMessageText.
+ */
 function getMessageText(ctx: MyContext): string | null {
   if (!ctx.message) return null;
   if (!('text' in ctx.message)) return null;
   return ctx.message.text.trim();
 }
 
+/**
+ * uk: Внутрішня flow-функція formatProfileName.
+ * en: Internal flow function formatProfileName.
+ * cz: Interní flow funkce formatProfileName.
+ */
 function formatProfileName(firstName: string, language: BotUiLanguage, lastName?: string | null): string {
   const fullName = `${firstName}${lastName ? ` ${lastName}` : ''}`.trim();
   return fullName.length > 0 ? fullName : tBot(language, 'BOOKING_CLIENT_FALLBACK');
 }
 
+/**
+ * uk: Внутрішня flow-функція formatDateCodeLabel.
+ * en: Internal flow function formatDateCodeLabel.
+ * cz: Interní flow funkce formatDateCodeLabel.
+ */
 function formatDateCodeLabel(dateCode: string): string {
   const year = Number(dateCode.slice(0, 4));
   const month = Number(dateCode.slice(4, 6));
@@ -105,10 +128,20 @@ function formatDateCodeLabel(dateCode: string): string {
   return `${String(day).padStart(2, '0')}.${String(month).padStart(2, '0')}.${year}`;
 }
 
+/**
+ * uk: Внутрішня flow-функція formatTimeCodeLabel.
+ * en: Internal flow function formatTimeCodeLabel.
+ * cz: Interní flow funkce formatTimeCodeLabel.
+ */
 function formatTimeCodeLabel(timeCode: string): string {
   return `${timeCode.slice(0, 2)}:${timeCode.slice(2, 4)}`;
 }
 
+/**
+ * uk: Внутрішня flow-функція getTodayDateCode.
+ * en: Internal flow function getTodayDateCode.
+ * cz: Interní flow funkce getTodayDateCode.
+ */
 function getTodayDateCode(): string {
   const now = new Date();
   const year = String(now.getFullYear());
@@ -117,6 +150,11 @@ function getTodayDateCode(): string {
   return `${year}${month}${day}`;
 }
 
+/**
+ * uk: Внутрішня flow-функція getCandidateTimeCodesForDate.
+ * en: Internal flow function getCandidateTimeCodesForDate.
+ * cz: Interní flow funkce getCandidateTimeCodesForDate.
+ */
 function getCandidateTimeCodesForDate(dateCode: string): string[] {
   if (dateCode !== getTodayDateCode()) {
     return BOOKING_TIME_CODES;
@@ -126,6 +164,11 @@ function getCandidateTimeCodesForDate(dateCode: string): string[] {
   return BOOKING_TIME_CODES.filter((timeCode) => toStartAt(dateCode, timeCode).getTime() > now);
 }
 
+/**
+ * uk: Внутрішня flow-функція toStartAt.
+ * en: Internal flow function toStartAt.
+ * cz: Interní flow funkce toStartAt.
+ */
 function toStartAt(dateCode: string, timeCode: string): Date {
   const year = Number(dateCode.slice(0, 4));
   const month = Number(dateCode.slice(4, 6));
@@ -135,6 +178,11 @@ function toStartAt(dateCode: string, timeCode: string): Date {
   return new Date(year, month - 1, day, hour, minute, 0, 0);
 }
 
+/**
+ * uk: Внутрішня flow-функція createTextStepNavKeyboard.
+ * en: Internal flow function createTextStepNavKeyboard.
+ * cz: Interní flow funkce createTextStepNavKeyboard.
+ */
 function createTextStepNavKeyboard(language: BotUiLanguage): ReturnType<typeof Markup.inlineKeyboard> {
   return Markup.inlineKeyboard([
     [
@@ -144,6 +192,11 @@ function createTextStepNavKeyboard(language: BotUiLanguage): ReturnType<typeof M
   ]);
 }
 
+/**
+ * uk: Внутрішня flow-функція resetBookingDraft.
+ * en: Internal flow function resetBookingDraft.
+ * cz: Interní flow funkce resetBookingDraft.
+ */
 function resetBookingDraft(state: BookingSceneState): void {
   state.masters = [];
   state.availableDateCodes = [];
@@ -158,6 +211,11 @@ function resetBookingDraft(state: BookingSceneState): void {
   state.attendeePhone = null;
 }
 
+/**
+ * uk: Внутрішня flow-функція resetAfterService.
+ * en: Internal flow function resetAfterService.
+ * cz: Interní flow funkce resetAfterService.
+ */
 function resetAfterService(state: BookingSceneState): void {
   state.masters = [];
   state.availableDateCodes = [];
@@ -170,6 +228,11 @@ function resetAfterService(state: BookingSceneState): void {
   state.attendeePhone = null;
 }
 
+/**
+ * uk: Внутрішня flow-функція resetAfterDate.
+ * en: Internal flow function resetAfterDate.
+ * cz: Interní flow funkce resetAfterDate.
+ */
 function resetAfterDate(state: BookingSceneState): void {
   state.availableTimeCodes = [];
   state.timeCode = null;
@@ -179,6 +242,11 @@ function resetAfterDate(state: BookingSceneState): void {
   state.attendeePhone = null;
 }
 
+/**
+ * uk: Внутрішня flow-функція resetAfterTime.
+ * en: Internal flow function resetAfterTime.
+ * cz: Interní flow funkce resetAfterTime.
+ */
 function resetAfterTime(state: BookingSceneState): void {
   state.masterId = null;
   state.masterName = null;
@@ -186,10 +254,20 @@ function resetAfterTime(state: BookingSceneState): void {
   state.attendeePhone = null;
 }
 
+/**
+ * uk: Внутрішня flow-функція isPhoneStepRequired.
+ * en: Internal flow function isPhoneStepRequired.
+ * cz: Interní flow funkce isPhoneStepRequired.
+ */
 function isPhoneStepRequired(state: BookingSceneState): boolean {
   return !state.profilePhone || !state.isProfilePhoneVerified;
 }
 
+/**
+ * uk: Внутрішня flow-функція renderView.
+ * en: Internal flow function renderView.
+ * cz: Interní flow funkce renderView.
+ */
 async function renderView(
   ctx: MyContext,
   text: string,
@@ -208,6 +286,11 @@ async function renderView(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderServiceStep.
+ * en: Internal flow function renderServiceStep.
+ * cz: Interní flow funkce renderServiceStep.
+ */
 async function renderServiceStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   const rawServices = await listBookableServicesForBooking({ studioId: state.studioId });
@@ -221,6 +304,11 @@ async function renderServiceStep(ctx: MyContext, preferEdit: boolean): Promise<v
   );
 }
 
+/**
+ * uk: Внутрішня flow-функція renderDateStep.
+ * en: Internal flow function renderDateStep.
+ * cz: Interní flow funkce renderDateStep.
+ */
 async function renderDateStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   if (!state.serviceName) {
@@ -268,6 +356,11 @@ async function renderDateStep(ctx: MyContext, preferEdit: boolean): Promise<void
   );
 }
 
+/**
+ * uk: Внутрішня flow-функція renderTimeStep.
+ * en: Internal flow function renderTimeStep.
+ * cz: Interní flow funkce renderTimeStep.
+ */
 async function renderTimeStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   if (!state.serviceName || !state.dateCode) {
@@ -304,6 +397,11 @@ async function renderTimeStep(ctx: MyContext, preferEdit: boolean): Promise<void
   await renderView(ctx, text, createBookingTimeKeyboard(availableTimeOptions, state.language), preferEdit);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderMasterStep.
+ * en: Internal flow function renderMasterStep.
+ * cz: Interní flow funkce renderMasterStep.
+ */
 async function renderMasterStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   if (!state.serviceId || !state.serviceName || !state.timeCode || !state.dateCode || !state.studioId) {
@@ -332,6 +430,11 @@ async function renderMasterStep(ctx: MyContext, preferEdit: boolean): Promise<vo
   );
 }
 
+/**
+ * uk: Внутрішня flow-функція renderPhoneStep.
+ * en: Internal flow function renderPhoneStep.
+ * cz: Interní flow funkce renderPhoneStep.
+ */
 async function renderPhoneStep(ctx: MyContext, intro?: string): Promise<void> {
   const state = getSceneState(ctx);
 
@@ -365,6 +468,11 @@ async function renderPhoneStep(ctx: MyContext, intro?: string): Promise<void> {
   await renderConfirmStep(ctx, false);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderConfirmStep.
+ * en: Internal flow function renderConfirmStep.
+ * cz: Interní flow funkce renderConfirmStep.
+ */
 async function renderConfirmStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   if (
@@ -393,6 +501,11 @@ async function renderConfirmStep(ctx: MyContext, preferEdit: boolean): Promise<v
   );
 }
 
+/**
+ * uk: Внутрішня flow-функція handleCancel.
+ * en: Internal flow function handleCancel.
+ * cz: Interní flow funkce handleCancel.
+ */
 async function handleCancel(ctx: MyContext): Promise<void> {
   const state = getSceneState(ctx);
   await ctx.scene.leave();
@@ -400,6 +513,11 @@ async function handleCancel(ctx: MyContext): Promise<void> {
   await sendClientMainMenu(ctx);
 }
 
+/**
+ * uk: Публічна flow-функція createBookingScene.
+ * en: Public flow function createBookingScene.
+ * cz: Veřejná flow funkce createBookingScene.
+ */
 export function createBookingScene(): Scenes.WizardScene<MyContext> {
   const scene = new Scenes.WizardScene<MyContext>(
     BOOKING_SCENE_ID,

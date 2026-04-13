@@ -19,6 +19,11 @@ import type { MyContext } from '../../types/bot.types.js';
  * @summary Реєстрація всіх сцен в один Stage.
  */
 
+/**
+ * uk: Публічна flow-функція createBotStage.
+ * en: Public flow function createBotStage.
+ * cz: Veřejná flow funkce createBotStage.
+ */
 export function createBotStage(): Scenes.Stage<MyContext> {
   const bookingScene = createBookingScene();
   const profileNameScene = createProfileNameScene();

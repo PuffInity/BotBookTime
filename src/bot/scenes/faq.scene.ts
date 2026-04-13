@@ -24,6 +24,7 @@ import {
  * @summary Scene для перегляду FAQ списку і детальної відповіді.
  */
 
+// uk: Flow/UI константа FAQ_SCENE_ID / en: Flow/UI constant FAQ_SCENE_ID / cz: Flow/UI konstanta FAQ_SCENE_ID
 export const FAQ_SCENE_ID = 'faq-scene';
 
 type FaqSceneState = {
@@ -32,16 +33,31 @@ type FaqSceneState = {
   items: FaqCatalogItem[];
 };
 
+/**
+ * uk: Внутрішня flow-функція getSceneState.
+ * en: Internal flow function getSceneState.
+ * cz: Interní flow funkce getSceneState.
+ */
 function getSceneState(ctx: MyContext): FaqSceneState {
   return ctx.wizard.state as FaqSceneState;
 }
 
+/**
+ * uk: Внутрішня flow-функція getMessageText.
+ * en: Internal flow function getMessageText.
+ * cz: Interní flow funkce getMessageText.
+ */
 function getMessageText(ctx: MyContext): string | null {
   if (!ctx.message) return null;
   if (!('text' in ctx.message)) return null;
   return ctx.message.text.trim();
 }
 
+/**
+ * uk: Внутрішня flow-функція renderView.
+ * en: Internal flow function renderView.
+ * cz: Interní flow funkce renderView.
+ */
 async function renderView(
   ctx: MyContext,
   text: string,
@@ -60,6 +76,11 @@ async function renderView(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція loadFaqCatalogForState.
+ * en: Internal flow function loadFaqCatalogForState.
+ * cz: Interní flow funkce loadFaqCatalogForState.
+ */
 async function loadFaqCatalogForState(state: FaqSceneState): Promise<FaqCatalogItem[]> {
   const items = await listFaqCatalog({
     studioId: state.studioId,
@@ -69,6 +90,11 @@ async function loadFaqCatalogForState(state: FaqSceneState): Promise<FaqCatalogI
   return translateFaqCatalogItems(items, state.language);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderCatalog.
+ * en: Internal flow function renderCatalog.
+ * cz: Interní flow funkce renderCatalog.
+ */
 async function renderCatalog(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   state.items = await loadFaqCatalogForState(state);
@@ -81,6 +107,11 @@ async function renderCatalog(ctx: MyContext, preferEdit: boolean): Promise<void>
   );
 }
 
+/**
+ * uk: Публічна flow-функція createFaqScene.
+ * en: Public flow function createFaqScene.
+ * cz: Veřejná flow funkce createFaqScene.
+ */
 export function createFaqScene(): Scenes.WizardScene<MyContext> {
   const scene = new Scenes.WizardScene<MyContext>(
     FAQ_SCENE_ID,

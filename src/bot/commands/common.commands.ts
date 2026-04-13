@@ -65,6 +65,11 @@ import { isTwilioConfigured } from '../../config/twilio.config.js';
  * - /cancel (вихід зі сцени)
  */
 export function registerCommonCommands(bot: Telegraf<MyContext>): void {
+  /**
+   * uk: Внутрішня flow-функція getActionIdFromCallbackData.
+   * en: Internal flow function getActionIdFromCallbackData.
+   * cz: Interní flow funkce getActionIdFromCallbackData.
+   */
   function getActionIdFromCallbackData(
     ctx: MyContext,
     regex: RegExp,
@@ -81,6 +86,11 @@ export function registerCommonCommands(bot: Telegraf<MyContext>): void {
     return matches[1];
   }
 
+  /**
+   * uk: Внутрішня flow-функція findBookingForProfileAction.
+   * en: Internal flow function findBookingForProfileAction.
+   * cz: Interní flow funkce findBookingForProfileAction.
+   */
   async function findBookingForProfileAction(
     ctx: MyContext,
     regex: RegExp,

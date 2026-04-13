@@ -441,6 +441,7 @@ import {
  * - обробка підрозділів адмін-функціоналу
  */
 
+// uk: Flow/UI константа ADMIN_PANEL_SCENE_ID / en: Flow/UI constant ADMIN_PANEL_SCENE_ID / cz: Flow/UI konstanta ADMIN_PANEL_SCENE_ID
 export const ADMIN_PANEL_SCENE_ID = 'admin-panel-scene';
 const NOTIFICATION_SOURCE_LANGUAGE: BotUiLanguage = 'uk';
 
@@ -719,15 +720,30 @@ type AdminPanelSceneState = {
   settingsCurrentSection: AdminSettingsSection | null;
 };
 
+/**
+ * uk: Внутрішня flow-функція getSceneState.
+ * en: Internal flow function getSceneState.
+ * cz: Interní flow funkce getSceneState.
+ */
 function getSceneState(ctx: MyContext): AdminPanelSceneState {
   return ctx.wizard.state as AdminPanelSceneState;
 }
 
+/**
+ * uk: Внутрішня flow-функція resetRecordsActionDrafts.
+ * en: Internal flow function resetRecordsActionDrafts.
+ * cz: Interní flow funkce resetRecordsActionDrafts.
+ */
 function resetRecordsActionDrafts(state: AdminPanelSceneState): void {
   state.recordsRescheduleDraft = null;
   state.recordsChangeMasterDraft = null;
 }
 
+/**
+ * uk: Внутрішня flow-функція resetScheduleDrafts.
+ * en: Internal flow function resetScheduleDrafts.
+ * cz: Interní flow funkce resetScheduleDrafts.
+ */
 function resetScheduleDrafts(state: AdminPanelSceneState): void {
   state.scheduleDayOffDraft = null;
   state.scheduleHolidayDraft = null;
@@ -736,6 +752,11 @@ function resetScheduleDrafts(state: AdminPanelSceneState): void {
   state.scheduleDeleteDraft = null;
 }
 
+/**
+ * uk: Внутрішня flow-функція resetMastersState.
+ * en: Internal flow function resetMastersState.
+ * cz: Interní flow funkce resetMastersState.
+ */
 function resetMastersState(state: AdminPanelSceneState): void {
   state.mastersCatalog = null;
   state.mastersSelectedMasterId = null;
@@ -748,6 +769,11 @@ function resetMastersState(state: AdminPanelSceneState): void {
   state.mastersDeleteDraft = null;
 }
 
+/**
+ * uk: Внутрішня flow-функція resetServicesState.
+ * en: Internal flow function resetServicesState.
+ * cz: Interní flow funkce resetServicesState.
+ */
 function resetServicesState(state: AdminPanelSceneState): void {
   state.servicesCatalog = null;
   state.servicesSelectedServiceId = null;
@@ -756,6 +782,11 @@ function resetServicesState(state: AdminPanelSceneState): void {
   state.servicesCreateDraft = null;
 }
 
+/**
+ * uk: Внутрішня flow-функція resetStatsState.
+ * en: Internal flow function resetStatsState.
+ * cz: Interní flow funkce resetStatsState.
+ */
 function resetStatsState(state: AdminPanelSceneState): void {
   state.statsOverview = null;
   state.statsMastersFeed = null;
@@ -779,6 +810,11 @@ function resetStatsState(state: AdminPanelSceneState): void {
   state.statsCurrentSection = null;
 }
 
+/**
+ * uk: Внутрішня flow-функція resetSettingsState.
+ * en: Internal flow function resetSettingsState.
+ * cz: Interní flow funkce resetSettingsState.
+ */
 function resetSettingsState(state: AdminPanelSceneState): void {
   state.settingsAdmins = null;
   state.settingsAdminsDraft = null;
@@ -790,12 +826,22 @@ function resetSettingsState(state: AdminPanelSceneState): void {
   state.settingsCurrentSection = null;
 }
 
+/**
+ * uk: Внутрішня flow-функція getUserText.
+ * en: Internal flow function getUserText.
+ * cz: Interní flow funkce getUserText.
+ */
 function getUserText(ctx: MyContext): string | null {
   if (!ctx.message) return null;
   if (!('text' in ctx.message)) return null;
   return ctx.message.text.trim();
 }
 
+/**
+ * uk: Внутрішня flow-функція formatDateLabel.
+ * en: Internal flow function formatDateLabel.
+ * cz: Interní flow funkce formatDateLabel.
+ */
 function formatDateLabel(date: Date): string {
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -803,6 +849,11 @@ function formatDateLabel(date: Date): string {
   return `${day}.${month}.${year}`;
 }
 
+/**
+ * uk: Внутрішня flow-функція formatDateSql.
+ * en: Internal flow function formatDateSql.
+ * cz: Interní flow funkce formatDateSql.
+ */
 function formatDateSql(date: Date): string {
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -810,6 +861,11 @@ function formatDateSql(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+/**
+ * uk: Внутрішня flow-функція parseFutureDateInput.
+ * en: Internal flow function parseFutureDateInput.
+ * cz: Interní flow funkce parseFutureDateInput.
+ */
 function parseFutureDateInput(input: string, language: BotUiLanguage = 'uk'): Date {
   const normalized = input.trim();
   const match = normalized.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
@@ -839,6 +895,11 @@ function parseFutureDateInput(input: string, language: BotUiLanguage = 'uk'): Da
   return parsedDay;
 }
 
+/**
+ * uk: Внутрішня flow-функція normalizeHolidayName.
+ * en: Internal flow function normalizeHolidayName.
+ * cz: Interní flow funkce normalizeHolidayName.
+ */
 function normalizeHolidayName(value: string, language: BotUiLanguage = 'uk'): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length < 2) {
@@ -850,6 +911,11 @@ function normalizeHolidayName(value: string, language: BotUiLanguage = 'uk'): st
   return normalized;
 }
 
+/**
+ * uk: Внутрішня flow-функція normalizeServiceNameInput.
+ * en: Internal flow function normalizeServiceNameInput.
+ * cz: Interní flow funkce normalizeServiceNameInput.
+ */
 function normalizeServiceNameInput(value: string, language: BotUiLanguage = 'uk'): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length < 2) {
@@ -861,6 +927,11 @@ function normalizeServiceNameInput(value: string, language: BotUiLanguage = 'uk'
   return normalized;
 }
 
+/**
+ * uk: Внутрішня flow-функція normalizeServiceGuaranteeTextInput.
+ * en: Internal flow function normalizeServiceGuaranteeTextInput.
+ * cz: Interní flow funkce normalizeServiceGuaranteeTextInput.
+ */
 function normalizeServiceGuaranteeTextInput(value: string, language: BotUiLanguage = 'uk'): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length < 3) {
@@ -872,6 +943,11 @@ function normalizeServiceGuaranteeTextInput(value: string, language: BotUiLangua
   return normalized;
 }
 
+/**
+ * uk: Внутрішня flow-функція normalizeServiceStepTitleInput.
+ * en: Internal flow function normalizeServiceStepTitleInput.
+ * cz: Interní flow funkce normalizeServiceStepTitleInput.
+ */
 function normalizeServiceStepTitleInput(value: string, language: BotUiLanguage = 'uk'): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length < 2) {
@@ -883,6 +959,11 @@ function normalizeServiceStepTitleInput(value: string, language: BotUiLanguage =
   return normalized;
 }
 
+/**
+ * uk: Внутрішня flow-функція normalizeServiceStepDescriptionInput.
+ * en: Internal flow function normalizeServiceStepDescriptionInput.
+ * cz: Interní flow funkce normalizeServiceStepDescriptionInput.
+ */
 function normalizeServiceStepDescriptionInput(value: string, language: BotUiLanguage = 'uk'): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length < 10) {
@@ -898,6 +979,11 @@ function normalizeServiceStepDescriptionInput(value: string, language: BotUiLang
   return normalized;
 }
 
+/**
+ * uk: Внутрішня flow-функція normalizeServiceResultDescriptionInput.
+ * en: Internal flow function normalizeServiceResultDescriptionInput.
+ * cz: Interní flow funkce normalizeServiceResultDescriptionInput.
+ */
 function normalizeServiceResultDescriptionInput(value: string, language: BotUiLanguage = 'uk'): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length < 10) {
@@ -909,6 +995,11 @@ function normalizeServiceResultDescriptionInput(value: string, language: BotUiLa
   return normalized;
 }
 
+/**
+ * uk: Внутрішня flow-функція normalizeServiceDescriptionInput.
+ * en: Internal flow function normalizeServiceDescriptionInput.
+ * cz: Interní flow funkce normalizeServiceDescriptionInput.
+ */
 function normalizeServiceDescriptionInput(value: string, language: BotUiLanguage = 'uk'): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length < 10) {
@@ -920,6 +1011,11 @@ function normalizeServiceDescriptionInput(value: string, language: BotUiLanguage
   return normalized;
 }
 
+/**
+ * uk: Внутрішня flow-функція normalizeServiceBasePriceInput.
+ * en: Internal flow function normalizeServiceBasePriceInput.
+ * cz: Interní flow funkce normalizeServiceBasePriceInput.
+ */
 function normalizeServiceBasePriceInput(value: string, language: BotUiLanguage = 'uk'): string {
   const normalized = value.trim().replace(',', '.');
   if (!/^\d+(\.\d{1,2})?$/.test(normalized)) {
@@ -937,6 +1033,11 @@ function normalizeServiceBasePriceInput(value: string, language: BotUiLanguage =
   return amount.toFixed(2);
 }
 
+/**
+ * uk: Внутрішня flow-функція normalizeServiceDurationInput.
+ * en: Internal flow function normalizeServiceDurationInput.
+ * cz: Interní flow funkce normalizeServiceDurationInput.
+ */
 function normalizeServiceDurationInput(value: string, language: BotUiLanguage = 'uk'): number {
   const normalized = value.trim();
   if (!/^\d+$/.test(normalized)) {
@@ -956,6 +1057,11 @@ function normalizeServiceDurationInput(value: string, language: BotUiLanguage = 
   return duration;
 }
 
+/**
+ * uk: Внутрішня flow-функція normalizeServiceStepDurationInput.
+ * en: Internal flow function normalizeServiceStepDurationInput.
+ * cz: Interní flow funkce normalizeServiceStepDurationInput.
+ */
 function normalizeServiceStepDurationInput(value: string, language: BotUiLanguage = 'uk'): number {
   const normalized = value.trim();
   if (!/^\d+$/.test(normalized)) {
@@ -975,9 +1081,16 @@ function normalizeServiceStepDurationInput(value: string, language: BotUiLanguag
   return duration;
 }
 
+// uk: Flow/UI константа MIN_TEMPORARY_SCHEDULE_DAYS / en: Flow/UI constant MIN_TEMPORARY_SCHEDULE_DAYS / cz: Flow/UI konstanta MIN_TEMPORARY_SCHEDULE_DAYS
 const MIN_TEMPORARY_SCHEDULE_DAYS = 7;
+// uk: Flow/UI константа DAY_IN_MS / en: Flow/UI constant DAY_IN_MS / cz: Flow/UI konstanta DAY_IN_MS
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
+/**
+ * uk: Внутрішня flow-функція parseDateRangeInput.
+ * en: Internal flow function parseDateRangeInput.
+ * cz: Interní flow funkce parseDateRangeInput.
+ */
 function parseDateRangeInput(
   input: string,
   language: BotUiLanguage = 'uk',
@@ -1000,10 +1113,20 @@ function parseDateRangeInput(
   return { dateFrom, dateTo };
 }
 
+/**
+ * uk: Внутрішня flow-функція countInclusiveDays.
+ * en: Internal flow function countInclusiveDays.
+ * cz: Interní flow funkce countInclusiveDays.
+ */
 function countInclusiveDays(dateFrom: Date, dateTo: Date): number {
   return Math.floor((dateTo.getTime() - dateFrom.getTime()) / DAY_IN_MS) + 1;
 }
 
+/**
+ * uk: Внутрішня flow-функція parseTimeInput.
+ * en: Internal flow function parseTimeInput.
+ * cz: Interní flow funkce parseTimeInput.
+ */
 function parseTimeInput(value: string, language: BotUiLanguage = 'uk'): string {
   const normalized = value.trim();
   const match = normalized.match(/^(\d{1,2}):([0-5]\d)$/);
@@ -1019,11 +1142,21 @@ function parseTimeInput(value: string, language: BotUiLanguage = 'uk'): string {
   return `${hour}:${match[2]}`;
 }
 
+/**
+ * uk: Внутрішня flow-функція timeToMinutes.
+ * en: Internal flow function timeToMinutes.
+ * cz: Interní flow funkce timeToMinutes.
+ */
 function timeToMinutes(time: string): number {
   const [hour, minute] = time.split(':').map(Number);
   return hour * 60 + minute;
 }
 
+/**
+ * uk: Внутрішня flow-функція upsertTemporaryDay.
+ * en: Internal flow function upsertTemporaryDay.
+ * cz: Interní flow funkce upsertTemporaryDay.
+ */
 function upsertTemporaryDay(
   days: AdminStudioTemporaryScheduleDayInput[],
   day: AdminStudioTemporaryScheduleDayInput,
@@ -1032,6 +1165,11 @@ function upsertTemporaryDay(
   return [...filtered, day].sort((a, b) => a.weekday - b.weekday);
 }
 
+/**
+ * uk: Внутрішня flow-функція parseDateFromCode.
+ * en: Internal flow function parseDateFromCode.
+ * cz: Interní flow funkce parseDateFromCode.
+ */
 function parseDateFromCode(code: string, language: BotUiLanguage = 'uk'): Date {
   const normalized = code.trim();
   const match = normalized.match(/^(\d{4})(\d{2})(\d{2})$/);
@@ -1054,6 +1192,11 @@ function parseDateFromCode(code: string, language: BotUiLanguage = 'uk'): Date {
   return parsed;
 }
 
+/**
+ * uk: Внутрішня flow-функція getTodayDateCode.
+ * en: Internal flow function getTodayDateCode.
+ * cz: Interní flow funkce getTodayDateCode.
+ */
 function getTodayDateCode(): string {
   const now = new Date();
   const year = String(now.getFullYear());
@@ -1062,6 +1205,11 @@ function getTodayDateCode(): string {
   return `${year}${month}${day}`;
 }
 
+/**
+ * uk: Внутрішня flow-функція toStartAt.
+ * en: Internal flow function toStartAt.
+ * cz: Interní flow funkce toStartAt.
+ */
 function toStartAt(dateCode: string, timeCode: string): Date {
   const year = Number(dateCode.slice(0, 4));
   const month = Number(dateCode.slice(4, 6));
@@ -1071,11 +1219,21 @@ function toStartAt(dateCode: string, timeCode: string): Date {
   return new Date(year, month - 1, day, hour, minute, 0, 0);
 }
 
+/**
+ * uk: Внутрішня flow-функція toSafeDateValue.
+ * en: Internal flow function toSafeDateValue.
+ * cz: Interní flow funkce toSafeDateValue.
+ */
 function toSafeDateValue(value: Date | string): Date | null {
   const parsed = value instanceof Date ? value : new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
+/**
+ * uk: Внутрішня flow-функція getAvailableRescheduleTimeCodes.
+ * en: Internal flow function getAvailableRescheduleTimeCodes.
+ * cz: Interní flow funkce getAvailableRescheduleTimeCodes.
+ */
 function getAvailableRescheduleTimeCodes(dateCode: string): string[] {
   const options = buildBookingTimeOptions().map((item) => item.replace(':', ''));
   if (dateCode !== getTodayDateCode()) {
@@ -1086,6 +1244,11 @@ function getAvailableRescheduleTimeCodes(dateCode: string): string[] {
   return options.filter((timeCode) => toStartAt(dateCode, timeCode).getTime() > now);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminRoot.
+ * en: Internal flow function renderAdminRoot.
+ * cz: Interní flow funkce renderAdminRoot.
+ */
 async function renderAdminRoot(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   if (!state.access) return;
@@ -1113,6 +1276,11 @@ async function renderAdminRoot(ctx: MyContext, preferEdit: boolean): Promise<voi
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderRecordsMenu.
+ * en: Internal flow function renderRecordsMenu.
+ * cz: Interní flow funkce renderRecordsMenu.
+ */
 async function renderRecordsMenu(ctx: MyContext): Promise<void> {
   const state = getSceneState(ctx);
   const text = formatAdminRecordsMenuText(state.language);
@@ -1133,6 +1301,11 @@ async function renderRecordsMenu(ctx: MyContext): Promise<void> {
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція renderScheduleMenu.
+ * en: Internal flow function renderScheduleMenu.
+ * cz: Interní flow funkce renderScheduleMenu.
+ */
 async function renderScheduleMenu(ctx: MyContext): Promise<void> {
   const state = getSceneState(ctx);
   const text = formatAdminScheduleMenuText(state.language);
@@ -1153,6 +1326,11 @@ async function renderScheduleMenu(ctx: MyContext): Promise<void> {
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція loadAdminSchedule.
+ * en: Internal flow function loadAdminSchedule.
+ * cz: Interní flow funkce loadAdminSchedule.
+ */
 async function loadAdminSchedule(state: AdminPanelSceneState): Promise<AdminStudioScheduleData> {
   const studioId = state.access?.studioId;
   if (!studioId) {
@@ -1164,6 +1342,11 @@ async function loadAdminSchedule(state: AdminPanelSceneState): Promise<AdminStud
   return data;
 }
 
+/**
+ * uk: Внутрішня flow-функція formatScheduleSectionText.
+ * en: Internal flow function formatScheduleSectionText.
+ * cz: Interní flow funkce formatScheduleSectionText.
+ */
 function formatScheduleSectionText(
   section: AdminScheduleSection,
   data: AdminStudioScheduleData,
@@ -1185,6 +1368,11 @@ function formatScheduleSectionText(
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція renderScheduleSection.
+ * en: Internal flow function renderScheduleSection.
+ * cz: Interní flow funkce renderScheduleSection.
+ */
 async function renderScheduleSection(
   ctx: MyContext,
   section: AdminScheduleSection,
@@ -1218,6 +1406,11 @@ async function renderScheduleSection(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminSettingsMenu.
+ * en: Internal flow function renderAdminSettingsMenu.
+ * cz: Interní flow funkce renderAdminSettingsMenu.
+ */
 async function renderAdminSettingsMenu(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   state.settingsCurrentSection = 'menu';
@@ -1237,6 +1430,11 @@ async function renderAdminSettingsMenu(ctx: MyContext, preferEdit: boolean): Pro
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminSettingsLanguage.
+ * en: Internal flow function renderAdminSettingsLanguage.
+ * cz: Interní flow funkce renderAdminSettingsLanguage.
+ */
 async function renderAdminSettingsLanguage(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   const userId = state.access?.userId;
@@ -1263,6 +1461,11 @@ async function renderAdminSettingsLanguage(ctx: MyContext, preferEdit: boolean):
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція parseSettingsLanguageFromAction.
+ * en: Internal flow function parseSettingsLanguageFromAction.
+ * cz: Interní flow funkce parseSettingsLanguageFromAction.
+ */
 function parseSettingsLanguageFromAction(ctx: MyContext, language: BotUiLanguage = 'uk'): LanguageCode {
   const callbackData =
     ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
@@ -1276,6 +1479,11 @@ function parseSettingsLanguageFromAction(ctx: MyContext, language: BotUiLanguage
   return nextLanguage;
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminSettingsLanguageConfirm.
+ * en: Internal flow function renderAdminSettingsLanguageConfirm.
+ * cz: Interní flow funkce renderAdminSettingsLanguageConfirm.
+ */
 async function renderAdminSettingsLanguageConfirm(
   ctx: MyContext,
   draft: AdminSettingsLanguageDraft,
@@ -1304,6 +1512,11 @@ async function renderAdminSettingsLanguageConfirm(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminSettingsNotifications.
+ * en: Internal flow function renderAdminSettingsNotifications.
+ * cz: Interní flow funkce renderAdminSettingsNotifications.
+ */
 async function renderAdminSettingsNotifications(
   ctx: MyContext,
   preferEdit: boolean,
@@ -1338,6 +1551,11 @@ async function renderAdminSettingsNotifications(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція parseSettingsNotificationTypeFromAction.
+ * en: Internal flow function parseSettingsNotificationTypeFromAction.
+ * cz: Interní flow funkce parseSettingsNotificationTypeFromAction.
+ */
 function parseSettingsNotificationTypeFromAction(
   ctx: MyContext,
   language: BotUiLanguage = 'uk',
@@ -1354,6 +1572,11 @@ function parseSettingsNotificationTypeFromAction(
   return notificationType;
 }
 
+/**
+ * uk: Внутрішня flow-функція loadAdminSettingsAdmins.
+ * en: Internal flow function loadAdminSettingsAdmins.
+ * cz: Interní flow funkce loadAdminSettingsAdmins.
+ */
 async function loadAdminSettingsAdmins(
   state: AdminPanelSceneState,
 ): Promise<AdminStudioAdminMember[]> {
@@ -1367,6 +1590,11 @@ async function loadAdminSettingsAdmins(
   return admins;
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminSettingsAdmins.
+ * en: Internal flow function renderAdminSettingsAdmins.
+ * cz: Interní flow funkce renderAdminSettingsAdmins.
+ */
 async function renderAdminSettingsAdmins(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   const admins = await loadAdminSettingsAdmins(state);
@@ -1388,6 +1616,11 @@ async function renderAdminSettingsAdmins(ctx: MyContext, preferEdit: boolean): P
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminSettingsAdminsInput.
+ * en: Internal flow function renderAdminSettingsAdminsInput.
+ * cz: Interní flow funkce renderAdminSettingsAdminsInput.
+ */
 async function renderAdminSettingsAdminsInput(
   ctx: MyContext,
   action: AdminSettingsAdminsAction,
@@ -1422,6 +1655,11 @@ async function renderAdminSettingsAdminsInput(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminSettingsAdminsConfirm.
+ * en: Internal flow function renderAdminSettingsAdminsConfirm.
+ * cz: Interní flow funkce renderAdminSettingsAdminsConfirm.
+ */
 async function renderAdminSettingsAdminsConfirm(
   ctx: MyContext,
   draft: AdminSettingsAdminsDraft,
@@ -1454,6 +1692,11 @@ async function renderAdminSettingsAdminsConfirm(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція loadAdminStudioSettings.
+ * en: Internal flow function loadAdminStudioSettings.
+ * cz: Interní flow funkce loadAdminStudioSettings.
+ */
 async function loadAdminStudioSettings(
   state: AdminPanelSceneState,
 ): Promise<AdminStudioProfileSettings> {
@@ -1470,6 +1713,11 @@ async function loadAdminStudioSettings(
   return data;
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminSettingsStudioProfile.
+ * en: Internal flow function renderAdminSettingsStudioProfile.
+ * cz: Interní flow funkce renderAdminSettingsStudioProfile.
+ */
 async function renderAdminSettingsStudioProfile(
   ctx: MyContext,
   preferEdit: boolean,
@@ -1494,6 +1742,11 @@ async function renderAdminSettingsStudioProfile(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція parseStudioBlockKeyFromAction.
+ * en: Internal flow function parseStudioBlockKeyFromAction.
+ * cz: Interní flow funkce parseStudioBlockKeyFromAction.
+ */
 function parseStudioBlockKeyFromAction(
   ctx: MyContext,
   language: BotUiLanguage = 'uk',
@@ -1508,6 +1761,11 @@ function parseStudioBlockKeyFromAction(
   return blockKey;
 }
 
+/**
+ * uk: Внутрішня flow-функція normalizeStudioContentDraftInput.
+ * en: Internal flow function normalizeStudioContentDraftInput.
+ * cz: Interní flow funkce normalizeStudioContentDraftInput.
+ */
 function normalizeStudioContentDraftInput(text: string, language: BotUiLanguage = 'uk'): string {
   const normalized = text.trim().replace(/\r/g, '');
   if (normalized.length < 10) {
@@ -1519,6 +1777,11 @@ function normalizeStudioContentDraftInput(text: string, language: BotUiLanguage 
   return normalized;
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminSettingsStudioEditPrompt.
+ * en: Internal flow function renderAdminSettingsStudioEditPrompt.
+ * cz: Interní flow funkce renderAdminSettingsStudioEditPrompt.
+ */
 async function renderAdminSettingsStudioEditPrompt(
   ctx: MyContext,
   blockKey: ContentBlockKey,
@@ -1553,6 +1816,11 @@ async function renderAdminSettingsStudioEditPrompt(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminSettingsStudioEditConfirm.
+ * en: Internal flow function renderAdminSettingsStudioEditConfirm.
+ * cz: Interní flow funkce renderAdminSettingsStudioEditConfirm.
+ */
 async function renderAdminSettingsStudioEditConfirm(
   ctx: MyContext,
   draft: AdminSettingsStudioDraft,
@@ -1578,6 +1846,11 @@ async function renderAdminSettingsStudioEditConfirm(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція loadAdminMastersCatalog.
+ * en: Internal flow function loadAdminMastersCatalog.
+ * cz: Interní flow funkce loadAdminMastersCatalog.
+ */
 async function loadAdminMastersCatalog(state: AdminPanelSceneState): Promise<MasterCatalogItem[]> {
   const studioId = state.access?.studioId;
   if (!studioId) {
@@ -1589,6 +1862,11 @@ async function loadAdminMastersCatalog(state: AdminPanelSceneState): Promise<Mas
   return masters;
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminMastersCatalog.
+ * en: Internal flow function renderAdminMastersCatalog.
+ * cz: Interní flow funkce renderAdminMastersCatalog.
+ */
 async function renderAdminMastersCatalog(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   const masters = await loadAdminMastersCatalog(state);
@@ -1616,6 +1894,11 @@ async function renderAdminMastersCatalog(ctx: MyContext, preferEdit: boolean): P
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminMasterDetails.
+ * en: Internal flow function renderAdminMasterDetails.
+ * cz: Interní flow funkce renderAdminMasterDetails.
+ */
 async function renderAdminMasterDetails(
   ctx: MyContext,
   masterId: string,
@@ -1658,6 +1941,11 @@ async function renderAdminMasterDetails(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminMasterDeleteInput.
+ * en: Internal flow function renderAdminMasterDeleteInput.
+ * cz: Interní flow funkce renderAdminMasterDeleteInput.
+ */
 async function renderAdminMasterDeleteInput(
   ctx: MyContext,
   preferEdit: boolean,
@@ -1692,6 +1980,11 @@ async function renderAdminMasterDeleteInput(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminMasterDeleteConfirm.
+ * en: Internal flow function renderAdminMasterDeleteConfirm.
+ * cz: Interní flow funkce renderAdminMasterDeleteConfirm.
+ */
 async function renderAdminMasterDeleteConfirm(
   ctx: MyContext,
   draft: AdminMasterDeleteDraft,
@@ -1717,6 +2010,11 @@ async function renderAdminMasterDeleteConfirm(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція ensureAdminMasterEditableAccess.
+ * en: Internal flow function ensureAdminMasterEditableAccess.
+ * cz: Interní flow funkce ensureAdminMasterEditableAccess.
+ */
 async function ensureAdminMasterEditableAccess(
   state: AdminPanelSceneState,
   masterId: string,
@@ -1734,10 +2032,20 @@ async function ensureAdminMasterEditableAccess(
   return details;
 }
 
+/**
+ * uk: Внутрішня flow-функція formatAdminMasterDateForText.
+ * en: Internal flow function formatAdminMasterDateForText.
+ * cz: Interní flow funkce formatAdminMasterDateForText.
+ */
 function formatAdminMasterDateForText(value: Date | null, language: BotUiLanguage): string {
   return value ? formatDateLabel(value) : tBot(language, 'ADMIN_PANEL_MASTERS_LABEL_NOT_SPECIFIED');
 }
 
+/**
+ * uk: Внутрішня flow-функція resolveAdminMasterEditableCurrentValue.
+ * en: Internal flow function resolveAdminMasterEditableCurrentValue.
+ * cz: Interní flow funkce resolveAdminMasterEditableCurrentValue.
+ */
 async function resolveAdminMasterEditableCurrentValue(
   masterId: string,
   field: AdminMasterEditableField,
@@ -1767,6 +2075,11 @@ async function resolveAdminMasterEditableCurrentValue(
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція normalizeAdminMasterFieldValue.
+ * en: Internal flow function normalizeAdminMasterFieldValue.
+ * cz: Interní flow funkce normalizeAdminMasterFieldValue.
+ */
 function normalizeAdminMasterFieldValue(
   field: AdminMasterEditableField,
   value: string,
@@ -1795,6 +2108,11 @@ function normalizeAdminMasterFieldValue(
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція persistAdminMasterFieldValue.
+ * en: Internal flow function persistAdminMasterFieldValue.
+ * cz: Interní flow funkce persistAdminMasterFieldValue.
+ */
 async function persistAdminMasterFieldValue(
   masterId: string,
   field: AdminMasterEditableField,
@@ -1831,6 +2149,11 @@ async function persistAdminMasterFieldValue(
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція parseAdminMasterEditFieldAction.
+ * en: Internal flow function parseAdminMasterEditFieldAction.
+ * cz: Interní flow funkce parseAdminMasterEditFieldAction.
+ */
 function parseAdminMasterEditFieldAction(ctx: MyContext): {
   masterId: string;
   field: AdminMasterEditableField;
@@ -1849,8 +2172,14 @@ function parseAdminMasterEditFieldAction(ctx: MyContext): {
   return { masterId, field };
 }
 
+// uk: Flow/UI константа MASTER_CREATE_WEEKDAYS / en: Flow/UI constant MASTER_CREATE_WEEKDAYS / cz: Flow/UI konstanta MASTER_CREATE_WEEKDAYS
 const MASTER_CREATE_WEEKDAYS = [1, 2, 3, 4, 5, 6, 7] as const;
 
+/**
+ * uk: Внутрішня flow-функція getDefaultMasterCreateScheduleDays.
+ * en: Internal flow function getDefaultMasterCreateScheduleDays.
+ * cz: Interní flow funkce getDefaultMasterCreateScheduleDays.
+ */
 function getDefaultMasterCreateScheduleDays(): AdminMasterCreateScheduleDayInput[] {
   return MASTER_CREATE_WEEKDAYS.map((weekday) => ({
     weekday,
@@ -1860,6 +2189,11 @@ function getDefaultMasterCreateScheduleDays(): AdminMasterCreateScheduleDayInput
   }));
 }
 
+/**
+ * uk: Внутрішня flow-функція normalizeAdminMasterCreateExperienceInput.
+ * en: Internal flow function normalizeAdminMasterCreateExperienceInput.
+ * cz: Interní flow funkce normalizeAdminMasterCreateExperienceInput.
+ */
 function normalizeAdminMasterCreateExperienceInput(value: string, language: BotUiLanguage): number {
   const normalized = value.trim();
   if (!/^\d+$/.test(normalized)) {
@@ -1874,6 +2208,11 @@ function normalizeAdminMasterCreateExperienceInput(value: string, language: BotU
   return parsed;
 }
 
+/**
+ * uk: Внутрішня flow-функція normalizeAdminMasterCreateTelegramIdInput.
+ * en: Internal flow function normalizeAdminMasterCreateTelegramIdInput.
+ * cz: Interní flow funkce normalizeAdminMasterCreateTelegramIdInput.
+ */
 function normalizeAdminMasterCreateTelegramIdInput(value: string, language: BotUiLanguage): string {
   const normalized = value.trim();
   if (!/^\d{5,15}$/.test(normalized)) {
@@ -1882,6 +2221,11 @@ function normalizeAdminMasterCreateTelegramIdInput(value: string, language: BotU
   return normalized;
 }
 
+/**
+ * uk: Внутрішня flow-функція toMasterCreateScheduleViewDays.
+ * en: Internal flow function toMasterCreateScheduleViewDays.
+ * cz: Interní flow funkce toMasterCreateScheduleViewDays.
+ */
 function toMasterCreateScheduleViewDays(
   scheduleDays: AdminMasterCreateScheduleDayInput[],
 ): AdminMasterCreateScheduleDayView[] {
@@ -1893,6 +2237,11 @@ function toMasterCreateScheduleViewDays(
   }));
 }
 
+/**
+ * uk: Внутрішня flow-функція upsertMasterCreateScheduleDay.
+ * en: Internal flow function upsertMasterCreateScheduleDay.
+ * cz: Interní flow funkce upsertMasterCreateScheduleDay.
+ */
 function upsertMasterCreateScheduleDay(
   days: AdminMasterCreateScheduleDayInput[],
   day: AdminMasterCreateScheduleDayInput,
@@ -1901,6 +2250,11 @@ function upsertMasterCreateScheduleDay(
   return [...filtered, day].sort((a, b) => a.weekday - b.weekday);
 }
 
+/**
+ * uk: Внутрішня flow-функція isMasterCreateScheduleReady.
+ * en: Internal flow function isMasterCreateScheduleReady.
+ * cz: Interní flow funkce isMasterCreateScheduleReady.
+ */
 function isMasterCreateScheduleReady(days: AdminMasterCreateScheduleDayInput[]): boolean {
   if (days.length !== 7) return false;
   const unique = new Set(days.map((day) => day.weekday));
@@ -1909,6 +2263,11 @@ function isMasterCreateScheduleReady(days: AdminMasterCreateScheduleDayInput[]):
   return days.some((day) => day.isWorking && !!day.openTime && !!day.closeTime);
 }
 
+/**
+ * uk: Внутрішня flow-функція buildAdminMasterCreateConfirmData.
+ * en: Internal flow function buildAdminMasterCreateConfirmData.
+ * cz: Interní flow funkce buildAdminMasterCreateConfirmData.
+ */
 function buildAdminMasterCreateConfirmData(
   draft: AdminMasterCreateDraft,
   language: BotUiLanguage,
@@ -1948,6 +2307,11 @@ function buildAdminMasterCreateConfirmData(
   };
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminMasterCreateStart.
+ * en: Internal flow function renderAdminMasterCreateStart.
+ * cz: Interní flow funkce renderAdminMasterCreateStart.
+ */
 async function renderAdminMasterCreateStart(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   const studioId = state.access?.studioId;
@@ -1995,6 +2359,11 @@ async function renderAdminMasterCreateStart(ctx: MyContext, preferEdit: boolean)
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminMasterCreateTextStep.
+ * en: Internal flow function renderAdminMasterCreateTextStep.
+ * cz: Interní flow funkce renderAdminMasterCreateTextStep.
+ */
 async function renderAdminMasterCreateTextStep(
   ctx: MyContext,
   draft: AdminMasterCreateDraft,
@@ -2069,6 +2438,11 @@ async function renderAdminMasterCreateTextStep(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminMasterCreateServicesStep.
+ * en: Internal flow function renderAdminMasterCreateServicesStep.
+ * cz: Interní flow funkce renderAdminMasterCreateServicesStep.
+ */
 async function renderAdminMasterCreateServicesStep(
   ctx: MyContext,
   draft: AdminMasterCreateDraft,
@@ -2099,6 +2473,11 @@ async function renderAdminMasterCreateServicesStep(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminMasterCreateSchedulePickStep.
+ * en: Internal flow function renderAdminMasterCreateSchedulePickStep.
+ * cz: Interní flow funkce renderAdminMasterCreateSchedulePickStep.
+ */
 async function renderAdminMasterCreateSchedulePickStep(
   ctx: MyContext,
   draft: AdminMasterCreateDraft,
@@ -2127,6 +2506,11 @@ async function renderAdminMasterCreateSchedulePickStep(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminMasterCreateConfirmStep.
+ * en: Internal flow function renderAdminMasterCreateConfirmStep.
+ * cz: Interní flow funkce renderAdminMasterCreateConfirmStep.
+ */
 async function renderAdminMasterCreateConfirmStep(
   ctx: MyContext,
   draft: AdminMasterCreateDraft,
@@ -2149,6 +2533,11 @@ async function renderAdminMasterCreateConfirmStep(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminMasterEditMenu.
+ * en: Internal flow function renderAdminMasterEditMenu.
+ * cz: Interní flow funkce renderAdminMasterEditMenu.
+ */
 async function renderAdminMasterEditMenu(
   ctx: MyContext,
   masterId: string,
@@ -2178,6 +2567,11 @@ async function renderAdminMasterEditMenu(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminMasterEditInput.
+ * en: Internal flow function renderAdminMasterEditInput.
+ * cz: Interní flow funkce renderAdminMasterEditInput.
+ */
 async function renderAdminMasterEditInput(
   ctx: MyContext,
   masterId: string,
@@ -2216,6 +2610,11 @@ async function renderAdminMasterEditInput(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminMasterEditConfirm.
+ * en: Internal flow function renderAdminMasterEditConfirm.
+ * cz: Interní flow funkce renderAdminMasterEditConfirm.
+ */
 async function renderAdminMasterEditConfirm(
   ctx: MyContext,
   draft: AdminMasterEditDraft,
@@ -2243,6 +2642,11 @@ async function renderAdminMasterEditConfirm(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminMasterEditServicesMenu.
+ * en: Internal flow function renderAdminMasterEditServicesMenu.
+ * cz: Interní flow funkce renderAdminMasterEditServicesMenu.
+ */
 async function renderAdminMasterEditServicesMenu(
   ctx: MyContext,
   masterId: string,
@@ -2283,6 +2687,11 @@ async function renderAdminMasterEditServicesMenu(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminMasterEditServicesAddCandidates.
+ * en: Internal flow function renderAdminMasterEditServicesAddCandidates.
+ * cz: Interní flow funkce renderAdminMasterEditServicesAddCandidates.
+ */
 async function renderAdminMasterEditServicesAddCandidates(
   ctx: MyContext,
   masterId: string,
@@ -2323,6 +2732,11 @@ async function renderAdminMasterEditServicesAddCandidates(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminMasterEditServicesRemoveCandidates.
+ * en: Internal flow function renderAdminMasterEditServicesRemoveCandidates.
+ * cz: Interní flow funkce renderAdminMasterEditServicesRemoveCandidates.
+ */
 async function renderAdminMasterEditServicesRemoveCandidates(
   ctx: MyContext,
   masterId: string,
@@ -2363,6 +2777,11 @@ async function renderAdminMasterEditServicesRemoveCandidates(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminMasterBookingsList.
+ * en: Internal flow function renderAdminMasterBookingsList.
+ * cz: Interní flow funkce renderAdminMasterBookingsList.
+ */
 async function renderAdminMasterBookingsList(
   ctx: MyContext,
   masterId: string,
@@ -2414,6 +2833,11 @@ async function renderAdminMasterBookingsList(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminMasterBookingCard.
+ * en: Internal flow function renderAdminMasterBookingCard.
+ * cz: Interní flow funkce renderAdminMasterBookingCard.
+ */
 async function renderAdminMasterBookingCard(
   ctx: MyContext,
   masterId: string,
@@ -2461,6 +2885,11 @@ async function renderAdminMasterBookingCard(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція loadAdminServicesCatalog.
+ * en: Internal flow function loadAdminServicesCatalog.
+ * cz: Interní flow funkce loadAdminServicesCatalog.
+ */
 async function loadAdminServicesCatalog(state: AdminPanelSceneState): Promise<ServicesCatalogItem[]> {
   const studioId = state.access?.studioId;
   if (!studioId) {
@@ -2472,6 +2901,11 @@ async function loadAdminServicesCatalog(state: AdminPanelSceneState): Promise<Se
   return services;
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminServicesCatalog.
+ * en: Internal flow function renderAdminServicesCatalog.
+ * cz: Interní flow funkce renderAdminServicesCatalog.
+ */
 async function renderAdminServicesCatalog(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   const services = await loadAdminServicesCatalog(state);
@@ -2495,6 +2929,11 @@ async function renderAdminServicesCatalog(ctx: MyContext, preferEdit: boolean): 
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminServiceDetails.
+ * en: Internal flow function renderAdminServiceDetails.
+ * cz: Interní flow funkce renderAdminServiceDetails.
+ */
 async function renderAdminServiceDetails(
   ctx: MyContext,
   serviceId: string,
@@ -2533,6 +2972,11 @@ async function renderAdminServiceDetails(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminServiceEditMenu.
+ * en: Internal flow function renderAdminServiceEditMenu.
+ * cz: Interní flow funkce renderAdminServiceEditMenu.
+ */
 async function renderAdminServiceEditMenu(
   ctx: MyContext,
   serviceId: string,
@@ -2635,6 +3079,11 @@ async function renderAdminServiceEditMenu(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція createEmptyAdminServiceCreateDraft.
+ * en: Internal flow function createEmptyAdminServiceCreateDraft.
+ * cz: Interní flow funkce createEmptyAdminServiceCreateDraft.
+ */
 function createEmptyAdminServiceCreateDraft(): AdminServiceCreateDraft {
   return {
     mode: 'awaiting_name',
@@ -2651,6 +3100,11 @@ function createEmptyAdminServiceCreateDraft(): AdminServiceCreateDraft {
   };
 }
 
+/**
+ * uk: Внутрішня flow-функція startAdminServiceCreate.
+ * en: Internal flow function startAdminServiceCreate.
+ * cz: Interní flow funkce startAdminServiceCreate.
+ */
 async function startAdminServiceCreate(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   state.servicesCurrentSection = 'create';
@@ -2673,6 +3127,11 @@ async function startAdminServiceCreate(ctx: MyContext, preferEdit: boolean): Pro
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminStatsOverview.
+ * en: Internal flow function renderAdminStatsOverview.
+ * cz: Interní flow funkce renderAdminStatsOverview.
+ */
 async function renderAdminStatsOverview(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   const studioId = state.access?.studioId;
@@ -2705,6 +3164,11 @@ async function renderAdminStatsOverview(ctx: MyContext, preferEdit: boolean): Pr
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminStatsMastersList.
+ * en: Internal flow function renderAdminStatsMastersList.
+ * cz: Interní flow funkce renderAdminStatsMastersList.
+ */
 async function renderAdminStatsMastersList(
   ctx: MyContext,
   offset: number,
@@ -2749,6 +3213,11 @@ async function renderAdminStatsMastersList(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminStatsMasterDetails.
+ * en: Internal flow function renderAdminStatsMasterDetails.
+ * cz: Interní flow funkce renderAdminStatsMasterDetails.
+ */
 async function renderAdminStatsMasterDetails(
   ctx: MyContext,
   masterId: string,
@@ -2788,6 +3257,11 @@ async function renderAdminStatsMasterDetails(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminStatsServicesList.
+ * en: Internal flow function renderAdminStatsServicesList.
+ * cz: Interní flow funkce renderAdminStatsServicesList.
+ */
 async function renderAdminStatsServicesList(
   ctx: MyContext,
   offset: number,
@@ -2832,6 +3306,11 @@ async function renderAdminStatsServicesList(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminStatsServiceDetails.
+ * en: Internal flow function renderAdminStatsServiceDetails.
+ * cz: Interní flow funkce renderAdminStatsServiceDetails.
+ */
 async function renderAdminStatsServiceDetails(
   ctx: MyContext,
   serviceId: string,
@@ -2871,6 +3350,11 @@ async function renderAdminStatsServiceDetails(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminStatsMonthlyList.
+ * en: Internal flow function renderAdminStatsMonthlyList.
+ * cz: Interní flow funkce renderAdminStatsMonthlyList.
+ */
 async function renderAdminStatsMonthlyList(
   ctx: MyContext,
   offset: number,
@@ -2914,6 +3398,11 @@ async function renderAdminStatsMonthlyList(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminStatsMonthlyReportDetails.
+ * en: Internal flow function renderAdminStatsMonthlyReportDetails.
+ * cz: Interní flow funkce renderAdminStatsMonthlyReportDetails.
+ */
 async function renderAdminStatsMonthlyReportDetails(
   ctx: MyContext,
   monthCode: string,
@@ -2952,6 +3441,11 @@ async function renderAdminStatsMonthlyReportDetails(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminStatsClientsList.
+ * en: Internal flow function renderAdminStatsClientsList.
+ * cz: Interní flow funkce renderAdminStatsClientsList.
+ */
 async function renderAdminStatsClientsList(
   ctx: MyContext,
   offset: number,
@@ -2995,6 +3489,11 @@ async function renderAdminStatsClientsList(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminStatsClientDetails.
+ * en: Internal flow function renderAdminStatsClientDetails.
+ * cz: Interní flow funkce renderAdminStatsClientDetails.
+ */
 async function renderAdminStatsClientDetails(
   ctx: MyContext,
   clientId: string,
@@ -3033,6 +3532,11 @@ async function renderAdminStatsClientDetails(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderRecordsCategoryStub.
+ * en: Internal flow function renderRecordsCategoryStub.
+ * cz: Interní flow funkce renderRecordsCategoryStub.
+ */
 async function renderRecordsCategoryStub(
   ctx: MyContext,
   category: AdminBookingsCategory,
@@ -3068,6 +3572,11 @@ async function renderRecordsCategoryStub(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція replyAdminSuccess.
+ * en: Internal flow function replyAdminSuccess.
+ * cz: Interní flow funkce replyAdminSuccess.
+ */
 async function replyAdminSuccess(
   ctx: MyContext,
   message: string,
@@ -3077,6 +3586,11 @@ async function replyAdminSuccess(
   await ctx.reply(`✅ ${localizeAdminMessage(message, language)}`, extra);
 }
 
+/**
+ * uk: Внутрішня flow-функція replyAdminWarning.
+ * en: Internal flow function replyAdminWarning.
+ * cz: Interní flow funkce replyAdminWarning.
+ */
 async function replyAdminWarning(
   ctx: MyContext,
   message: string,
@@ -3086,6 +3600,11 @@ async function replyAdminWarning(
   await ctx.reply(`⚠️ ${localizeAdminMessage(message, language)}`, extra);
 }
 
+/**
+ * uk: Внутрішня flow-функція replyAdminInfo.
+ * en: Internal flow function replyAdminInfo.
+ * cz: Interní flow funkce replyAdminInfo.
+ */
 async function replyAdminInfo(
   ctx: MyContext,
   message: string,
@@ -3095,11 +3614,21 @@ async function replyAdminInfo(
   await ctx.reply(`ℹ️ ${localizeAdminMessage(message, language)}`, extra);
 }
 
+/**
+ * uk: Внутрішня flow-функція resolveAdminUiLanguage.
+ * en: Internal flow function resolveAdminUiLanguage.
+ * cz: Interní flow funkce resolveAdminUiLanguage.
+ */
 function resolveAdminUiLanguage(ctx: MyContext): BotUiLanguage {
   const state = (ctx.wizard?.state ?? {}) as Partial<AdminPanelSceneState>;
   return state.language ?? 'uk';
 }
 
+/**
+ * uk: Внутрішня flow-функція localizeAdminMessage.
+ * en: Internal flow function localizeAdminMessage.
+ * cz: Interní flow funkce localizeAdminMessage.
+ */
 function localizeAdminMessage(message: string, language: BotUiLanguage): string {
   const normalized = message.trim();
   if (!normalized) return message;
@@ -3127,6 +3656,11 @@ function localizeAdminMessage(message: string, language: BotUiLanguage): string 
   return message;
 }
 
+/**
+ * uk: Внутрішня flow-функція getAdminActorMeta.
+ * en: Internal flow function getAdminActorMeta.
+ * cz: Interní flow funkce getAdminActorMeta.
+ */
 function getAdminActorMeta(ctx: MyContext, access?: AdminPanelAccess | null): Record<string, unknown> {
   return {
     adminUserId: access?.userId ?? null,
@@ -3138,6 +3672,11 @@ function getAdminActorMeta(ctx: MyContext, access?: AdminPanelAccess | null): Re
   };
 }
 
+/**
+ * uk: Внутрішня flow-функція logAdminCriticalAction.
+ * en: Internal flow function logAdminCriticalAction.
+ * cz: Interní flow funkce logAdminCriticalAction.
+ */
 function logAdminCriticalAction(
   ctx: MyContext,
   action: string,
@@ -3150,6 +3689,11 @@ function logAdminCriticalAction(
   });
 }
 
+/**
+ * uk: Внутрішня flow-функція parseAppointmentIdFromAction.
+ * en: Internal flow function parseAppointmentIdFromAction.
+ * cz: Interní flow funkce parseAppointmentIdFromAction.
+ */
 function parseAppointmentIdFromAction(
   ctx: MyContext,
   regex: RegExp,
@@ -3166,6 +3710,11 @@ function parseAppointmentIdFromAction(
   return appointmentId;
 }
 
+/**
+ * uk: Внутрішня flow-функція parseNumericIdFromAction.
+ * en: Internal flow function parseNumericIdFromAction.
+ * cz: Interní flow funkce parseNumericIdFromAction.
+ */
 function parseNumericIdFromAction(
   ctx: MyContext,
   regex: RegExp,
@@ -3186,6 +3735,11 @@ function parseNumericIdFromAction(
   return id;
 }
 
+/**
+ * uk: Внутрішня flow-функція parseWeekdayFromAction.
+ * en: Internal flow function parseWeekdayFromAction.
+ * cz: Interní flow funkce parseWeekdayFromAction.
+ */
 function parseWeekdayFromAction(
   ctx: MyContext,
   regex: RegExp,
@@ -3203,6 +3757,11 @@ function parseWeekdayFromAction(
   return weekday;
 }
 
+/**
+ * uk: Внутрішня flow-функція parseMonthCodeFromAction.
+ * en: Internal flow function parseMonthCodeFromAction.
+ * cz: Interní flow funkce parseMonthCodeFromAction.
+ */
 function parseMonthCodeFromAction(
   ctx: MyContext,
   regex: RegExp,
@@ -3220,6 +3779,11 @@ function parseMonthCodeFromAction(
   return monthCode;
 }
 
+/**
+ * uk: Внутрішня flow-функція resolveAdminRecordById.
+ * en: Internal flow function resolveAdminRecordById.
+ * cz: Interní flow funkce resolveAdminRecordById.
+ */
 async function resolveAdminRecordById(
   state: AdminPanelSceneState,
   appointmentId: string,
@@ -3237,6 +3801,11 @@ async function resolveAdminRecordById(
   });
 }
 
+/**
+ * uk: Внутрішня flow-функція tryParseAppointmentIdFromAction.
+ * en: Internal flow function tryParseAppointmentIdFromAction.
+ * cz: Interní flow funkce tryParseAppointmentIdFromAction.
+ */
 function tryParseAppointmentIdFromAction(ctx: MyContext, regex: RegExp): string | null {
   const callbackData =
     ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
@@ -3248,6 +3817,11 @@ function tryParseAppointmentIdFromAction(ctx: MyContext, regex: RegExp): string 
   return appointmentId;
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminBookingCard.
+ * en: Internal flow function renderAdminBookingCard.
+ * cz: Interní flow funkce renderAdminBookingCard.
+ */
 async function renderAdminBookingCard(ctx: MyContext, item: AdminBookingItem): Promise<void> {
   try {
     const state = getSceneState(ctx);
@@ -3278,6 +3852,11 @@ async function renderAdminBookingCard(ctx: MyContext, item: AdminBookingItem): P
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminBookingClientContact.
+ * en: Internal flow function renderAdminBookingClientContact.
+ * cz: Interní flow funkce renderAdminBookingClientContact.
+ */
 async function renderAdminBookingClientContact(
   ctx: MyContext,
   item: AdminBookingItem,
@@ -3299,6 +3878,11 @@ async function renderAdminBookingClientContact(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminBookingClientProfile.
+ * en: Internal flow function renderAdminBookingClientProfile.
+ * cz: Interní flow funkce renderAdminBookingClientProfile.
+ */
 async function renderAdminBookingClientProfile(
   ctx: MyContext,
   item: AdminBookingItem,
@@ -3320,6 +3904,11 @@ async function renderAdminBookingClientProfile(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminBookingMasterProfile.
+ * en: Internal flow function renderAdminBookingMasterProfile.
+ * cz: Interní flow funkce renderAdminBookingMasterProfile.
+ */
 async function renderAdminBookingMasterProfile(
   ctx: MyContext,
   item: AdminBookingItem,
@@ -3356,6 +3945,11 @@ async function renderAdminBookingMasterProfile(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція resolveNextPendingBooking.
+ * en: Internal flow function resolveNextPendingBooking.
+ * cz: Interní flow funkce resolveNextPendingBooking.
+ */
 async function resolveNextPendingBooking(
   state: AdminPanelSceneState,
   currentAppointmentId: string,
@@ -3377,6 +3971,11 @@ async function resolveNextPendingBooking(
   return pending.items.find((item) => item.appointmentId !== currentAppointmentId) ?? null;
 }
 
+/**
+ * uk: Внутрішня flow-функція renderRecordsFallback.
+ * en: Internal flow function renderRecordsFallback.
+ * cz: Interní flow funkce renderRecordsFallback.
+ */
 async function renderRecordsFallback(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   if (state.recordsFeed) {
@@ -3387,6 +3986,11 @@ async function renderRecordsFallback(ctx: MyContext, preferEdit: boolean): Promi
   await renderRecordsMenu(ctx);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminCancelBookingConfirm.
+ * en: Internal flow function renderAdminCancelBookingConfirm.
+ * cz: Interní flow funkce renderAdminCancelBookingConfirm.
+ */
 async function renderAdminCancelBookingConfirm(ctx: MyContext, item: AdminBookingItem): Promise<void> {
   const language = getSceneState(ctx).language;
   const text = formatAdminCancelBookingConfirmText(item, language);
@@ -3399,6 +4003,11 @@ async function renderAdminCancelBookingConfirm(ctx: MyContext, item: AdminBookin
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminHardDeleteBookingConfirm.
+ * en: Internal flow function renderAdminHardDeleteBookingConfirm.
+ * cz: Interní flow funkce renderAdminHardDeleteBookingConfirm.
+ */
 async function renderAdminHardDeleteBookingConfirm(
   ctx: MyContext,
   item: AdminBookingItem,
@@ -3414,6 +4023,11 @@ async function renderAdminHardDeleteBookingConfirm(
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція renderAdminClearCanceledConfirm.
+ * en: Internal flow function renderAdminClearCanceledConfirm.
+ * cz: Interní flow funkce renderAdminClearCanceledConfirm.
+ */
 async function renderAdminClearCanceledConfirm(
   ctx: MyContext,
   total: number,
@@ -3435,6 +4049,11 @@ async function renderAdminClearCanceledConfirm(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderRecordsCategoryWithOffsetFallback.
+ * en: Internal flow function renderRecordsCategoryWithOffsetFallback.
+ * cz: Interní flow funkce renderRecordsCategoryWithOffsetFallback.
+ */
 async function renderRecordsCategoryWithOffsetFallback(
   ctx: MyContext,
   category: AdminBookingsCategory,
@@ -3451,6 +4070,11 @@ async function renderRecordsCategoryWithOffsetFallback(
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція resolveRescheduleTargetItem.
+ * en: Internal flow function resolveRescheduleTargetItem.
+ * cz: Interní flow funkce resolveRescheduleTargetItem.
+ */
 async function resolveRescheduleTargetItem(state: AdminPanelSceneState): Promise<AdminBookingItem | null> {
   const appointmentId = state.recordsRescheduleDraft?.appointmentId;
   if (!appointmentId) return null;
@@ -3458,6 +4082,11 @@ async function resolveRescheduleTargetItem(state: AdminPanelSceneState): Promise
   return resolveAdminRecordById(state, appointmentId);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderRescheduleDateStep.
+ * en: Internal flow function renderRescheduleDateStep.
+ * cz: Interní flow funkce renderRescheduleDateStep.
+ */
 async function renderRescheduleDateStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   const item = await resolveRescheduleTargetItem(state);
@@ -3481,6 +4110,11 @@ async function renderRescheduleDateStep(ctx: MyContext, preferEdit: boolean): Pr
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція renderRescheduleTimeStep.
+ * en: Internal flow function renderRescheduleTimeStep.
+ * cz: Interní flow funkce renderRescheduleTimeStep.
+ */
 async function renderRescheduleTimeStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   const draft = state.recordsRescheduleDraft;
@@ -3509,6 +4143,11 @@ async function renderRescheduleTimeStep(ctx: MyContext, preferEdit: boolean): Pr
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція renderRescheduleConfirmStep.
+ * en: Internal flow function renderRescheduleConfirmStep.
+ * cz: Interní flow funkce renderRescheduleConfirmStep.
+ */
 async function renderRescheduleConfirmStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   const draft = state.recordsRescheduleDraft;
@@ -3547,6 +4186,11 @@ async function renderRescheduleConfirmStep(ctx: MyContext, preferEdit: boolean):
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція loadChangeMasterCandidates.
+ * en: Internal flow function loadChangeMasterCandidates.
+ * cz: Interní flow funkce loadChangeMasterCandidates.
+ */
 async function loadChangeMasterCandidates(item: AdminBookingItem): Promise<MasterBookingOption[]> {
   const candidates = await listActiveMastersByService({
     studioId: item.studioId,
@@ -3557,6 +4201,11 @@ async function loadChangeMasterCandidates(item: AdminBookingItem): Promise<Maste
   return candidates.filter((candidate) => candidate.masterId !== item.masterId);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderChangeMasterSelectStep.
+ * en: Internal flow function renderChangeMasterSelectStep.
+ * cz: Interní flow funkce renderChangeMasterSelectStep.
+ */
 async function renderChangeMasterSelectStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   const draft = state.recordsChangeMasterDraft;
@@ -3585,6 +4234,11 @@ async function renderChangeMasterSelectStep(ctx: MyContext, preferEdit: boolean)
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція renderChangeMasterConfirmStep.
+ * en: Internal flow function renderChangeMasterConfirmStep.
+ * cz: Interní flow funkce renderChangeMasterConfirmStep.
+ */
 async function renderChangeMasterConfirmStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   const draft = state.recordsChangeMasterDraft;
@@ -3613,6 +4267,11 @@ async function renderChangeMasterConfirmStep(ctx: MyContext, preferEdit: boolean
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція notifyAdminConfirmedBooking.
+ * en: Internal flow function notifyAdminConfirmedBooking.
+ * cz: Interní flow funkce notifyAdminConfirmedBooking.
+ */
 async function notifyAdminConfirmedBooking(
   item: AdminBookingItem,
   _language: BotUiLanguage,
@@ -3654,6 +4313,11 @@ async function notifyAdminConfirmedBooking(
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція notifyAdminCanceledBooking.
+ * en: Internal flow function notifyAdminCanceledBooking.
+ * cz: Interní flow funkce notifyAdminCanceledBooking.
+ */
 async function notifyAdminCanceledBooking(
   item: AdminBookingItem,
   _language: BotUiLanguage,
@@ -3696,6 +4360,11 @@ async function notifyAdminCanceledBooking(
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція notifyAdminRescheduledBooking.
+ * en: Internal flow function notifyAdminRescheduledBooking.
+ * cz: Interní flow funkce notifyAdminRescheduledBooking.
+ */
 async function notifyAdminRescheduledBooking(
   result: RescheduleAdminBookingResult,
   _language: BotUiLanguage,
@@ -3738,6 +4407,11 @@ async function notifyAdminRescheduledBooking(
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція notifyAdminMasterChangedBooking.
+ * en: Internal flow function notifyAdminMasterChangedBooking.
+ * cz: Interní flow funkce notifyAdminMasterChangedBooking.
+ */
 async function notifyAdminMasterChangedBooking(
   previous: AdminBookingItem,
   current: AdminBookingItem,
@@ -3781,6 +4455,11 @@ async function notifyAdminMasterChangedBooking(
   }
 }
 
+/**
+ * uk: Публічна flow-функція createAdminPanelScene.
+ * en: Public flow function createAdminPanelScene.
+ * cz: Veřejná flow funkce createAdminPanelScene.
+ */
 export function createAdminPanelScene(): Scenes.WizardScene<MyContext> {
   const scene = new Scenes.WizardScene<MyContext>(
     ADMIN_PANEL_SCENE_ID,

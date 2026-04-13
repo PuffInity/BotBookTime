@@ -27,6 +27,7 @@ import {
  * @summary Scene для перегляду каталогу послуг і картки конкретної послуги.
  */
 
+// uk: Flow/UI константа SERVICES_SCENE_ID / en: Flow/UI constant SERVICES_SCENE_ID / cz: Flow/UI konstanta SERVICES_SCENE_ID
 export const SERVICES_SCENE_ID = 'services-scene';
 
 type ServicesSceneState = {
@@ -34,16 +35,31 @@ type ServicesSceneState = {
   language: BotUiLanguage;
 };
 
+/**
+ * uk: Внутрішня flow-функція getSceneState.
+ * en: Internal flow function getSceneState.
+ * cz: Interní flow funkce getSceneState.
+ */
 function getSceneState(ctx: MyContext): ServicesSceneState {
   return ctx.wizard.state as ServicesSceneState;
 }
 
+/**
+ * uk: Внутрішня flow-функція getMessageText.
+ * en: Internal flow function getMessageText.
+ * cz: Interní flow funkce getMessageText.
+ */
 function getMessageText(ctx: MyContext): string | null {
   if (!ctx.message) return null;
   if (!('text' in ctx.message)) return null;
   return ctx.message.text.trim();
 }
 
+/**
+ * uk: Внутрішня flow-функція renderView.
+ * en: Internal flow function renderView.
+ * cz: Interní flow funkce renderView.
+ */
 async function renderView(
   ctx: MyContext,
   text: string,
@@ -62,6 +78,11 @@ async function renderView(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderCatalog.
+ * en: Internal flow function renderCatalog.
+ * cz: Interní flow funkce renderCatalog.
+ */
 async function renderCatalog(
   ctx: MyContext,
   services: ServicesCatalogItem[],
@@ -76,6 +97,11 @@ async function renderCatalog(
   );
 }
 
+/**
+ * uk: Внутрішня flow-функція loadAndRenderCatalog.
+ * en: Internal flow function loadAndRenderCatalog.
+ * cz: Interní flow funkce loadAndRenderCatalog.
+ */
 async function loadAndRenderCatalog(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   const servicesRaw = await listActiveServicesCatalog({ studioId: state.studioId });
@@ -83,6 +109,11 @@ async function loadAndRenderCatalog(ctx: MyContext, preferEdit: boolean): Promis
   await renderCatalog(ctx, services, preferEdit);
 }
 
+/**
+ * uk: Публічна flow-функція createServicesScene.
+ * en: Public flow function createServicesScene.
+ * cz: Veřejná flow funkce createServicesScene.
+ */
 export function createServicesScene(): Scenes.WizardScene<MyContext> {
   const scene = new Scenes.WizardScene<MyContext>(
     SERVICES_SCENE_ID,

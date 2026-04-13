@@ -31,27 +31,48 @@ import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
  * @summary Scene for phone verification with OTP in profile settings.
  */
 
+// uk: Flow/UI константа PROFILE_PHONE_VERIFY_SCENE_ID / en: Flow/UI constant PROFILE_PHONE_VERIFY_SCENE_ID / cz: Flow/UI konstanta PROFILE_PHONE_VERIFY_SCENE_ID
 export const PROFILE_PHONE_VERIFY_SCENE_ID = 'profile-phone-verify-scene';
 
 type ProfilePhoneVerifySceneState = {
   language: BotUiLanguage;
 };
 
+/**
+ * uk: Внутрішня flow-функція getSceneState.
+ * en: Internal flow function getSceneState.
+ * cz: Interní flow funkce getSceneState.
+ */
 function getSceneState(ctx: MyContext): ProfilePhoneVerifySceneState {
   return ctx.wizard.state as ProfilePhoneVerifySceneState;
 }
 
+/**
+ * uk: Внутрішня flow-функція getMessageText.
+ * en: Internal flow function getMessageText.
+ * cz: Interní flow funkce getMessageText.
+ */
 function getMessageText(ctx: MyContext): string | null {
   if (!ctx.message) return null;
   if (!('text' in ctx.message)) return null;
   return ctx.message.text.trim();
 }
 
+/**
+ * uk: Внутрішня flow-функція sendFreshProfileCard.
+ * en: Internal flow function sendFreshProfileCard.
+ * cz: Interní flow funkce sendFreshProfileCard.
+ */
 async function sendFreshProfileCard(ctx: MyContext): Promise<void> {
   const user = await getOrCreateUser(ctx);
   await sendProfileCard(ctx, user);
 }
 
+/**
+ * uk: Внутрішня flow-функція handlePhoneResendByTelegramId.
+ * en: Internal flow function handlePhoneResendByTelegramId.
+ * cz: Interní flow funkce handlePhoneResendByTelegramId.
+ */
 async function handlePhoneResendByTelegramId(
   ctx: MyContext,
   telegramId: number,
@@ -93,6 +114,11 @@ async function handlePhoneResendByTelegramId(
   );
 }
 
+/**
+ * uk: Публічна flow-функція createProfilePhoneVerifyScene.
+ * en: Public flow function createProfilePhoneVerifyScene.
+ * cz: Veřejná flow funkce createProfilePhoneVerifyScene.
+ */
 export function createProfilePhoneVerifyScene(): Scenes.WizardScene<MyContext> {
   const scene = new Scenes.WizardScene<MyContext>(
     PROFILE_PHONE_VERIFY_SCENE_ID,

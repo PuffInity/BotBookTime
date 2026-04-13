@@ -236,8 +236,11 @@ import {
  * - блок 2: черга нових pending-записів (перегляд, підтвердження, скасування)
  */
 
+// uk: Flow/UI константа MASTER_PANEL_SCENE_ID / en: Flow/UI constant MASTER_PANEL_SCENE_ID / cz: Flow/UI konstanta MASTER_PANEL_SCENE_ID
 export const MASTER_PANEL_SCENE_ID = 'master-panel-scene';
+// uk: Flow/UI константа MIN_TEMPORARY_SCHEDULE_DAYS / en: Flow/UI constant MIN_TEMPORARY_SCHEDULE_DAYS / cz: Flow/UI konstanta MIN_TEMPORARY_SCHEDULE_DAYS
 const MIN_TEMPORARY_SCHEDULE_DAYS = 7;
+// uk: Flow/UI константа DAY_IN_MS / en: Flow/UI constant DAY_IN_MS / cz: Flow/UI konstanta DAY_IN_MS
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 type MasterPanelSceneState = {
@@ -325,10 +328,20 @@ type MasterPanelSceneState = {
     | null;
 };
 
+/**
+ * uk: Внутрішня flow-функція getSceneState.
+ * en: Internal flow function getSceneState.
+ * cz: Interní flow funkce getSceneState.
+ */
 function getSceneState(ctx: MyContext): MasterPanelSceneState {
   return ctx.wizard.state as MasterPanelSceneState;
 }
 
+/**
+ * uk: Внутрішня flow-функція getMessageText.
+ * en: Internal flow function getMessageText.
+ * cz: Interní flow funkce getMessageText.
+ */
 function getMessageText(ctx: MyContext): string | null {
   if (!ctx.message) return null;
   if (!('text' in ctx.message)) return null;
@@ -381,16 +394,27 @@ const MASTER_SCENE_VALIDATION_MESSAGE_KEYS: Partial<Record<string, BotDictionary
     'MASTER_PANEL_VALIDATION_CHECK_TEMPORARY_RANGE_FAILED',
 };
 
+// uk: Flow/UI константа MASTER_SCENE_VALIDATION_KEYS / en: Flow/UI constant MASTER_SCENE_VALIDATION_KEYS / cz: Flow/UI konstanta MASTER_SCENE_VALIDATION_KEYS
 const MASTER_SCENE_VALIDATION_KEYS = new Set<BotDictionaryKey>(
   Object.values(MASTER_SCENE_VALIDATION_MESSAGE_KEYS).filter(
     (value): value is BotDictionaryKey => Boolean(value),
   ),
 );
 
+/**
+ * uk: Внутрішня flow-функція asMasterSceneValidationError.
+ * en: Internal flow function asMasterSceneValidationError.
+ * cz: Interní flow funkce asMasterSceneValidationError.
+ */
 function asMasterSceneValidationError(key: BotDictionaryKey): ValidationError {
   return new ValidationError(key);
 }
 
+/**
+ * uk: Внутрішня flow-функція localizeMasterSceneValidationMessage.
+ * en: Internal flow function localizeMasterSceneValidationMessage.
+ * cz: Interní flow funkce localizeMasterSceneValidationMessage.
+ */
 function localizeMasterSceneValidationMessage(
   message: string,
   language: BotUiLanguage,
@@ -422,6 +446,11 @@ function localizeMasterSceneValidationMessage(
   return message;
 }
 
+/**
+ * uk: Внутрішня flow-функція parseAppointmentIdFromAction.
+ * en: Internal flow function parseAppointmentIdFromAction.
+ * cz: Interní flow funkce parseAppointmentIdFromAction.
+ */
 function parseAppointmentIdFromAction(ctx: MyContext, regex: RegExp): string {
   const callbackData =
     ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
@@ -434,6 +463,11 @@ function parseAppointmentIdFromAction(ctx: MyContext, regex: RegExp): string {
   return matches[1];
 }
 
+/**
+ * uk: Внутрішня flow-функція parseServiceIdFromAction.
+ * en: Internal flow function parseServiceIdFromAction.
+ * cz: Interní flow funkce parseServiceIdFromAction.
+ */
 function parseServiceIdFromAction(ctx: MyContext, regex: RegExp): string {
   const callbackData =
     ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
@@ -446,6 +480,11 @@ function parseServiceIdFromAction(ctx: MyContext, regex: RegExp): string {
   return matches[1];
 }
 
+/**
+ * uk: Внутрішня flow-функція getMasterCertificateTitleById.
+ * en: Internal flow function getMasterCertificateTitleById.
+ * cz: Interní flow funkce getMasterCertificateTitleById.
+ */
 async function getMasterCertificateTitleById(
   masterId: string,
   certificateId: string,
@@ -457,10 +496,20 @@ async function getMasterCertificateTitleById(
   return found?.title ?? null;
 }
 
+/**
+ * uk: Внутрішня flow-функція getPendingItemById.
+ * en: Internal flow function getPendingItemById.
+ * cz: Interní flow funkce getPendingItemById.
+ */
 function getPendingItemById(state: MasterPanelSceneState, appointmentId: string): MasterPendingBookingItem | null {
   return state.pending.find((item) => item.appointmentId === appointmentId) ?? null;
 }
 
+/**
+ * uk: Внутрішня flow-функція getRescheduleTargetItem.
+ * en: Internal flow function getRescheduleTargetItem.
+ * cz: Interní flow funkce getRescheduleTargetItem.
+ */
 function getRescheduleTargetItem(state: MasterPanelSceneState): MasterPendingBookingItem | null {
   if (!state.rescheduleDraft?.appointmentId) return null;
   const fromPending = getPendingItemById(state, state.rescheduleDraft.appointmentId);
@@ -474,6 +523,11 @@ function getRescheduleTargetItem(state: MasterPanelSceneState): MasterPendingBoo
   return state.rescheduleDraft.sourceItem;
 }
 
+/**
+ * uk: Внутрішня flow-функція getTodayDateCode.
+ * en: Internal flow function getTodayDateCode.
+ * cz: Interní flow funkce getTodayDateCode.
+ */
 function getTodayDateCode(): string {
   const now = new Date();
   const year = String(now.getFullYear());
@@ -482,6 +536,11 @@ function getTodayDateCode(): string {
   return `${year}${month}${day}`;
 }
 
+/**
+ * uk: Внутрішня flow-функція toStartAt.
+ * en: Internal flow function toStartAt.
+ * cz: Interní flow funkce toStartAt.
+ */
 function toStartAt(dateCode: string, timeCode: string): Date {
   const year = Number(dateCode.slice(0, 4));
   const month = Number(dateCode.slice(4, 6));
@@ -491,6 +550,11 @@ function toStartAt(dateCode: string, timeCode: string): Date {
   return new Date(year, month - 1, day, hour, minute, 0, 0);
 }
 
+/**
+ * uk: Внутрішня flow-функція getAvailableRescheduleTimeCodes.
+ * en: Internal flow function getAvailableRescheduleTimeCodes.
+ * cz: Interní flow funkce getAvailableRescheduleTimeCodes.
+ */
 function getAvailableRescheduleTimeCodes(dateCode: string): string[] {
   const options = buildBookingTimeOptions().map((value) => value.replace(':', ''));
 
@@ -502,6 +566,11 @@ function getAvailableRescheduleTimeCodes(dateCode: string): string[] {
   return options.filter((timeCode) => toStartAt(dateCode, timeCode).getTime() > now);
 }
 
+/**
+ * uk: Внутрішня flow-функція formatDateCodeLabel.
+ * en: Internal flow function formatDateCodeLabel.
+ * cz: Interní flow funkce formatDateCodeLabel.
+ */
 function formatDateCodeLabel(dateCode: string): string {
   const year = Number(dateCode.slice(0, 4));
   const month = Number(dateCode.slice(4, 6));
@@ -509,6 +578,11 @@ function formatDateCodeLabel(dateCode: string): string {
   return `${String(day).padStart(2, '0')}.${String(month).padStart(2, '0')}.${year}`;
 }
 
+/**
+ * uk: Внутрішня flow-функція formatDayOffDateLabel.
+ * en: Internal flow function formatDayOffDateLabel.
+ * cz: Interní flow funkce formatDayOffDateLabel.
+ */
 function formatDayOffDateLabel(date: Date): string {
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -516,6 +590,11 @@ function formatDayOffDateLabel(date: Date): string {
   return `${day}.${month}.${year}`;
 }
 
+/**
+ * uk: Внутрішня flow-функція formatDayOffDateSql.
+ * en: Internal flow function formatDayOffDateSql.
+ * cz: Interní flow funkce formatDayOffDateSql.
+ */
 function formatDayOffDateSql(date: Date): string {
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -523,6 +602,11 @@ function formatDayOffDateSql(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+/**
+ * uk: Внутрішня flow-функція formatDateToCode.
+ * en: Internal flow function formatDateToCode.
+ * cz: Interní flow funkce formatDateToCode.
+ */
 function formatDateToCode(date: Date): string {
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -530,6 +614,11 @@ function formatDateToCode(date: Date): string {
   return `${year}${month}${day}`;
 }
 
+/**
+ * uk: Внутрішня flow-функція parseDateFromCode.
+ * en: Internal flow function parseDateFromCode.
+ * cz: Interní flow funkce parseDateFromCode.
+ */
 function parseDateFromCode(code: string): Date {
   const normalized = code.trim();
   const match = normalized.match(/^(\d{4})(\d{2})(\d{2})$/);
@@ -553,6 +642,11 @@ function parseDateFromCode(code: string): Date {
   return parsed;
 }
 
+/**
+ * uk: Внутрішня flow-функція parseSqlDate.
+ * en: Internal flow function parseSqlDate.
+ * cz: Interní flow funkce parseSqlDate.
+ */
 function parseSqlDate(value: string): Date {
   const normalized = value.trim();
   const match = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -575,6 +669,11 @@ function parseSqlDate(value: string): Date {
   return parsed;
 }
 
+/**
+ * uk: Внутрішня flow-функція parseDayOffDateInput.
+ * en: Internal flow function parseDayOffDateInput.
+ * cz: Interní flow funkce parseDayOffDateInput.
+ */
 function parseDayOffDateInput(input: string): Date {
   const normalized = input.trim();
   const match = normalized.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
@@ -606,6 +705,11 @@ function parseDayOffDateInput(input: string): Date {
   return parsedDay;
 }
 
+/**
+ * uk: Внутрішня flow-функція parseVacationRangeInput.
+ * en: Internal flow function parseVacationRangeInput.
+ * cz: Interní flow funkce parseVacationRangeInput.
+ */
 function parseVacationRangeInput(input: string): { dateFrom: Date; dateTo: Date } {
   const normalized = input.trim();
   const match = normalized.match(
@@ -626,10 +730,20 @@ function parseVacationRangeInput(input: string): { dateFrom: Date; dateTo: Date 
   return { dateFrom, dateTo };
 }
 
+/**
+ * uk: Внутрішня flow-функція countInclusiveDays.
+ * en: Internal flow function countInclusiveDays.
+ * cz: Interní flow funkce countInclusiveDays.
+ */
 function countInclusiveDays(dateFrom: Date, dateTo: Date): number {
   return Math.floor((dateTo.getTime() - dateFrom.getTime()) / DAY_IN_MS) + 1;
 }
 
+/**
+ * uk: Внутрішня flow-функція parseTimeInput.
+ * en: Internal flow function parseTimeInput.
+ * cz: Interní flow funkce parseTimeInput.
+ */
 function parseTimeInput(value: string): string {
   const normalized = value.trim();
   const match = normalized.match(/^(\d{1,2}):([0-5]\d)$/);
@@ -645,11 +759,21 @@ function parseTimeInput(value: string): string {
   return `${hour}:${match[2]}`;
 }
 
+/**
+ * uk: Внутрішня flow-функція timeToMinutes.
+ * en: Internal flow function timeToMinutes.
+ * cz: Interní flow funkce timeToMinutes.
+ */
 function timeToMinutes(time: string): number {
   const [hour, minute] = time.split(':').map(Number);
   return hour * 60 + minute;
 }
 
+/**
+ * uk: Внутрішня flow-функція upsertTemporaryDay.
+ * en: Internal flow function upsertTemporaryDay.
+ * cz: Interní flow funkce upsertTemporaryDay.
+ */
 function upsertTemporaryDay(
   days: MasterTemporaryScheduleDayInput[],
   day: MasterTemporaryScheduleDayInput,
@@ -658,6 +782,11 @@ function upsertTemporaryDay(
   return [...filtered, day].sort((a, b) => a.weekday - b.weekday);
 }
 
+/**
+ * uk: Внутрішня flow-функція parseWeekdayFromAction.
+ * en: Internal flow function parseWeekdayFromAction.
+ * cz: Interní flow funkce parseWeekdayFromAction.
+ */
 function parseWeekdayFromAction(ctx: MyContext, regex: RegExp): number {
   const callbackData =
     ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
@@ -669,6 +798,11 @@ function parseWeekdayFromAction(ctx: MyContext, regex: RegExp): number {
   return weekday;
 }
 
+/**
+ * uk: Внутрішня flow-функція parseNumericIdFromAction.
+ * en: Internal flow function parseNumericIdFromAction.
+ * cz: Interní flow funkce parseNumericIdFromAction.
+ */
 function parseNumericIdFromAction(ctx: MyContext, regex: RegExp, fieldLabel: string): string {
   const callbackData =
     ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
@@ -680,6 +814,11 @@ function parseNumericIdFromAction(ctx: MyContext, regex: RegExp, fieldLabel: str
   return id;
 }
 
+/**
+ * uk: Внутрішня flow-функція parseTemporaryPeriodFromAction.
+ * en: Internal flow function parseTemporaryPeriodFromAction.
+ * cz: Interní flow funkce parseTemporaryPeriodFromAction.
+ */
 function parseTemporaryPeriodFromAction(ctx: MyContext, regex: RegExp): { dateFrom: string; dateTo: string } {
   const callbackData =
     ctx.callbackQuery && 'data' in ctx.callbackQuery ? ctx.callbackQuery.data : '';
@@ -700,52 +839,112 @@ function parseTemporaryPeriodFromAction(ctx: MyContext, regex: RegExp): { dateFr
   };
 }
 
+/**
+ * uk: Внутрішня flow-функція resetScheduleDayOffDraft.
+ * en: Internal flow function resetScheduleDayOffDraft.
+ * cz: Interní flow funkce resetScheduleDayOffDraft.
+ */
 function resetScheduleDayOffDraft(state: MasterPanelSceneState): void {
   state.scheduleDayOffDraft = null;
 }
 
+/**
+ * uk: Внутрішня flow-функція resetScheduleVacationDraft.
+ * en: Internal flow function resetScheduleVacationDraft.
+ * cz: Interní flow funkce resetScheduleVacationDraft.
+ */
 function resetScheduleVacationDraft(state: MasterPanelSceneState): void {
   state.scheduleVacationDraft = null;
 }
 
+/**
+ * uk: Внутрішня flow-функція resetScheduleTemporaryDraft.
+ * en: Internal flow function resetScheduleTemporaryDraft.
+ * cz: Interní flow funkce resetScheduleTemporaryDraft.
+ */
 function resetScheduleTemporaryDraft(state: MasterPanelSceneState): void {
   state.scheduleTemporaryDraft = null;
 }
 
+/**
+ * uk: Внутрішня flow-функція resetScheduleConfigureDayDraft.
+ * en: Internal flow function resetScheduleConfigureDayDraft.
+ * cz: Interní flow funkce resetScheduleConfigureDayDraft.
+ */
 function resetScheduleConfigureDayDraft(state: MasterPanelSceneState): void {
   state.scheduleConfigureDayDraft = null;
 }
 
+/**
+ * uk: Внутрішня flow-функція resetScheduleDeleteDraft.
+ * en: Internal flow function resetScheduleDeleteDraft.
+ * cz: Interní flow funkce resetScheduleDeleteDraft.
+ */
 function resetScheduleDeleteDraft(state: MasterPanelSceneState): void {
   state.scheduleDeleteDraft = null;
 }
 
+/**
+ * uk: Внутрішня flow-функція resetProfileEditDraft.
+ * en: Internal flow function resetProfileEditDraft.
+ * cz: Interní flow funkce resetProfileEditDraft.
+ */
 function resetProfileEditDraft(state: MasterPanelSceneState): void {
   state.profileEditDraft = null;
 }
 
+/**
+ * uk: Внутрішня flow-функція resetCertificateAddDraft.
+ * en: Internal flow function resetCertificateAddDraft.
+ * cz: Interní flow funkce resetCertificateAddDraft.
+ */
 function resetCertificateAddDraft(state: MasterPanelSceneState): void {
   state.certificateAddDraft = null;
 }
 
+/**
+ * uk: Внутрішня flow-функція resetCertificateDeleteDraft.
+ * en: Internal flow function resetCertificateDeleteDraft.
+ * cz: Interní flow funkce resetCertificateDeleteDraft.
+ */
 function resetCertificateDeleteDraft(state: MasterPanelSceneState): void {
   state.certificateDeleteDraft = null;
 }
 
+/**
+ * uk: Внутрішня flow-функція resetProfileDrafts.
+ * en: Internal flow function resetProfileDrafts.
+ * cz: Interní flow funkce resetProfileDrafts.
+ */
 function resetProfileDrafts(state: MasterPanelSceneState): void {
   resetProfileEditDraft(state);
   resetCertificateAddDraft(state);
   resetCertificateDeleteDraft(state);
 }
 
+/**
+ * uk: Внутрішня flow-функція resetRescheduleDraft.
+ * en: Internal flow function resetRescheduleDraft.
+ * cz: Interní flow funkce resetRescheduleDraft.
+ */
 function resetRescheduleDraft(state: MasterPanelSceneState): void {
   state.rescheduleDraft = null;
 }
 
+/**
+ * uk: Внутрішня flow-функція resetBookingsFeed.
+ * en: Internal flow function resetBookingsFeed.
+ * cz: Interní flow funkce resetBookingsFeed.
+ */
 function resetBookingsFeed(state: MasterPanelSceneState): void {
   state.bookingsFeed = null;
 }
 
+/**
+ * uk: Внутрішня flow-функція normalizeMasterProfileFieldValue.
+ * en: Internal flow function normalizeMasterProfileFieldValue.
+ * cz: Interní flow funkce normalizeMasterProfileFieldValue.
+ */
 function normalizeMasterProfileFieldValue(
   field: MasterOwnProfileEditableField,
   value: string,
@@ -773,6 +972,11 @@ function normalizeMasterProfileFieldValue(
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція persistMasterProfileField.
+ * en: Internal flow function persistMasterProfileField.
+ * cz: Interní flow funkce persistMasterProfileField.
+ */
 async function persistMasterProfileField(
   masterId: string,
   field: MasterOwnProfileEditableField,
@@ -808,10 +1012,20 @@ async function persistMasterProfileField(
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція isProfessionalProfileField.
+ * en: Internal flow function isProfessionalProfileField.
+ * cz: Interní flow funkce isProfessionalProfileField.
+ */
 function isProfessionalProfileField(field: MasterOwnProfileEditableField): boolean {
   return field === 'display_name' || field === 'started_on' || field === 'procedures_done_total';
 }
 
+/**
+ * uk: Внутрішня flow-функція renderMasterProfileSectionByField.
+ * en: Internal flow function renderMasterProfileSectionByField.
+ * cz: Interní flow funkce renderMasterProfileSectionByField.
+ */
 async function renderMasterProfileSectionByField(
   ctx: MyContext,
   state: MasterPanelSceneState,
@@ -842,6 +1056,11 @@ async function renderMasterProfileSectionByField(
   );
 }
 
+/**
+ * uk: Внутрішня flow-функція renderMasterServicesManage.
+ * en: Internal flow function renderMasterServicesManage.
+ * cz: Interní flow funkce renderMasterServicesManage.
+ */
 async function renderMasterServicesManage(
   ctx: MyContext,
   language: BotUiLanguage,
@@ -858,6 +1077,11 @@ async function renderMasterServicesManage(
   );
 }
 
+/**
+ * uk: Внутрішня flow-функція renderMasterServicesAddCandidates.
+ * en: Internal flow function renderMasterServicesAddCandidates.
+ * cz: Interní flow funkce renderMasterServicesAddCandidates.
+ */
 async function renderMasterServicesAddCandidates(
   ctx: MyContext,
   language: BotUiLanguage,
@@ -874,6 +1098,11 @@ async function renderMasterServicesAddCandidates(
   );
 }
 
+/**
+ * uk: Внутрішня flow-функція renderMasterServicesRemoveCandidates.
+ * en: Internal flow function renderMasterServicesRemoveCandidates.
+ * cz: Interní flow funkce renderMasterServicesRemoveCandidates.
+ */
 async function renderMasterServicesRemoveCandidates(
   ctx: MyContext,
   language: BotUiLanguage,
@@ -890,6 +1119,11 @@ async function renderMasterServicesRemoveCandidates(
   );
 }
 
+/**
+ * uk: Внутрішня flow-функція renderMasterCertificatesManage.
+ * en: Internal flow function renderMasterCertificatesManage.
+ * cz: Interní flow funkce renderMasterCertificatesManage.
+ */
 async function renderMasterCertificatesManage(
   ctx: MyContext,
   language: BotUiLanguage,
@@ -906,6 +1140,11 @@ async function renderMasterCertificatesManage(
   );
 }
 
+/**
+ * uk: Внутрішня flow-функція renderMasterCertificatesDeleteList.
+ * en: Internal flow function renderMasterCertificatesDeleteList.
+ * cz: Interní flow funkce renderMasterCertificatesDeleteList.
+ */
 async function renderMasterCertificatesDeleteList(
   ctx: MyContext,
   language: BotUiLanguage,
@@ -922,6 +1161,11 @@ async function renderMasterCertificatesDeleteList(
   );
 }
 
+/**
+ * uk: Внутрішня flow-функція loadOwnProfileIntoState.
+ * en: Internal flow function loadOwnProfileIntoState.
+ * cz: Interní flow funkce loadOwnProfileIntoState.
+ */
 async function loadOwnProfileIntoState(state: MasterPanelSceneState): Promise<MasterOwnProfileData | null> {
   if (!state.access) {
     state.ownProfile = null;
@@ -935,6 +1179,11 @@ async function loadOwnProfileIntoState(state: MasterPanelSceneState): Promise<Ma
   return state.ownProfile;
 }
 
+/**
+ * uk: Внутрішня flow-функція loadPendingIntoState.
+ * en: Internal flow function loadPendingIntoState.
+ * cz: Interní flow funkce loadPendingIntoState.
+ */
 async function loadPendingIntoState(state: MasterPanelSceneState): Promise<void> {
   if (!state.access) {
     state.pending = [];
@@ -960,6 +1209,11 @@ async function loadPendingIntoState(state: MasterPanelSceneState): Promise<void>
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція loadBookingsFeedIntoState.
+ * en: Internal flow function loadBookingsFeedIntoState.
+ * cz: Interní flow funkce loadBookingsFeedIntoState.
+ */
 async function loadBookingsFeedIntoState(
   state: MasterPanelSceneState,
   category: MasterBookingsCategory,
@@ -979,6 +1233,11 @@ async function loadBookingsFeedIntoState(
   state.bookingsFeed = await translateMasterBookingsFeedPage(feedRaw, state.language);
 }
 
+/**
+ * uk: Внутрішня flow-функція getMasterScheduleTranslated.
+ * en: Internal flow function getMasterScheduleTranslated.
+ * cz: Interní flow funkce getMasterScheduleTranslated.
+ */
 async function getMasterScheduleTranslated(
   masterId: string,
   limit: number,
@@ -988,6 +1247,11 @@ async function getMasterScheduleTranslated(
   return translateMasterPanelScheduleData(scheduleRaw, language);
 }
 
+/**
+ * uk: Внутрішня flow-функція renderView.
+ * en: Internal flow function renderView.
+ * cz: Interní flow funkce renderView.
+ */
 async function renderView(
   ctx: MyContext,
   text: string,
@@ -1006,6 +1270,11 @@ async function renderView(
   await ctx.reply(text, keyboard);
 }
 
+/**
+ * uk: Внутрішня flow-функція safeAnswerCbQuery.
+ * en: Internal flow function safeAnswerCbQuery.
+ * cz: Interní flow funkce safeAnswerCbQuery.
+ */
 async function safeAnswerCbQuery(ctx: MyContext, text?: string): Promise<void> {
   if (ctx.updateType !== 'callback_query') {
     return;
@@ -1023,6 +1292,11 @@ async function safeAnswerCbQuery(ctx: MyContext, text?: string): Promise<void> {
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція renderRoot.
+ * en: Internal flow function renderRoot.
+ * cz: Interní flow funkce renderRoot.
+ */
 async function renderRoot(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   if (!state.access) {
@@ -1037,6 +1311,11 @@ async function renderRoot(ctx: MyContext, preferEdit: boolean): Promise<void> {
   );
 }
 
+/**
+ * uk: Внутрішня flow-функція renderPendingQueue.
+ * en: Internal flow function renderPendingQueue.
+ * cz: Interní flow funkce renderPendingQueue.
+ */
 async function renderPendingQueue(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
 
@@ -1062,6 +1341,11 @@ async function renderPendingQueue(ctx: MyContext, preferEdit: boolean): Promise<
   );
 }
 
+/**
+ * uk: Внутрішня flow-функція renderBookingsMenu.
+ * en: Internal flow function renderBookingsMenu.
+ * cz: Interní flow funkce renderBookingsMenu.
+ */
 async function renderBookingsMenu(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   await renderView(
@@ -1072,6 +1356,11 @@ async function renderBookingsMenu(ctx: MyContext, preferEdit: boolean): Promise<
   );
 }
 
+/**
+ * uk: Внутрішня flow-функція renderBookingsFeed.
+ * en: Internal flow function renderBookingsFeed.
+ * cz: Interní flow funkce renderBookingsFeed.
+ */
 async function renderBookingsFeed(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   const feed = state.bookingsFeed;
@@ -1089,6 +1378,11 @@ async function renderBookingsFeed(ctx: MyContext, preferEdit: boolean): Promise<
   );
 }
 
+/**
+ * uk: Внутрішня flow-функція renderBookingsContextFallback.
+ * en: Internal flow function renderBookingsContextFallback.
+ * cz: Interní flow funkce renderBookingsContextFallback.
+ */
 async function renderBookingsContextFallback(
   ctx: MyContext,
   preferEdit: boolean,
@@ -1104,6 +1398,11 @@ async function renderBookingsContextFallback(
   await renderPendingQueue(ctx, preferEdit);
 }
 
+/**
+ * uk: Внутрішня flow-функція resolveBookingItemById.
+ * en: Internal flow function resolveBookingItemById.
+ * cz: Interní flow funkce resolveBookingItemById.
+ */
 async function resolveBookingItemById(
   state: MasterPanelSceneState,
   appointmentId: string,
@@ -1124,6 +1423,11 @@ async function resolveBookingItemById(
   return translated;
 }
 
+/**
+ * uk: Внутрішня flow-функція renderRescheduleDateStep.
+ * en: Internal flow function renderRescheduleDateStep.
+ * cz: Interní flow funkce renderRescheduleDateStep.
+ */
 async function renderRescheduleDateStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   const item = getRescheduleTargetItem(state);
@@ -1141,6 +1445,11 @@ async function renderRescheduleDateStep(ctx: MyContext, preferEdit: boolean): Pr
   );
 }
 
+/**
+ * uk: Внутрішня flow-функція renderRescheduleTimeStep.
+ * en: Internal flow function renderRescheduleTimeStep.
+ * cz: Interní flow funkce renderRescheduleTimeStep.
+ */
 async function renderRescheduleTimeStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   const draft = state.rescheduleDraft;
@@ -1169,6 +1478,11 @@ async function renderRescheduleTimeStep(ctx: MyContext, preferEdit: boolean): Pr
   );
 }
 
+/**
+ * uk: Внутрішня flow-функція renderRescheduleConfirmStep.
+ * en: Internal flow function renderRescheduleConfirmStep.
+ * cz: Interní flow funkce renderRescheduleConfirmStep.
+ */
 async function renderRescheduleConfirmStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
   const state = getSceneState(ctx);
   const draft = state.rescheduleDraft;
@@ -1190,12 +1504,22 @@ async function renderRescheduleConfirmStep(ctx: MyContext, preferEdit: boolean):
   );
 }
 
+/**
+ * uk: Внутрішня flow-функція denyMasterPanelAccess.
+ * en: Internal flow function denyMasterPanelAccess.
+ * cz: Interní flow funkce denyMasterPanelAccess.
+ */
 async function denyMasterPanelAccess(ctx: MyContext): Promise<void> {
   const language = getSceneState(ctx).language ?? 'uk';
   await ctx.reply(tBot(language, 'MASTER_PANEL_ACCESS_DENIED'));
   await sendClientMainMenu(ctx);
 }
 
+/**
+ * uk: Внутрішня flow-функція notifyConfirmedBooking.
+ * en: Internal flow function notifyConfirmedBooking.
+ * cz: Interní flow funkce notifyConfirmedBooking.
+ */
 async function notifyConfirmedBooking(
   item: MasterPendingBookingItem,
   language: BotUiLanguage,
@@ -1237,6 +1561,11 @@ async function notifyConfirmedBooking(
   }
 }
 
+/**
+ * uk: Внутрішня flow-функція notifyCanceledBooking.
+ * en: Internal flow function notifyCanceledBooking.
+ * cz: Interní flow funkce notifyCanceledBooking.
+ */
 async function notifyCanceledBooking(
   item: MasterPendingBookingItem,
   language: BotUiLanguage,
@@ -1279,6 +1608,11 @@ async function notifyCanceledBooking(
   }
 }
 
+/**
+ * uk: Публічна flow-функція createMasterPanelScene.
+ * en: Public flow function createMasterPanelScene.
+ * cz: Veřejná flow funkce createMasterPanelScene.
+ */
 export function createMasterPanelScene(): Scenes.WizardScene<MyContext> {
   const scene = new Scenes.WizardScene<MyContext>(
     MASTER_PANEL_SCENE_ID,

@@ -15,6 +15,7 @@ import { resolveBotUiLanguage, tBot } from '../helpers/bot/i18n.bot.js';
  */
 
 const botLogger = loggerTelegramBot;
+// uk: Flow/UI константа DEFAULT_BOT_UI_LANGUAGE / en: Flow/UI constant DEFAULT_BOT_UI_LANGUAGE / cz: Flow/UI konstanta DEFAULT_BOT_UI_LANGUAGE
 const DEFAULT_BOT_UI_LANGUAGE = 'uk' as const;
 
 /**
