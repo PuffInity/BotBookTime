@@ -3,20 +3,15 @@ import type { ILogger } from "./logger/types.logger.js";
 import {loggerErrorUtils} from "./logger/loggers-list.js";
 
 /**
- * @file error.utils.ts
- * @summary Єдиний модуль системи помилок:
- * - доменні AppError-класи,
- * - нормалізація Zod/PG/unknown,
- * - Telegraf-сумісні helper-и (`asyncHandler`, `createTelegrafErrorHandler`),
- * - централізоване логування помилок.
+ * uk: Error модуль
+ * en: Error module
+ * cz: Error modul
  */
 
 type ErrorLogLevel = "warn" | "error";
 const errorUtilsLogger = loggerErrorUtils;
 
-/**
- * Нормалізована форма помилки для логування/телеметрії.
- */
+/** uk: Адаптована помилка | en: Adapted error | cz: Adaptovaná chyba */
 export type AdaptedError = {
     name?: string;
     message: string;
@@ -27,9 +22,7 @@ export type AdaptedError = {
     raw?: unknown;
 };
 
-/**
- * Коди доменних API-помилок.
- */
+/** uk: Коди помилок | en: Error codes | cz: Kódy chyb */
 export const ERROR_CODE = {
     VALIDATION_ERROR: "VALIDATION_ERROR",
     DATABASE_ERROR: "DATABASE_ERROR",
@@ -47,9 +40,7 @@ export const ERROR_CODE = {
 
 export type ErrorCode = (typeof ERROR_CODE)[keyof typeof ERROR_CODE];
 
-/**
- * Базова прикладна помилка.
- */
+/** uk: Базова помилка | en: Base error | cz: Základní chyba */
 export class AppError extends Error {
     readonly statusCode: number;
     readonly code: ErrorCode | string;
@@ -80,12 +71,14 @@ export class AppError extends Error {
     }
 }
 
+/** uk: Валідаційна помилка | en: Validation error | cz: Validační chyba */
 export class ValidationError extends AppError {
     constructor(message = "Invalid request data", metadata?: Record<string, unknown>, cause?: unknown) {
         super({ message, statusCode: 400, code: ERROR_CODE.VALIDATION_ERROR, metadata, cause });
     }
 }
 
+/** uk: Помилка БД | en: Database error | cz: Databázová chyba */
 export class DatabaseError extends AppError {
     constructor(
         message = "Database operation failed",
@@ -98,30 +91,35 @@ export class DatabaseError extends AppError {
     }
 }
 
+/** uk: Auth помилка | en: Auth error | cz: Auth chyba */
 export class AuthenticationError extends AppError {
     constructor(message = "Authentication required", metadata?: Record<string, unknown>, cause?: unknown) {
         super({ message, statusCode: 401, code: ERROR_CODE.AUTHENTICATION_ERROR, metadata, cause });
     }
 }
 
+/** uk: Access помилка | en: Access error | cz: Access chyba */
 export class AuthorizationError extends AppError {
     constructor(message = "Access denied", metadata?: Record<string, unknown>, cause?: unknown) {
         super({ message, statusCode: 403, code: ERROR_CODE.AUTHORIZATION_ERROR, metadata, cause });
     }
 }
 
+/** uk: Not found помилка | en: Not found error | cz: Not found chyba */
 export class NotFoundError extends AppError {
     constructor(message = "Resource not found", metadata?: Record<string, unknown>, cause?: unknown) {
         super({ message, statusCode: 404, code: ERROR_CODE.NOT_FOUND, metadata, cause });
     }
 }
 
+/** uk: Зовнішній сервіс | en: External service | cz: Externí služba */
 export class ExternalServiceError extends AppError {
     constructor(message = "External service request failed", metadata?: Record<string, unknown>, cause?: unknown) {
         super({ message, statusCode: 502, code: ERROR_CODE.EXTERNAL_SERVICE_ERROR, metadata, cause });
     }
 }
 
+/** uk: Внутрішня помилка | en: Internal error | cz: Interní chyba */
 export class InternalServerError extends AppError {
     constructor(message = "Internal Server Error", metadata?: Record<string, unknown>, cause?: unknown) {
         super({
@@ -135,9 +133,7 @@ export class InternalServerError extends AppError {
     }
 }
 
-/**
- * Мінімальний Telegraf-like контекст, достатній для логування та відповіді користувачу.
- */
+/** uk: Bot контекст | en: Bot context | cz: Bot kontext */
 export type BotContextLike = {
     updateType?: string;
     from?: { id?: number; username?: string };
@@ -146,15 +142,11 @@ export type BotContextLike = {
     reply?: (text: string) => Promise<unknown>;
 };
 
-/**
- * Async обробник Telegraf-команди/сцени.
- */
+/** uk: Async handler | en: Async handler | cz: Async handler */
 export type BotHandler<C extends BotContextLike = BotContextLike> = (ctx: C) => Promise<unknown>;
 export type BotCatchHandler<C extends BotContextLike = BotContextLike> = (error: unknown, ctx: C) => Promise<void>;
 
-/**
- * Вхідні параметри для `handleError`.
- */
+/** uk: Вхід handleError | en: handleError input | cz: handleError vstup */
 export type HandleErrorInput = {
     logger: Pick<ILogger, "warn" | "error">;
     level?: ErrorLogLevel;
@@ -176,7 +168,9 @@ type UnifiedErrorLog = {
 };
 
 /**
- * Нормалізатор помилки з `catch` у стабільний об'єкт для логування.
+ * uk: Нормалізація catch
+ * en: Normalize catch
+ * cz: Normalizace catch
  */
 export function adapterError(error: unknown): AdaptedError {
     if (error instanceof Error) {
@@ -214,6 +208,11 @@ function extractCauseMessage(cause: unknown): string | undefined {
     return undefined;
 }
 
+/**
+ * uk: Уніфікація лога
+ * en: Normalize log payload
+ * cz: Normalizace log payload
+ */
 function toUnifiedErrorLog(error: unknown): UnifiedErrorLog {
     const adapted = adapterError(error);
 
@@ -245,7 +244,9 @@ function toUnifiedErrorLog(error: unknown): UnifiedErrorLog {
 }
 
 /**
- * Єдина точка логування помилок у проєкті.
+ * uk: Логування помилки
+ * en: Log error
+ * cz: Logovat chybu
  */
 export function handleError({
     logger,
@@ -271,6 +272,7 @@ type PgLikeError = {
     schema?: string;
 };
 
+/** uk: PG shape check | en: PG shape check | cz: PG shape check */
 function isPgLikeError(error: unknown): error is PgLikeError {
     if (!error || typeof error !== "object") return false;
     const candidate = error as { code?: unknown };
@@ -278,7 +280,9 @@ function isPgLikeError(error: unknown): error is PgLikeError {
 }
 
 /**
- * Перетворює Zod-помилку у `ValidationError`.
+ * uk: Zod -> ValidationError
+ * en: Zod -> ValidationError
+ * cz: Zod -> ValidationError
  */
 export function normalizeZodError(error: ZodError): ValidationError {
     const issues = error.issues.map((issue) => ({
@@ -291,7 +295,9 @@ export function normalizeZodError(error: ZodError): ValidationError {
 }
 
 /**
- * Перетворює типові помилки PostgreSQL (`pg`) у безпечні AppError.
+ * uk: PG -> AppError
+ * en: PG -> AppError
+ * cz: PG -> AppError
  */
 export function normalizePgError(error: unknown): AppError | null {
     if (!isPgLikeError(error)) return null;
@@ -350,7 +356,9 @@ export function normalizePgError(error: unknown): AppError | null {
 }
 
 /**
- * Нормалізує `unknown` у цільовий `AppError`.
+ * uk: Unknown -> AppError
+ * en: Unknown -> AppError
+ * cz: Unknown -> AppError
  */
 export function normalizeError(error: unknown): AppError {
     if (error instanceof AppError) return error;
@@ -366,8 +374,9 @@ export function normalizeError(error: unknown): AppError {
 }
 
 /**
- * Обгортка для async-обробників Telegraf без ручного `try/catch`.
- * Помилка нормалізується і пробрасывается в `bot.catch(...)`.
+ * uk: Обгортка handler
+ * en: Handler wrapper
+ * cz: Wrapper handleru
  */
 export function asyncHandler<C extends BotContextLike>(handler: BotHandler<C>) {
     return async (ctx: C): Promise<void> => {
@@ -388,9 +397,7 @@ export function asyncHandler<C extends BotContextLike>(handler: BotHandler<C>) {
     };
 }
 
-/**
- * Явний alias під Telegraf, щоб код був читабельнішим.
- */
+/** uk: Alias handler | en: Handler alias | cz: Alias handleru */
 export const asyncBotHandler = asyncHandler;
 
 const SENSITIVE_KEYS = [
@@ -405,6 +412,11 @@ const SENSITIVE_KEYS = [
     "secret",
 ];
 
+/**
+ * uk: Маскувати дані
+ * en: Redact data
+ * cz: Maskovat data
+ */
 function sanitizeValue(input: unknown): unknown {
     if (input === null || input === undefined) return input;
     if (typeof input !== "object") return input;
@@ -420,6 +432,11 @@ function sanitizeValue(input: unknown): unknown {
     return result;
 }
 
+/**
+ * uk: Текст для бота
+ * en: Bot message text
+ * cz: Text pro bota
+ */
 function getBotUserMessage(error: AppError): string {
     const code = String(error.code ?? ERROR_CODE.INTERNAL_SERVER_ERROR);
     const causeMessage = extractCauseMessage(error.cause);
@@ -429,7 +446,9 @@ function getBotUserMessage(error: AppError): string {
 }
 
 /**
- * Фабрика глобального обробника помилок Telegraf (`bot.catch`).
+ * uk: Telegraf catch factory
+ * en: Telegraf catch factory
+ * cz: Telegraf catch factory
  */
 export function createTelegrafErrorHandler<C extends BotContextLike>({
     logger,

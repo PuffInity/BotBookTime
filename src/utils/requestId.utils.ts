@@ -1,34 +1,50 @@
 import {AsyncLocalStorage} from "node:async_hooks";
 
 /**
- * @file requestId.utils.ts
- * @summary Файл для керування X-request-id
+ * uk: Контекст request id
+ * en: Request id context
+ * cz: Kontext request id
  */
 
 /**
- * @summary Створюємо тип для requestId
+ * uk: Тип контексту
+ * en: Context type
+ * cz: Typ kontextu
  */
 export type Context = { requestId?: string};
-/**
- * @summary асинхронне сховище
- */
+
+/** uk: ALS сховище | en: ALS storage | cz: ALS úložiště */
 const storage = new AsyncLocalStorage<Context>();
 
 /**
- * @summary Створюємо обʼєкт з 3 методами
- * run - Передаємо в нього сам requestId та функцію next - вона буде передавати requestId як по ланцюгу
- * get - Отримати всі дані з сховища
- * getRequestId - Отримати requestId
+ * uk: API контексту
+ * en: Context API
+ * cz: API kontextu
  */
 export const RequestContext = {
+    /**
+     * uk: Запуск у контексті
+     * en: Run in context
+     * cz: Spustit v kontextu
+     */
     run<T>(ctx: Context, cb: () => T):T {
         return storage.run(ctx, cb);
     },
 
+    /**
+     * uk: Отримати контекст
+     * en: Get context
+     * cz: Získat kontext
+     */
     get(): Context {
         return storage.getStore() ?? {}
     },
 
+    /**
+     * uk: Отримати request id
+     * en: Get request id
+     * cz: Získat request id
+     */
     getRequestId(): string | undefined {
         return storage.getStore()?.requestId;
     }
