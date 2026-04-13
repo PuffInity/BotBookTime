@@ -21,6 +21,11 @@ const DEFAULT_RECENT_LIMIT = 5;
 const MAX_RECENT_LIMIT = 20;
 type CanceledBookingRow = { appointment_id: string };
 
+/**
+ * uk: Внутрішній helper метод normalizePositiveBigintId.
+ * en: Internal helper method normalizePositiveBigintId.
+ * cz: Interní helper metoda normalizePositiveBigintId.
+ */
 function normalizePositiveBigintId(value: string | number, fieldName: string): string {
   const normalized = String(value).trim();
 
@@ -31,6 +36,11 @@ function normalizePositiveBigintId(value: string | number, fieldName: string): s
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeRecentLimit.
+ * en: Internal helper method normalizeRecentLimit.
+ * cz: Interní helper metoda normalizeRecentLimit.
+ */
 function normalizeRecentLimit(limit?: number): number {
   if (limit == null || !Number.isFinite(limit)) {
     return DEFAULT_RECENT_LIMIT;
@@ -42,6 +52,11 @@ function normalizeRecentLimit(limit?: number): number {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод mapBookingStatusRow.
+ * en: Internal helper method mapBookingStatusRow.
+ * cz: Interní helper metoda mapBookingStatusRow.
+ */
 function mapBookingStatusRow(row: ProfileBookingStatusRow): ProfileBookingStatusItem {
   return {
     appointmentId: row.appointment_id,

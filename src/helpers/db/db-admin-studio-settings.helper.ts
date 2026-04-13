@@ -56,6 +56,11 @@ const CONTENT_DEFAULTS: Record<ContentBlockKey, string> = {
     'У разі технічних питань після процедури зверніться до студії для вирішення ситуації.',
 };
 
+/**
+ * uk: Внутрішній helper метод normalizePositiveBigintId.
+ * en: Internal helper method normalizePositiveBigintId.
+ * cz: Interní helper metoda normalizePositiveBigintId.
+ */
 function normalizePositiveBigintId(value: string | number, fieldName: string): string {
   const normalized = String(value).trim();
   if (!/^\d+$/.test(normalized) || normalized === '0') {
@@ -64,10 +69,20 @@ function normalizePositiveBigintId(value: string | number, fieldName: string): s
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeLanguage.
+ * en: Internal helper method normalizeLanguage.
+ * cz: Interní helper metoda normalizeLanguage.
+ */
 function normalizeLanguage(language?: LanguageCode): LanguageCode {
   return language ?? DEFAULT_LANGUAGE;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeStudioContent.
+ * en: Internal helper method normalizeStudioContent.
+ * cz: Interní helper metoda normalizeStudioContent.
+ */
 function normalizeStudioContent(content: string): string {
   const normalized = content.trim().replace(/\r/g, '');
   if (normalized.length < CONTENT_MIN_LENGTH) {
@@ -79,6 +94,11 @@ function normalizeStudioContent(content: string): string {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод mapStudioRow.
+ * en: Internal helper method mapStudioRow.
+ * cz: Interní helper metoda mapStudioRow.
+ */
 function mapStudioRow(row: AdminStudioSettingsStudioRow): AdminStudioSettingsStudio {
   return {
     id: row.id,
@@ -93,6 +113,11 @@ function mapStudioRow(row: AdminStudioSettingsStudioRow): AdminStudioSettingsStu
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapWeeklyHoursRow.
+ * en: Internal helper method mapWeeklyHoursRow.
+ * cz: Interní helper metoda mapWeeklyHoursRow.
+ */
 function mapWeeklyHoursRow(row: AdminStudioSettingsWeeklyHoursRow): AdminStudioSettingsWeeklyHours {
   return {
     weekday: row.weekday,
@@ -102,6 +127,11 @@ function mapWeeklyHoursRow(row: AdminStudioSettingsWeeklyHoursRow): AdminStudioS
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapContentBlockRow.
+ * en: Internal helper method mapContentBlockRow.
+ * cz: Interní helper metoda mapContentBlockRow.
+ */
 function mapContentBlockRow(
   row: AdminStudioSettingsContentBlockRow,
 ): AdminStudioSettingsContentBlock {

@@ -3,6 +3,7 @@
  * @summary SQL constants for db-services helper.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SERVICES_SELECT_COLUMNS = `
   s.id,
   s.studio_id,
@@ -17,6 +18,7 @@ export const SERVICES_SELECT_COLUMNS = `
   s.updated_at
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SERVICE_STEPS_SELECT_COLUMNS = `
   service_id,
   step_no,
@@ -27,6 +29,7 @@ export const SERVICE_STEPS_SELECT_COLUMNS = `
   updated_at
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SERVICE_GUARANTEES_SELECT_COLUMNS = `
   service_id,
   guarantee_no,
@@ -36,6 +39,7 @@ export const SERVICE_GUARANTEES_SELECT_COLUMNS = `
   updated_at
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_ACTIVE_SERVICES_CATALOG = `
   SELECT
     ${SERVICES_SELECT_COLUMNS}
@@ -46,6 +50,7 @@ export const SQL_LIST_ACTIVE_SERVICES_CATALOG = `
   LIMIT $2
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_ACTIVE_SERVICE_BY_ID = `
   SELECT
     ${SERVICES_SELECT_COLUMNS}
@@ -56,6 +61,7 @@ export const SQL_GET_ACTIVE_SERVICE_BY_ID = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_SERVICE_STEPS_BY_SERVICE_ID = `
   SELECT
     ${SERVICE_STEPS_SELECT_COLUMNS}
@@ -64,6 +70,7 @@ export const SQL_LIST_SERVICE_STEPS_BY_SERVICE_ID = `
   ORDER BY step_no ASC
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_SERVICE_GUARANTEES_BY_SERVICE_ID = `
   SELECT
     ${SERVICE_GUARANTEES_SELECT_COLUMNS}

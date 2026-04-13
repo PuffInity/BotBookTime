@@ -3,6 +3,7 @@
  * @summary SQL constants for admin studio settings helper.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_ADMIN_STUDIO_SETTINGS_STUDIO = `
   SELECT
     s.id,
@@ -20,6 +21,7 @@ export const SQL_GET_ADMIN_STUDIO_SETTINGS_STUDIO = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_ADMIN_STUDIO_SETTINGS_WEEKLY_HOURS = `
   SELECT
     swh.weekday,
@@ -31,6 +33,7 @@ export const SQL_LIST_ADMIN_STUDIO_SETTINGS_WEEKLY_HOURS = `
   ORDER BY swh.weekday ASC
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_ADMIN_STUDIO_SETTINGS_CONTENT_BLOCKS = `
   SELECT
     scb.block_key,
@@ -42,6 +45,7 @@ export const SQL_LIST_ADMIN_STUDIO_SETTINGS_CONTENT_BLOCKS = `
     AND scb.language = $2::language_code
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPSERT_ADMIN_STUDIO_SETTINGS_CONTENT_BLOCK = `
   INSERT INTO studio_content_blocks (
     studio_id,

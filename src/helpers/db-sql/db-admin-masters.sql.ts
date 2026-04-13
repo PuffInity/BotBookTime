@@ -3,6 +3,7 @@
  * @summary SQL constants for admin masters helper.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 const ADMIN_MASTER_CANDIDATE_COLUMNS = `
   u.id AS user_id,
   u.telegram_user_id,
@@ -18,6 +19,7 @@ const ADMIN_MASTER_CANDIDATE_COLUMNS = `
   ) AS is_master
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_FIND_ADMIN_MASTER_CANDIDATE_BY_TELEGRAM_ID = `
   SELECT
     ${ADMIN_MASTER_CANDIDATE_COLUMNS}
@@ -28,6 +30,7 @@ export const SQL_FIND_ADMIN_MASTER_CANDIDATE_BY_TELEGRAM_ID = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_ADMIN_MASTER_CANDIDATE_BY_USER_ID = `
   SELECT
     ${ADMIN_MASTER_CANDIDATE_COLUMNS}
@@ -38,12 +41,14 @@ export const SQL_GET_ADMIN_MASTER_CANDIDATE_BY_USER_ID = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_INSERT_MASTER_ROLE = `
   INSERT INTO user_roles (user_id, role, granted_by)
   VALUES ($1::bigint, 'master'::user_role, $2::bigint)
   ON CONFLICT (user_id, role) DO NOTHING
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_INSERT_ADMIN_MASTER_PROFILE = `
   INSERT INTO masters (
     user_id,
@@ -72,6 +77,7 @@ export const SQL_INSERT_ADMIN_MASTER_PROFILE = `
   RETURNING user_id AS master_id
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_ASSIGN_ADMIN_MASTER_SERVICES = `
   INSERT INTO master_services (
     studio_id,
@@ -99,6 +105,7 @@ export const SQL_ASSIGN_ADMIN_MASTER_SERVICES = `
   RETURNING service_id
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPSERT_ADMIN_MASTER_WEEKLY_DAY = `
   INSERT INTO master_weekly_hours (
     master_id,
@@ -121,6 +128,7 @@ export const SQL_UPSERT_ADMIN_MASTER_WEEKLY_DAY = `
     close_time = EXCLUDED.close_time
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_DEACTIVATE_ADMIN_MASTER = `
   UPDATE masters m
   SET
@@ -134,6 +142,7 @@ export const SQL_DEACTIVATE_ADMIN_MASTER = `
     m.display_name
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_DEACTIVATE_ADMIN_MASTER_SERVICES = `
   UPDATE master_services ms
   SET
@@ -144,6 +153,7 @@ export const SQL_DEACTIVATE_ADMIN_MASTER_SERVICES = `
     AND ms.is_active = TRUE
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_REVOKE_ADMIN_MASTER_ROLE = `
   DELETE FROM user_roles ur
   WHERE ur.user_id = $1::bigint

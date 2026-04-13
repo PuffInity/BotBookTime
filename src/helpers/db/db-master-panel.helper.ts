@@ -13,6 +13,11 @@ import { SQL_GET_MASTER_PANEL_ACCESS_BY_TELEGRAM_ID } from '../db-sql/db-master-
  * @summary DB helper для перевірки доступу і контексту панелі майстра.
  */
 
+/**
+ * uk: Внутрішній helper метод mapMasterPanelAccessRow.
+ * en: Internal helper method mapMasterPanelAccessRow.
+ * cz: Interní helper metoda mapMasterPanelAccessRow.
+ */
 function mapMasterPanelAccessRow(row: MasterPanelAccessRow): MasterPanelAccess {
   return {
     userId: row.user_id,

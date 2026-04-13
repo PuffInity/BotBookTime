@@ -48,6 +48,11 @@ import {
  * @summary DB helper блоку "Послуги" в адмін-панелі.
  */
 
+/**
+ * uk: Внутрішній helper метод normalizePositiveBigintId.
+ * en: Internal helper method normalizePositiveBigintId.
+ * cz: Interní helper metoda normalizePositiveBigintId.
+ */
 function normalizePositiveBigintId(value: string | number, fieldName: string): string {
   const normalized = String(value).trim();
   if (!/^\d+$/.test(normalized) || normalized === '0') {
@@ -56,6 +61,11 @@ function normalizePositiveBigintId(value: string | number, fieldName: string): s
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeServiceResultDescription.
+ * en: Internal helper method normalizeServiceResultDescription.
+ * cz: Interní helper metoda normalizeServiceResultDescription.
+ */
 function normalizeServiceResultDescription(value: string | null): string | null {
   if (value == null) {
     throw new ValidationError('Результат послуги не може бути порожнім');
@@ -72,6 +82,11 @@ function normalizeServiceResultDescription(value: string | null): string | null 
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeServiceDescription.
+ * en: Internal helper method normalizeServiceDescription.
+ * cz: Interní helper metoda normalizeServiceDescription.
+ */
 function normalizeServiceDescription(value: string | null): string | null {
   if (value == null) {
     throw new ValidationError('Опис послуги не може бути порожнім');
@@ -88,6 +103,11 @@ function normalizeServiceDescription(value: string | null): string | null {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeServiceName.
+ * en: Internal helper method normalizeServiceName.
+ * cz: Interní helper metoda normalizeServiceName.
+ */
 function normalizeServiceName(value: string): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length < 2) {
@@ -99,6 +119,11 @@ function normalizeServiceName(value: string): string {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeGuaranteeNo.
+ * en: Internal helper method normalizeGuaranteeNo.
+ * cz: Interní helper metoda normalizeGuaranteeNo.
+ */
 function normalizeGuaranteeNo(value: number): number {
   if (!Number.isFinite(value)) {
     throw new ValidationError('Некоректний номер гарантії');
@@ -110,6 +135,11 @@ function normalizeGuaranteeNo(value: number): number {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeStepNo.
+ * en: Internal helper method normalizeStepNo.
+ * cz: Interní helper metoda normalizeStepNo.
+ */
 function normalizeStepNo(value: number): number {
   if (!Number.isFinite(value)) {
     throw new ValidationError('Некоректний номер етапу');
@@ -121,6 +151,11 @@ function normalizeStepNo(value: number): number {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeServiceGuaranteeText.
+ * en: Internal helper method normalizeServiceGuaranteeText.
+ * cz: Interní helper metoda normalizeServiceGuaranteeText.
+ */
 function normalizeServiceGuaranteeText(value: string): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length < 3) {
@@ -132,6 +167,11 @@ function normalizeServiceGuaranteeText(value: string): string {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeServiceStepTitle.
+ * en: Internal helper method normalizeServiceStepTitle.
+ * cz: Interní helper metoda normalizeServiceStepTitle.
+ */
 function normalizeServiceStepTitle(value: string): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length < 2) {
@@ -143,6 +183,11 @@ function normalizeServiceStepTitle(value: string): string {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeServiceStepDescription.
+ * en: Internal helper method normalizeServiceStepDescription.
+ * cz: Interní helper metoda normalizeServiceStepDescription.
+ */
 function normalizeServiceStepDescription(value: string): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length < 10) {
@@ -154,6 +199,11 @@ function normalizeServiceStepDescription(value: string): string {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeServiceStepDurationMinutes.
+ * en: Internal helper method normalizeServiceStepDurationMinutes.
+ * cz: Interní helper metoda normalizeServiceStepDurationMinutes.
+ */
 function normalizeServiceStepDurationMinutes(value: number): number {
   if (!Number.isFinite(value)) {
     throw new ValidationError('Тривалість етапу має бути числом');
@@ -165,6 +215,11 @@ function normalizeServiceStepDurationMinutes(value: number): number {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeServiceBasePrice.
+ * en: Internal helper method normalizeServiceBasePrice.
+ * cz: Interní helper metoda normalizeServiceBasePrice.
+ */
 function normalizeServiceBasePrice(value: string): string {
   const normalized = value.trim().replace(',', '.');
   if (!/^\d+(\.\d{1,2})?$/.test(normalized)) {
@@ -182,6 +237,11 @@ function normalizeServiceBasePrice(value: string): string {
   return amount.toFixed(2);
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeServiceDurationMinutes.
+ * en: Internal helper method normalizeServiceDurationMinutes.
+ * cz: Interní helper metoda normalizeServiceDurationMinutes.
+ */
 function normalizeServiceDurationMinutes(value: number): number {
   if (!Number.isFinite(value)) {
     throw new ValidationError('Тривалість послуги має бути числом');
@@ -193,6 +253,11 @@ function normalizeServiceDurationMinutes(value: number): number {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeCurrencyCode.
+ * en: Internal helper method normalizeCurrencyCode.
+ * cz: Interní helper metoda normalizeCurrencyCode.
+ */
 function normalizeCurrencyCode(value?: string): string {
   const normalized = (value ?? 'CZK').trim().toUpperCase();
   if (!/^[A-Z]{3}$/.test(normalized)) {
@@ -201,6 +266,11 @@ function normalizeCurrencyCode(value?: string): string {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeServiceGuaranteeValidDays.
+ * en: Internal helper method normalizeServiceGuaranteeValidDays.
+ * cz: Interní helper metoda normalizeServiceGuaranteeValidDays.
+ */
 function normalizeServiceGuaranteeValidDays(value: number | null | undefined): number | null {
   if (value == null) return null;
   if (!Number.isFinite(value)) {
@@ -216,6 +286,11 @@ function normalizeServiceGuaranteeValidDays(value: number | null | undefined): n
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод mapAdminEditableServiceRow.
+ * en: Internal helper method mapAdminEditableServiceRow.
+ * cz: Interní helper metoda mapAdminEditableServiceRow.
+ */
 function mapAdminEditableServiceRow(row: AdminEditableServiceRow): AdminEditableService {
   return {
     id: row.id,

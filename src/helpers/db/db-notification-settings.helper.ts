@@ -29,6 +29,11 @@ import {
  * @summary DB helper для читання і оновлення налаштувань сповіщень.
  */
 
+/**
+ * uk: Внутрішній helper метод createDefaultSettingsState.
+ * en: Internal helper method createDefaultSettingsState.
+ * cz: Interní helper metoda createDefaultSettingsState.
+ */
 function createDefaultSettingsState(): NotificationSettingsState {
   return {
     booking_confirmation: true,
@@ -38,6 +43,11 @@ function createDefaultSettingsState(): NotificationSettingsState {
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapUserDeliveryProfileRow.
+ * en: Internal helper method mapUserDeliveryProfileRow.
+ * cz: Interní helper metoda mapUserDeliveryProfileRow.
+ */
 function mapUserDeliveryProfileRow(row: UserDeliveryProfileRow): UserDeliveryProfile {
   return {
     userId: row.id,
@@ -51,6 +61,11 @@ function mapUserDeliveryProfileRow(row: UserDeliveryProfileRow): UserDeliveryPro
   };
 }
 
+/**
+ * uk: Внутрішній helper метод readSettingsStateTx.
+ * en: Internal helper method readSettingsStateTx.
+ * cz: Interní helper metoda readSettingsStateTx.
+ */
 async function readSettingsStateTx(userId: string): Promise<NotificationSettingsState> {
   return withTransaction(async (client) => {
     const rows = await queryMany<UserNotificationSettingsRow, UserNotificationSettingsEntity>(

@@ -3,6 +3,7 @@
  * @summary SQL constants для блоку статистики панелі майстра.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_MASTER_PANEL_STATS_OVERVIEW = `
   WITH context AS (
     SELECT
@@ -102,6 +103,7 @@ export const SQL_GET_MASTER_PANEL_STATS_OVERVIEW = `
     (SELECT bookings_today FROM today_activity) AS bookings_today
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_MASTER_PANEL_STATS_TOP_SERVICES = `
   WITH context AS (
     SELECT

@@ -27,6 +27,11 @@ import {
 const DEFAULT_FAQ_LIMIT = 50;
 const MAX_FAQ_LIMIT = 100;
 
+/**
+ * uk: Внутрішній helper метод normalizePositiveBigintId.
+ * en: Internal helper method normalizePositiveBigintId.
+ * cz: Interní helper metoda normalizePositiveBigintId.
+ */
 function normalizePositiveBigintId(value: string | number, fieldName: string): string {
   const normalized = String(value).trim();
 
@@ -37,11 +42,21 @@ function normalizePositiveBigintId(value: string | number, fieldName: string): s
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeOptionalStudioId.
+ * en: Internal helper method normalizeOptionalStudioId.
+ * cz: Interní helper metoda normalizeOptionalStudioId.
+ */
 function normalizeOptionalStudioId(studioId?: string | null): string | null {
   if (studioId == null) return null;
   return normalizePositiveBigintId(studioId, 'studioId');
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeFaqLimit.
+ * en: Internal helper method normalizeFaqLimit.
+ * cz: Interní helper metoda normalizeFaqLimit.
+ */
 function normalizeFaqLimit(limit?: number): number {
   if (limit == null) return DEFAULT_FAQ_LIMIT;
   if (!Number.isFinite(limit)) return DEFAULT_FAQ_LIMIT;
@@ -52,6 +67,11 @@ function normalizeFaqLimit(limit?: number): number {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод pickTranslationForEntry.
+ * en: Internal helper method pickTranslationForEntry.
+ * cz: Interní helper metoda pickTranslationForEntry.
+ */
 function pickTranslationForEntry(
   entryId: string,
   language: LanguageCode,
@@ -67,6 +87,11 @@ function pickTranslationForEntry(
   );
 }
 
+/**
+ * uk: Внутрішній helper метод buildFaqCatalogItems.
+ * en: Internal helper method buildFaqCatalogItems.
+ * cz: Interní helper metoda buildFaqCatalogItems.
+ */
 function buildFaqCatalogItems(
   entries: FaqEntriesEntity[],
   translations: FaqEntryTranslationsEntity[],

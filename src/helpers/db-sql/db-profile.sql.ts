@@ -3,6 +3,7 @@
  * @summary SQL constants for db-profile helper.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const APP_USERS_SELECT_COLUMNS = `
   id,
   studio_id,
@@ -21,6 +22,7 @@ export const APP_USERS_SELECT_COLUMNS = `
   updated_at
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_USER_BY_TELEGRAM_ID = `
   SELECT
     ${APP_USERS_SELECT_COLUMNS}
@@ -29,6 +31,7 @@ export const SQL_GET_USER_BY_TELEGRAM_ID = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_CREATE_USER = `
   INSERT INTO app_users (
     telegram_user_id,
@@ -41,6 +44,7 @@ export const SQL_CREATE_USER = `
     ${APP_USERS_SELECT_COLUMNS}
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPDATE_USER_NAME_BY_TELEGRAM_ID = `
   UPDATE app_users
   SET first_name = $2
@@ -49,6 +53,7 @@ export const SQL_UPDATE_USER_NAME_BY_TELEGRAM_ID = `
     ${APP_USERS_SELECT_COLUMNS}
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPDATE_USER_EMAIL_BY_TELEGRAM_ID = `
   UPDATE app_users
   SET email = $2,
@@ -58,6 +63,7 @@ export const SQL_UPDATE_USER_EMAIL_BY_TELEGRAM_ID = `
     ${APP_USERS_SELECT_COLUMNS}
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPDATE_USER_PHONE_BY_TELEGRAM_ID = `
   UPDATE app_users
   SET phone_e164 = $2,
@@ -67,6 +73,7 @@ export const SQL_UPDATE_USER_PHONE_BY_TELEGRAM_ID = `
     ${APP_USERS_SELECT_COLUMNS}
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPDATE_USER_LANGUAGE_BY_TELEGRAM_ID = `
   UPDATE app_users
   SET preferred_language = $2::language_code
@@ -75,6 +82,7 @@ export const SQL_UPDATE_USER_LANGUAGE_BY_TELEGRAM_ID = `
     ${APP_USERS_SELECT_COLUMNS}
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const VERIFICATION_CODES_SELECT_COLUMNS = `
   id,
   user_id,
@@ -90,6 +98,7 @@ export const VERIFICATION_CODES_SELECT_COLUMNS = `
   created_at
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_CONSUME_ACTIVE_EMAIL_VERIFY_OTPS = `
   UPDATE verification_codes
   SET consumed_at = LEAST(now(), expires_at)
@@ -100,6 +109,7 @@ export const SQL_CONSUME_ACTIVE_EMAIL_VERIFY_OTPS = `
     AND consumed_at IS NULL
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_CONSUME_ACTIVE_PHONE_VERIFY_OTPS = `
   UPDATE verification_codes
   SET consumed_at = LEAST(now(), expires_at)
@@ -110,6 +120,7 @@ export const SQL_CONSUME_ACTIVE_PHONE_VERIFY_OTPS = `
     AND consumed_at IS NULL
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_INSERT_EMAIL_VERIFY_OTP = `
   INSERT INTO verification_codes (
     user_id,
@@ -126,6 +137,7 @@ export const SQL_INSERT_EMAIL_VERIFY_OTP = `
     ${VERIFICATION_CODES_SELECT_COLUMNS}
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_INSERT_PHONE_VERIFY_OTP = `
   INSERT INTO verification_codes (
     user_id,
@@ -142,6 +154,7 @@ export const SQL_INSERT_PHONE_VERIFY_OTP = `
     ${VERIFICATION_CODES_SELECT_COLUMNS}
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_ACTIVE_EMAIL_VERIFY_OTP = `
   SELECT
     ${VERIFICATION_CODES_SELECT_COLUMNS}
@@ -155,6 +168,7 @@ export const SQL_GET_ACTIVE_EMAIL_VERIFY_OTP = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_ACTIVE_PHONE_VERIFY_OTP = `
   SELECT
     ${VERIFICATION_CODES_SELECT_COLUMNS}
@@ -168,6 +182,7 @@ export const SQL_GET_ACTIVE_PHONE_VERIFY_OTP = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_INCREMENT_OTP_ATTEMPTS_BY_ID = `
   UPDATE verification_codes
   SET attempts_used = attempts_used + 1
@@ -176,6 +191,7 @@ export const SQL_INCREMENT_OTP_ATTEMPTS_BY_ID = `
     ${VERIFICATION_CODES_SELECT_COLUMNS}
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_CONSUME_OTP_BY_ID = `
   UPDATE verification_codes
   SET consumed_at = now()
@@ -184,6 +200,7 @@ export const SQL_CONSUME_OTP_BY_ID = `
     ${VERIFICATION_CODES_SELECT_COLUMNS}
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_MARK_EMAIL_VERIFIED_BY_USER_ID = `
   UPDATE app_users
   SET email_verified_at = now()
@@ -194,6 +211,7 @@ export const SQL_MARK_EMAIL_VERIFIED_BY_USER_ID = `
     ${APP_USERS_SELECT_COLUMNS}
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_MARK_PHONE_VERIFIED_BY_USER_ID = `
   UPDATE app_users
   SET phone_verified_at = now()

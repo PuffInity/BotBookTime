@@ -3,6 +3,7 @@
  * @summary SQL constants for db-booking helper.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const APPOINTMENTS_SELECT_COLUMNS = `
   id,
   studio_id,
@@ -35,6 +36,7 @@ export const APPOINTMENTS_SELECT_COLUMNS = `
   updated_at
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const BOOKING_SERVICES_SELECT_COLUMNS = `
   s.id,
   s.studio_id,
@@ -49,6 +51,7 @@ export const BOOKING_SERVICES_SELECT_COLUMNS = `
   s.updated_at
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_BOOKING_META_BY_MASTER_SERVICE = `
   SELECT
     ms.studio_id,
@@ -79,6 +82,7 @@ export const SQL_GET_BOOKING_META_BY_MASTER_SERVICE = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_BOOKABLE_SERVICES_FOR_BOOKING = `
   SELECT
     ${BOOKING_SERVICES_SELECT_COLUMNS}
@@ -100,6 +104,7 @@ export const SQL_LIST_BOOKABLE_SERVICES_FOR_BOOKING = `
   LIMIT $2
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_CHECK_MASTER_WORK_SCHEDULE_AT_SLOT = `
   WITH local_slot AS (
     SELECT
@@ -185,6 +190,7 @@ export const SQL_CHECK_MASTER_WORK_SCHEDULE_AT_SLOT = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_CHECK_APPOINTMENT_CONFLICT = `
   SELECT EXISTS (
     SELECT 1
@@ -197,6 +203,7 @@ export const SQL_CHECK_APPOINTMENT_CONFLICT = `
   ) AS has_conflict
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_AVAILABLE_TIME_CODES_FOR_BOOKING_DATE = `
   WITH candidates AS (
     SELECT
@@ -339,6 +346,7 @@ export const SQL_LIST_AVAILABLE_TIME_CODES_FOR_BOOKING_DATE = `
   ORDER BY a.time_code ASC
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_AVAILABLE_MASTERS_FOR_BOOKING_SLOT = `
   WITH candidates AS (
     SELECT
@@ -477,6 +485,7 @@ export const SQL_LIST_AVAILABLE_MASTERS_FOR_BOOKING_SLOT = `
   ORDER BY e.rating_avg DESC, e.rating_count DESC, e.master_id ASC
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_INSERT_PENDING_APPOINTMENT = `
   INSERT INTO appointments (
     studio_id,

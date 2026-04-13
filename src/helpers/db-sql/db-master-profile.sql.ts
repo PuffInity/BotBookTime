@@ -3,6 +3,7 @@
  * @summary SQL constants для блоку "Мій профіль майстра".
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_MASTER_OWN_PROFILE_OVERVIEW = `
   SELECT
     m.user_id,
@@ -27,6 +28,7 @@ export const SQL_GET_MASTER_OWN_PROFILE_OVERVIEW = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_MASTER_OWN_PROFILE_SERVICES = `
   SELECT
     s.id AS service_id,
@@ -41,6 +43,7 @@ export const SQL_LIST_MASTER_OWN_PROFILE_SERVICES = `
   ORDER BY s.name ASC
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_MASTER_OWN_PROFILE_SERVICES_MANAGE = `
   SELECT
     s.id AS service_id,
@@ -61,6 +64,7 @@ export const SQL_LIST_MASTER_OWN_PROFILE_SERVICES_MANAGE = `
   ORDER BY ms.is_active DESC, s.name ASC
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_MASTER_OWN_PROFILE_SERVICES_ADD_CANDIDATES = `
   SELECT
     s.id AS service_id,
@@ -82,6 +86,7 @@ export const SQL_LIST_MASTER_OWN_PROFILE_SERVICES_ADD_CANDIDATES = `
   ORDER BY s.name ASC
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_MASTER_OWN_PROFILE_SERVICES_REMOVE_CANDIDATES = `
   SELECT
     s.id AS service_id,
@@ -103,6 +108,7 @@ export const SQL_LIST_MASTER_OWN_PROFILE_SERVICES_REMOVE_CANDIDATES = `
   ORDER BY s.name ASC
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_MASTER_OWN_PROFILE_CERTIFICATES = `
   SELECT
     mc.id AS certificate_id,
@@ -114,6 +120,7 @@ export const SQL_LIST_MASTER_OWN_PROFILE_CERTIFICATES = `
   ORDER BY mc.issued_on DESC NULLS LAST, mc.id DESC
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_MASTER_OWN_PROFILE_CERTIFICATES_MANAGE = `
   SELECT
     mc.id AS certificate_id,
@@ -125,6 +132,7 @@ export const SQL_LIST_MASTER_OWN_PROFILE_CERTIFICATES_MANAGE = `
   ORDER BY mc.issued_on DESC NULLS LAST, mc.id DESC
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_FIND_MASTER_OWN_CERTIFICATE_BY_TITLE = `
   SELECT
     mc.id AS certificate_id
@@ -135,6 +143,7 @@ export const SQL_FIND_MASTER_OWN_CERTIFICATE_BY_TITLE = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPDATE_MASTER_OWN_PROFILE_BIO = `
   UPDATE masters
   SET bio = $2,
@@ -143,6 +152,7 @@ export const SQL_UPDATE_MASTER_OWN_PROFILE_BIO = `
   RETURNING user_id
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPDATE_MASTER_OWN_PROFILE_MATERIALS = `
   UPDATE masters
   SET materials_info = $2,
@@ -151,6 +161,7 @@ export const SQL_UPDATE_MASTER_OWN_PROFILE_MATERIALS = `
   RETURNING user_id
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPDATE_MASTER_OWN_PROFILE_PHONE = `
   UPDATE masters
   SET contact_phone_e164 = $2,
@@ -159,6 +170,7 @@ export const SQL_UPDATE_MASTER_OWN_PROFILE_PHONE = `
   RETURNING user_id
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPDATE_MASTER_OWN_PROFILE_EMAIL = `
   UPDATE masters
   SET contact_email = $2,
@@ -167,6 +179,7 @@ export const SQL_UPDATE_MASTER_OWN_PROFILE_EMAIL = `
   RETURNING user_id
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPDATE_MASTER_OWN_PROFILE_DISPLAY_NAME = `
   UPDATE masters
   SET display_name = $2,
@@ -175,6 +188,7 @@ export const SQL_UPDATE_MASTER_OWN_PROFILE_DISPLAY_NAME = `
   RETURNING user_id
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPDATE_MASTER_OWN_PROFILE_STARTED_ON = `
   UPDATE masters
   SET started_on = $2::date,
@@ -183,6 +197,7 @@ export const SQL_UPDATE_MASTER_OWN_PROFILE_STARTED_ON = `
   RETURNING user_id
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPDATE_MASTER_OWN_PROFILE_PROCEDURES_DONE_TOTAL = `
   UPDATE masters
   SET procedures_done_total = $2::int,
@@ -191,6 +206,7 @@ export const SQL_UPDATE_MASTER_OWN_PROFILE_PROCEDURES_DONE_TOTAL = `
   RETURNING user_id
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_ADD_MASTER_OWN_SERVICE = `
   WITH target AS (
     SELECT
@@ -243,6 +259,7 @@ export const SQL_ADD_MASTER_OWN_SERVICE = `
    AND t.service_id = u.service_id
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_REMOVE_MASTER_OWN_SERVICE = `
   UPDATE master_services ms
   SET is_active = FALSE,
@@ -258,6 +275,7 @@ export const SQL_REMOVE_MASTER_OWN_SERVICE = `
   RETURNING ms.service_id, s.name AS service_name, ms.is_active
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_INSERT_MASTER_OWN_CERTIFICATE = `
   INSERT INTO master_certificates (
     master_id,
@@ -274,6 +292,7 @@ export const SQL_INSERT_MASTER_OWN_CERTIFICATE = `
   RETURNING id AS certificate_id, title
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_DELETE_MASTER_OWN_CERTIFICATE = `
   DELETE FROM master_certificates mc
   USING masters m
@@ -283,6 +302,7 @@ export const SQL_DELETE_MASTER_OWN_CERTIFICATE = `
   RETURNING mc.id AS certificate_id, mc.title
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_TOGGLE_MASTER_OWN_SERVICE_AVAILABILITY = `
   UPDATE master_services ms
   SET is_active = NOT ms.is_active,

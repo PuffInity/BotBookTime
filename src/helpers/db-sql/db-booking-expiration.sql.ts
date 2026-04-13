@@ -3,6 +3,7 @@
  * @summary SQL constants для авто-скасування pending-бронювань після старту слота.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_EXPIRE_PENDING_APPOINTMENTS = `
   WITH candidate AS (
     SELECT a.id

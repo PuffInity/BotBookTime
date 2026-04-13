@@ -3,6 +3,7 @@
  * @summary SQL constants для блоку статистики адмін-панелі.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_ADMIN_PANEL_STATS_OVERVIEW = `
   WITH context AS (
     SELECT
@@ -59,6 +60,7 @@ export const SQL_GET_ADMIN_PANEL_STATS_OVERVIEW = `
   FROM completed
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_ADMIN_PANEL_STATS_MASTERS_FEED = `
   WITH context AS (
     SELECT
@@ -118,6 +120,7 @@ export const SQL_LIST_ADMIN_PANEL_STATS_MASTERS_FEED = `
   OFFSET $3
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_ADMIN_PANEL_STATS_SERVICES_FEED = `
   WITH context AS (
     SELECT
@@ -178,6 +181,7 @@ export const SQL_LIST_ADMIN_PANEL_STATS_SERVICES_FEED = `
   OFFSET $3
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_ADMIN_PANEL_STATS_SERVICE_DETAILS = `
   WITH context AS (
     SELECT
@@ -254,6 +258,7 @@ export const SQL_GET_ADMIN_PANEL_STATS_SERVICE_DETAILS = `
     ctx.currency_code
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_ADMIN_PANEL_STATS_SERVICE_TOP_MASTERS = `
   WITH context AS (
     SELECT
@@ -290,6 +295,7 @@ export const SQL_LIST_ADMIN_PANEL_STATS_SERVICE_TOP_MASTERS = `
   LIMIT $3
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_ADMIN_PANEL_STATS_MONTHLY_FEED = `
   WITH context AS (
     SELECT
@@ -336,6 +342,7 @@ export const SQL_LIST_ADMIN_PANEL_STATS_MONTHLY_FEED = `
   OFFSET $3
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_ADMIN_PANEL_STATS_MONTHLY_REPORT_DETAILS = `
   WITH context AS (
     SELECT
@@ -382,6 +389,7 @@ export const SQL_GET_ADMIN_PANEL_STATS_MONTHLY_REPORT_DETAILS = `
   GROUP BY ctx.currency_code
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_ADMIN_PANEL_STATS_MONTHLY_TOP_SERVICES = `
   WITH context AS (
     SELECT
@@ -420,6 +428,7 @@ export const SQL_LIST_ADMIN_PANEL_STATS_MONTHLY_TOP_SERVICES = `
   LIMIT $3
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_ADMIN_PANEL_STATS_MONTHLY_TOP_MASTERS = `
   WITH context AS (
     SELECT
@@ -458,6 +467,7 @@ export const SQL_LIST_ADMIN_PANEL_STATS_MONTHLY_TOP_MASTERS = `
   LIMIT $3
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_ADMIN_PANEL_STATS_CLIENTS_FEED = `
   WITH context AS (
     SELECT
@@ -503,6 +513,7 @@ export const SQL_LIST_ADMIN_PANEL_STATS_CLIENTS_FEED = `
   OFFSET $3
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_ADMIN_PANEL_STATS_CLIENT_DETAILS = `
   WITH context AS (
     SELECT
@@ -593,6 +604,7 @@ export const SQL_GET_ADMIN_PANEL_STATS_CLIENT_DETAILS = `
   GROUP BY cs.client_id, cs.first_name, cs.last_name, ctx.currency_code
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_STUDIO_CURRENCY_CODE = `
   SELECT
     st.currency_code

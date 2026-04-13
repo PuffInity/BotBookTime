@@ -16,6 +16,11 @@ import { ValidationError } from '../../utils/error.utils.js';
  * @summary DB helper для блоку "Моя статистика" у панелі майстра.
  */
 
+/**
+ * uk: Внутрішній helper метод normalizeMasterId.
+ * en: Internal helper method normalizeMasterId.
+ * cz: Interní helper metoda normalizeMasterId.
+ */
 function normalizeMasterId(masterIdInput: string | number): string {
   const normalized = String(masterIdInput).trim();
   if (!/^\d+$/.test(normalized) || normalized === '0') {
@@ -24,6 +29,11 @@ function normalizeMasterId(masterIdInput: string | number): string {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод mapOverviewRow.
+ * en: Internal helper method mapOverviewRow.
+ * cz: Interní helper metoda mapOverviewRow.
+ */
 function mapOverviewRow(row: MasterStatsOverviewRow): Omit<MasterPanelStatsData, 'topServices'> {
   return {
     completedProceduresMonth: row.completed_procedures_month,
@@ -36,6 +46,11 @@ function mapOverviewRow(row: MasterStatsOverviewRow): Omit<MasterPanelStatsData,
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapTopServiceRow.
+ * en: Internal helper method mapTopServiceRow.
+ * cz: Interní helper metoda mapTopServiceRow.
+ */
 function mapTopServiceRow(row: MasterStatsTopServiceRow): MasterStatsTopServiceItem {
   return {
     serviceName: row.service_name,

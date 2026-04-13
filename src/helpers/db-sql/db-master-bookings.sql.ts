@@ -3,6 +3,7 @@
  * @summary SQL constants for db-master-bookings helper.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const MASTER_PENDING_BOOKING_SELECT_COLUMNS = `
   a.id AS appointment_id,
   a.client_id,
@@ -23,6 +24,7 @@ export const MASTER_PENDING_BOOKING_SELECT_COLUMNS = `
   m.display_name AS master_name
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_MASTER_PENDING_BOOKINGS = `
   SELECT
     ${MASTER_PENDING_BOOKING_SELECT_COLUMNS}
@@ -45,6 +47,7 @@ export const SQL_LIST_MASTER_PENDING_BOOKINGS = `
   LIMIT $2
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_MASTER_BOOKINGS_FEED = `
   WITH context AS (
     SELECT
@@ -107,6 +110,7 @@ export const SQL_LIST_MASTER_BOOKINGS_FEED = `
   OFFSET $4::int
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_CONFIRM_MASTER_PENDING_BOOKING = `
   WITH updated AS (
     UPDATE appointments a
@@ -134,6 +138,7 @@ export const SQL_CONFIRM_MASTER_PENDING_BOOKING = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_CANCEL_MASTER_PENDING_BOOKING = `
   WITH updated AS (
     UPDATE appointments a
@@ -162,6 +167,7 @@ export const SQL_CANCEL_MASTER_PENDING_BOOKING = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_MASTER_PENDING_BOOKING_FOR_RESCHEDULE = `
   SELECT
     ${MASTER_PENDING_BOOKING_SELECT_COLUMNS},
@@ -190,6 +196,7 @@ export const SQL_GET_MASTER_PENDING_BOOKING_FOR_RESCHEDULE = `
   FOR UPDATE
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_CHECK_APPOINTMENT_CONFLICT_EXCLUDING_ID = `
   SELECT EXISTS (
     SELECT 1
@@ -203,6 +210,7 @@ export const SQL_CHECK_APPOINTMENT_CONFLICT_EXCLUDING_ID = `
   ) AS has_conflict
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_INSERT_RESCHEDULED_APPOINTMENT = `
   INSERT INTO appointments (
     studio_id,
@@ -247,6 +255,7 @@ export const SQL_INSERT_RESCHEDULED_APPOINTMENT = `
   RETURNING id
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_MARK_PENDING_APPOINTMENT_AS_TRANSFERRED = `
   UPDATE appointments
   SET status = 'transferred',
@@ -258,6 +267,7 @@ export const SQL_MARK_PENDING_APPOINTMENT_AS_TRANSFERRED = `
   RETURNING id
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_INSERT_APPOINTMENT_TRANSFER_LINK = `
   INSERT INTO appointment_transfers (
     from_appointment_id,
@@ -273,6 +283,7 @@ export const SQL_INSERT_APPOINTMENT_TRANSFER_LINK = `
   )
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_MASTER_BOOKING_CARD_BY_ID = `
   SELECT
     ${MASTER_PENDING_BOOKING_SELECT_COLUMNS}

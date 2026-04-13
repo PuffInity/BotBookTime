@@ -3,6 +3,7 @@
  * @summary SQL constants for admin settings helper.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 const ADMIN_SETTINGS_USER_COLUMNS = `
   u.id AS user_id,
   u.telegram_user_id,
@@ -11,6 +12,7 @@ const ADMIN_SETTINGS_USER_COLUMNS = `
   u.last_name
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_STUDIO_ADMINS = `
   SELECT
     ${ADMIN_SETTINGS_USER_COLUMNS},
@@ -25,6 +27,7 @@ export const SQL_LIST_STUDIO_ADMINS = `
   ORDER BY ur.granted_at DESC, u.id DESC
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_FIND_STUDIO_USER_BY_TELEGRAM_ID = `
   SELECT
     ${ADMIN_SETTINGS_USER_COLUMNS},
@@ -42,18 +45,21 @@ export const SQL_FIND_STUDIO_USER_BY_TELEGRAM_ID = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_INSERT_ADMIN_ROLE = `
   INSERT INTO user_roles (user_id, role, granted_by)
   VALUES ($1::bigint, 'admin'::user_role, $2::bigint)
   ON CONFLICT (user_id, role) DO NOTHING
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_DELETE_ADMIN_ROLE = `
   DELETE FROM user_roles
   WHERE user_id = $1::bigint
     AND role = 'admin'::user_role
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_COUNT_STUDIO_ADMINS = `
   SELECT COUNT(*)::int AS total
   FROM app_users u
@@ -64,6 +70,7 @@ export const SQL_COUNT_STUDIO_ADMINS = `
     AND u.is_active = TRUE
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_ADMIN_PANEL_LANGUAGE_BY_USER_ID = `
   SELECT
     u.preferred_language
@@ -73,6 +80,7 @@ export const SQL_GET_ADMIN_PANEL_LANGUAGE_BY_USER_ID = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_SET_ADMIN_PANEL_LANGUAGE_BY_USER_ID = `
   UPDATE app_users
   SET

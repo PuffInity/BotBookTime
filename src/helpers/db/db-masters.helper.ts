@@ -54,6 +54,11 @@ const DEFAULT_CATALOG_LIMIT = 20;
 const MAX_CATALOG_LIMIT = 50;
 const DEFAULT_SCHEDULE_EXCEPTIONS_LIMIT = 5;
 
+/**
+ * uk: Внутрішній helper метод normalizePositiveBigintId.
+ * en: Internal helper method normalizePositiveBigintId.
+ * cz: Interní helper metoda normalizePositiveBigintId.
+ */
 function normalizePositiveBigintId(value: string | number, fieldName: string): string {
   const normalized = String(value).trim();
 
@@ -64,11 +69,21 @@ function normalizePositiveBigintId(value: string | number, fieldName: string): s
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeOptionalStudioId.
+ * en: Internal helper method normalizeOptionalStudioId.
+ * cz: Interní helper metoda normalizeOptionalStudioId.
+ */
 function normalizeOptionalStudioId(studioId?: string | null): string | null {
   if (studioId == null) return null;
   return normalizePositiveBigintId(studioId, 'studioId');
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeCatalogLimit.
+ * en: Internal helper method normalizeCatalogLimit.
+ * cz: Interní helper metoda normalizeCatalogLimit.
+ */
 function normalizeCatalogLimit(limit?: number): number {
   if (limit == null) return DEFAULT_CATALOG_LIMIT;
   if (!Number.isFinite(limit)) return DEFAULT_CATALOG_LIMIT;
@@ -79,6 +94,11 @@ function normalizeCatalogLimit(limit?: number): number {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод mastersCatalogRowToItem.
+ * en: Internal helper method mastersCatalogRowToItem.
+ * cz: Interní helper metoda mastersCatalogRowToItem.
+ */
 function mastersCatalogRowToItem(row: MastersCatalogRow): MasterCatalogItem {
   return {
     userId: row.user_id,
@@ -93,6 +113,11 @@ function mastersCatalogRowToItem(row: MastersCatalogRow): MasterCatalogItem {
   };
 }
 
+/**
+ * uk: Внутрішній helper метод masterSpecializationRowToItem.
+ * en: Internal helper method masterSpecializationRowToItem.
+ * cz: Interní helper metoda masterSpecializationRowToItem.
+ */
 function masterSpecializationRowToItem(row: MasterSpecializationRow): MasterSpecializationItem {
   return {
     serviceId: row.service_id,
@@ -103,6 +128,11 @@ function masterSpecializationRowToItem(row: MasterSpecializationRow): MasterSpec
   };
 }
 
+/**
+ * uk: Внутрішній helper метод masterBookingOptionRowToItem.
+ * en: Internal helper method masterBookingOptionRowToItem.
+ * cz: Interní helper metoda masterBookingOptionRowToItem.
+ */
 function masterBookingOptionRowToItem(row: MasterBookingOptionRow): MasterBookingOption {
   return {
     masterId: row.master_id,
@@ -114,6 +144,11 @@ function masterBookingOptionRowToItem(row: MasterBookingOptionRow): MasterBookin
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapCertificateEntityToCatalog.
+ * en: Internal helper method mapCertificateEntityToCatalog.
+ * cz: Interní helper metoda mapCertificateEntityToCatalog.
+ */
 function mapCertificateEntityToCatalog(entity: MasterCertificatesEntity): MasterCatalogCertificate {
   return {
     id: entity.id,
@@ -125,6 +160,11 @@ function mapCertificateEntityToCatalog(entity: MasterCertificatesEntity): Master
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapWeeklyHoursEntityToSchedule.
+ * en: Internal helper method mapWeeklyHoursEntityToSchedule.
+ * cz: Interní helper metoda mapWeeklyHoursEntityToSchedule.
+ */
 function mapWeeklyHoursEntityToSchedule(
   entity: MasterWeeklyHoursEntity,
 ): MasterWeeklyScheduleItem {
@@ -136,6 +176,11 @@ function mapWeeklyHoursEntityToSchedule(
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapDayOffEntityToException.
+ * en: Internal helper method mapDayOffEntityToException.
+ * cz: Interní helper metoda mapDayOffEntityToException.
+ */
 function mapDayOffEntityToException(
   entity: MasterDaysOffEntity,
 ): MasterUpcomingScheduleException {
@@ -146,6 +191,11 @@ function mapDayOffEntityToException(
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapVacationEntityToException.
+ * en: Internal helper method mapVacationEntityToException.
+ * cz: Interní helper metoda mapVacationEntityToException.
+ */
 function mapVacationEntityToException(
   entity: MasterVacationsEntity,
 ): MasterUpcomingScheduleException {
@@ -157,6 +207,11 @@ function mapVacationEntityToException(
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapTemporaryHoursEntityToException.
+ * en: Internal helper method mapTemporaryHoursEntityToException.
+ * cz: Interní helper metoda mapTemporaryHoursEntityToException.
+ */
 function mapTemporaryHoursEntityToException(
   entity: MasterTemporaryHoursEntity,
 ): MasterUpcomingScheduleException {
@@ -172,6 +227,11 @@ function mapTemporaryHoursEntityToException(
   };
 }
 
+/**
+ * uk: Внутрішній helper метод getExceptionTimestamp.
+ * en: Internal helper method getExceptionTimestamp.
+ * cz: Interní helper metoda getExceptionTimestamp.
+ */
 function getExceptionTimestamp(item: MasterUpcomingScheduleException): number {
   if (item.type === 'day_off') return item.offDate.getTime();
   return item.dateFrom.getTime();

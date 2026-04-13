@@ -3,6 +3,7 @@
  * @summary SQL constants for admin schedule panel helper.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_STUDIO_WEEKLY_HOURS_FOR_ADMIN_PANEL = `
   SELECT
     weekday,
@@ -14,6 +15,7 @@ export const SQL_LIST_STUDIO_WEEKLY_HOURS_FOR_ADMIN_PANEL = `
   ORDER BY weekday ASC
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_STUDIO_UPCOMING_DAYS_OFF_FOR_ADMIN_PANEL = `
   SELECT
     id,
@@ -26,6 +28,7 @@ export const SQL_LIST_STUDIO_UPCOMING_DAYS_OFF_FOR_ADMIN_PANEL = `
   LIMIT $2
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_STUDIO_UPCOMING_HOLIDAYS_FOR_ADMIN_PANEL = `
   SELECT
     id,
@@ -38,6 +41,7 @@ export const SQL_LIST_STUDIO_UPCOMING_HOLIDAYS_FOR_ADMIN_PANEL = `
   LIMIT $2
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_STUDIO_UPCOMING_TEMPORARY_HOURS_FOR_ADMIN_PANEL = `
   SELECT
     id,
@@ -55,6 +59,7 @@ export const SQL_LIST_STUDIO_UPCOMING_TEMPORARY_HOURS_FOR_ADMIN_PANEL = `
   LIMIT $2
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_CHECK_STUDIO_DAY_OFF_EXISTS_FOR_DATE = `
   SELECT EXISTS (
     SELECT 1
@@ -64,6 +69,7 @@ export const SQL_CHECK_STUDIO_DAY_OFF_EXISTS_FOR_DATE = `
   ) AS already_exists
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_CHECK_STUDIO_HOLIDAY_EXISTS_FOR_DATE = `
   SELECT EXISTS (
     SELECT 1
@@ -73,6 +79,7 @@ export const SQL_CHECK_STUDIO_HOLIDAY_EXISTS_FOR_DATE = `
   ) AS already_exists
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_COUNT_STUDIO_ACTIVE_BOOKINGS_ON_DATE = `
   SELECT COUNT(*)::int AS active_count
   FROM appointments a
@@ -84,6 +91,7 @@ export const SQL_COUNT_STUDIO_ACTIVE_BOOKINGS_ON_DATE = `
     AND (a.start_at AT TIME ZONE st.timezone)::date = $2::date
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_INSERT_STUDIO_DAY_OFF = `
   INSERT INTO studio_days_off (
     studio_id,
@@ -100,6 +108,7 @@ export const SQL_INSERT_STUDIO_DAY_OFF = `
   RETURNING id, off_date, reason
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_INSERT_STUDIO_HOLIDAY = `
   INSERT INTO studio_holidays (
     studio_id,
@@ -116,6 +125,7 @@ export const SQL_INSERT_STUDIO_HOLIDAY = `
   RETURNING id, holiday_date, holiday_name
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_DELETE_STUDIO_DAY_OFF_BY_ID = `
   DELETE FROM studio_days_off
   WHERE id = $1::bigint
@@ -123,6 +133,7 @@ export const SQL_DELETE_STUDIO_DAY_OFF_BY_ID = `
   RETURNING id
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_DELETE_STUDIO_HOLIDAY_BY_ID = `
   DELETE FROM studio_holidays
   WHERE id = $1::bigint
@@ -130,6 +141,7 @@ export const SQL_DELETE_STUDIO_HOLIDAY_BY_ID = `
   RETURNING id
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_CHECK_STUDIO_TEMPORARY_HOURS_OVERLAP = `
   SELECT EXISTS (
     SELECT 1
@@ -140,6 +152,7 @@ export const SQL_CHECK_STUDIO_TEMPORARY_HOURS_OVERLAP = `
   ) AS already_exists
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_INSERT_STUDIO_TEMPORARY_HOURS = `
   INSERT INTO studio_temporary_hours (
     studio_id,
@@ -165,6 +178,7 @@ export const SQL_INSERT_STUDIO_TEMPORARY_HOURS = `
   )
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPSERT_STUDIO_WEEKLY_HOURS = `
   INSERT INTO studio_weekly_hours (
     studio_id,
@@ -188,6 +202,7 @@ export const SQL_UPSERT_STUDIO_WEEKLY_HOURS = `
   RETURNING weekday, is_open, open_time, close_time
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_DELETE_STUDIO_TEMPORARY_HOURS_PERIOD = `
   DELETE FROM studio_temporary_hours
   WHERE studio_id = $1::bigint

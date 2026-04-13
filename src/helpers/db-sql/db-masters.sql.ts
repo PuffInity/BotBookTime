@@ -3,6 +3,7 @@
  * @summary SQL constants for db-masters helper.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const MASTERS_CATALOG_SELECT_COLUMNS = `
   m.user_id,
   m.studio_id,
@@ -18,6 +19,7 @@ export const MASTERS_CATALOG_SELECT_COLUMNS = `
   m.materials_info
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const MASTER_CERTIFICATES_SELECT_COLUMNS = `
   id,
   master_id,
@@ -30,6 +32,7 @@ export const MASTER_CERTIFICATES_SELECT_COLUMNS = `
   updated_at
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const MASTER_SPECIALIZATIONS_SELECT_COLUMNS = `
   s.id AS service_id,
   s.name AS service_name,
@@ -38,6 +41,7 @@ export const MASTER_SPECIALIZATIONS_SELECT_COLUMNS = `
   s.currency_code AS currency_code
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const MASTER_BOOKING_OPTION_SELECT_COLUMNS = `
   m.user_id AS master_id,
   m.studio_id,
@@ -47,6 +51,7 @@ export const MASTER_BOOKING_OPTION_SELECT_COLUMNS = `
   m.experience_years
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const MASTER_WEEKLY_HOURS_SELECT_COLUMNS = `
   master_id,
   weekday,
@@ -57,6 +62,7 @@ export const MASTER_WEEKLY_HOURS_SELECT_COLUMNS = `
   updated_at
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const MASTER_DAYS_OFF_SELECT_COLUMNS = `
   id,
   master_id,
@@ -66,6 +72,7 @@ export const MASTER_DAYS_OFF_SELECT_COLUMNS = `
   created_at
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const MASTER_VACATIONS_SELECT_COLUMNS = `
   id,
   master_id,
@@ -77,6 +84,7 @@ export const MASTER_VACATIONS_SELECT_COLUMNS = `
   updated_at
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const MASTER_TEMPORARY_HOURS_SELECT_COLUMNS = `
   id,
   master_id,
@@ -92,6 +100,7 @@ export const MASTER_TEMPORARY_HOURS_SELECT_COLUMNS = `
   updated_at
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_ACTIVE_MASTERS_CATALOG = `
   SELECT
     ${MASTERS_CATALOG_SELECT_COLUMNS}
@@ -102,6 +111,7 @@ export const SQL_LIST_ACTIVE_MASTERS_CATALOG = `
   LIMIT $2
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_ACTIVE_MASTER_BY_ID = `
   SELECT
     ${MASTERS_CATALOG_SELECT_COLUMNS}
@@ -112,6 +122,7 @@ export const SQL_GET_ACTIVE_MASTER_BY_ID = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_MASTER_SPECIALIZATIONS_BY_ID = `
   SELECT
     ${MASTER_SPECIALIZATIONS_SELECT_COLUMNS}
@@ -125,6 +136,7 @@ export const SQL_LIST_MASTER_SPECIALIZATIONS_BY_ID = `
   ORDER BY s.name ASC
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_MASTER_CERTIFICATES_BY_ID = `
   SELECT
     ${MASTER_CERTIFICATES_SELECT_COLUMNS}
@@ -133,6 +145,7 @@ export const SQL_LIST_MASTER_CERTIFICATES_BY_ID = `
   ORDER BY issued_on DESC NULLS LAST, id DESC
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_MASTER_WEEKLY_HOURS_BY_ID = `
   SELECT
     ${MASTER_WEEKLY_HOURS_SELECT_COLUMNS}
@@ -141,6 +154,7 @@ export const SQL_LIST_MASTER_WEEKLY_HOURS_BY_ID = `
   ORDER BY weekday ASC
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_MASTER_UPCOMING_DAYS_OFF_BY_ID = `
   SELECT
     ${MASTER_DAYS_OFF_SELECT_COLUMNS}
@@ -151,6 +165,7 @@ export const SQL_LIST_MASTER_UPCOMING_DAYS_OFF_BY_ID = `
   LIMIT $2
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_MASTER_UPCOMING_VACATIONS_BY_ID = `
   SELECT
     ${MASTER_VACATIONS_SELECT_COLUMNS}
@@ -161,6 +176,7 @@ export const SQL_LIST_MASTER_UPCOMING_VACATIONS_BY_ID = `
   LIMIT $2
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_MASTER_UPCOMING_TEMPORARY_HOURS_BY_ID = `
   SELECT
     ${MASTER_TEMPORARY_HOURS_SELECT_COLUMNS}
@@ -171,6 +187,7 @@ export const SQL_LIST_MASTER_UPCOMING_TEMPORARY_HOURS_BY_ID = `
   LIMIT $2
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_ACTIVE_MASTERS_BY_SERVICE_ID = `
   SELECT
     ${MASTER_BOOKING_OPTION_SELECT_COLUMNS}

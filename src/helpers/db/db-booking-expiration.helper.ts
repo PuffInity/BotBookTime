@@ -17,6 +17,11 @@ const DEFAULT_BATCH_LIMIT = 50;
 const MAX_BATCH_LIMIT = 500;
 const DEFAULT_CANCEL_REASON = 'Скасовано автоматично (прострочений): запис не було підтверджено до часу візиту.';
 
+/**
+ * uk: Внутрішній helper метод normalizeBatchLimit.
+ * en: Internal helper method normalizeBatchLimit.
+ * cz: Interní helper metoda normalizeBatchLimit.
+ */
 function normalizeBatchLimit(limit?: number): number {
   if (limit == null || !Number.isFinite(limit)) return DEFAULT_BATCH_LIMIT;
 
@@ -26,6 +31,11 @@ function normalizeBatchLimit(limit?: number): number {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeCancelReason.
+ * en: Internal helper method normalizeCancelReason.
+ * cz: Interní helper metoda normalizeCancelReason.
+ */
 function normalizeCancelReason(reason?: string): string {
   const normalized = (reason ?? '').trim();
   if (!normalized) return DEFAULT_CANCEL_REASON;
@@ -35,6 +45,11 @@ function normalizeCancelReason(reason?: string): string {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод mapExpiredPendingRow.
+ * en: Internal helper method mapExpiredPendingRow.
+ * cz: Interní helper metoda mapExpiredPendingRow.
+ */
 function mapExpiredPendingRow(row: ExpiredPendingBookingRow): ExpiredPendingBookingItem {
   return {
     appointmentId: row.appointment_id,

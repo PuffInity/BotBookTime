@@ -3,6 +3,7 @@
  * @summary SQL constants for db-faq helper.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const FAQ_ENTRIES_SELECT_COLUMNS = `
   id,
   studio_id,
@@ -12,6 +13,7 @@ export const FAQ_ENTRIES_SELECT_COLUMNS = `
   updated_at
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const FAQ_TRANSLATIONS_SELECT_COLUMNS = `
   faq_id,
   language,
@@ -20,6 +22,7 @@ export const FAQ_TRANSLATIONS_SELECT_COLUMNS = `
   updated_at
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_ACTIVE_FAQ_ENTRIES = `
   SELECT
     ${FAQ_ENTRIES_SELECT_COLUMNS}
@@ -30,6 +33,7 @@ export const SQL_LIST_ACTIVE_FAQ_ENTRIES = `
   LIMIT $2
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_FAQ_TRANSLATIONS_BY_IDS_AND_LANG = `
   SELECT
     ${FAQ_TRANSLATIONS_SELECT_COLUMNS}

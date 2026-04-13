@@ -11,6 +11,11 @@ import { SQL_GET_ADMIN_PANEL_ACCESS_BY_TELEGRAM_ID } from '../db-sql/db-admin-pa
  * @summary DB helper для перевірки доступу і контексту адмін-панелі.
  */
 
+/**
+ * uk: Внутрішній helper метод mapAdminPanelAccessRow.
+ * en: Internal helper method mapAdminPanelAccessRow.
+ * cz: Interní helper metoda mapAdminPanelAccessRow.
+ */
 function mapAdminPanelAccessRow(row: AdminPanelAccessRow): AdminPanelAccess {
   return {
     userId: row.user_id,

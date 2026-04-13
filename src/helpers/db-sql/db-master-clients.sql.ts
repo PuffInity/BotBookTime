@@ -3,6 +3,7 @@
  * @summary SQL constants for master-client profile helper.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_MASTER_CLIENT_PROFILE_BY_BOOKING = `
   SELECT
     u.id AS client_id,
@@ -47,6 +48,7 @@ export const SQL_GET_MASTER_CLIENT_PROFILE_BY_BOOKING = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_MASTER_CLIENT_BOOKINGS_HISTORY_BY_BOOKING = `
   SELECT
     a.id AS appointment_id,

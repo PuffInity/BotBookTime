@@ -59,6 +59,11 @@ const MAX_EXCEPTIONS_LIMIT = 20;
 const MIN_TEMPORARY_SCHEDULE_DAYS = 7;
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
+/**
+ * uk: Внутрішній helper метод normalizePositiveBigintId.
+ * en: Internal helper method normalizePositiveBigintId.
+ * cz: Interní helper metoda normalizePositiveBigintId.
+ */
 function normalizePositiveBigintId(value: string | number, fieldName: string): string {
   const normalized = String(value).trim();
   if (!/^\d+$/.test(normalized) || normalized === '0') {
@@ -67,6 +72,11 @@ function normalizePositiveBigintId(value: string | number, fieldName: string): s
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeLimit.
+ * en: Internal helper method normalizeLimit.
+ * cz: Interní helper metoda normalizeLimit.
+ */
 function normalizeLimit(limit?: number): number {
   if (limit == null || !Number.isFinite(limit)) {
     return DEFAULT_EXCEPTIONS_LIMIT;
@@ -78,11 +88,21 @@ function normalizeLimit(limit?: number): number {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeOptionalCreatorId.
+ * en: Internal helper method normalizeOptionalCreatorId.
+ * cz: Interní helper metoda normalizeOptionalCreatorId.
+ */
 function normalizeOptionalCreatorId(value?: string | number | null): string | null {
   if (value == null) return null;
   return normalizePositiveBigintId(value, 'createdBy');
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeReason.
+ * en: Internal helper method normalizeReason.
+ * cz: Interní helper metoda normalizeReason.
+ */
 function normalizeReason(value?: string | null): string | null {
   if (!value) return null;
   const normalized = value.trim();
@@ -90,6 +110,11 @@ function normalizeReason(value?: string | null): string | null {
   return normalized.slice(0, 250);
 }
 
+/**
+ * uk: Внутрішній helper метод toSqlDate.
+ * en: Internal helper method toSqlDate.
+ * cz: Interní helper metoda toSqlDate.
+ */
 function toSqlDate(date: Date): string {
   const year = String(date.getFullYear());
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -97,6 +122,11 @@ function toSqlDate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+/**
+ * uk: Внутрішній helper метод parseSqlDate.
+ * en: Internal helper method parseSqlDate.
+ * cz: Interní helper metoda parseSqlDate.
+ */
 function parseSqlDate(dateText: string): Date {
   const normalized = dateText.trim();
   const match = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -120,6 +150,11 @@ function parseSqlDate(dateText: string): Date {
   return parsed;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeDayOffDateInput.
+ * en: Internal helper method normalizeDayOffDateInput.
+ * cz: Interní helper metoda normalizeDayOffDateInput.
+ */
 function normalizeDayOffDateInput(value: Date | string): Date {
   if (value instanceof Date) {
     if (Number.isNaN(value.getTime())) {
@@ -135,6 +170,11 @@ function normalizeDayOffDateInput(value: Date | string): Date {
   throw new ValidationError('Некоректна дата вихідного дня');
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeVacationDateInput.
+ * en: Internal helper method normalizeVacationDateInput.
+ * cz: Interní helper metoda normalizeVacationDateInput.
+ */
 function normalizeVacationDateInput(value: Date | string, fieldName: 'dateFrom' | 'dateTo'): Date {
   if (value instanceof Date) {
     if (Number.isNaN(value.getTime())) {
@@ -154,6 +194,11 @@ function normalizeVacationDateInput(value: Date | string, fieldName: 'dateFrom' 
   throw new ValidationError('Некоректна дата відпустки', { [fieldName]: value });
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeTemporaryDateInput.
+ * en: Internal helper method normalizeTemporaryDateInput.
+ * cz: Interní helper metoda normalizeTemporaryDateInput.
+ */
 function normalizeTemporaryDateInput(value: Date | string, fieldName: 'dateFrom' | 'dateTo'): Date {
   if (value instanceof Date) {
     if (Number.isNaN(value.getTime())) {
@@ -173,15 +218,30 @@ function normalizeTemporaryDateInput(value: Date | string, fieldName: 'dateFrom'
   throw new ValidationError('Некоректна дата тимчасового графіку', { [fieldName]: value });
 }
 
+/**
+ * uk: Внутрішній helper метод isValidTimeHHMM.
+ * en: Internal helper method isValidTimeHHMM.
+ * cz: Interní helper metoda isValidTimeHHMM.
+ */
 function isValidTimeHHMM(value: string): boolean {
   return /^(?:\d|[01]\d|2[0-3]):[0-5]\d$/.test(value);
 }
 
+/**
+ * uk: Внутрішній helper метод timeToMinutes.
+ * en: Internal helper method timeToMinutes.
+ * cz: Interní helper metoda timeToMinutes.
+ */
 function timeToMinutes(value: string): number {
   const [hour, minute] = value.split(':').map(Number);
   return hour * 60 + minute;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeTemporaryDays.
+ * en: Internal helper method normalizeTemporaryDays.
+ * cz: Interní helper metoda normalizeTemporaryDays.
+ */
 function normalizeTemporaryDays(days: MasterTemporaryScheduleDayInput[]): MasterTemporaryScheduleDayInput[] {
   if (!Array.isArray(days) || days.length !== 7) {
     throw new ValidationError('Тимчасовий графік має містити всі 7 днів тижня');
@@ -231,6 +291,11 @@ function normalizeTemporaryDays(days: MasterTemporaryScheduleDayInput[]): Master
   return Array.from(byWeekday.values()).sort((a, b) => a.weekday - b.weekday);
 }
 
+/**
+ * uk: Внутрішній helper метод mapWeeklyRow.
+ * en: Internal helper method mapWeeklyRow.
+ * cz: Interní helper metoda mapWeeklyRow.
+ */
 function mapWeeklyRow(row: MasterScheduleWeeklyRow): MasterScheduleWeeklyItem {
   return {
     weekday: row.weekday,
@@ -240,6 +305,11 @@ function mapWeeklyRow(row: MasterScheduleWeeklyRow): MasterScheduleWeeklyItem {
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapDayOffRow.
+ * en: Internal helper method mapDayOffRow.
+ * cz: Interní helper metoda mapDayOffRow.
+ */
 function mapDayOffRow(row: MasterScheduleDayOffRow): MasterScheduleDayOffItem {
   return {
     id: row.id,
@@ -248,6 +318,11 @@ function mapDayOffRow(row: MasterScheduleDayOffRow): MasterScheduleDayOffItem {
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapVacationRow.
+ * en: Internal helper method mapVacationRow.
+ * cz: Interní helper metoda mapVacationRow.
+ */
 function mapVacationRow(row: MasterScheduleVacationRow): MasterScheduleVacationItem {
   return {
     id: row.id,
@@ -257,6 +332,11 @@ function mapVacationRow(row: MasterScheduleVacationRow): MasterScheduleVacationI
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapTemporaryHoursRow.
+ * en: Internal helper method mapTemporaryHoursRow.
+ * cz: Interní helper metoda mapTemporaryHoursRow.
+ */
 function mapTemporaryHoursRow(
   row: MasterScheduleTemporaryHoursRow,
 ): MasterScheduleTemporaryHoursItem {
@@ -272,10 +352,20 @@ function mapTemporaryHoursRow(
   };
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeEntityId.
+ * en: Internal helper method normalizeEntityId.
+ * cz: Interní helper metoda normalizeEntityId.
+ */
 function normalizeEntityId(value: string | number, fieldName: string): string {
   return normalizePositiveBigintId(value, fieldName);
 }
 
+/**
+ * uk: Внутрішній helper метод mapInsertedDayOffRow.
+ * en: Internal helper method mapInsertedDayOffRow.
+ * cz: Interní helper metoda mapInsertedDayOffRow.
+ */
 function mapInsertedDayOffRow(row: MasterInsertedDayOffRow): CreatedMasterDayOffItem {
   return {
     id: row.id,
@@ -284,6 +374,11 @@ function mapInsertedDayOffRow(row: MasterInsertedDayOffRow): CreatedMasterDayOff
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapInsertedVacationRow.
+ * en: Internal helper method mapInsertedVacationRow.
+ * cz: Interní helper metoda mapInsertedVacationRow.
+ */
 function mapInsertedVacationRow(row: MasterInsertedVacationRow): CreatedMasterVacationItem {
   return {
     id: row.id,
@@ -293,6 +388,11 @@ function mapInsertedVacationRow(row: MasterInsertedVacationRow): CreatedMasterVa
   };
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeWeekday.
+ * en: Internal helper method normalizeWeekday.
+ * cz: Interní helper metoda normalizeWeekday.
+ */
 function normalizeWeekday(weekday: number): number {
   if (!Number.isInteger(weekday) || weekday < 1 || weekday > 7) {
     throw new ValidationError('Некоректний день тижня');
@@ -300,6 +400,11 @@ function normalizeWeekday(weekday: number): number {
   return weekday;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeOptionalTime.
+ * en: Internal helper method normalizeOptionalTime.
+ * cz: Interní helper metoda normalizeOptionalTime.
+ */
 function normalizeOptionalTime(value?: string | null): string | null {
   if (!value) return null;
   const normalized = value.trim();

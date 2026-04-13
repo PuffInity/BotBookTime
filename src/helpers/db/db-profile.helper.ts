@@ -53,11 +53,21 @@ import {
  * @summary DB helper for Telegram user profile lifecycle (get/create/get-or-create).
  */
 
+/**
+ * uk: Внутрішній helper метод isUniqueViolationError.
+ * en: Internal helper method isUniqueViolationError.
+ * cz: Interní helper metoda isUniqueViolationError.
+ */
 function isUniqueViolationError(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false;
   return (error as { code?: unknown }).code === '23505';
 }
 
+/**
+ * uk: Внутрішній helper метод getUserByTelegramIdTx.
+ * en: Internal helper method getUserByTelegramIdTx.
+ * cz: Interní helper metoda getUserByTelegramIdTx.
+ */
 async function getUserByTelegramIdTx(
   client: PoolClient,
   telegramUserId: string,

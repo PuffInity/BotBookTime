@@ -3,6 +3,7 @@
  * @summary SQL запити для нагадувань про візити.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_STUDIO_REMINDER_SETTINGS = `
   SELECT
     reminder_before_hours
@@ -11,6 +12,7 @@ export const SQL_GET_STUDIO_REMINDER_SETTINGS = `
   LIMIT 1;
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_UPCOMING_CONFIRMED_APPOINTMENTS_FOR_REMINDER = `
   SELECT
     a.id,

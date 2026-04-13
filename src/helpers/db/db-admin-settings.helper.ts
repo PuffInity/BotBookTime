@@ -32,6 +32,11 @@ import {
  * @summary DB helper блоку "Налаштування" в адмін-панелі (підрозділ адміністраторів).
  */
 
+/**
+ * uk: Внутрішній helper метод normalizePositiveBigintId.
+ * en: Internal helper method normalizePositiveBigintId.
+ * cz: Interní helper metoda normalizePositiveBigintId.
+ */
 function normalizePositiveBigintId(value: string | number, fieldName: string): string {
   const normalized = String(value).trim();
   if (!/^\d+$/.test(normalized) || normalized === '0') {
@@ -40,10 +45,20 @@ function normalizePositiveBigintId(value: string | number, fieldName: string): s
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод toDisplayName.
+ * en: Internal helper method toDisplayName.
+ * cz: Interní helper metoda toDisplayName.
+ */
 function toDisplayName(firstName: string, lastName: string | null): string {
   return `${firstName}${lastName ? ` ${lastName}` : ''}`.trim();
 }
 
+/**
+ * uk: Внутрішній helper метод mapAdminStudioAdminRow.
+ * en: Internal helper method mapAdminStudioAdminRow.
+ * cz: Interní helper metoda mapAdminStudioAdminRow.
+ */
 function mapAdminStudioAdminRow(row: AdminStudioAdminRow): AdminStudioAdminMember {
   return {
     userId: row.user_id,
@@ -57,6 +72,11 @@ function mapAdminStudioAdminRow(row: AdminStudioAdminRow): AdminStudioAdminMembe
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapAdminStudioUserLookupRow.
+ * en: Internal helper method mapAdminStudioUserLookupRow.
+ * cz: Interní helper metoda mapAdminStudioUserLookupRow.
+ */
 function mapAdminStudioUserLookupRow(row: AdminStudioUserLookupRow): AdminStudioUserLookup {
   return {
     userId: row.user_id,
@@ -70,11 +90,21 @@ function mapAdminStudioUserLookupRow(row: AdminStudioUserLookupRow): AdminStudio
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapAdminsCountRow.
+ * en: Internal helper method mapAdminsCountRow.
+ * cz: Interní helper metoda mapAdminsCountRow.
+ */
 function mapAdminsCountRow(row: AdminStudioAdminsCountRow): number {
   const total = Number(row.total);
   return Number.isFinite(total) && total >= 0 ? Math.trunc(total) : 0;
 }
 
+/**
+ * uk: Внутрішній helper метод mapAdminPanelLanguageRow.
+ * en: Internal helper method mapAdminPanelLanguageRow.
+ * cz: Interní helper metoda mapAdminPanelLanguageRow.
+ */
 function mapAdminPanelLanguageRow(row: AdminPanelLanguageRow): LanguageCode {
   return row.preferred_language;
 }

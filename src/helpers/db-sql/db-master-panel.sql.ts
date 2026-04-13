@@ -3,6 +3,7 @@
  * @summary SQL constants for db-master-panel helper.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const MASTER_PANEL_ACCESS_SELECT_COLUMNS = `
   u.id AS user_id,
   u.telegram_user_id,

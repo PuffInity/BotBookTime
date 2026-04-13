@@ -3,6 +3,7 @@
  * @summary SQL constants for notification settings and user delivery profile.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const USER_NOTIFICATION_SETTINGS_SELECT_COLUMNS = `
   user_id,
   notification_type,
@@ -10,6 +11,7 @@ export const USER_NOTIFICATION_SETTINGS_SELECT_COLUMNS = `
   updated_at
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const USER_DELIVERY_PROFILE_SELECT_COLUMNS = `
   id,
   telegram_user_id,
@@ -21,6 +23,7 @@ export const USER_DELIVERY_PROFILE_SELECT_COLUMNS = `
   email_verified_at
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_SELECT_USER_NOTIFICATION_SETTINGS_BY_USER_ID = `
   SELECT
     ${USER_NOTIFICATION_SETTINGS_SELECT_COLUMNS}
@@ -28,6 +31,7 @@ export const SQL_SELECT_USER_NOTIFICATION_SETTINGS_BY_USER_ID = `
   WHERE user_id = $1::bigint
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPSERT_USER_NOTIFICATION_SETTING = `
   INSERT INTO user_notification_settings (
     user_id,
@@ -43,6 +47,7 @@ export const SQL_UPSERT_USER_NOTIFICATION_SETTING = `
     ${USER_NOTIFICATION_SETTINGS_SELECT_COLUMNS}
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPSERT_ALL_USER_NOTIFICATION_SETTINGS = `
   INSERT INTO user_notification_settings (
     user_id,
@@ -60,6 +65,7 @@ export const SQL_UPSERT_ALL_USER_NOTIFICATION_SETTINGS = `
       updated_at = now()
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_SELECT_USER_DELIVERY_PROFILE_BY_ID = `
   SELECT
     ${USER_DELIVERY_PROFILE_SELECT_COLUMNS}

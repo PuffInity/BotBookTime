@@ -18,6 +18,11 @@ import {
  * @summary DB helper для блоку "Профіль клієнта" у панелі майстра.
  */
 
+/**
+ * uk: Внутрішній helper метод normalizePositiveBigintId.
+ * en: Internal helper method normalizePositiveBigintId.
+ * cz: Interní helper metoda normalizePositiveBigintId.
+ */
 function normalizePositiveBigintId(value: string | number, fieldName: string): string {
   const normalized = String(value).trim();
   if (!/^\d+$/.test(normalized) || normalized === '0') {
@@ -26,6 +31,11 @@ function normalizePositiveBigintId(value: string | number, fieldName: string): s
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeHistoryLimit.
+ * en: Internal helper method normalizeHistoryLimit.
+ * cz: Interní helper metoda normalizeHistoryLimit.
+ */
 function normalizeHistoryLimit(value?: number): number {
   if (value == null || !Number.isFinite(value)) return 12;
   const normalized = Math.trunc(value);
@@ -34,6 +44,11 @@ function normalizeHistoryLimit(value?: number): number {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод mapMasterClientProfileRow.
+ * en: Internal helper method mapMasterClientProfileRow.
+ * cz: Interní helper metoda mapMasterClientProfileRow.
+ */
 function mapMasterClientProfileRow(row: MasterClientProfileRow): MasterClientProfileItem {
   return {
     clientId: row.client_id,
@@ -55,6 +70,11 @@ function mapMasterClientProfileRow(row: MasterClientProfileRow): MasterClientPro
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapMasterClientBookingsHistoryRow.
+ * en: Internal helper method mapMasterClientBookingsHistoryRow.
+ * cz: Interní helper metoda mapMasterClientBookingsHistoryRow.
+ */
 function mapMasterClientBookingsHistoryRow(
   row: MasterClientBookingsHistoryRow,
 ): MasterClientBookingsHistoryItem {

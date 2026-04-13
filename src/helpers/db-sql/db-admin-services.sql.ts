@@ -3,6 +3,7 @@
  * @summary SQL-запити для блоку "Послуги" в адмін-панелі.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_ADMIN_EDITABLE_SERVICE_BY_ID = `
   SELECT
     s.id,
@@ -19,6 +20,7 @@ export const SQL_GET_ADMIN_EDITABLE_SERVICE_BY_ID = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_INSERT_ADMIN_SERVICE = `
   INSERT INTO services (
     studio_id,
@@ -43,6 +45,7 @@ export const SQL_INSERT_ADMIN_SERVICE = `
   RETURNING id
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_INSERT_ADMIN_SERVICE_STEP = `
   INSERT INTO service_steps (
     service_id,
@@ -60,6 +63,7 @@ export const SQL_INSERT_ADMIN_SERVICE_STEP = `
   )
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_INSERT_ADMIN_SERVICE_GUARANTEE = `
   INSERT INTO service_guarantees (
     service_id,
@@ -75,6 +79,7 @@ export const SQL_INSERT_ADMIN_SERVICE_GUARANTEE = `
   )
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPDATE_ADMIN_SERVICE_RESULT_DESCRIPTION = `
   UPDATE services
   SET
@@ -85,6 +90,7 @@ export const SQL_UPDATE_ADMIN_SERVICE_RESULT_DESCRIPTION = `
   RETURNING id, studio_id, name, duration_minutes, base_price, currency_code, description, result_description
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPDATE_ADMIN_SERVICE_NAME = `
   UPDATE services
   SET
@@ -95,6 +101,7 @@ export const SQL_UPDATE_ADMIN_SERVICE_NAME = `
   RETURNING id, studio_id, name, duration_minutes, base_price, currency_code, description, result_description
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPDATE_ADMIN_SERVICE_DESCRIPTION = `
   UPDATE services
   SET
@@ -105,6 +112,7 @@ export const SQL_UPDATE_ADMIN_SERVICE_DESCRIPTION = `
   RETURNING id, studio_id, name, duration_minutes, base_price, currency_code, description, result_description
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPDATE_ADMIN_SERVICE_BASE_PRICE = `
   UPDATE services
   SET
@@ -115,6 +123,7 @@ export const SQL_UPDATE_ADMIN_SERVICE_BASE_PRICE = `
   RETURNING id, studio_id, name, duration_minutes, base_price, currency_code, description, result_description
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPDATE_ADMIN_SERVICE_DURATION = `
   UPDATE services
   SET
@@ -125,6 +134,7 @@ export const SQL_UPDATE_ADMIN_SERVICE_DURATION = `
   RETURNING id, studio_id, name, duration_minutes, base_price, currency_code, description, result_description
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_DEACTIVATE_ADMIN_SERVICE = `
   UPDATE services
   SET
@@ -135,6 +145,7 @@ export const SQL_DEACTIVATE_ADMIN_SERVICE = `
   RETURNING id, studio_id, name, duration_minutes, base_price, currency_code, description, result_description
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPDATE_ADMIN_SERVICE_GUARANTEE_TEXT = `
   UPDATE service_guarantees sg
   SET
@@ -151,6 +162,7 @@ export const SQL_UPDATE_ADMIN_SERVICE_GUARANTEE_TEXT = `
   RETURNING sg.service_id, sg.guarantee_no, sg.guarantee_text, sg.valid_days, sg.created_at, sg.updated_at
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPDATE_ADMIN_SERVICE_STEP_TITLE = `
   UPDATE service_steps ss
   SET
@@ -167,6 +179,7 @@ export const SQL_UPDATE_ADMIN_SERVICE_STEP_TITLE = `
   RETURNING ss.service_id, ss.step_no, ss.duration_minutes, ss.title, ss.description, ss.created_at, ss.updated_at
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPDATE_ADMIN_SERVICE_STEP_DESCRIPTION = `
   UPDATE service_steps ss
   SET
@@ -183,6 +196,7 @@ export const SQL_UPDATE_ADMIN_SERVICE_STEP_DESCRIPTION = `
   RETURNING ss.service_id, ss.step_no, ss.duration_minutes, ss.title, ss.description, ss.created_at, ss.updated_at
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPDATE_ADMIN_SERVICE_STEP_DURATION = `
   UPDATE service_steps ss
   SET

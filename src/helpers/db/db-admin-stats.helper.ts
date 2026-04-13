@@ -61,6 +61,11 @@ import { getMasterPanelStats } from './db-master-stats.helper.js';
  * @summary DB helper для блоку статистики адмін-панелі.
  */
 
+/**
+ * uk: Внутрішній helper метод normalizeStudioId.
+ * en: Internal helper method normalizeStudioId.
+ * cz: Interní helper metoda normalizeStudioId.
+ */
 function normalizeStudioId(value: string | number): string {
   const normalized = String(value).trim();
   if (!/^\d+$/.test(normalized) || normalized === '0') {
@@ -69,6 +74,11 @@ function normalizeStudioId(value: string | number): string {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод toNumber.
+ * en: Internal helper method toNumber.
+ * cz: Interní helper metoda toNumber.
+ */
 function toNumber(value: string | number | null | undefined): number {
   if (value == null) return 0;
   const parsed = typeof value === 'number' ? value : Number(value);
@@ -76,6 +86,11 @@ function toNumber(value: string | number | null | undefined): number {
   return parsed;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeMasterId.
+ * en: Internal helper method normalizeMasterId.
+ * cz: Interní helper metoda normalizeMasterId.
+ */
 function normalizeMasterId(value: string | number): string {
   const normalized = String(value).trim();
   if (!/^\d+$/.test(normalized) || normalized === '0') {
@@ -84,6 +99,11 @@ function normalizeMasterId(value: string | number): string {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeServiceId.
+ * en: Internal helper method normalizeServiceId.
+ * cz: Interní helper metoda normalizeServiceId.
+ */
 function normalizeServiceId(value: string | number): string {
   const normalized = String(value).trim();
   if (!/^\d+$/.test(normalized) || normalized === '0') {
@@ -92,6 +112,11 @@ function normalizeServiceId(value: string | number): string {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeClientId.
+ * en: Internal helper method normalizeClientId.
+ * cz: Interní helper metoda normalizeClientId.
+ */
 function normalizeClientId(value: string | number): string {
   const normalized = String(value).trim();
   if (!/^\d+$/.test(normalized) || normalized === '0') {
@@ -100,6 +125,11 @@ function normalizeClientId(value: string | number): string {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeMonthCode.
+ * en: Internal helper method normalizeMonthCode.
+ * cz: Interní helper metoda normalizeMonthCode.
+ */
 function normalizeMonthCode(value: string): string {
   const normalized = String(value).trim();
   const match = normalized.match(/^(\d{4})(\d{2})$/);
@@ -115,6 +145,11 @@ function normalizeMonthCode(value: string): string {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeLimit.
+ * en: Internal helper method normalizeLimit.
+ * cz: Interní helper metoda normalizeLimit.
+ */
 function normalizeLimit(limit?: number): number {
   if (limit == null || !Number.isFinite(limit)) return 5;
   const normalized = Math.trunc(limit);
@@ -123,6 +158,11 @@ function normalizeLimit(limit?: number): number {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeOffset.
+ * en: Internal helper method normalizeOffset.
+ * cz: Interní helper metoda normalizeOffset.
+ */
 function normalizeOffset(offset?: number): number {
   if (offset == null || !Number.isFinite(offset)) return 0;
   const normalized = Math.trunc(offset);
@@ -130,6 +170,11 @@ function normalizeOffset(offset?: number): number {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод mapOverviewRow.
+ * en: Internal helper method mapOverviewRow.
+ * cz: Interní helper metoda mapOverviewRow.
+ */
 function mapOverviewRow(row: AdminPanelStatsOverviewRow): AdminPanelStatsOverview {
   return {
     currencyCode: row.currency_code,
@@ -147,6 +192,11 @@ function mapOverviewRow(row: AdminPanelStatsOverviewRow): AdminPanelStatsOvervie
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapMasterFeedRow.
+ * en: Internal helper method mapMasterFeedRow.
+ * cz: Interní helper metoda mapMasterFeedRow.
+ */
 function mapMasterFeedRow(row: AdminPanelStatsMasterFeedRow): AdminPanelStatsMasterFeedItem {
   return {
     masterId: row.master_id,
@@ -160,6 +210,11 @@ function mapMasterFeedRow(row: AdminPanelStatsMasterFeedRow): AdminPanelStatsMas
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapServiceFeedRow.
+ * en: Internal helper method mapServiceFeedRow.
+ * cz: Interní helper metoda mapServiceFeedRow.
+ */
 function mapServiceFeedRow(row: AdminPanelStatsServiceFeedRow): AdminPanelStatsServiceFeedItem {
   return {
     serviceId: row.service_id,
@@ -173,6 +228,11 @@ function mapServiceFeedRow(row: AdminPanelStatsServiceFeedRow): AdminPanelStatsS
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapClientFeedRow.
+ * en: Internal helper method mapClientFeedRow.
+ * cz: Interní helper metoda mapClientFeedRow.
+ */
 function mapClientFeedRow(row: AdminPanelStatsClientFeedRow): AdminPanelStatsClientFeedItem {
   const firstName = row.first_name.trim();
   const lastName = row.last_name?.trim() ?? '';
@@ -188,6 +248,11 @@ function mapClientFeedRow(row: AdminPanelStatsClientFeedRow): AdminPanelStatsCli
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapServiceTopMasterRow.
+ * en: Internal helper method mapServiceTopMasterRow.
+ * cz: Interní helper metoda mapServiceTopMasterRow.
+ */
 function mapServiceTopMasterRow(
   row: AdminPanelStatsServiceTopMasterRow,
 ): AdminPanelStatsServiceTopMasterItem {
@@ -198,6 +263,11 @@ function mapServiceTopMasterRow(
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapMonthlyFeedRow.
+ * en: Internal helper method mapMonthlyFeedRow.
+ * cz: Interní helper metoda mapMonthlyFeedRow.
+ */
 function mapMonthlyFeedRow(row: AdminPanelStatsMonthlyFeedRow): AdminPanelStatsMonthlyFeedItem {
   return {
     monthCode: row.month_code,
@@ -208,6 +278,11 @@ function mapMonthlyFeedRow(row: AdminPanelStatsMonthlyFeedRow): AdminPanelStatsM
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapMonthlyTopServiceRow.
+ * en: Internal helper method mapMonthlyTopServiceRow.
+ * cz: Interní helper metoda mapMonthlyTopServiceRow.
+ */
 function mapMonthlyTopServiceRow(
   row: AdminPanelStatsMonthlyTopServiceRow,
 ): AdminPanelStatsMonthlyTopServiceItem {
@@ -218,6 +293,11 @@ function mapMonthlyTopServiceRow(
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapMonthlyTopMasterRow.
+ * en: Internal helper method mapMonthlyTopMasterRow.
+ * cz: Interní helper metoda mapMonthlyTopMasterRow.
+ */
 function mapMonthlyTopMasterRow(
   row: AdminPanelStatsMonthlyTopMasterRow,
 ): AdminPanelStatsMonthlyTopMasterItem {

@@ -3,6 +3,7 @@
  * @summary SQL constants for profile booking status helper.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const PROFILE_BOOKING_STATUS_SELECT_COLUMNS = `
   a.id AS appointment_id,
   a.status,
@@ -15,6 +16,7 @@ export const PROFILE_BOOKING_STATUS_SELECT_COLUMNS = `
   a.currency_code
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_UPCOMING_BOOKING_BY_CLIENT_ID = `
   SELECT
     ${PROFILE_BOOKING_STATUS_SELECT_COLUMNS}
@@ -35,6 +37,7 @@ export const SQL_GET_UPCOMING_BOOKING_BY_CLIENT_ID = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_RECENT_BOOKINGS_BY_CLIENT_ID = `
   SELECT
     ${PROFILE_BOOKING_STATUS_SELECT_COLUMNS}
@@ -57,6 +60,7 @@ export const SQL_LIST_RECENT_BOOKINGS_BY_CLIENT_ID = `
   LIMIT $2
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_CANCEL_ACTIVE_BOOKING_BY_CLIENT_ID = `
   UPDATE appointments a
   SET

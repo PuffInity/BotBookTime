@@ -3,6 +3,7 @@
  * @summary SQL constants для фінансового блоку статистики майстра.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_MASTER_FINANCE_OVERVIEW = `
   WITH context AS (
     SELECT
@@ -56,6 +57,7 @@ export const SQL_GET_MASTER_FINANCE_OVERVIEW = `
   FROM completed
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_MASTER_FINANCE_TOP_SERVICE = `
   WITH context AS (
     SELECT st.timezone AS timezone
@@ -83,6 +85,7 @@ export const SQL_GET_MASTER_FINANCE_TOP_SERVICE = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_MASTER_FINANCE_BEST_MONTH = `
   WITH context AS (
     SELECT st.timezone AS timezone

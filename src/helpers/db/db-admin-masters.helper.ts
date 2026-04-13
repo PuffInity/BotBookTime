@@ -41,6 +41,11 @@ import {
 type InsertedMasterIdRow = { master_id: string };
 type AssignedServiceRow = { service_id: string };
 
+/**
+ * uk: Внутрішній helper метод normalizePositiveBigintId.
+ * en: Internal helper method normalizePositiveBigintId.
+ * cz: Interní helper metoda normalizePositiveBigintId.
+ */
 function normalizePositiveBigintId(value: string | number, fieldName: string): string {
   const normalized = String(value).trim();
   if (!/^\d+$/.test(normalized) || normalized === '0') {
@@ -49,10 +54,20 @@ function normalizePositiveBigintId(value: string | number, fieldName: string): s
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод toDisplayName.
+ * en: Internal helper method toDisplayName.
+ * cz: Interní helper metoda toDisplayName.
+ */
 function toDisplayName(firstName: string, lastName: string | null): string {
   return `${firstName}${lastName ? ` ${lastName}` : ''}`.trim();
 }
 
+/**
+ * uk: Внутрішній helper метод mapCandidateRow.
+ * en: Internal helper method mapCandidateRow.
+ * cz: Interní helper metoda mapCandidateRow.
+ */
 function mapCandidateRow(row: AdminMasterCandidateLookupRow): AdminMasterCandidateLookup {
   return {
     userId: row.user_id,
@@ -66,6 +81,11 @@ function mapCandidateRow(row: AdminMasterCandidateLookupRow): AdminMasterCandida
   };
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeExperienceYears.
+ * en: Internal helper method normalizeExperienceYears.
+ * cz: Interní helper metoda normalizeExperienceYears.
+ */
 function normalizeExperienceYears(value: number): number {
   if (!Number.isFinite(value)) {
     throw new ValidationError('Досвід роботи має бути числом');
@@ -77,6 +97,11 @@ function normalizeExperienceYears(value: number): number {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeServiceIds.
+ * en: Internal helper method normalizeServiceIds.
+ * cz: Interní helper metoda normalizeServiceIds.
+ */
 function normalizeServiceIds(serviceIds: Array<string | number>): string[] {
   if (!Array.isArray(serviceIds) || serviceIds.length === 0) {
     throw new ValidationError('Потрібно обрати щонайменше одну послугу для майстра');
@@ -90,15 +115,30 @@ function normalizeServiceIds(serviceIds: Array<string | number>): string[] {
   return [...unique];
 }
 
+/**
+ * uk: Внутрішній helper метод isValidTimeHHMM.
+ * en: Internal helper method isValidTimeHHMM.
+ * cz: Interní helper metoda isValidTimeHHMM.
+ */
 function isValidTimeHHMM(value: string): boolean {
   return /^(?:\d|[01]\d|2[0-3]):[0-5]\d$/.test(value);
 }
 
+/**
+ * uk: Внутрішній helper метод timeToMinutes.
+ * en: Internal helper method timeToMinutes.
+ * cz: Interní helper metoda timeToMinutes.
+ */
 function timeToMinutes(value: string): number {
   const [hour, minute] = value.split(':').map(Number);
   return hour * 60 + minute;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeWeeklySchedule.
+ * en: Internal helper method normalizeWeeklySchedule.
+ * cz: Interní helper metoda normalizeWeeklySchedule.
+ */
 function normalizeWeeklySchedule(days: AdminMasterCreateScheduleDayInput[]): AdminMasterCreateScheduleDayInput[] {
   if (!Array.isArray(days) || days.length !== 7) {
     throw new ValidationError('Потрібно заповнити графік для всіх 7 днів тижня');
@@ -150,6 +190,11 @@ function normalizeWeeklySchedule(days: AdminMasterCreateScheduleDayInput[]): Adm
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод isPgError.
+ * en: Internal helper method isPgError.
+ * cz: Interní helper metoda isPgError.
+ */
 function isPgError(error: unknown): error is { code?: string; constraint?: string } {
   return typeof error === 'object' && error !== null;
 }
@@ -287,6 +332,11 @@ export async function createAdminMaster(input: CreateAdminMasterInput): Promise<
   }
 }
 
+/**
+ * uk: Внутрішній helper метод mapDeletedMasterRow.
+ * en: Internal helper method mapDeletedMasterRow.
+ * cz: Interní helper metoda mapDeletedMasterRow.
+ */
 function mapDeletedMasterRow(row: DeletedAdminMasterRow): DeletedAdminMasterResult {
   return {
     masterId: row.master_id,

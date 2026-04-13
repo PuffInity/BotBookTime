@@ -3,6 +3,7 @@
  * @summary SQL constants for db-admin-bookings helper.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const ADMIN_BOOKING_SELECT_COLUMNS = `
   a.id AS appointment_id,
   a.studio_id,
@@ -26,6 +27,7 @@ export const ADMIN_BOOKING_SELECT_COLUMNS = `
   m.display_name AS master_name
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_CONFIRM_ADMIN_PENDING_BOOKING = `
   WITH updated AS (
     UPDATE appointments a
@@ -53,6 +55,7 @@ export const SQL_CONFIRM_ADMIN_PENDING_BOOKING = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_CANCEL_ADMIN_BOOKING = `
   WITH updated AS (
     UPDATE appointments a
@@ -81,6 +84,7 @@ export const SQL_CANCEL_ADMIN_BOOKING = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_HARD_DELETE_ADMIN_BOOKING = `
   DELETE FROM appointments a
   WHERE a.id = $1::bigint
@@ -90,6 +94,7 @@ export const SQL_HARD_DELETE_ADMIN_BOOKING = `
   RETURNING a.id
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_CLEAR_CANCELED_ADMIN_BOOKINGS = `
   WITH deleted AS (
     DELETE FROM appointments a
@@ -102,6 +107,7 @@ export const SQL_CLEAR_CANCELED_ADMIN_BOOKINGS = `
   FROM deleted
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_ADMIN_BOOKING_FOR_RESCHEDULE = `
   SELECT
     ${ADMIN_BOOKING_SELECT_COLUMNS},
@@ -128,6 +134,7 @@ export const SQL_GET_ADMIN_BOOKING_FOR_RESCHEDULE = `
   FOR UPDATE
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_CHECK_APPOINTMENT_CONFLICT_EXCLUDING_ID = `
   SELECT EXISTS (
     SELECT 1
@@ -141,6 +148,7 @@ export const SQL_CHECK_APPOINTMENT_CONFLICT_EXCLUDING_ID = `
   ) AS has_conflict
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_INSERT_RESCHEDULED_APPOINTMENT = `
   INSERT INTO appointments (
     studio_id,
@@ -185,6 +193,7 @@ export const SQL_INSERT_RESCHEDULED_APPOINTMENT = `
   RETURNING id
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_MARK_ADMIN_APPOINTMENT_AS_TRANSFERRED = `
   UPDATE appointments
   SET status = 'transferred',
@@ -196,6 +205,7 @@ export const SQL_MARK_ADMIN_APPOINTMENT_AS_TRANSFERRED = `
   RETURNING id
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_INSERT_APPOINTMENT_TRANSFER_LINK = `
   INSERT INTO appointment_transfers (
     from_appointment_id,
@@ -211,6 +221,7 @@ export const SQL_INSERT_APPOINTMENT_TRANSFER_LINK = `
   )
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_REASSIGN_ADMIN_BOOKING_MASTER = `
   WITH updated AS (
     UPDATE appointments a
@@ -238,6 +249,7 @@ export const SQL_REASSIGN_ADMIN_BOOKING_MASTER = `
   LIMIT 1
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_ADMIN_BOOKINGS_FEED = `
   WITH context AS (
     SELECT
@@ -310,6 +322,7 @@ export const SQL_LIST_ADMIN_BOOKINGS_FEED = `
   OFFSET $4::int
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_GET_ADMIN_BOOKING_CARD_BY_ID = `
   SELECT
     ${ADMIN_BOOKING_SELECT_COLUMNS}

@@ -61,6 +61,11 @@ import {
  * @summary DB helper для розділу "Мій профіль" у master panel.
  */
 
+/**
+ * uk: Внутрішній helper метод normalizeMasterId.
+ * en: Internal helper method normalizeMasterId.
+ * cz: Interní helper metoda normalizeMasterId.
+ */
 function normalizeMasterId(masterIdInput: string | number): string {
   const normalized = String(masterIdInput).trim();
   if (!/^\d+$/.test(normalized) || normalized === '0') {
@@ -69,6 +74,11 @@ function normalizeMasterId(masterIdInput: string | number): string {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeServiceId.
+ * en: Internal helper method normalizeServiceId.
+ * cz: Interní helper metoda normalizeServiceId.
+ */
 function normalizeServiceId(serviceIdInput: string | number): string {
   const normalized = String(serviceIdInput).trim();
   if (!/^\d+$/.test(normalized) || normalized === '0') {
@@ -77,6 +87,11 @@ function normalizeServiceId(serviceIdInput: string | number): string {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeCertificateId.
+ * en: Internal helper method normalizeCertificateId.
+ * cz: Interní helper metoda normalizeCertificateId.
+ */
 function normalizeCertificateId(certificateIdInput: string | number): string {
   const normalized = String(certificateIdInput).trim();
   if (!/^\d+$/.test(normalized) || normalized === '0') {

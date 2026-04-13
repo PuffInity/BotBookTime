@@ -3,6 +3,7 @@
  * @summary SQL constants for db-admin-panel helper.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const ADMIN_PANEL_ACCESS_SELECT_COLUMNS = `
   u.id AS user_id,
   u.telegram_user_id,

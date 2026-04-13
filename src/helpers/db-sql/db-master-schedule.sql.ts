@@ -3,6 +3,7 @@
  * @summary SQL constants for master schedule panel helper.
  */
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_MASTER_WEEKLY_HOURS_FOR_PANEL = `
   SELECT
     weekday,
@@ -14,6 +15,7 @@ export const SQL_LIST_MASTER_WEEKLY_HOURS_FOR_PANEL = `
   ORDER BY weekday ASC
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_MASTER_UPCOMING_DAYS_OFF_FOR_PANEL = `
   SELECT
     id,
@@ -26,6 +28,7 @@ export const SQL_LIST_MASTER_UPCOMING_DAYS_OFF_FOR_PANEL = `
   LIMIT $2
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_MASTER_UPCOMING_VACATIONS_FOR_PANEL = `
   SELECT
     id,
@@ -39,6 +42,7 @@ export const SQL_LIST_MASTER_UPCOMING_VACATIONS_FOR_PANEL = `
   LIMIT $2
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_LIST_MASTER_UPCOMING_TEMPORARY_HOURS_FOR_PANEL = `
   SELECT
     id,
@@ -56,6 +60,7 @@ export const SQL_LIST_MASTER_UPCOMING_TEMPORARY_HOURS_FOR_PANEL = `
   LIMIT $2
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_CHECK_MASTER_DAY_OFF_EXISTS_FOR_DATE = `
   SELECT EXISTS (
     SELECT 1
@@ -65,6 +70,7 @@ export const SQL_CHECK_MASTER_DAY_OFF_EXISTS_FOR_DATE = `
   ) AS already_exists
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_COUNT_MASTER_ACTIVE_BOOKINGS_ON_DAY_OFF_DATE = `
   SELECT COUNT(*)::int AS active_count
   FROM appointments a
@@ -79,6 +85,7 @@ export const SQL_COUNT_MASTER_ACTIVE_BOOKINGS_ON_DAY_OFF_DATE = `
     AND (a.start_at AT TIME ZONE st.timezone)::date = $2::date
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_INSERT_MASTER_DAY_OFF = `
   INSERT INTO master_days_off (
     master_id,
@@ -95,6 +102,7 @@ export const SQL_INSERT_MASTER_DAY_OFF = `
   RETURNING id, off_date, reason
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_CHECK_MASTER_VACATION_OVERLAP = `
   SELECT EXISTS (
     SELECT 1
@@ -105,6 +113,7 @@ export const SQL_CHECK_MASTER_VACATION_OVERLAP = `
   ) AS already_exists
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_COUNT_MASTER_ACTIVE_BOOKINGS_IN_VACATION_RANGE = `
   SELECT COUNT(*)::int AS active_count
   FROM appointments a
@@ -119,6 +128,7 @@ export const SQL_COUNT_MASTER_ACTIVE_BOOKINGS_IN_VACATION_RANGE = `
     AND (a.start_at AT TIME ZONE st.timezone)::date BETWEEN $2::date AND $3::date
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_INSERT_MASTER_VACATION = `
   INSERT INTO master_vacations (
     master_id,
@@ -137,6 +147,7 @@ export const SQL_INSERT_MASTER_VACATION = `
   RETURNING id, date_from, date_to, reason
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_CHECK_MASTER_TEMPORARY_HOURS_OVERLAP = `
   SELECT EXISTS (
     SELECT 1
@@ -147,6 +158,7 @@ export const SQL_CHECK_MASTER_TEMPORARY_HOURS_OVERLAP = `
   ) AS already_exists
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_INSERT_MASTER_TEMPORARY_HOURS = `
   INSERT INTO master_temporary_hours (
     master_id,
@@ -172,6 +184,7 @@ export const SQL_INSERT_MASTER_TEMPORARY_HOURS = `
   )
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_UPSERT_MASTER_WEEKLY_HOURS = `
   INSERT INTO master_weekly_hours (
     master_id,
@@ -195,6 +208,7 @@ export const SQL_UPSERT_MASTER_WEEKLY_HOURS = `
   RETURNING weekday, is_working, open_time, close_time
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_DELETE_MASTER_DAY_OFF_BY_ID = `
   DELETE FROM master_days_off
   WHERE id = $1::bigint
@@ -202,6 +216,7 @@ export const SQL_DELETE_MASTER_DAY_OFF_BY_ID = `
   RETURNING id
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_DELETE_MASTER_VACATION_BY_ID = `
   DELETE FROM master_vacations
   WHERE id = $1::bigint
@@ -209,6 +224,7 @@ export const SQL_DELETE_MASTER_VACATION_BY_ID = `
   RETURNING id
 `;
 
+// uk: SQL константа / en: SQL constant / cz: SQL konstanta
 export const SQL_DELETE_MASTER_TEMPORARY_HOURS_PERIOD = `
   DELETE FROM master_temporary_hours
   WHERE master_id = $1::bigint

@@ -46,6 +46,11 @@ type PgConstraintError = {
   constraint?: string;
 };
 
+/**
+ * uk: Внутрішній helper метод normalizePositiveBigintId.
+ * en: Internal helper method normalizePositiveBigintId.
+ * cz: Interní helper metoda normalizePositiveBigintId.
+ */
 function normalizePositiveBigintId(value: string | number, fieldName: string): string {
   const normalized = String(value).trim();
 
@@ -56,11 +61,21 @@ function normalizePositiveBigintId(value: string | number, fieldName: string): s
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeOptionalStudioId.
+ * en: Internal helper method normalizeOptionalStudioId.
+ * cz: Interní helper metoda normalizeOptionalStudioId.
+ */
 function normalizeOptionalStudioId(studioId?: string | null): string | null {
   if (studioId == null) return null;
   return normalizePositiveBigintId(studioId, 'studioId');
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeCatalogLimit.
+ * en: Internal helper method normalizeCatalogLimit.
+ * cz: Interní helper metoda normalizeCatalogLimit.
+ */
 function normalizeCatalogLimit(limit?: number): number {
   if (limit == null) return DEFAULT_CATALOG_LIMIT;
   if (!Number.isFinite(limit)) return DEFAULT_CATALOG_LIMIT;
@@ -71,6 +86,11 @@ function normalizeCatalogLimit(limit?: number): number {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeFutureDate.
+ * en: Internal helper method normalizeFutureDate.
+ * cz: Interní helper metoda normalizeFutureDate.
+ */
 function normalizeFutureDate(value: Date, fieldName: string): Date {
   if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
     throw new ValidationError(`Некоректний ${fieldName}`, { [fieldName]: value });
@@ -83,6 +103,11 @@ function normalizeFutureDate(value: Date, fieldName: string): Date {
   return value;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeDateCode.
+ * en: Internal helper method normalizeDateCode.
+ * cz: Interní helper metoda normalizeDateCode.
+ */
 function normalizeDateCode(value: string): string {
   const normalized = value.trim();
   if (!/^\d{8}$/.test(normalized)) {
@@ -105,6 +130,11 @@ function normalizeDateCode(value: string): string {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeTimeCode.
+ * en: Internal helper method normalizeTimeCode.
+ * cz: Interní helper metoda normalizeTimeCode.
+ */
 function normalizeTimeCode(value: string): string {
   const normalized = value.trim();
   if (!/^\d{4}$/.test(normalized)) {
@@ -120,10 +150,20 @@ function normalizeTimeCode(value: string): string {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод dateCodeToIsoDate.
+ * en: Internal helper method dateCodeToIsoDate.
+ * cz: Interní helper metoda dateCodeToIsoDate.
+ */
 function dateCodeToIsoDate(dateCode: string): string {
   return `${dateCode.slice(0, 4)}-${dateCode.slice(4, 6)}-${dateCode.slice(6, 8)}`;
 }
 
+/**
+ * uk: Внутрішній helper метод mapBookingMeta.
+ * en: Internal helper method mapBookingMeta.
+ * cz: Interní helper metoda mapBookingMeta.
+ */
 function mapBookingMeta(row: MasterServiceBookingMetaRow): MasterServiceBookingMeta {
   return {
     studioId: row.studio_id,
@@ -139,6 +179,11 @@ function mapBookingMeta(row: MasterServiceBookingMetaRow): MasterServiceBookingM
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapBookableServiceToCatalogItem.
+ * en: Internal helper method mapBookableServiceToCatalogItem.
+ * cz: Interní helper metoda mapBookableServiceToCatalogItem.
+ */
 function mapBookableServiceToCatalogItem(service: ServicesEntity): ServicesCatalogItem {
   return {
     id: service.id,
@@ -153,6 +198,11 @@ function mapBookableServiceToCatalogItem(service: ServicesEntity): ServicesCatal
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapAvailableMasterRowToOption.
+ * en: Internal helper method mapAvailableMasterRowToOption.
+ * cz: Interní helper metoda mapAvailableMasterRowToOption.
+ */
 function mapAvailableMasterRowToOption(row: BookingAvailableMasterRow): MasterBookingOption {
   return {
     masterId: row.master_id,
@@ -164,12 +214,22 @@ function mapAvailableMasterRowToOption(row: BookingAvailableMasterRow): MasterBo
   };
 }
 
+/**
+ * uk: Внутрішній helper метод isPgConstraintError.
+ * en: Internal helper method isPgConstraintError.
+ * cz: Interní helper metoda isPgConstraintError.
+ */
 function isPgConstraintError(error: unknown): error is PgConstraintError {
   if (!error || typeof error !== 'object') return false;
   const candidate = error as { code?: unknown };
   return typeof candidate.code === 'string';
 }
 
+/**
+ * uk: Внутрішній helper метод isBookingSlotExclusionError.
+ * en: Internal helper method isBookingSlotExclusionError.
+ * cz: Interní helper metoda isBookingSlotExclusionError.
+ */
 function isBookingSlotExclusionError(error: unknown): boolean {
   if (!isPgConstraintError(error)) return false;
   if (error.code !== PG_EXCLUSION_VIOLATION_CODE) return false;

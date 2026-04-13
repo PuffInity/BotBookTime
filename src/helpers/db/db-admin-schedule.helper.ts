@@ -54,6 +54,11 @@ const MAX_EXCEPTIONS_LIMIT = 40;
 const MIN_TEMPORARY_SCHEDULE_DAYS = 7;
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
+/**
+ * uk: Внутрішній helper метод normalizePositiveBigintId.
+ * en: Internal helper method normalizePositiveBigintId.
+ * cz: Interní helper metoda normalizePositiveBigintId.
+ */
 function normalizePositiveBigintId(value: string | number, fieldName: string): string {
   const normalized = String(value).trim();
   if (!/^\d+$/.test(normalized) || normalized === '0') {
@@ -62,6 +67,11 @@ function normalizePositiveBigintId(value: string | number, fieldName: string): s
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeLimit.
+ * en: Internal helper method normalizeLimit.
+ * cz: Interní helper metoda normalizeLimit.
+ */
 function normalizeLimit(limit?: number): number {
   if (limit == null || !Number.isFinite(limit)) {
     return DEFAULT_EXCEPTIONS_LIMIT;
@@ -73,11 +83,21 @@ function normalizeLimit(limit?: number): number {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeOptionalCreatorId.
+ * en: Internal helper method normalizeOptionalCreatorId.
+ * cz: Interní helper metoda normalizeOptionalCreatorId.
+ */
 function normalizeOptionalCreatorId(value?: string | number | null): string | null {
   if (value == null) return null;
   return normalizePositiveBigintId(value, 'createdBy');
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeWeekday.
+ * en: Internal helper method normalizeWeekday.
+ * cz: Interní helper metoda normalizeWeekday.
+ */
 function normalizeWeekday(weekday: number): number {
   if (!Number.isInteger(weekday) || weekday < 1 || weekday > 7) {
     throw new ValidationError('Некоректний день тижня');
@@ -85,6 +105,11 @@ function normalizeWeekday(weekday: number): number {
   return weekday;
 }
 
+/**
+ * uk: Внутрішній helper метод parseSqlDate.
+ * en: Internal helper method parseSqlDate.
+ * cz: Interní helper metoda parseSqlDate.
+ */
 function parseSqlDate(dateText: string): Date {
   const normalized = dateText.trim();
   const match = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -108,6 +133,11 @@ function parseSqlDate(dateText: string): Date {
   return parsed;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeStudioDateInput.
+ * en: Internal helper method normalizeStudioDateInput.
+ * cz: Interní helper metoda normalizeStudioDateInput.
+ */
 function normalizeStudioDateInput(value: Date | string, fieldName: string): Date {
   if (value instanceof Date) {
     if (Number.isNaN(value.getTime())) {
@@ -127,6 +157,11 @@ function normalizeStudioDateInput(value: Date | string, fieldName: string): Date
   throw new ValidationError(`Некоректний ${fieldName}`, { [fieldName]: value });
 }
 
+/**
+ * uk: Внутрішній helper метод toSqlDate.
+ * en: Internal helper method toSqlDate.
+ * cz: Interní helper metoda toSqlDate.
+ */
 function toSqlDate(date: Date): string {
   const year = String(date.getFullYear());
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -134,6 +169,11 @@ function toSqlDate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeHolidayName.
+ * en: Internal helper method normalizeHolidayName.
+ * cz: Interní helper metoda normalizeHolidayName.
+ */
 function normalizeHolidayName(value: string): string {
   const normalized = value.trim().replace(/\s+/g, ' ');
   if (normalized.length < 2) {
@@ -145,6 +185,11 @@ function normalizeHolidayName(value: string): string {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeTemporaryNote.
+ * en: Internal helper method normalizeTemporaryNote.
+ * cz: Interní helper metoda normalizeTemporaryNote.
+ */
 function normalizeTemporaryNote(value?: string | null): string | null {
   if (!value) return null;
   const normalized = value.trim();
@@ -152,6 +197,11 @@ function normalizeTemporaryNote(value?: string | null): string | null {
   return normalized.slice(0, 250);
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeOptionalTime.
+ * en: Internal helper method normalizeOptionalTime.
+ * cz: Interní helper metoda normalizeOptionalTime.
+ */
 function normalizeOptionalTime(value?: string | null): string | null {
   if (value == null) return null;
   const normalized = value.trim();
@@ -162,15 +212,30 @@ function normalizeOptionalTime(value?: string | null): string | null {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод isValidTimeHHMM.
+ * en: Internal helper method isValidTimeHHMM.
+ * cz: Interní helper metoda isValidTimeHHMM.
+ */
 function isValidTimeHHMM(value: string): boolean {
   return /^(?:\d|[01]\d|2[0-3]):[0-5]\d$/.test(value);
 }
 
+/**
+ * uk: Внутрішній helper метод timeToMinutes.
+ * en: Internal helper method timeToMinutes.
+ * cz: Interní helper metoda timeToMinutes.
+ */
 function timeToMinutes(value: string): number {
   const [hour, minute] = value.split(':').map(Number);
   return hour * 60 + minute;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeTemporaryDays.
+ * en: Internal helper method normalizeTemporaryDays.
+ * cz: Interní helper metoda normalizeTemporaryDays.
+ */
 function normalizeTemporaryDays(
   days: AdminStudioTemporaryScheduleDayInput[],
 ): AdminStudioTemporaryScheduleDayInput[] {
@@ -223,6 +288,11 @@ function normalizeTemporaryDays(
   return Array.from(byWeekday.values()).sort((a, b) => a.weekday - b.weekday);
 }
 
+/**
+ * uk: Внутрішній helper метод mapWeeklyRow.
+ * en: Internal helper method mapWeeklyRow.
+ * cz: Interní helper metoda mapWeeklyRow.
+ */
 function mapWeeklyRow(row: AdminStudioWeeklyHoursRow): AdminStudioWeeklyHoursItem {
   return {
     weekday: row.weekday,
@@ -232,6 +302,11 @@ function mapWeeklyRow(row: AdminStudioWeeklyHoursRow): AdminStudioWeeklyHoursIte
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapDayOffRow.
+ * en: Internal helper method mapDayOffRow.
+ * cz: Interní helper metoda mapDayOffRow.
+ */
 function mapDayOffRow(row: AdminStudioDayOffRow): AdminStudioDayOffItem {
   return {
     id: row.id,
@@ -240,6 +315,11 @@ function mapDayOffRow(row: AdminStudioDayOffRow): AdminStudioDayOffItem {
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapHolidayRow.
+ * en: Internal helper method mapHolidayRow.
+ * cz: Interní helper metoda mapHolidayRow.
+ */
 function mapHolidayRow(row: AdminStudioHolidayRow): AdminStudioHolidayItem {
   return {
     id: row.id,
@@ -248,6 +328,11 @@ function mapHolidayRow(row: AdminStudioHolidayRow): AdminStudioHolidayItem {
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapTemporaryRow.
+ * en: Internal helper method mapTemporaryRow.
+ * cz: Interní helper metoda mapTemporaryRow.
+ */
 function mapTemporaryRow(row: AdminStudioTemporaryHoursRow): AdminStudioTemporaryHoursItem {
   return {
     id: row.id,
@@ -261,6 +346,11 @@ function mapTemporaryRow(row: AdminStudioTemporaryHoursRow): AdminStudioTemporar
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapInsertedDayOffRow.
+ * en: Internal helper method mapInsertedDayOffRow.
+ * cz: Interní helper metoda mapInsertedDayOffRow.
+ */
 function mapInsertedDayOffRow(row: AdminInsertedStudioDayOffRow): AdminStudioDayOffItem {
   return {
     id: row.id,
@@ -269,6 +359,11 @@ function mapInsertedDayOffRow(row: AdminInsertedStudioDayOffRow): AdminStudioDay
   };
 }
 
+/**
+ * uk: Внутрішній helper метод mapInsertedHolidayRow.
+ * en: Internal helper method mapInsertedHolidayRow.
+ * cz: Interní helper metoda mapInsertedHolidayRow.
+ */
 function mapInsertedHolidayRow(row: AdminInsertedStudioHolidayRow): AdminStudioHolidayItem {
   return {
     id: row.id,

@@ -33,6 +33,11 @@ const DEFAULT_CATALOG_LIMIT = 20;
 const MIN_CATALOG_LIMIT = 1;
 const MAX_CATALOG_LIMIT = 50;
 
+/**
+ * uk: Внутрішній helper метод normalizePositiveBigintId.
+ * en: Internal helper method normalizePositiveBigintId.
+ * cz: Interní helper metoda normalizePositiveBigintId.
+ */
 function normalizePositiveBigintId(value: string | number, fieldName: string): string {
   const normalized = String(value).trim();
 
@@ -43,11 +48,21 @@ function normalizePositiveBigintId(value: string | number, fieldName: string): s
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeOptionalStudioId.
+ * en: Internal helper method normalizeOptionalStudioId.
+ * cz: Interní helper metoda normalizeOptionalStudioId.
+ */
 function normalizeOptionalStudioId(studioId?: string | null): string | null {
   if (studioId == null) return null;
   return normalizePositiveBigintId(studioId, 'studioId');
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeCatalogLimit.
+ * en: Internal helper method normalizeCatalogLimit.
+ * cz: Interní helper metoda normalizeCatalogLimit.
+ */
 function normalizeCatalogLimit(limit?: number): number {
   if (limit == null) return DEFAULT_CATALOG_LIMIT;
   if (!Number.isFinite(limit)) return DEFAULT_CATALOG_LIMIT;
@@ -58,6 +73,11 @@ function normalizeCatalogLimit(limit?: number): number {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод toCatalogItem.
+ * en: Internal helper method toCatalogItem.
+ * cz: Interní helper metoda toCatalogItem.
+ */
 function toCatalogItem(service: ServicesEntity): ServicesCatalogItem {
   return {
     id: service.id,

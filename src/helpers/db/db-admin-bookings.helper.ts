@@ -53,6 +53,11 @@ type AdminBookingForRescheduleRow = AdminBookingRow & {
   created_by: string | null;
 };
 
+/**
+ * uk: Внутрішній helper метод normalizePositiveBigintId.
+ * en: Internal helper method normalizePositiveBigintId.
+ * cz: Interní helper metoda normalizePositiveBigintId.
+ */
 function normalizePositiveBigintId(value: string | number, fieldName: string): string {
   const normalized = String(value).trim();
   if (!/^\d+$/.test(normalized) || normalized === '0') {
@@ -61,6 +66,11 @@ function normalizePositiveBigintId(value: string | number, fieldName: string): s
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeFeedLimit.
+ * en: Internal helper method normalizeFeedLimit.
+ * cz: Interní helper metoda normalizeFeedLimit.
+ */
 function normalizeFeedLimit(limit?: number): number {
   if (limit == null || !Number.isFinite(limit)) {
     return DEFAULT_FEED_LIMIT;
@@ -72,6 +82,11 @@ function normalizeFeedLimit(limit?: number): number {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeOffset.
+ * en: Internal helper method normalizeOffset.
+ * cz: Interní helper metoda normalizeOffset.
+ */
 function normalizeOffset(offset?: number): number {
   if (offset == null || !Number.isFinite(offset)) {
     return 0;
@@ -82,6 +97,11 @@ function normalizeOffset(offset?: number): number {
   return normalized;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeFutureDate.
+ * en: Internal helper method normalizeFutureDate.
+ * cz: Interní helper metoda normalizeFutureDate.
+ */
 function normalizeFutureDate(value: Date, fieldName: string): Date {
   if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
     throw new ValidationError(`Некоректний ${fieldName}`, { [fieldName]: value });
@@ -94,11 +114,21 @@ function normalizeFutureDate(value: Date, fieldName: string): Date {
   return value;
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeOptionalMasterId.
+ * en: Internal helper method normalizeOptionalMasterId.
+ * cz: Interní helper metoda normalizeOptionalMasterId.
+ */
 function normalizeOptionalMasterId(masterId?: string | number | null): string | null {
   if (masterId == null) return null;
   return normalizePositiveBigintId(masterId, 'masterId');
 }
 
+/**
+ * uk: Внутрішній helper метод normalizeBookingsCategory.
+ * en: Internal helper method normalizeBookingsCategory.
+ * cz: Interní helper metoda normalizeBookingsCategory.
+ */
 function normalizeBookingsCategory(category: AdminBookingsCategory): AdminBookingsCategory {
   if (
     category === 'pending' ||
@@ -113,6 +143,11 @@ function normalizeBookingsCategory(category: AdminBookingsCategory): AdminBookin
   throw new ValidationError('Некоректна категорія записів', { category });
 }
 
+/**
+ * uk: Внутрішній helper метод mapAdminBookingRow.
+ * en: Internal helper method mapAdminBookingRow.
+ * cz: Interní helper metoda mapAdminBookingRow.
+ */
 function mapAdminBookingRow(row: AdminBookingRow): AdminBookingItem {
   return {
     appointmentId: row.appointment_id,
