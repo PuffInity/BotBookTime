@@ -1,3 +1,7 @@
+/**
+ * @file faqEntries.type.ts
+ * @summary Database table type definitions.
+ */
 export type FaqEntriesRow = {
     id: string,
     studio_id: string,

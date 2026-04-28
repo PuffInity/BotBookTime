@@ -1,3 +1,7 @@
+/**
+ * @file studios.type.ts
+ * @summary Database table type definitions.
+ */
 export type StudiosRow = {
     id: string,
     name: string,

@@ -1,6 +1,15 @@
 import nodemailer, { type SendMailOptions, type Transporter } from "nodemailer";
-import { handleError } from "../utils/error.utils.js";
+import twilio from "twilio";
+import { ExternalServiceError, handleError } from "../utils/error.utils.js";
 import { loggerMailer } from "../utils/logger/loggers-list.js";
+import { defaultMailFrom, nodemailerConfig } from "../config/nodemailer.config.js";
+import {
+    isTwilioConfigured,
+    twilioAccountSid,
+    twilioAuthToken,
+    twilioMissingFields,
+    twilioPhoneNumber,
+} from "../config/twilio.config.js";
 import {
     bookingCreatedTemplate,
 } from "../emails/templates/bookingCreated.template.js";
@@ -39,6 +48,7 @@ import type {
     OtpPolicy,
     SendOtpEmailInput,
     SendOtpSmsInput,
+    MailTemplateLanguage,
 } from "../types/nodemailer/nodemailer.types.js";
 
 export type {
@@ -55,6 +65,7 @@ export type {
     OtpPolicy,
     SendOtpEmailInput,
     SendOtpSmsInput,
+    MailTemplateLanguage,
 } from "../types/nodemailer/nodemailer.types.js";
 
 /**
@@ -63,7 +74,10 @@ export type {
  */
 
 type TemplateRegistry = {
-    [K in MailTemplateKey]: (data: MailTemplatePayloadMap[K]) => MailTemplateResult;
+    [K in MailTemplateKey]: (
+        data: MailTemplatePayloadMap[K],
+        language?: MailTemplateLanguage,
+    ) => MailTemplateResult;
 };
 
 const templateRegistry: TemplateRegistry = {
@@ -77,40 +91,6 @@ const templateRegistry: TemplateRegistry = {
     otpEmail: otpEmailTemplate,
 };
 
-type SmtpConfig = {
-    host: string;
-    port: number;
-    secure: boolean;
-    user: string;
-    pass: string;
-    from: string;
-};
-
-const getRequiredEnv = (name: string): string => {
-    const value = process.env[name];
-    if (!value) {
-        throw new Error(`Missing required environment variable: ${name}`);
-    }
-    return value;
-};
-
-const getSmtpConfig = (): SmtpConfig => {
-    const portRaw = process.env.SMTP_PORT ?? "587";
-    const port = Number(portRaw);
-    if (Number.isNaN(port)) {
-        throw new Error(`Invalid SMTP_PORT value: ${portRaw}`);
-    }
-
-    return {
-        host: getRequiredEnv("SMTP_HOST"),
-        port,
-        secure: process.env.SMTP_SECURE === "true",
-        user: getRequiredEnv("SMTP_USER"),
-        pass: getRequiredEnv("SMTP_PASS"),
-        from: getRequiredEnv("SMTP_FROM"),
-    };
-};
-
 let transporter: Transporter | null = null;
 let transporterVerified = false;
 
@@ -120,20 +100,7 @@ let transporterVerified = false;
  */
 export const getMailerTransporter = (): Transporter => {
     if (transporter) return transporter;
-
-    const smtp = getSmtpConfig();
-    transporter = nodemailer.createTransport({
-        host: smtp.host,
-        port: smtp.port,
-        secure: smtp.secure,
-        auth: {
-            user: smtp.user,
-            pass: smtp.pass,
-        },
-        pool: true,
-        maxConnections: 5,
-        maxMessages: 100,
-    });
+    transporter = nodemailer.createTransport(nodemailerConfig);
 
     return transporter;
 };
@@ -168,15 +135,14 @@ export const warmupMailer = async (): Promise<void> => {
 export async function sendEmail<K extends MailTemplateKey>(
     input: SendEmailInput<K>,
 ): Promise<SendEmailResult> {
-    const { to, template, data, cc, bcc, replyTo, attachments, headers } = input;
+    const { to, template, data, cc, bcc, replyTo, attachments, headers, language } = input;
 
     try {
         const renderer = templateRegistry[template];
-        const rendered = renderer(data as MailTemplatePayloadMap[K]);
-        const smtp = getSmtpConfig();
+        const rendered = renderer(data as MailTemplatePayloadMap[K], language);
 
         const mail: SendMailOptions = {
-            from: input.from ?? smtp.from,
+            from: input.from ?? defaultMailFrom,
             to,
             cc,
             bcc,
@@ -191,6 +157,7 @@ export async function sendEmail<K extends MailTemplateKey>(
         const info = await getMailerTransporter().sendMail(mail);
         loggerMailer.info("[mailer] Email sent", {
             template,
+            language: language ?? 'uk',
             messageId: info.messageId,
             accepted: info.accepted,
             rejected: info.rejected,
@@ -207,7 +174,7 @@ export async function sendEmail<K extends MailTemplateKey>(
             scope: "mailer",
             action: "sendEmail failed",
             error,
-            meta: { template, to },
+            meta: { template, to, language: language ?? 'uk' },
         });
         throw error;
     }
@@ -348,6 +315,7 @@ export const sendOtpEmail = async (input: SendOtpEmailInput): Promise<SendEmailR
     return sendEmail({
         to: input.to,
         template: "otpEmail",
+        language: input.language,
         data: {
             code: input.code,
             purpose: input.purpose,
@@ -364,14 +332,51 @@ export interface SmsSender {
     sendSms(input: { to: string; text: string }): Promise<void>;
 }
 
-class TodoSmsSender implements SmsSender {
-    async sendSms(_: { to: string; text: string }): Promise<void> {
-        // TODO: Інтегрувати реальний SMS-провайдер (Twilio / MessageBird / AWS SNS / інший).
-        throw new Error("SMS sender is not implemented yet.");
+export class TwilioSmsSender implements SmsSender {
+    private client: ReturnType<typeof twilio> | null = null;
+
+    private getClient(): ReturnType<typeof twilio> {
+        if (!isTwilioConfigured() || !twilioAccountSid || !twilioAuthToken || !twilioPhoneNumber) {
+            throw new ExternalServiceError(
+                "Phone verification is temporarily unavailable",
+                {
+                    provider: "twilio",
+                    reason: "not_configured",
+                    missingFields: twilioMissingFields,
+                },
+            );
+        }
+
+        if (!this.client) {
+            this.client = twilio(twilioAccountSid, twilioAuthToken);
+        }
+
+        return this.client;
+    }
+
+    async sendSms(input: { to: string; text: string }): Promise<void> {
+        try {
+            const client = this.getClient();
+            await client.messages.create({
+                body: input.text,
+                from: twilioPhoneNumber ?? undefined,
+                to: input.to,
+            });
+            loggerMailer.info("[sms] SMS sent", { to: input.to });
+        } catch (error) {
+            handleError({
+                logger: loggerMailer,
+                scope: "sms",
+                action: "sendSms failed",
+                error,
+                meta: { to: input.to },
+            });
+            throw error;
+        }
     }
 }
 
-let smsSender: SmsSender = new TodoSmsSender();
+let smsSender: SmsSender = new TwilioSmsSender();
 
 /**
  * @summary Дозволяє підмінити SMS sender на реальну реалізацію.
@@ -382,7 +387,7 @@ export const setSmsSender = (sender: SmsSender): void => {
 };
 
 /**
- * @summary Заглушка для OTP через SMS (з resend-limit і TODO на провайдера).
+ * @summary Відправляє OTP через SMS з перевіркою resend-limit.
  * @param {SendOtpSmsInput} input - Дані OTP.
  * @returns {Promise<void>}
  */

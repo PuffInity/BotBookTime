@@ -1,3 +1,7 @@
+/**
+ * @file appointments.type.ts
+ * @summary Database table type definitions.
+ */
 import type { AppointmentSource, AppointmentStatus } from './dbEnums.type.js';
 
 export type AppointmentsRow = {

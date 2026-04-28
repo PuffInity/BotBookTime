@@ -1,3 +1,7 @@
+/**
+ * @file masterTemporaryHours.type.ts
+ * @summary Database table type definitions.
+ */
 export type MasterTemporaryHoursRow = {
     id: string,
     master_id: string,

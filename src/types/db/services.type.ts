@@ -1,3 +1,7 @@
+/**
+ * @file services.type.ts
+ * @summary Database table type definitions.
+ */
 export type ServicesRow = {
     id: string,
     studio_id: string,

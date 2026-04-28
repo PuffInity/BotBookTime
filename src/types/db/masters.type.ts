@@ -1,3 +1,7 @@
+/**
+ * @file masters.type.ts
+ * @summary Database table type definitions.
+ */
 export type MastersRow = {
     user_id: string,
     studio_id: string,

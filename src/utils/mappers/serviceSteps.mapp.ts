@@ -21,6 +21,7 @@ export const serviceStepsRowToEntity = (row: ServiceStepsRow): ServiceStepsEntit
     return {
         serviceId: row.service_id,
         stepNo: row.step_no,
+        durationMinutes: row.duration_minutes,
         title: row.title,
         description: row.description,
         createdAt: toDate(row.created_at),
@@ -37,6 +38,7 @@ export const toInsertServiceSteps = (d: ServiceStepsInsert) => {
     const out: Partial<ServiceStepsRow> = {
         service_id: d.serviceId,
         step_no: d.stepNo,
+        duration_minutes: d.durationMinutes ?? 10,
         title: d.title,
         description: d.description,
     };
@@ -60,6 +62,10 @@ export const toUpdateServiceSteps = (patch?: ServiceStepsUpdate) => {
 
     if ("stepNo" in patch && patch.stepNo !== undefined) {
         out.step_no = patch.stepNo;
+    }
+
+    if ("durationMinutes" in patch && patch.durationMinutes !== undefined) {
+        out.duration_minutes = patch.durationMinutes;
     }
 
     if ("title" in patch && patch.title !== undefined) {

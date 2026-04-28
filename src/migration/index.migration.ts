@@ -2,6 +2,12 @@ import {MigrationRunner} from "./runner.migration.js";
 import {migrationLogger} from "./base.migration.js";
 import {handleError} from "../utils/error.utils.js";
 
+/**
+ * @file index.migration.ts
+ * @summary CLI entry for migration operations (migrate/rollback/status/help).
+ */
+
+// uk: OPS/CLI константа COMMANDS / en: OPS/CLI constant COMMANDS / cz: OPS/CLI konstanta COMMANDS
 const COMMANDS = {
     MIGRATE: 'migrate',
     ROLLBACK: 'rollback',
@@ -9,6 +15,11 @@ const COMMANDS = {
     HELP: 'help'
 }as const;
 
+/**
+ * uk: Показує migration CLI help.
+ * en: Prints migration CLI help.
+ * cz: Vypíše migration CLI help.
+ */
 function showHelp() {
     migrationLogger.info(`
     Команди по маграції:
@@ -20,6 +31,12 @@ function showHelp() {
 
 
 
+/**
+ * uk: Виконує migration CLI команду.
+ * en: Executes migration CLI command.
+ * cz: Provede migration CLI příkaz.
+ * @param command uk/en/cz: Команда/Command/Příkaz.
+ */
 async function runCommand(command:string) {
     switch (command) {
         case COMMANDS.MIGRATE:
@@ -44,6 +61,11 @@ async function runCommand(command:string) {
 
 
 
+/**
+ * uk: Точка входу migration CLI.
+ * en: Migration CLI entrypoint.
+ * cz: Vstupní bod migration CLI.
+ */
 async function main() {
     try{
         migrationLogger.info('Запуск системи міграцій');

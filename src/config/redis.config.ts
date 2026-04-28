@@ -4,19 +4,21 @@ import {loggerRedisConfig} from "../utils/logger/loggers-list.js";
 
 /**
  * @file redis.config.ts
- * @summary Базова конфігурація Redis + конфіг Redis для сесій Telegraf.
+ * @summary Redis base config + Telegraf session config.
  */
 
-/** Логер для подій конфігурації/перепідключення Redis. */
+// uk: Redis логер / en: Redis logger / cz: Redis logger
 export const redisLogger = loggerRedisConfig;
 
 /**
- * @summary Створюємо функцію яка буде повертати обʼєкт готового конфігу
- * @param {ParamsForBaseConfig} params - Нас інтерфейси який створений трошку вище для створення конф. файлу
- * @returns {BaseConfig} Базова конфігурація Redis client + службові параметри (keyPrefix, retries).
+ * uk: Будує базовий Redis-конфіг.
+ * en: Builds base Redis config.
+ * cz: Sestaví základní Redis config.
+ * @param params uk/en/cz: Параметри/Params/Parametry.
+ * @returns uk/en/cz: Базовий конфіг/Base config/Základní config.
  */
 export function makeBaseConfig(params: ParamsForBaseConfig): BaseConfig {
-    /** Відразу для зручності створюємо констатнти та передаємо в них дані */
+    // uk: Деструктуризація / en: Destructure params / cz: Rozklad parametrů
     const { host,port,name,password,
         database = 0,keyPrefix,
         maxReconnectRetries = 10
@@ -29,23 +31,20 @@ export function makeBaseConfig(params: ParamsForBaseConfig): BaseConfig {
                 host,
                 port,
                 connectTimeout: 10000,
-                /** keepAlive - Підтримує постійне -TCP зʼєднання */
+                // uk: TCP keep-alive / en: TCP keep-alive / cz: TCP keep-alive
                 keepAlive: 5000,
-                /** Якщо зʼєднання буде встрачено або не буде підʼєднано з першого разу застосовується ця функія */
+                // uk: Стратегія reconnect / en: Reconnect strategy / cz: Reconnect strategie
                 reconnectStrategy: (retries: number) => {
-                    /** Маємо обмеження кількості спроб */
+                    // uk: Ліміт спроб / en: Retry limit / cz: Limit pokusů
                     if (retries > maxReconnectRetries) {
                         redisLogger.error(`[${name}] Перевищено максимальну кількість спроб підключення`);
                         return new Error(`[${name}] reconnect limit exceeded`);
                     }
-                    /** кожен раз множино кілкьість спроб на 50 і щоб не перевищило 5000 (5 секунд) */
+                    // uk: Базова затримка / en: Base backoff / cz: Základní backoff
                     const base = Math.min(retries * 50, 5000);
-                    /** Створюємо константу яка матиме рандомне число до 250 */
+                    // uk: Випадковий джиттер / en: Random jitter / cz: Náhodný jitter
                     const jitter = Math.floor(Math.random() * 250);
-                    /** Додаємо 1 константсу base до другої jitter = Виходить постійно рандомне число
-                     * Для того щоб Redis не навантужувася під час перепідключення всіх користувачів
-                     * в нашому випадку кожен користувач буде перепідключатись в рандомний час
-                     */
+                    // uk: Фінальна затримка / en: Final delay / cz: Finální zpoždění
                     const delay = base + jitter;
                     redisLogger.info(`[${name}] Перепідключення через ${delay}мс (спроба: ${retries})`);
                     return delay;
@@ -59,11 +58,9 @@ export function makeBaseConfig(params: ParamsForBaseConfig): BaseConfig {
 }
 
 /**
- * Готова конфігурація Redis для Telegraf session store.
- * Включає:
- * - clientOptions для node-redis
- * - keyPrefix для ключів сесій
- * - sessionTTL / touchAfter для логіки запису сесій
+ * uk: Готовий session config для Telegraf.
+ * en: Ready Telegraf session config.
+ * cz: Hotový session config pro Telegraf.
  */
 export const redisConfig: SessionConfig = {
     ...makeBaseConfig({

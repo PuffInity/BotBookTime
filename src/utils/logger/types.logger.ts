@@ -1,13 +1,16 @@
+/**
+ * @file types.logger.ts
+ * @summary uk: Типи logger-контрактів.
+ * en: Logger contract types.
+ * cz: Typy logger kontraktů.
+ */
 import {Logger} from "winston";
 import TransportStream from "winston-transport";
 
 /**
- * @file interface.logger.ts
- * @summary  Інтерфейси/Обіцянки для головного логера потрібно для створення обіцянок
- */
-
-/**
- * @summary Обіцянка з рівнями логів
+ * uk: Контракт логера
+ * en: Logger contract
+ * cz: Kontrakt loggeru
  */
 export interface ILogger {
     info(t: string, context?: Record<string, unknown>): void
@@ -19,14 +22,18 @@ export interface ILogger {
 }
 
 /**
- * @summary обіцянка створення логера
+ * uk: Фабрика логера
+ * en: Logger factory
+ * cz: Factory loggeru
  */
 export interface ILoggerFactory {
     createLogger(context?: Record<string, unknown>): ILogger
 }
 
 /**
- * @summary  Інтерфейс для підказок при створенні лога
+ * uk: Контекст лога
+ * en: Log context
+ * cz: Kontext logu
  */
 export interface LogContext {
     userId?: number,
@@ -37,20 +44,21 @@ export interface LogContext {
     [key: string]: unknown
 }
 
-/**
- * @summary Тип Логера
- */
+/** uk: Тип Winston | en: Winston type | cz: Typ Winston */
 export type WinstonLogger = Logger
 
 
 /**
- * @summary Додаємо до TransportStream поле close
- * @TransportStream Обіцянка для всі інших транспортів які будуть створені
+ * uk: Закривний транспорт
+ * en: Closable transport
+ * cz: Uzavíratelný transport
  */
 export type ClosableTransport = TransportStream & {close: () => void}
 
 /**
- * @summary Доказуємо що в Наших транспортах існує метод close()
+ * uk: Перевірка close
+ * en: Check close
+ * cz: Kontrola close
  */
 export function hasClose(t:TransportStream): t is ClosableTransport {
     return 'close' in t && typeof (t as {close: unknown}).close === 'function'

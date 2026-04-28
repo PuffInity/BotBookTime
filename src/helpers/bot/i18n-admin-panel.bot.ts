@@ -1,0 +1,4132 @@
+/**
+ * @file i18n-admin-panel.bot.ts
+ * @summary Тексти адмін-панелі.
+ */
+
+// uk: UI константа ADMIN_PANEL_STATS_DICTIONARY / en: UI constant ADMIN_PANEL_STATS_DICTIONARY / cz: UI konstanta ADMIN_PANEL_STATS_DICTIONARY
+const ADMIN_PANEL_STATS_DICTIONARY = {
+  uk: {
+    ADMIN_PANEL_STATS_BTN_BACK: '⬅️ До адмін-панелі',
+    ADMIN_PANEL_STATS_BTN_BACK_TO_OVERVIEW: '⬅️ До огляду',
+    ADMIN_PANEL_STATS_BTN_CLIENTS: '👥 Клієнти',
+    ADMIN_PANEL_STATS_BTN_CLIENTS_BACK_TO_LIST: '⬅️ До списку клієнтів',
+    ADMIN_PANEL_STATS_BTN_MASTERS: '👩‍🎨 Майстри',
+    ADMIN_PANEL_STATS_BTN_MASTERS_BACK_TO_LIST: '⬅️ До списку майстрів',
+    ADMIN_PANEL_STATS_BTN_MONTHLY: '🗓 Місячні',
+    ADMIN_PANEL_STATS_BTN_MONTHLY_BACK_TO_LIST: '⬅️ До списку місяців',
+    ADMIN_PANEL_STATS_BTN_SERVICES: '💼 Послуги',
+    ADMIN_PANEL_STATS_BTN_SERVICES_BACK_TO_LIST: '⬅️ До списку послуг',
+    ADMIN_PANEL_STATS_CLIENTS_LIST_EMPTY: 'Клієнтів для статистики поки немає.',
+    ADMIN_PANEL_STATS_CLIENTS_LIST_SPENT: '• Витрачено: {value}',
+    ADMIN_PANEL_STATS_CLIENTS_LIST_TITLE: '👥 Статистика по клієнтах',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_LAST_VISIT: '📅 Останній візит: {value}',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_MOST_EXPENSIVE_AMOUNT: '💰 Сума: {value}',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_MOST_EXPENSIVE_NAME: '💎 Найдорожча послуга: {value}',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_NAME: '👤 Клієнт: {value}',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_SECTION_SALON: '🏢 Частка салону',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_SECTION_SPENT: '💳 Витрати клієнта',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_TITLE: '👤 Деталі клієнта',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_TOTAL: '• Разом: {value}',
+    ADMIN_PANEL_STATS_LABEL_DASH: '—',
+    ADMIN_PANEL_STATS_LABEL_ID_ROW: '🪪 ID: {value}',
+    ADMIN_PANEL_STATS_MASTERS_LIST_EMPTY: 'Майстрів для статистики поки немає.',
+    ADMIN_PANEL_STATS_MASTERS_LIST_TITLE: '👩‍🎨 Статистика по майстрах',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_AVG_CHECK: '• Середній чек: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_BEST_MONTH: '📈 Найкращий місяць: {month} ({value})',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_BEST_SERVICE: '🏆 Найкраща послуга: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_BEST_SERVICE_AMOUNT: '💰 Дохід від найкращої: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_CLIENTS: '• Клієнтів: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_COMPLETED: '• Виконано процедур: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_NAME: '👤 Майстер: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_NEW_CLIENTS: '• Нових клієнтів: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_REPEAT: '• Повторні клієнти: {value}%',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_SALON_MONTH: '• Частка салону (місяць): {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_TITLE: '👩‍🎨 Деталі майстра',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_TODAY: '• Записів сьогодні: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_TOP_SERVICES: '🔥 Топ послуг',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_WEEK: '• Записів за тиждень: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_WORKLOAD: '• Завантаженість: {value}%',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_ADDITIONAL: '📎 Додатково',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_CLIENTS: '• Клієнтів: {value}',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_MAIN: '📌 Основне',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_MASTER_EARNINGS: '• Дохід майстрів: {value}',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_PERIOD: '📅 Період: {value}',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_SALON_15: '• Частка салону: {value}',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_TITLE: '🗓 Деталі місяця',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_TOP_MASTERS: '👩‍🎨 Топ майстрів',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_TOP_SERVICES: '💼 Топ послуг',
+    ADMIN_PANEL_STATS_MONTHLY_LIST_EMPTY: 'Місячні звіти поки відсутні.',
+    ADMIN_PANEL_STATS_MONTHLY_LIST_GROSS: '• Оборот: {value}',
+    ADMIN_PANEL_STATS_MONTHLY_LIST_PROCEDURES: '• Процедур: {value}',
+    ADMIN_PANEL_STATS_MONTHLY_LIST_SALON: '• Частка салону: {value}',
+    ADMIN_PANEL_STATS_MONTHLY_LIST_TITLE: '🗓 Місячні звіти',
+    ADMIN_PANEL_STATS_NO_DATA: 'Немає даних.',
+    ADMIN_PANEL_STATS_OVERVIEW_HINT: 'Виберіть розділ нижче для детального перегляду.',
+    ADMIN_PANEL_STATS_OVERVIEW_ROW_3M: '• 3 місяці: {value}',
+    ADMIN_PANEL_STATS_OVERVIEW_ROW_6M: '• 6 місяців: {value}',
+    ADMIN_PANEL_STATS_OVERVIEW_ROW_AVG_CHECK: '• Середній чек: {value}',
+    ADMIN_PANEL_STATS_OVERVIEW_ROW_COMPLETED: '• Виконано процедур: {value}',
+    ADMIN_PANEL_STATS_OVERVIEW_ROW_MONTH: '• Місяць: {value}',
+    ADMIN_PANEL_STATS_OVERVIEW_ROW_UNIQUE_CLIENTS: '• Унікальних клієнтів: {value}',
+    ADMIN_PANEL_STATS_OVERVIEW_ROW_YEAR: '• Рік: {value}',
+    ADMIN_PANEL_STATS_OVERVIEW_SECTION_CURRENT_MONTH: '📅 Поточний місяць',
+    ADMIN_PANEL_STATS_OVERVIEW_SECTION_GLOBAL: '🌍 Загальний оборот',
+    ADMIN_PANEL_STATS_OVERVIEW_SECTION_SALON: '🏢 Частка салону',
+    ADMIN_PANEL_STATS_OVERVIEW_TITLE: '📊 Статистика салону',
+    ADMIN_PANEL_STATS_PAGINATION: 'Сторінка {current} з {total}',
+    ADMIN_PANEL_STATS_ROW_INCOME: '• Дохід: {value}',
+    ADMIN_PANEL_STATS_ROW_PROCEDURES_CLIENTS: '• Процедур: {procedures} • Клієнтів: {clients}',
+    ADMIN_PANEL_STATS_ROW_SALON_SHARE: '• Частка салону: {value}',
+    ADMIN_PANEL_STATS_SECTION_ACTIVITY: '📈 Активність',
+    ADMIN_PANEL_STATS_SECTION_FINANCE: '💰 Фінанси',
+    ADMIN_PANEL_STATS_SECTION_STUB_TEXT: 'Цей підрозділ статистики буде додано в наступному етапі.',
+    ADMIN_PANEL_STATS_SERVICES_LIST_EMPTY: 'Послуг для статистики поки немає.',
+    ADMIN_PANEL_STATS_SERVICES_LIST_TITLE: '💼 Статистика по послугах',
+    ADMIN_PANEL_STATS_SERVICE_DETAILS_AVG_CHECK_MONTH: '• Середній чек (місяць): {value}',
+    ADMIN_PANEL_STATS_SERVICE_DETAILS_BASE_PRICE: '• Базова ціна: {value}',
+    ADMIN_PANEL_STATS_SERVICE_DETAILS_DURATION: '• Тривалість: {value} хв',
+    ADMIN_PANEL_STATS_SERVICE_DETAILS_NAME: '💼 Послуга: {value}',
+    ADMIN_PANEL_STATS_SERVICE_DETAILS_TITLE: '💼 Деталі послуги',
+    ADMIN_PANEL_STATS_SERVICE_DETAILS_TOP_MASTERS: '👩‍🎨 Топ майстрів',
+  },
+  en: {
+    ADMIN_PANEL_STATS_BTN_BACK: '⬅️ Back to admin panel',
+    ADMIN_PANEL_STATS_BTN_BACK_TO_OVERVIEW: '⬅️ Back to overview',
+    ADMIN_PANEL_STATS_BTN_CLIENTS: '👥 Clients',
+    ADMIN_PANEL_STATS_BTN_CLIENTS_BACK_TO_LIST: '⬅️ Back to clients',
+    ADMIN_PANEL_STATS_BTN_MASTERS: '👩‍🎨 Masters',
+    ADMIN_PANEL_STATS_BTN_MASTERS_BACK_TO_LIST: '⬅️ Back to masters',
+    ADMIN_PANEL_STATS_BTN_MONTHLY: '🗓 Monthly',
+    ADMIN_PANEL_STATS_BTN_MONTHLY_BACK_TO_LIST: '⬅️ Back to months',
+    ADMIN_PANEL_STATS_BTN_SERVICES: '💼 Services',
+    ADMIN_PANEL_STATS_BTN_SERVICES_BACK_TO_LIST: '⬅️ Back to services',
+    ADMIN_PANEL_STATS_CLIENTS_LIST_EMPTY: 'No clients available for statistics yet.',
+    ADMIN_PANEL_STATS_CLIENTS_LIST_SPENT: '• Spent: {value}',
+    ADMIN_PANEL_STATS_CLIENTS_LIST_TITLE: '👥 Client statistics',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_LAST_VISIT: '📅 Last visit: {value}',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_MOST_EXPENSIVE_AMOUNT: '💰 Amount: {value}',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_MOST_EXPENSIVE_NAME: '💎 Most expensive service: {value}',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_NAME: '👤 Client: {value}',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_SECTION_SALON: '🏢 Salon share',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_SECTION_SPENT: '💳 Client spending',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_TITLE: '👤 Client details',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_TOTAL: '• Total: {value}',
+    ADMIN_PANEL_STATS_LABEL_DASH: '—',
+    ADMIN_PANEL_STATS_LABEL_ID_ROW: '🪪 ID: {value}',
+    ADMIN_PANEL_STATS_MASTERS_LIST_EMPTY: 'No masters available for statistics yet.',
+    ADMIN_PANEL_STATS_MASTERS_LIST_TITLE: '👩‍🎨 Master statistics',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_AVG_CHECK: '• Average check: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_BEST_MONTH: '📈 Best month: {month} ({value})',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_BEST_SERVICE: '🏆 Best service: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_BEST_SERVICE_AMOUNT: '💰 Best service revenue: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_CLIENTS: '• Clients: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_COMPLETED: '• Completed procedures: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_NAME: '👤 Master: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_NEW_CLIENTS: '• New clients: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_REPEAT: '• Returning clients: {value}%',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_SALON_MONTH: '• Salon share (month): {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_TITLE: '👩‍🎨 Master details',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_TODAY: '• Bookings today: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_TOP_SERVICES: '🔥 Top services',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_WEEK: '• Bookings this week: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_WORKLOAD: '• Workload: {value}%',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_ADDITIONAL: '📎 Additional',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_CLIENTS: '• Clients: {value}',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_MAIN: '📌 Main',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_MASTER_EARNINGS: '• Master earnings: {value}',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_PERIOD: '📅 Period: {value}',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_SALON_15: '• Salon share: {value}',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_TITLE: '🗓 Monthly details',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_TOP_MASTERS: '👩‍🎨 Top masters',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_TOP_SERVICES: '💼 Top services',
+    ADMIN_PANEL_STATS_MONTHLY_LIST_EMPTY: 'No monthly reports yet.',
+    ADMIN_PANEL_STATS_MONTHLY_LIST_GROSS: '• Gross revenue: {value}',
+    ADMIN_PANEL_STATS_MONTHLY_LIST_PROCEDURES: '• Procedures: {value}',
+    ADMIN_PANEL_STATS_MONTHLY_LIST_SALON: '• Salon share: {value}',
+    ADMIN_PANEL_STATS_MONTHLY_LIST_TITLE: '🗓 Monthly reports',
+    ADMIN_PANEL_STATS_NO_DATA: 'No data.',
+    ADMIN_PANEL_STATS_OVERVIEW_HINT: 'Choose a section below for detailed stats.',
+    ADMIN_PANEL_STATS_OVERVIEW_ROW_3M: '• 3 months: {value}',
+    ADMIN_PANEL_STATS_OVERVIEW_ROW_6M: '• 6 months: {value}',
+    ADMIN_PANEL_STATS_OVERVIEW_ROW_AVG_CHECK: '• Average check: {value}',
+    ADMIN_PANEL_STATS_OVERVIEW_ROW_COMPLETED: '• Completed procedures: {value}',
+    ADMIN_PANEL_STATS_OVERVIEW_ROW_MONTH: '• Month: {value}',
+    ADMIN_PANEL_STATS_OVERVIEW_ROW_UNIQUE_CLIENTS: '• Unique clients: {value}',
+    ADMIN_PANEL_STATS_OVERVIEW_ROW_YEAR: '• Year: {value}',
+    ADMIN_PANEL_STATS_OVERVIEW_SECTION_CURRENT_MONTH: '📅 Current month',
+    ADMIN_PANEL_STATS_OVERVIEW_SECTION_GLOBAL: '🌍 Gross revenue',
+    ADMIN_PANEL_STATS_OVERVIEW_SECTION_SALON: '🏢 Salon share',
+    ADMIN_PANEL_STATS_OVERVIEW_TITLE: '📊 Salon statistics',
+    ADMIN_PANEL_STATS_PAGINATION: 'Page {current} of {total}',
+    ADMIN_PANEL_STATS_ROW_INCOME: '• Revenue: {value}',
+    ADMIN_PANEL_STATS_ROW_PROCEDURES_CLIENTS: '• Procedures: {procedures} • Clients: {clients}',
+    ADMIN_PANEL_STATS_ROW_SALON_SHARE: '• Salon share: {value}',
+    ADMIN_PANEL_STATS_SECTION_ACTIVITY: '📈 Activity',
+    ADMIN_PANEL_STATS_SECTION_FINANCE: '💰 Finance',
+    ADMIN_PANEL_STATS_SECTION_STUB_TEXT: 'This statistics subsection will be added in the next stage.',
+    ADMIN_PANEL_STATS_SERVICES_LIST_EMPTY: 'No services available for statistics yet.',
+    ADMIN_PANEL_STATS_SERVICES_LIST_TITLE: '💼 Service statistics',
+    ADMIN_PANEL_STATS_SERVICE_DETAILS_AVG_CHECK_MONTH: '• Average check (month): {value}',
+    ADMIN_PANEL_STATS_SERVICE_DETAILS_BASE_PRICE: '• Base price: {value}',
+    ADMIN_PANEL_STATS_SERVICE_DETAILS_DURATION: '• Duration: {value} min',
+    ADMIN_PANEL_STATS_SERVICE_DETAILS_NAME: '💼 Service: {value}',
+    ADMIN_PANEL_STATS_SERVICE_DETAILS_TITLE: '💼 Service details',
+    ADMIN_PANEL_STATS_SERVICE_DETAILS_TOP_MASTERS: '👩‍🎨 Top masters',
+  },
+  cs: {
+    ADMIN_PANEL_STATS_BTN_BACK: '⬅️ Zpět do admin panelu',
+    ADMIN_PANEL_STATS_BTN_BACK_TO_OVERVIEW: '⬅️ Zpět na přehled',
+    ADMIN_PANEL_STATS_BTN_CLIENTS: '👥 Klienti',
+    ADMIN_PANEL_STATS_BTN_CLIENTS_BACK_TO_LIST: '⬅️ Zpět na klienty',
+    ADMIN_PANEL_STATS_BTN_MASTERS: '👩‍🎨 Mistři',
+    ADMIN_PANEL_STATS_BTN_MASTERS_BACK_TO_LIST: '⬅️ Zpět na mistry',
+    ADMIN_PANEL_STATS_BTN_MONTHLY: '🗓 Měsíční',
+    ADMIN_PANEL_STATS_BTN_MONTHLY_BACK_TO_LIST: '⬅️ Zpět na měsíce',
+    ADMIN_PANEL_STATS_BTN_SERVICES: '💼 Služby',
+    ADMIN_PANEL_STATS_BTN_SERVICES_BACK_TO_LIST: '⬅️ Zpět na služby',
+    ADMIN_PANEL_STATS_CLIENTS_LIST_EMPTY: 'Pro statistiku zatím nejsou žádní klienti.',
+    ADMIN_PANEL_STATS_CLIENTS_LIST_SPENT: '• Utraceno: {value}',
+    ADMIN_PANEL_STATS_CLIENTS_LIST_TITLE: '👥 Statistiky klientů',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_LAST_VISIT: '📅 Poslední návštěva: {value}',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_MOST_EXPENSIVE_AMOUNT: '💰 Částka: {value}',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_MOST_EXPENSIVE_NAME: '💎 Nejdražší služba: {value}',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_NAME: '👤 Klient: {value}',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_SECTION_SALON: '🏢 Podíl salonu',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_SECTION_SPENT: '💳 Útrata klienta',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_TITLE: '👤 Detail klienta',
+    ADMIN_PANEL_STATS_CLIENT_DETAILS_TOTAL: '• Celkem: {value}',
+    ADMIN_PANEL_STATS_LABEL_DASH: '—',
+    ADMIN_PANEL_STATS_LABEL_ID_ROW: '🪪 ID: {value}',
+    ADMIN_PANEL_STATS_MASTERS_LIST_EMPTY: 'Pro statistiku zatím nejsou žádní mistři.',
+    ADMIN_PANEL_STATS_MASTERS_LIST_TITLE: '👩‍🎨 Statistiky mistrů',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_AVG_CHECK: '• Průměrný šek: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_BEST_MONTH: '📈 Nejlepší měsíc: {month} ({value})',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_BEST_SERVICE: '🏆 Nejlepší služba: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_BEST_SERVICE_AMOUNT: '💰 Výnos nejlepší služby: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_CLIENTS: '• Klienti: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_COMPLETED: '• Dokončené procedury: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_NAME: '👤 Mistr: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_NEW_CLIENTS: '• Noví klienti: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_REPEAT: '• Vracející se klienti: {value}%',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_SALON_MONTH: '• Podíl salonu (měsíc): {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_TITLE: '👩‍🎨 Detail mistra',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_TODAY: '• Rezervace dnes: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_TOP_SERVICES: '🔥 Top služby',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_WEEK: '• Rezervace za týden: {value}',
+    ADMIN_PANEL_STATS_MASTER_DETAILS_WORKLOAD: '• Vytížení: {value}%',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_ADDITIONAL: '📎 Doplňující',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_CLIENTS: '• Klienti: {value}',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_MAIN: '📌 Hlavní',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_MASTER_EARNINGS: '• Příjem mistrů: {value}',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_PERIOD: '📅 Období: {value}',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_SALON_15: '• Podíl salonu: {value}',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_TITLE: '🗓 Detail měsíce',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_TOP_MASTERS: '👩‍🎨 Top mistři',
+    ADMIN_PANEL_STATS_MONTHLY_DETAILS_TOP_SERVICES: '💼 Top služby',
+    ADMIN_PANEL_STATS_MONTHLY_LIST_EMPTY: 'Měsíční reporty zatím nejsou.',
+    ADMIN_PANEL_STATS_MONTHLY_LIST_GROSS: '• Obrat: {value}',
+    ADMIN_PANEL_STATS_MONTHLY_LIST_PROCEDURES: '• Procedury: {value}',
+    ADMIN_PANEL_STATS_MONTHLY_LIST_SALON: '• Podíl salonu: {value}',
+    ADMIN_PANEL_STATS_MONTHLY_LIST_TITLE: '🗓 Měsíční reporty',
+    ADMIN_PANEL_STATS_NO_DATA: 'Žádná data.',
+    ADMIN_PANEL_STATS_OVERVIEW_HINT: 'Vyberte sekci níže pro detailní statistiku.',
+    ADMIN_PANEL_STATS_OVERVIEW_ROW_3M: '• 3 měsíce: {value}',
+    ADMIN_PANEL_STATS_OVERVIEW_ROW_6M: '• 6 měsíců: {value}',
+    ADMIN_PANEL_STATS_OVERVIEW_ROW_AVG_CHECK: '• Průměrný šek: {value}',
+    ADMIN_PANEL_STATS_OVERVIEW_ROW_COMPLETED: '• Dokončené procedury: {value}',
+    ADMIN_PANEL_STATS_OVERVIEW_ROW_MONTH: '• Měsíc: {value}',
+    ADMIN_PANEL_STATS_OVERVIEW_ROW_UNIQUE_CLIENTS: '• Unikátní klienti: {value}',
+    ADMIN_PANEL_STATS_OVERVIEW_ROW_YEAR: '• Rok: {value}',
+    ADMIN_PANEL_STATS_OVERVIEW_SECTION_CURRENT_MONTH: '📅 Aktuální měsíc',
+    ADMIN_PANEL_STATS_OVERVIEW_SECTION_GLOBAL: '🌍 Celkový obrat',
+    ADMIN_PANEL_STATS_OVERVIEW_SECTION_SALON: '🏢 Podíl salonu',
+    ADMIN_PANEL_STATS_OVERVIEW_TITLE: '📊 Statistiky salonu',
+    ADMIN_PANEL_STATS_PAGINATION: 'Strana {current} z {total}',
+    ADMIN_PANEL_STATS_ROW_INCOME: '• Příjem: {value}',
+    ADMIN_PANEL_STATS_ROW_PROCEDURES_CLIENTS: '• Procedury: {procedures} • Klienti: {clients}',
+    ADMIN_PANEL_STATS_ROW_SALON_SHARE: '• Podíl salonu: {value}',
+    ADMIN_PANEL_STATS_SECTION_ACTIVITY: '📈 Aktivita',
+    ADMIN_PANEL_STATS_SECTION_FINANCE: '💰 Finance',
+    ADMIN_PANEL_STATS_SECTION_STUB_TEXT: 'Tato část statistik bude doplněna v dalším kroku.',
+    ADMIN_PANEL_STATS_SERVICES_LIST_EMPTY: 'Pro statistiku zatím nejsou žádné služby.',
+    ADMIN_PANEL_STATS_SERVICES_LIST_TITLE: '💼 Statistiky služeb',
+    ADMIN_PANEL_STATS_SERVICE_DETAILS_AVG_CHECK_MONTH: '• Průměrný šek (měsíc): {value}',
+    ADMIN_PANEL_STATS_SERVICE_DETAILS_BASE_PRICE: '• Základní cena: {value}',
+    ADMIN_PANEL_STATS_SERVICE_DETAILS_DURATION: '• Délka: {value} min',
+    ADMIN_PANEL_STATS_SERVICE_DETAILS_NAME: '💼 Služba: {value}',
+    ADMIN_PANEL_STATS_SERVICE_DETAILS_TITLE: '💼 Detail služby',
+    ADMIN_PANEL_STATS_SERVICE_DETAILS_TOP_MASTERS: '👩‍🎨 Top mistři',
+  },
+} as const;
+
+// uk: UI константа ADMIN_PANEL_DICTIONARY / en: UI constant ADMIN_PANEL_DICTIONARY / cz: UI konstanta ADMIN_PANEL_DICTIONARY
+export const ADMIN_PANEL_DICTIONARY = {
+  uk: {
+    ...ADMIN_PANEL_STATS_DICTIONARY.uk,
+    MENU_ADMIN_PANEL: '🛡 Адмін-панель',
+    ADMIN_PANEL_TITLE: '🛡 Адмін-панель',
+    ADMIN_PANEL_GREETING: 'Вітаю, {name}.',
+    ADMIN_PANEL_ROOT_DESCRIPTION:
+      'Керуйте записами, розкладом, майстрами та налаштуваннями салону в одному місці.',
+    ADMIN_PANEL_ROOT_PICK_SECTION: 'Оберіть розділ нижче.',
+    ADMIN_PANEL_ACCESS_DENIED:
+      '🔒 Адмін-панель недоступна для цього профілю.\n\n' +
+      'Якщо доступ має бути відкритий, зверніться до власника системи.',
+
+    ADMIN_PANEL_BTN_RECORDS: '📅 Записи',
+    ADMIN_PANEL_BTN_SCHEDULE: '🕒 Розклад',
+    ADMIN_PANEL_BTN_MASTERS: '👩‍🎨 Майстри',
+    ADMIN_PANEL_BTN_SERVICES: '💼 Послуги',
+    ADMIN_PANEL_BTN_STATS: '📊 Статистика',
+    ADMIN_PANEL_BTN_SETTINGS: '⚙️ Налаштування',
+    ADMIN_PANEL_BTN_EXIT: '🚪 Вийти',
+    ADMIN_PANEL_BTN_CONFIRM: '✅ Підтвердити',
+    ADMIN_PANEL_BTN_CANCEL_ACTION: '❌ Скасувати дію',
+    ADMIN_PANEL_BTN_REFRESH: '🔄 Оновити',
+    ADMIN_PANEL_BTN_PREV: '⬅️ Попередня',
+    ADMIN_PANEL_BTN_NEXT: '➡️ Наступна',
+    ADMIN_PANEL_BTN_BACK_TO_PANEL: '⬅️ До адмін-панелі',
+    ADMIN_PANEL_BTN_BACK_TO_MENU: '⬅️ До меню',
+    ADMIN_PANEL_BTN_BACK_TO_LIST: '⬅️ До списку',
+
+    ADMIN_PANEL_COMMON_MSG_ADMIN_USER_UNRESOLVED:
+      'Не вдалося визначити користувача адміністратора.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_CALLBACK_LANGUAGE_SELECT:
+      'Некоректна callback-дія вибору мови.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_CALLBACK_NOTIFICATION_TOGGLE:
+      'Некоректна callback-дія зміни типу сповіщення.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_CALLBACK_STUDIO_BLOCK_EDIT:
+      'Некоректна callback-дія редагування блоку.',
+    ADMIN_PANEL_COMMON_MSG_STUDIO_TEXT_TOO_SHORT:
+      'Текст занадто короткий (мінімум 10 символів).',
+    ADMIN_PANEL_COMMON_MSG_STUDIO_TEXT_TOO_LONG:
+      'Текст занадто довгий (максимум 4000 символів).',
+    ADMIN_PANEL_COMMON_MSG_INVALID_BOOKING_CALLBACK:
+      'Некоректна callback-дія для запису.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_NUMERIC_FIELD: 'Некоректний {field}.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_WEEKDAY: 'Некоректний день тижня.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_MONTH_CODE: 'Некоректний код місячного звіту.',
+    ADMIN_PANEL_COMMON_MSG_DATE_FORMAT_DDMMYYYY: 'Дата має бути у форматі ДД.ММ.РРРР.',
+    ADMIN_PANEL_COMMON_MSG_DATE_INVALID: 'Введено некоректну дату.',
+    ADMIN_PANEL_COMMON_MSG_DATE_IN_PAST: 'Не можна вказувати дату у минулому.',
+    ADMIN_PANEL_COMMON_MSG_HOLIDAY_NAME_TOO_SHORT:
+      'Назва свята має містити мінімум 2 символи.',
+    ADMIN_PANEL_COMMON_MSG_HOLIDAY_NAME_TOO_LONG:
+      'Назва свята занадто довга (максимум 120 символів).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_NAME_TOO_SHORT:
+      'Назва послуги має містити щонайменше 2 символи.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_NAME_TOO_LONG:
+      'Назва послуги занадто довга (максимум 120 символів).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_GUARANTEE_TOO_SHORT:
+      'Текст гарантії має містити щонайменше 3 символи.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_GUARANTEE_TOO_LONG:
+      'Текст гарантії занадто довгий (максимум 500 символів).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_TITLE_TOO_SHORT:
+      'Назва етапу має містити щонайменше 2 символи.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_TITLE_TOO_LONG:
+      'Назва етапу занадто довга (максимум 120 символів).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_DESCRIPTION_TOO_SHORT:
+      'Опис етапу має містити щонайменше 10 символів.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_DESCRIPTION_TOO_LONG:
+      'Опис етапу занадто довгий (максимум 500 символів).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_RESULT_TOO_SHORT:
+      'Результат послуги має містити щонайменше 10 символів.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_RESULT_TOO_LONG:
+      'Результат послуги занадто довгий (максимум 1200 символів).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DESCRIPTION_TOO_SHORT:
+      'Опис послуги має містити щонайменше 10 символів.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DESCRIPTION_TOO_LONG:
+      'Опис послуги занадто довгий (максимум 1600 символів).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_PRICE_FORMAT:
+      'Ціна має бути числом у форматі 750 або 750.50.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_PRICE_NEGATIVE: 'Ціна не може бути відʼємною.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_PRICE_TOO_HIGH: 'Ціна занадто велика.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DURATION_INTEGER:
+      'Тривалість має бути цілим числом у хвилинах.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DURATION_NUMBER: 'Тривалість має бути числом.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DURATION_RANGE:
+      'Тривалість послуги має бути в діапазоні 5..720 хв.',
+    ADMIN_PANEL_COMMON_MSG_STEP_DURATION_INTEGER:
+      'Тривалість етапу має бути цілим числом у хвилинах.',
+    ADMIN_PANEL_COMMON_MSG_STEP_DURATION_NUMBER: 'Тривалість етапу має бути числом.',
+    ADMIN_PANEL_COMMON_MSG_STEP_DURATION_RANGE:
+      'Тривалість етапу має бути в діапазоні 1..720 хв.',
+    ADMIN_PANEL_COMMON_MSG_DATE_RANGE_FORMAT:
+      'Період має бути у форматі ДД.ММ.РРРР - ДД.ММ.РРРР.',
+    ADMIN_PANEL_COMMON_MSG_DATE_RANGE_INVALID:
+      'Дата завершення не може бути раніше дати початку.',
+    ADMIN_PANEL_COMMON_MSG_TIME_FORMAT:
+      'Час має бути у форматі HH:MM (приклад: 10:00).',
+    ADMIN_PANEL_COMMON_MSG_TIME_HOUR_RANGE: 'Година має бути в діапазоні від 0 до 23.',
+    ADMIN_PANEL_COMMON_MSG_DATE_CODE_INVALID: 'Некоректний код дати.',
+    ADMIN_PANEL_COMMON_MSG_DATE_VALUE_INVALID: 'Некоректна дата.',
+    ADMIN_PANEL_COMMON_LABEL_DAY_OFF_ID: 'id вихідного дня',
+    ADMIN_PANEL_COMMON_LABEL_HOLIDAY_ID: 'id святкового дня',
+    ADMIN_PANEL_COMMON_LABEL_CLIENT_ID: 'id клієнта',
+    ADMIN_PANEL_SCHEDULE_MSG_USE_SECTION_BUTTONS:
+      'Для керування цим розділом використовуйте кнопки під повідомленням.',
+
+
+    ADMIN_PANEL_SERVICES_BTN_CREATE: '➕ Створити нову послугу',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_ADD_ANOTHER: '➕ Додати ще',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_CONTINUE: '➡️ Продовжити',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_CANCEL: '❌ Скасувати створення',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_CONFIRM: '✅ Підтвердити створення',
+    ADMIN_PANEL_SERVICES_BTN_OPEN_STATS: '📊 Статистика послуги',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_OPEN: '✏️ Редагувати послугу',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_NAME: '🪪 Змінити назву',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_PRICE: '💰 Змінити ціну',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_DURATION: '⏱ Змінити тривалість',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_DESCRIPTION: '📝 Змінити опис',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_RESULT: '🎯 Змінити результат',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_STEP: '🧩 Змінити назву етапу',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_STEP_DESCRIPTION: '📝 Змінити опис етапу',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_STEP_DURATION: '⏱ Змінити час етапу',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_GUARANTEE: '🛡 Змінити гарантію',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_DELETE: '🗑 Видалити послугу',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_CONFIRM_DELETE: '🗑 Так, видалити',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_CONFIRM: '✅ Зберегти',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_CANCEL: '❌ Скасувати',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_BACK: '⬅️ До картки послуги',
+    ADMIN_PANEL_SERVICES_BTN_BACK_TO_LIST: '⬅️ До списку послуг',
+    ADMIN_PANEL_SERVICES_BTN_BACK: '⬅️ До адмін-панелі',
+    ADMIN_PANEL_SERVICES_LABEL_NOT_SPECIFIED: 'Не вказано',
+    ADMIN_PANEL_SERVICES_LABEL_ACTIVE: 'Активна',
+    ADMIN_PANEL_SERVICES_LABEL_INACTIVE: 'Неактивна',
+    ADMIN_PANEL_SERVICES_LABEL_MINUTES_SHORT: 'хв',
+    ADMIN_PANEL_SERVICES_LABEL_DAYS_SHORT: 'дн.',
+    ADMIN_PANEL_SERVICES_LABEL_STEP_EMPTY: '🔹 Етапи не вказані',
+    ADMIN_PANEL_SERVICES_LABEL_GUARANTEE_EMPTY: '🔹 Гарантії не вказані',
+    ADMIN_PANEL_SERVICES_CATALOG_TITLE: '💼 Послуги салону',
+    ADMIN_PANEL_SERVICES_CATALOG_EMPTY: 'Поки що немає активних послуг.',
+    ADMIN_PANEL_SERVICES_CATALOG_EMPTY_HINT:
+      'Додайте послуги у студії, щоб вони зʼявилися в цьому розділі.',
+    ADMIN_PANEL_SERVICES_CATALOG_PICK: 'Оберіть послугу для перегляду картки:',
+    ADMIN_PANEL_SERVICES_CREATE_START_TEXT:
+      '➕ Створення нової послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Зараз послідовно заповнимо картку послуги:\n' +
+      '1) Назва\n' +
+      '2) Тривалість\n' +
+      '3) Ціна\n' +
+      '4) Опис\n' +
+      '5) Етапи\n' +
+      '6) Гарантії\n' +
+      '7) Результат\n\n' +
+      'Починаємо з назви.',
+    ADMIN_PANEL_SERVICES_CREATE_NAME_INPUT_TEXT:
+      '💼 Назва нової послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Надішліть назву послуги одним повідомленням.\n' +
+      'Мінімум 2 символи, максимум 120 символів.',
+    ADMIN_PANEL_SERVICES_CREATE_DURATION_INPUT_TEXT:
+      '⏱ Тривалість нової послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      'Вкажіть тривалість у хвилинах.\n' +
+      'Діапазон: 5..720.',
+    ADMIN_PANEL_SERVICES_CREATE_PRICE_INPUT_TEXT:
+      '💰 Ціна нової послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      'Надішліть ціну у форматі 750 або 750.50.',
+    ADMIN_PANEL_SERVICES_CREATE_DESCRIPTION_INPUT_TEXT:
+      '📝 Опис нової послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      'Надішліть опис послуги одним повідомленням.\n' +
+      'Мінімум 10 символів, максимум 1600 символів.',
+    ADMIN_PANEL_SERVICES_CREATE_PREVIEW_TITLE: '📋 Попередній перегляд нової послуги',
+    ADMIN_PANEL_SERVICES_CREATE_PREVIEW_CONFIRM: 'Підтвердьте створення послуги.',
+    ADMIN_PANEL_SERVICES_CREATE_SUCCESS_TITLE: '✅ Нову послугу створено',
+    ADMIN_PANEL_SERVICES_DETAILS_TITLE: '📄 Картка послуги',
+    ADMIN_PANEL_SERVICES_EDIT_MENU_TITLE: '✏️ Редагування послуги',
+    ADMIN_PANEL_SERVICES_EDIT_MENU_PICK: 'Оберіть, що потрібно змінити:',
+    ADMIN_PANEL_SERVICES_EDIT_CONFIRM_TITLE: '✅ Підтвердження оновлення',
+    ADMIN_PANEL_SERVICES_EDIT_CONFIRM_SAVE: 'Підтвердьте збереження змін.',
+    ADMIN_PANEL_SERVICES_DELETE_CONFIRM_TITLE: '⚠️ Підтвердження видалення послуги',
+    ADMIN_PANEL_SERVICES_DELETE_CONFIRM_BODY:
+      'Після підтвердження послуга буде прихована для клієнтів та майстрів.\n' +
+      'Записи в історії залишаться, але нові бронювання для цієї послуги стануть недоступні.\n\n' +
+      'Підтвердьте дію.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_TITLE_INPUT_TEXT:
+      '🧩 Етап №{stepNo}: назва\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Надішліть назву етапу одним повідомленням.\n' +
+      'Мінімум 2 символи, максимум 120 символів.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_DURATION_INPUT_TEXT:
+      '🧩 Етап №{stepNo}: тривалість\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Назва етапу: {stepTitle}\n\n' +
+      'Вкажіть тривалість етапу у хвилинах.\n' +
+      'Діапазон: 1..720.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_DESCRIPTION_INPUT_TEXT:
+      '🧩 Етап №{stepNo}: опис\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Назва етапу: {stepTitle}\n' +
+      'Тривалість: {durationMinutes} {minutesLabel}\n\n' +
+      'Надішліть опис етапу одним повідомленням.\n' +
+      'Мінімум 10 символів, максимум 500 символів.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_ADDED_TEXT:
+      '✅ Етап додано\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Додано етап №{stepNo}: {stepTitle} ({durationMinutes} {minutesLabel})\n' +
+      'Усього етапів: {totalSteps}\n\n' +
+      'Оберіть наступну дію.',
+    ADMIN_PANEL_SERVICES_CREATE_GUARANTEE_INPUT_TEXT:
+      '🛡 Гарантія №{guaranteeNo}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Надішліть текст гарантії одним повідомленням.\n' +
+      'Мінімум 3 символи, максимум 500 символів.',
+    ADMIN_PANEL_SERVICES_CREATE_GUARANTEE_ADDED_TEXT:
+      '✅ Гарантію додано\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Додано гарантію №{guaranteeNo}:\n{guaranteeText}\n\n' +
+      'Усього гарантій: {totalGuarantees}\n\n' +
+      'Оберіть наступну дію.',
+    ADMIN_PANEL_SERVICES_CREATE_RESULT_INPUT_TEXT:
+      '🎯 Результат послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      'Надішліть опис результату для клієнта.\n' +
+      'Мінімум 10 символів, максимум 1200 символів.',
+    ADMIN_PANEL_SERVICES_CREATE_PREVIEW_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Назва: {name}\n' +
+      '⏱ Тривалість: {durationMinutes} {minutesLabel}\n' +
+      '💰 Ціна: {price}\n\n' +
+      '📝 Опис\n{description}\n\n' +
+      '✨ Етапи\n{stepsText}\n\n' +
+      '🛡 Гарантії\n{guaranteesText}\n\n' +
+      '🎯 Результат\n{resultDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_CREATE_SUCCESS_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 {name}\n' +
+      '🪪 ID: {serviceId}\n' +
+      '⏱ Тривалість: {durationMinutes} {minutesLabel}\n' +
+      '💰 Ціна: {price}\n' +
+      '🧩 Етапів: {stepsCount}\n' +
+      '🛡 Гарантій: {guaranteesCount}',
+    ADMIN_PANEL_SERVICES_DETAILS_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Назва: {name}\n' +
+      '🪪 ID: {serviceId}\n' +
+      '⏱ Тривалість: {durationMinutes} {minutesLabel}\n' +
+      '💰 Ціна: {price}\n' +
+      '📌 Статус: {status}\n\n' +
+      '📝 Опис\n{description}\n\n' +
+      '🎯 Результат\n{result}\n\n' +
+      '✨ Етапи процедури\n{stepsText}\n\n' +
+      '🛡 Гарантії\n{guaranteesText}',
+    ADMIN_PANEL_SERVICES_EDIT_MENU_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '⏱ Поточна тривалість: {durationMinutes} {minutesLabel}\n\n' +
+      '💰 Поточна ціна: {price}\n\n' +
+      '📝 Поточний опис:\n{description}\n\n' +
+      '🎯 Поточний результат:\n{resultDescription}\n\n' +
+      '{pickText}',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_SELECT_TEXT:
+      '🛡 Редагування гарантії послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      'Оберіть гарантію, яку потрібно змінити:\n\n' +
+      '{list}',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_BUTTON_LABEL: '{badge} Гарантія №{guaranteeNo}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_PICK_TITLE:
+      'Оберіть етап, назву якого потрібно змінити:',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_PICK_DESCRIPTION:
+      'Оберіть етап, опис якого потрібно змінити:',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_PICK_DURATION:
+      'Оберіть етап, час якого потрібно змінити:',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_TEXT:
+      '🧩 Редагування етапу послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '{modeText}\n\n' +
+      '{list}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_ROW_TEXT:
+      '{badge} Етап №{stepNo} ({durationMinutes} {minutesLabel}) — {title}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_BUTTON_LABEL: '{badge} Етап №{stepNo}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_INPUT_TEXT:
+      '✏️ Оновлення назви етапу\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n' +
+      '🧩 Етап №{stepNo}\n\n' +
+      'Поточна назва:\n{currentStepTitle}\n\n' +
+      'Надішліть нову назву етапу одним повідомленням.\n' +
+      'Мінімум 2 символи, максимум 120 символів.',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n' +
+      '🧩 Етап №{stepNo}\n\n' +
+      'Нова назва:\n{nextStepTitle}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DESCRIPTION_INPUT_TEXT:
+      '✏️ Оновлення опису етапу\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n' +
+      '🧩 Етап №{stepNo}\n\n' +
+      'Поточний опис:\n{currentStepDescription}\n\n' +
+      'Надішліть новий опис етапу одним повідомленням.\n' +
+      'Мінімум 10 символів, максимум 500 символів.',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DESCRIPTION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n' +
+      '🧩 Етап №{stepNo}\n\n' +
+      'Новий опис:\n{nextStepDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DURATION_INPUT_TEXT:
+      '✏️ Оновлення часу етапу\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n' +
+      '🧩 Етап №{stepNo}\n\n' +
+      'Поточний час етапу: {currentStepDurationMinutes} {minutesLabel}\n\n' +
+      'Надішліть нову тривалість етапу в хвилинах.\n' +
+      'Діапазон: 1..720.',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DURATION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n' +
+      '🧩 Етап №{stepNo}\n\n' +
+      'Новий час етапу: {nextStepDurationMinutes} {minutesLabel}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_INPUT_TEXT:
+      '✏️ Оновлення гарантії\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n' +
+      '🛡 Гарантія №{guaranteeNo}\n\n' +
+      'Поточний текст:\n{currentGuaranteeText}\n\n' +
+      'Надішліть новий текст гарантії одним повідомленням.\n' +
+      'Мінімум 3 символи, максимум 500 символів.',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n' +
+      '🛡 Гарантія №{guaranteeNo}\n\n' +
+      'Новий текст:\n{nextGuaranteeText}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_NAME_INPUT_TEXT:
+      '✏️ Оновлення назви послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Поточна назва: {serviceName}\n\n' +
+      'Надішліть нову назву одним повідомленням.\n' +
+      'Мінімум 2 символи, максимум 120 символів.',
+    ADMIN_PANEL_SERVICES_EDIT_DURATION_INPUT_TEXT:
+      '✏️ Оновлення тривалості послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '⏱ Поточна тривалість: {currentDurationMinutes} {minutesLabel}\n\n' +
+      'Надішліть нову тривалість у хвилинах.\n' +
+      'Діапазон: 5..720',
+    ADMIN_PANEL_SERVICES_EDIT_PRICE_INPUT_TEXT:
+      '✏️ Оновлення ціни послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '💰 Поточна ціна: {currentPrice}\n\n' +
+      'Надішліть нову ціну одним повідомленням.\n' +
+      'Формат: 750 або 750.50',
+    ADMIN_PANEL_SERVICES_EDIT_DESCRIPTION_INPUT_TEXT:
+      '✏️ Оновлення опису послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '📝 Поточний опис:\n{currentDescription}\n\n' +
+      'Надішліть новий опис одним повідомленням.\n' +
+      'Мінімум 10 символів, максимум 1600 символів.',
+    ADMIN_PANEL_SERVICES_EDIT_RESULT_INPUT_TEXT:
+      '✏️ Оновлення результату послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '🎯 Поточний результат:\n{currentResultDescription}\n\n' +
+      'Надішліть новий текст результату одним повідомленням.\n' +
+      'Мінімум 10 символів, максимум 1200 символів.',
+    ADMIN_PANEL_SERVICES_EDIT_RESULT_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '🎯 Новий результат:\n{nextResultDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_DESCRIPTION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '📝 Новий опис:\n{nextDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_DURATION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '⏱ Нова тривалість: {nextDurationMinutes} {minutesLabel}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_PRICE_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '💰 Нова ціна: {nextPrice}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_NAME_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '🪪 Нова назва: {nextServiceName}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_DELETE_CONFIRM_TEXT:
+      '{deleteTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '{deleteBody}',
+    ADMIN_PANEL_SERVICES_STATS_STUB_TEXT:
+      '📊 Статистика послуги\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Послуга: {serviceName}\n\n' +
+      '⚠️ Розділ тимчасово недоступний.\n' +
+      'Після підключення тут будуть фінансові та операційні показники послуги.',
+    ADMIN_PANEL_SERVICES_DEFAULT_NAME: 'Нова послуга',
+    ADMIN_PANEL_SERVICES_MSG_NOT_FOUND_OR_INACTIVE:
+      'Послугу не знайдено або вона неактивна.',
+    ADMIN_PANEL_SERVICES_MSG_NOT_FOUND_FOR_EDIT:
+      'Послугу для редагування не знайдено.',
+    ADMIN_PANEL_SERVICES_MSG_SET_STEP_TITLE_FIRST:
+      'Спочатку вкажіть назву етапу.',
+    ADMIN_PANEL_SERVICES_MSG_SET_STEP_TITLE_AND_DURATION_FIRST:
+      'Спочатку заповніть назву і тривалість етапу.',
+    ADMIN_PANEL_SERVICES_MSG_PREVIEW_BUILD_FAILED:
+      'Не вдалося сформувати дані послуги для попереднього перегляду.',
+    ADMIN_PANEL_SERVICES_MSG_INPUT_VALIDATION_FAILED:
+      'Виникла помилка перевірки введених даних.',
+    ADMIN_PANEL_SERVICES_MSG_USE_STEP_ACTIONS_BUTTONS:
+      'Для продовження створення етапів використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_SERVICES_MSG_USE_GUARANTEE_ACTIONS_BUTTONS:
+      'Для продовження створення гарантій використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_SERVICES_MSG_USE_CREATE_CONFIRM_BUTTONS:
+      'Для завершення створення послуги використовуйте кнопки підтвердження під повідомленням.',
+    ADMIN_PANEL_SERVICES_MSG_SELECT_STEP_FIRST:
+      'Спочатку оберіть етап зі списку.',
+    ADMIN_PANEL_SERVICES_MSG_SELECT_GUARANTEE_FIRST:
+      'Спочатку оберіть гарантію зі списку.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_NAME_FAILED:
+      'Виникла помилка перевірки назви послуги.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_DURATION_FAILED:
+      'Виникла помилка перевірки тривалості послуги.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_PRICE_FAILED:
+      'Виникла помилка перевірки ціни послуги.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_DESCRIPTION_FAILED:
+      'Виникла помилка перевірки опису послуги.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_STEP_TITLE_FAILED:
+      'Виникла помилка перевірки назви етапу.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_STEP_DESCRIPTION_FAILED:
+      'Виникла помилка перевірки опису етапу.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_STEP_DURATION_FAILED:
+      'Виникла помилка перевірки часу етапу.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_GUARANTEE_FAILED:
+      'Виникла помилка перевірки тексту гарантії.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_RESULT_FAILED:
+      'Виникла помилка перевірки тексту результату.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_STEP_BUTTONS:
+      'Для вибору етапу використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_GUARANTEE_BUTTONS:
+      'Для вибору гарантії використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_CONFIRM_BUTTONS:
+      'Для завершення змін використовуйте кнопки підтвердження під повідомленням.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_MENU_BUTTONS:
+      'Для редагування послуги використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_SERVICES_MSG_USE_CREATE_INPUT_OR_BUTTONS:
+      'Для створення послуги використовуйте поточний крок або кнопки під повідомленням.',
+    ADMIN_PANEL_SERVICES_MSG_COMPLETE_CURRENT_STEP_FIRST:
+      'Спочатку завершіть поточний крок створення.',
+    ADMIN_PANEL_SERVICES_MSG_MAX_STEPS_REACHED:
+      'Досягнуто максимальної кількості етапів (20). Перейдіть далі.',
+    ADMIN_PANEL_SERVICES_MSG_ADD_MIN_ONE_STEP:
+      'Додайте щонайменше 1 етап перед переходом до гарантій.',
+    ADMIN_PANEL_SERVICES_MSG_MAX_GUARANTEES_REACHED:
+      'Досягнуто максимальної кількості гарантій (10). Перейдіть далі.',
+    ADMIN_PANEL_SERVICES_MSG_ADD_MIN_ONE_GUARANTEE:
+      'Додайте щонайменше 1 гарантію перед переходом до результату.',
+    ADMIN_PANEL_SERVICES_MSG_INSUFFICIENT_CREATE_DATA:
+      'Недостатньо даних для створення послуги. Перевірте попередні кроки.',
+    ADMIN_PANEL_SERVICES_MSG_STEPS_NOT_FOUND:
+      'Для цієї послуги не знайдено етапів. Спочатку додайте етапи у БД.',
+    ADMIN_PANEL_SERVICES_MSG_GUARANTEES_NOT_FOUND:
+      'Для цієї послуги не знайдено гарантій. Спочатку додайте гарантії у БД.',
+    ADMIN_PANEL_SERVICES_LABEL_STEP_NUMBER: 'номер етапу',
+    ADMIN_PANEL_SERVICES_LABEL_GUARANTEE_NUMBER: 'номер гарантії',
+    ADMIN_PANEL_SERVICES_MSG_STEP_NOT_FOUND:
+      'Обраний етап не знайдено. Спробуйте ще раз.',
+    ADMIN_PANEL_SERVICES_MSG_GUARANTEE_NOT_FOUND:
+      'Обрану гарантію не знайдено. Спробуйте ще раз.',
+    ADMIN_PANEL_SERVICES_MSG_DEACTIVATED_SUCCESS:
+      'Послугу "{serviceName}" успішно видалено зі списку активних.',
+    ADMIN_PANEL_SERVICES_MSG_GUARANTEE_UPDATED_SUCCESS:
+      'Гарантію №{guaranteeNo} для послуги "{serviceName}" успішно оновлено.',
+    ADMIN_PANEL_SERVICES_MSG_STEP_TITLE_UPDATED_SUCCESS:
+      'Назву етапу №{stepNo} для послуги "{serviceName}" успішно оновлено.',
+    ADMIN_PANEL_SERVICES_MSG_STEP_DESCRIPTION_UPDATED_SUCCESS:
+      'Опис етапу №{stepNo} для послуги "{serviceName}" успішно оновлено.',
+    ADMIN_PANEL_SERVICES_MSG_STEP_DURATION_UPDATED_SUCCESS:
+      'Час етапу №{stepNo} для послуги "{serviceName}" успішно оновлено.',
+    ADMIN_PANEL_SERVICES_MSG_NAME_UPDATED_SUCCESS:
+      'Назву послуги "{serviceName}" успішно оновлено.',
+    ADMIN_PANEL_SERVICES_MSG_DURATION_UPDATED_SUCCESS:
+      'Тривалість послуги "{serviceName}" успішно оновлено.',
+    ADMIN_PANEL_SERVICES_MSG_PRICE_UPDATED_SUCCESS:
+      'Ціну послуги "{serviceName}" успішно оновлено.',
+    ADMIN_PANEL_SERVICES_MSG_DESCRIPTION_UPDATED_SUCCESS:
+      'Опис послуги "{serviceName}" успішно оновлено.',
+    ADMIN_PANEL_SERVICES_MSG_RESULT_UPDATED_SUCCESS:
+      'Результат послуги "{serviceName}" успішно оновлено.',
+    ADMIN_PANEL_MASTERS_BTN_CREATE_OPEN: '➕ Додати майстра',
+    ADMIN_PANEL_MASTERS_BTN_CREATE_START: '✅ Почати створення майстра',
+    ADMIN_PANEL_MASTERS_BTN_CREATE_CANCEL: '❌ Скасувати створення',
+    ADMIN_PANEL_MASTERS_BTN_CREATE_SERVICES_DONE: '✅ Завершити вибір',
+    ADMIN_PANEL_MASTERS_BTN_CREATE_CONFIRM: '✅ Підтвердити створення',
+    ADMIN_PANEL_MASTERS_BTN_CREATE_MARK_DAY_OFF: '🚫 Зробити вихідним',
+    ADMIN_PANEL_MASTERS_BTN_CREATE_BACK_TO_SCHEDULE: '⬅️ До графіку',
+    ADMIN_PANEL_MASTERS_BTN_OPEN_BOOKINGS: '📅 Записи майстра',
+    ADMIN_PANEL_MASTERS_BTN_OPEN_STATS: '📊 Статистика майстра',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_OPEN: '✏️ Редагувати майстра',
+    ADMIN_PANEL_MASTERS_BTN_DELETE_OPEN: '❌ Видалити майстра',
+    ADMIN_PANEL_MASTERS_BTN_DELETE_CONFIRM: '🗑 Так, видалити майстра',
+    ADMIN_PANEL_MASTERS_BTN_DELETE_CANCEL: '❌ Скасувати видалення',
+    ADMIN_PANEL_MASTERS_BTN_BOOKINGS_BACK_TO_MASTER: '⬅️ До профілю майстра',
+    ADMIN_PANEL_MASTERS_BTN_BACK_TO_LIST: '⬅️ До списку майстрів',
+    ADMIN_PANEL_MASTERS_BTN_BACK: '⬅️ До адмін-панелі',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_DISPLAY_NAME: '✏️ Імʼя майстра',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_BIO: '📝 Опис майстра',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_MATERIALS: '🧴 Додаткова інформація',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_SERVICES: '💼 Змінити послуги',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_PHONE: '📞 Телефон майстра',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_EMAIL: '✉️ Email майстра',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_STARTED_ON: '📅 Дата початку роботи',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_PROCEDURES: '📊 Кількість процедур',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_BACK: '⬅️ До профілю майстра',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_SERVICES_ADD: '➕ Додати послугу',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_SERVICES_REMOVE: '➖ Видалити послугу',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_SERVICES_BACK: '⬅️ До редагування майстра',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_CANCEL: '❌ Скасувати редагування',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_CONFIRM: '✅ Зберегти зміни',
+    ADMIN_PANEL_MASTERS_MSG_PICK_WEEKDAY_FIRST: 'Спочатку оберіть день тижня.',
+    ADMIN_PANEL_MASTERS_MSG_PICK_DAY_AND_FROM_FIRST: 'Спочатку оберіть день і введіть час початку.',
+    ADMIN_PANEL_MASTERS_MSG_TO_AFTER_FROM: 'Час завершення має бути пізніше часу початку.',
+    ADMIN_PANEL_MASTERS_MSG_WORK_TIME_SAVED: 'Робочий час для дня успішно збережено.',
+    ADMIN_PANEL_MASTERS_MSG_USE_SERVICES_BUTTONS:
+      'ℹ️ Для вибору послуг використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_MASTERS_MSG_USE_SCHEDULE_BUTTONS:
+      'ℹ️ Для налаштування графіку використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_MASTERS_MSG_USE_CONFIRM_BUTTONS:
+      'ℹ️ Для завершення створення використовуйте кнопки підтвердження під повідомленням.',
+    ADMIN_PANEL_MASTERS_MSG_USE_CREATE_BUTTONS:
+      'ℹ️ Для створення майстра використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_MASTERS_MSG_CREATE_VALIDATION_FAILED:
+      'Виникла помилка перевірки даних створення майстра.',
+    ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED:
+      'Не вдалося визначити студію адміністратора.',
+    ADMIN_PANEL_MASTERS_MSG_USER_NOT_FOUND_IN_STUDIO:
+      'Користувача з таким Telegram ID не знайдено в цьому салоні.',
+    ADMIN_PANEL_MASTERS_MSG_USER_NOT_MASTER:
+      'Користувач із цим Telegram ID не має ролі майстра.',
+    ADMIN_PANEL_MASTERS_MSG_MASTER_NOT_FOUND_OR_INACTIVE:
+      'Майстра не знайдено серед активних профілів або він уже видалений.',
+    ADMIN_PANEL_MASTERS_MSG_USE_DELETE_CONFIRM_BUTTONS:
+      'ℹ️ Для підтвердження або скасування видалення використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_MASTERS_MSG_DELETE_VALIDATION_FAILED:
+      'Виникла помилка перевірки даних для видалення майстра.',
+    ADMIN_PANEL_MASTERS_MSG_SERVICE_NOT_FOUND_IN_LIST:
+      'Послугу не знайдено в актуальному списку.',
+    ADMIN_PANEL_MASTERS_MSG_SELECT_AT_LEAST_ONE_SERVICE:
+      'Оберіть щонайменше одну послугу для майстра.',
+    ADMIN_PANEL_MASTERS_MSG_DAY_MARKED_OFF: 'День позначено як вихідний.',
+    ADMIN_PANEL_MASTERS_MSG_CREATION_CANCELLED: 'Створення майстра скасовано.',
+    ADMIN_PANEL_MASTERS_MSG_PROFILE_INCOMPLETE:
+      'Профіль майстра заповнено не повністю.',
+    ADMIN_PANEL_MASTERS_MSG_SCHEDULE_REQUIRED:
+      'Потрібно заповнити графік майстра щонайменше з одним робочим днем.',
+    ADMIN_PANEL_MASTERS_MSG_TARGET_USER_NOT_SET:
+      'Не задано користувача для створення майстра.',
+    ADMIN_PANEL_MASTERS_MSG_CREATED_SUCCESS:
+      '✅ Майстра "{name}" успішно створено.\n🆔 Telegram ID: {telegramId}\n💼 Призначено послуг: {servicesCount}',
+    ADMIN_PANEL_MASTERS_MSG_SERVICE_ADDED:
+      'Послугу "{serviceName}" додано майстру.',
+    ADMIN_PANEL_MASTERS_MSG_SERVICE_REMOVED:
+      'Послугу "{serviceName}" вимкнено у майстра.',
+    ADMIN_PANEL_MASTERS_MSG_DELETED_SUCCESS:
+      'Майстра "{name}" успішно видалено з активного списку.',
+    ADMIN_PANEL_MASTERS_MSG_EDIT_VALUE_VALIDATION_FAILED:
+      'Виникла помилка перевірки значення.',
+    ADMIN_PANEL_MASTERS_MSG_USE_EDIT_CONFIRM_BUTTONS:
+      'ℹ️ Для завершення редагування використовуйте кнопки підтвердження під повідомленням.',
+    ADMIN_PANEL_MASTERS_MSG_USE_EDIT_MENU_BUTTONS:
+      'ℹ️ Для редагування профілю майстра використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_MASTERS_MSG_USE_SERVICES_MANAGE_BUTTONS:
+      'ℹ️ Для керування послугами майстра використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_MASTERS_MSG_USE_DELETE_BUTTONS:
+      'ℹ️ Для видалення майстра використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_MASTERS_MSG_DETAILS_NOT_FOUND:
+      'Майстра не знайдено або профіль вже неактивний.',
+    ADMIN_PANEL_MASTERS_MSG_BOOKING_NOT_FOUND_IN_MASTER_CONTEXT:
+      'Запис не знайдено в контексті цього майстра.',
+    ADMIN_PANEL_MASTERS_MSG_INVALID_EDIT_FIELD:
+      'Некоректне поле профілю майстра.',
+    ADMIN_PANEL_MASTERS_MSG_INVALID_EDIT_CALLBACK:
+      'Некоректна callback-дія редагування майстра.',
+    ADMIN_PANEL_MASTERS_MSG_EXPERIENCE_INTEGER:
+      'Досвід роботи має бути цілим числом.',
+    ADMIN_PANEL_MASTERS_MSG_EXPERIENCE_RANGE:
+      'Досвід роботи має бути в діапазоні 0..50 років.',
+    ADMIN_PANEL_MASTERS_MSG_TELEGRAM_ID_FORMAT:
+      'Telegram ID має містити тільки цифри (5..15 символів).',
+    ADMIN_PANEL_MASTERS_MSG_INVALID_CREATE_STEP:
+      'Некоректний крок створення майстра.',
+    ADMIN_PANEL_MASTERS_MSG_USER_ALREADY_MASTER:
+      'Цей користувач уже має профіль майстра.',
+    ADMIN_PANEL_MASTERS_LABEL_PLACEHOLDER_DASH: '—',
+    ADMIN_PANEL_MASTERS_LABEL_SERVICE_ID: 'id послуги',
+    ADMIN_PANEL_MASTERS_LABEL_WEEKDAY: 'день тижня',
+    ADMIN_PANEL_MASTERS_LABEL_MASTER_ID: 'id майстра',
+    ADMIN_PANEL_MASTERS_LABEL_BOOKING_ID: 'id запису',
+    ADMIN_PANEL_MASTERS_LABEL_MASTER: '👩‍🎨 Майстер: {value}',
+    ADMIN_PANEL_MASTERS_LABEL_MINUTES_SHORT: 'хв',
+    ADMIN_PANEL_MASTERS_LABEL_SERVICE_META: '⏱ {duration} {minutes} • 💰 {price}',
+    ADMIN_PANEL_MASTERS_CREATE_START_TEXT:
+      '➕ Створення нового майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Ви запускаєте майстер створення нового профілю майстра.\n\n' +
+      'Потрібно послідовно заповнити:\n' +
+      '• імʼя майстра\n' +
+      '• Telegram ID користувача\n' +
+      '• послуги майстра\n' +
+      '• професійні та контактні дані\n' +
+      '• тижневий графік роботи',
+    ADMIN_PANEL_MASTERS_CREATE_DISPLAY_NAME_INPUT_TEXT:
+      '👩‍🎨 Імʼя майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Введіть імʼя майстра для відображення у профілі клієнтів.\n\n' +
+      'Формат: 2..30 символів, тільки літери.',
+    ADMIN_PANEL_MASTERS_CREATE_TELEGRAM_INPUT_TEXT:
+      '🆔 Telegram ID майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Майстер: {displayName}\n\n' +
+      'Введіть Telegram ID користувача (тільки цифри).',
+    ADMIN_PANEL_MASTERS_CREATE_SERVICES_EMPTY:
+      '• У студії немає активних послуг для призначення.',
+    ADMIN_PANEL_MASTERS_CREATE_SERVICES_TITLE: '💼 Послуги майстра',
+    ADMIN_PANEL_MASTERS_CREATE_SERVICES_SELECTED:
+      'Обрано послуг: {count}',
+    ADMIN_PANEL_MASTERS_CREATE_EXPERIENCE_INPUT_TEXT:
+      '🎓 Досвід роботи\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Введіть досвід роботи майстра у роках.\n\n' +
+      'Формат: ціле число від 0 до 50.',
+    ADMIN_PANEL_MASTERS_CREATE_PROCEDURES_INPUT_TEXT:
+      '📊 Виконано процедур\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Введіть кількість виконаних процедур за весь час.\n\n' +
+      'Формат: ціле число від 0 до 100000.',
+    ADMIN_PANEL_MASTERS_CREATE_BIO_INPUT_TEXT:
+      '📝 Опис майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Введіть короткий професійний опис майстра для профілю клієнтів.\n\n' +
+      'Рекомендація: 10..1000 символів.',
+    ADMIN_PANEL_MASTERS_CREATE_MATERIALS_INPUT_TEXT:
+      '🧴 Додаткова інформація\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Введіть інформацію про матеріали/особливості роботи майстра.\n\n' +
+      'Рекомендація: 2..500 символів.',
+    ADMIN_PANEL_MASTERS_CREATE_PHONE_INPUT_TEXT:
+      '📞 Телефон майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Введіть телефон майстра у форматі +420123456789.',
+    ADMIN_PANEL_MASTERS_CREATE_EMAIL_INPUT_TEXT:
+      '✉️ Email майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Введіть email майстра у форматі name@example.com.',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_NO_DATA:
+      '• Графік ще не налаштовано.',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_TITLE: '🕒 Налаштування графіку',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_PICK_HINT:
+      'Оберіть день тижня для редагування. Після заповнення всіх днів підтвердіть створення.',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_FROM_INPUT_TEXT:
+      '🕒 {weekday} • Час початку\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Введіть час початку у форматі HH:MM.\n' +
+      'Приклад: 9:00 або 09:00',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_TO_INPUT_TEXT:
+      '🕒 {weekday} • Час завершення\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Початок: {fromTime}\n\n' +
+      'Введіть час завершення у форматі HH:MM.',
+    ADMIN_PANEL_MASTERS_CREATE_CONFIRM_NO_SERVICES:
+      '• Послуги не обрані',
+    ADMIN_PANEL_MASTERS_CREATE_CONFIRM_TEXT:
+      '⚠️ Підтвердження створення майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Імʼя: {displayName}\n' +
+      '🆔 Telegram ID: {telegramUserId}\n' +
+      '🎓 Досвід: {experienceYears} років\n' +
+      '📊 Процедур: {proceduresDoneTotal}\n' +
+      '📞 Телефон: {contactPhoneE164}\n' +
+      '✉️ Email: {contactEmail}\n\n' +
+      '📝 Опис:\n{bio}\n\n' +
+      '🧴 Додаткова інформація:\n{materialsInfo}\n\n' +
+      '💼 Послуги:\n{servicesList}\n\n' +
+      '🕒 Графік:\n{scheduleList}',
+    ADMIN_PANEL_MASTERS_EDIT_MENU_TEXT:
+      '✏️ Редагування профілю майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Майстер: {masterName}\n\n' +
+      'Оберіть поле, яке потрібно оновити:',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_PHONE: '\n\nФормат: +420123456789',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_EMAIL: '\n\nФормат: name@example.com',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_STARTED_ON: '\n\nФормат: ДД.ММ.РРРР',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_PROCEDURES:
+      '\n\nВкажіть ціле число від 0 до 100000',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_TEXT:
+      '✏️ Редагування поля\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Поле: {label}\n\n' +
+      'Поточне значення:\n{currentValue}\n\n' +
+      'Введіть нове значення повідомленням.{hint}',
+    ADMIN_PANEL_MASTERS_EDIT_CONFIRM_TEXT:
+      '⚠️ Підтвердження змін\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Поле: {label}\n\n' +
+      'Було:\n{previousValue}\n\n' +
+      'Стане:\n{nextValue}\n\n' +
+      'Підтвердіть збереження.',
+    ADMIN_PANEL_MASTERS_EDIT_SUCCESS_TEXT:
+      '✅ Профіль майстра оновлено\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '{label}:\n{value}',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_DISPLAY_NAME: 'Імʼя майстра',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_BIO: 'Опис майстра',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_MATERIALS: 'Додаткова інформація',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_PHONE: 'Телефон майстра',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_EMAIL: 'Email майстра',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_STARTED_ON: 'Дата початку роботи',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_PROCEDURES_DONE_TOTAL: 'Кількість процедур',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_PROFILE: 'Поле профілю',
+    ADMIN_PANEL_MASTERS_CATALOG_EMPTY: 'Поки що немає активних майстрів.',
+    ADMIN_PANEL_MASTERS_CATALOG_EMPTY_HINT:
+      'Додайте майстра або активуйте існуючий профіль.',
+    ADMIN_PANEL_MASTERS_CATALOG_PICK:
+      'Оберіть майстра зі списку, щоб відкрити деталі:',
+    ADMIN_PANEL_MASTERS_CATALOG_EXPERIENCE_NOT_SET: 'Досвід не вказано',
+    ADMIN_PANEL_MASTERS_CATALOG_EXPERIENCE_YEARS: '{years} років досвіду',
+    ADMIN_PANEL_MASTERS_CATALOG_BOOKABLE_YES: '🟢 Доступний',
+    ADMIN_PANEL_MASTERS_CATALOG_BOOKABLE_NO: '⚪ Не приймає запис',
+    ADMIN_PANEL_MASTERS_DETAILS_TITLE: '👩‍🎨 Профіль майстра',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_NAME: '👤 Ім’я: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_ID: '🪪 ID майстра: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_PROFESSIONAL:
+      '📊 Професійна інформація',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_RATING: '⭐ Рейтинг: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_EXPERIENCE: '🗓 Досвід: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_PROCEDURES:
+      '📈 Виконано процедур: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_SPECIALIZATION: '💼 Спеціалізація',
+    ADMIN_PANEL_MASTERS_DETAILS_SPECIALIZATION_EMPTY:
+      '• Послуги ще не призначені',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_SCHEDULE: '🕒 Робочий графік',
+    ADMIN_PANEL_MASTERS_DETAILS_SCHEDULE_EMPTY: '• Графік ще не заповнений',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_ADDITIONAL: '📍 Додаткова інформація',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_BIO: '📝 Bio: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_MATERIALS: '🧴 Матеріали: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_PHONE: '📱 Телефон: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_EMAIL: '✉️ Email: {value}',
+    ADMIN_PANEL_MASTERS_DELETE_INPUT_TEXT:
+      '❌ Видалення майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Щоб видалити майстра з системи, надішліть його Telegram ID.\n\n' +
+      '📌 Формат: тільки цифри (5..15 символів)\n' +
+      'Приклад: 548732119',
+    ADMIN_PANEL_MASTERS_DELETE_CONFIRM_TEXT:
+      '⚠️ Підтвердження видалення майстра\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Майстер: {masterName}\n' +
+      '🆔 Telegram ID: {telegramUserId}\n\n' +
+      'Після видалення:\n' +
+      '• майстер втратить доступ до панелі майстра\n' +
+      '• клієнти не зможуть створювати нові записи до цього майстра\n' +
+      '• активні послуги майстра будуть вимкнені',
+    ADMIN_PANEL_MASTERS_STATS_STUB_TEXT:
+      '⚠️ Розділ тимчасово недоступний.\n' +
+      'На наступному кроці тут будуть показники продуктивності, завантаженості та фінансів майстра.',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_TITLE: '💼 Керування послугами майстра',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_ACTIVE_TITLE: '📋 Активні послуги:',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_EMPTY:
+      '• У майстра ще немає активних послуг.',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_ACTION_HINT: 'Оберіть дію нижче.',
+    ADMIN_PANEL_MASTERS_SERVICES_ADD_TITLE: '➕ Додати послугу майстру',
+    ADMIN_PANEL_MASTERS_SERVICES_ADD_EMPTY:
+      '✅ Усі доступні послуги вже призначені майстру.',
+    ADMIN_PANEL_MASTERS_SERVICES_ADD_PICK:
+      'Оберіть послугу для додавання:',
+    ADMIN_PANEL_MASTERS_SERVICES_REMOVE_TITLE: '➖ Видалити послугу майстра',
+    ADMIN_PANEL_MASTERS_SERVICES_REMOVE_EMPTY:
+      '📭 Немає активних послуг для вимкнення.',
+    ADMIN_PANEL_MASTERS_SERVICES_REMOVE_PICK:
+      'Оберіть послугу для вимкнення:',
+    ADMIN_PANEL_MASTERS_WEEKDAY_1: 'Пн',
+    ADMIN_PANEL_MASTERS_WEEKDAY_2: 'Вт',
+    ADMIN_PANEL_MASTERS_WEEKDAY_3: 'Ср',
+    ADMIN_PANEL_MASTERS_WEEKDAY_4: 'Чт',
+    ADMIN_PANEL_MASTERS_WEEKDAY_5: 'Пт',
+    ADMIN_PANEL_MASTERS_WEEKDAY_6: 'Сб',
+    ADMIN_PANEL_MASTERS_WEEKDAY_7: 'Нд',
+    ADMIN_PANEL_MASTERS_LABEL_DAY_OFF: 'вихідний',
+    ADMIN_PANEL_MASTERS_LABEL_UNKNOWN_DATE: 'невідома дата',
+    ADMIN_PANEL_MASTERS_LABEL_UNKNOWN_CLIENT: 'Клієнт',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_PENDING: '🟡 Очікує підтвердження',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_CONFIRMED: '🟢 Підтверджено',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_COMPLETED: '⚪ Завершено',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_CANCELED: '🔴 Скасовано',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_TRANSFERRED: '🟣 Перенесено',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_TITLE: '📅 Записи майстра',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_EMPTY: '📭 У майстра поки немає записів.',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_PICK: 'Оберіть запис зі списку:',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_PAGE: '📄 Сторінка {current} з {total}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_TITLE: '📄 Картка запису',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_CLIENT: '👤 Клієнт: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_PHONE: '📱 Телефон: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_EMAIL: '✉️ Email: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_SERVICE: '💼 Послуга: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_MASTER: '👩‍🎨 Майстер: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_TIME: '🕒 Час: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_PRICE: '💰 Ціна: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_STATUS: '📌 Статус: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_COMMENT_TITLE: '📝 Коментар клієнта:',
+    ADMIN_PANEL_MASTERS_LABEL_NOT_SPECIFIED: 'Не вказано',
+
+    ADMIN_PANEL_SCHEDULE_MENU_TITLE: '🕒 Розклад студії',
+    ADMIN_PANEL_SCHEDULE_MENU_DESCRIPTION:
+      'Керуйте робочим графіком студії, вихідними, святами та тимчасовими змінами.',
+    ADMIN_PANEL_SCHEDULE_MENU_PICK_SECTION: 'Оберіть розділ для роботи нижче.',
+    ADMIN_PANEL_SCHEDULE_BTN_OVERVIEW: '📋 Огляд',
+    ADMIN_PANEL_SCHEDULE_BTN_CONFIGURE_DAY: '🗓 Налаштувати тижневий графік',
+    ADMIN_PANEL_SCHEDULE_BTN_DAYS_OFF: '🌴 Вихідні дні',
+    ADMIN_PANEL_SCHEDULE_BTN_HOLIDAYS: '🎉 Святкові дні',
+    ADMIN_PANEL_SCHEDULE_BTN_TEMPORARY: '🕒 Тимчасовий графік',
+    ADMIN_PANEL_SCHEDULE_BTN_ADD_DAY_OFF: '➕ Додати вихідний',
+    ADMIN_PANEL_SCHEDULE_BTN_ADD_HOLIDAY: '➕ Додати свято',
+    ADMIN_PANEL_SCHEDULE_BTN_ADD_TEMPORARY: '➕ Додати період',
+    ADMIN_PANEL_SCHEDULE_BTN_MARK_DAY_OFF: '🌴 Позначити вихідним',
+    ADMIN_PANEL_SCHEDULE_BTN_DELETE_INDEXED: '🗑 Видалити #{index}',
+    ADMIN_PANEL_SCHEDULE_BTN_DELETE_PERIOD_INDEXED: '🗑 Видалити період #{index}',
+    ADMIN_PANEL_SCHEDULE_BTN_DELETE_CANCEL: '❌ Скасувати видалення',
+    ADMIN_PANEL_SCHEDULE_BTN_BACK: '⬅️ До адмін-панелі',
+    ADMIN_PANEL_SCHEDULE_BTN_HOME: '🏠 Головне меню',
+    ADMIN_PANEL_SCHEDULE_BTN_BACK_TO_MENU: '⬅️ До меню розкладу',
+    ADMIN_PANEL_SCHEDULE_BTN_BACK_TO_SECTION: '⬅️ До розділу',
+    ADMIN_PANEL_SCHEDULE_BTN_CANCEL_ACTION: '❌ Скасувати дію',
+    ADMIN_PANEL_SCHEDULE_BTN_CONFIRM: '✅ Підтвердити',
+    ADMIN_PANEL_SCHEDULE_BTN_REFRESH: '🔄 Оновити',
+    ADMIN_PANEL_SCHEDULE_OVERVIEW_TITLE: '📋 Огляд розкладу',
+    ADMIN_PANEL_SCHEDULE_OVERVIEW_WEEKLY_TITLE: '🗓 Базовий тижневий графік',
+    ADMIN_PANEL_SCHEDULE_OVERVIEW_WEEKLY_EMPTY: '⚠️ Базовий графік ще не налаштовано.',
+    ADMIN_PANEL_SCHEDULE_OVERVIEW_DAYS_OFF_COUNT: '🌴 Вихідних днів (майбутніх): {count}',
+    ADMIN_PANEL_SCHEDULE_OVERVIEW_HOLIDAYS_COUNT: '🎉 Святкових днів (майбутніх): {count}',
+    ADMIN_PANEL_SCHEDULE_OVERVIEW_TEMPORARY_COUNT: '🕒 Тимчасових періодів: {count}',
+    ADMIN_PANEL_SCHEDULE_CONFIGURE_TITLE: '🗓 Налаштування тижневого графіка',
+    ADMIN_PANEL_SCHEDULE_CONFIGURE_PICK_WEEKDAY: 'Оберіть день тижня для редагування.',
+    ADMIN_PANEL_SCHEDULE_CONFIGURE_SUCCESS_TITLE: '✅ Графік дня оновлено',
+    ADMIN_PANEL_SCHEDULE_CONFIGURE_SUCCESS_BODY: '{day}: {range}',
+    ADMIN_PANEL_SCHEDULE_DAYS_OFF_TITLE: '🌴 Вихідні дні студії',
+    ADMIN_PANEL_SCHEDULE_DAYS_OFF_EMPTY: '📭 Вихідних днів не знайдено.',
+    ADMIN_PANEL_SCHEDULE_DAY_OFF_ADD_TITLE: '🌴 Додати вихідний день',
+    ADMIN_PANEL_SCHEDULE_DAY_OFF_ADD_INPUT: 'Введіть дату вихідного у форматі ДД.ММ.РРРР.',
+    ADMIN_PANEL_SCHEDULE_DAY_OFF_ADD_EXAMPLE: 'Приклад: 25.12.2026',
+    ADMIN_PANEL_SCHEDULE_DAY_OFF_CONFIRM_TITLE: '⚠️ Підтвердження вихідного дня',
+    ADMIN_PANEL_SCHEDULE_DAY_OFF_CONFIRM_ASK: 'Встановити вихідний день на дату: {date}?',
+    ADMIN_PANEL_SCHEDULE_DAY_OFF_CONFIRM_HINT:
+      'У цей день нові записи для клієнтів будуть недоступні.',
+    ADMIN_PANEL_SCHEDULE_HOLIDAYS_TITLE: '🎉 Святкові дні студії',
+    ADMIN_PANEL_SCHEDULE_HOLIDAYS_EMPTY: '📭 Святкових днів не знайдено.',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_ADD_STEP1_TITLE: '🎉 Додати святковий день — крок 1/2',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_ADD_STEP1_INPUT: 'Введіть дату свята у форматі ДД.ММ.РРРР.',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_ADD_STEP1_EXAMPLE: 'Приклад: 01.01.2027',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_ADD_STEP2_TITLE: '🎉 Додати святковий день — крок 2/2',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_ADD_STEP2_INPUT: 'Введіть назву свята.',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_CONFIRM_TITLE: '⚠️ Підтвердження святкового дня',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_LABEL_DATE: '📆 Дата: {date}',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_LABEL_NAME: '🏷 Назва: {name}',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_CONFIRM_HINT: 'Підтвердьте створення святкового дня.',
+    ADMIN_PANEL_SCHEDULE_DELETE_DAY_OFF_TITLE: '🗑 Видалення вихідного дня',
+    ADMIN_PANEL_SCHEDULE_DELETE_DAY_OFF_ASK: 'Видалити вихідний день на дату: {date}?',
+    ADMIN_PANEL_SCHEDULE_DELETE_HOLIDAY_TITLE: '🗑 Видалення святкового дня',
+    ADMIN_PANEL_SCHEDULE_DELETE_HOLIDAY_ASK: 'Видалити свято "{name}" на дату {date}?',
+    ADMIN_PANEL_SCHEDULE_DELETE_TEMPORARY_TITLE: '🗑 Видалення тимчасового графіка',
+    ADMIN_PANEL_SCHEDULE_DELETE_TEMPORARY_ASK: 'Видалити тимчасовий період з {from} до {to}?',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_TITLE: '🕒 Тимчасові зміни графіка',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_EMPTY: '📭 Тимчасових змін не знайдено.',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_SET_PERIOD_TITLE: '🕒 Новий тимчасовий період',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_SET_PERIOD_INPUT_FORMAT:
+      'Введіть період у форматі: ДД.ММ.РРРР - ДД.ММ.РРРР',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_SET_PERIOD_EXAMPLE:
+      'Приклад: 10.06.2026 - 20.06.2026',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_SET_PERIOD_MIN_DAYS:
+      'Мінімальна тривалість тимчасового графіка: 7 днів.',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_CONFIG_TITLE: '🕒 Налаштування тимчасового графіка',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_PERIOD_LABEL: '📆 Період: {from} - {to}',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_CONFIGURED_DAYS: 'Налаштовано днів: {count}/7',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_PICK_DAY: 'Оберіть день тижня для налаштування.',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_DAY_TITLE: '🕒 Налаштування дня',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_DAY_NOT_CONFIGURED: 'не налаштовано',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_PREVIEW_OFF: '{day}: вихідний',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_PREVIEW_OPEN: '{day}: {from}–{to}',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_CONFIRM_TITLE: '⚠️ Підтвердження тимчасового графіка',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_CONFIRM_NEW_SCHEDULE: 'Новий графік періоду:',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_CONFIRM_HINT:
+      'Після підтвердження зміни застосуються до вказаного періоду.',
+    ADMIN_PANEL_SCHEDULE_UNKNOWN_DATE: 'невідома дата',
+    ADMIN_PANEL_SCHEDULE_WEEKDAY_FALLBACK: 'День {day}',
+    ADMIN_PANEL_SCHEDULE_WEEKLY_LINE_OFF: '{day}: вихідний',
+    ADMIN_PANEL_SCHEDULE_WEEKLY_LINE_EMPTY: '{day}: не налаштовано',
+    ADMIN_PANEL_SCHEDULE_WEEKLY_LINE_OPEN: '{day}: {from}–{to}',
+    ADMIN_PANEL_SCHEDULE_INPUT_FROM: 'Введіть час початку (HH:MM).',
+    ADMIN_PANEL_SCHEDULE_INPUT_TO: 'Введіть час завершення (HH:MM).',
+    ADMIN_PANEL_SCHEDULE_INPUT_EXAMPLE_FROM: 'Приклад: 08:00 або 8:00',
+    ADMIN_PANEL_SCHEDULE_INPUT_EXAMPLE_TO: 'Приклад: 18:30',
+    ADMIN_PANEL_SCHEDULE_INPUT_EXAMPLE_TEMPORARY: 'Приклад: 9:00 або 09:00',
+    ADMIN_PANEL_SCHEDULE_LABEL_WEEKDAY: '🗓 День: {day}',
+    ADMIN_PANEL_SCHEDULE_LABEL_FROM: '🕒 Від: {from}',
+    ADMIN_PANEL_SCHEDULE_RANGE_DAY_OFF: 'вихідний',
+    ADMIN_PANEL_SCHEDULE_RANGE_OPEN: '{from}–{to}',
+    ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_DATE_FAILED: 'Виникла помилка при перевірці дати.',
+    ADMIN_PANEL_SCHEDULE_MSG_RETRY_DATE_FORMAT:
+      'Спробуйте ще раз у форматі ДД.ММ.РРРР.',
+    ADMIN_PANEL_SCHEDULE_MSG_FINISH_USE_CONFIRM_BUTTONS:
+      '⚠️ Для завершення дії натисніть "✅ Підтвердити" або "❌ Скасувати дію".',
+    ADMIN_PANEL_SCHEDULE_MSG_PICK_HOLIDAY_DATE_FIRST: 'Спочатку вкажіть дату свята.',
+    ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_HOLIDAY_NAME_FAILED:
+      'Виникла помилка при перевірці назви свята.',
+    ADMIN_PANEL_SCHEDULE_MSG_TEMPORARY_MIN_DAYS:
+      'Тимчасовий графік можна встановити лише на період від {minDays} днів.',
+    ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_PERIOD_FAILED:
+      'Виникла помилка при перевірці періоду.',
+    ADMIN_PANEL_SCHEDULE_MSG_RETRY_RANGE_FORMAT:
+      'Спробуйте ще раз у форматі ДД.ММ.РРРР - ДД.ММ.РРРР.',
+    ADMIN_PANEL_SCHEDULE_MSG_PICK_WEEKDAY_FIRST: 'Спочатку оберіть день тижня кнопкою.',
+    ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_FROM_TIME_FAILED:
+      'Виникла помилка при перевірці часу початку.',
+    ADMIN_PANEL_SCHEDULE_MSG_RETRY_TIME_FORMAT:
+      'Введіть коректний час у форматі HH:MM.',
+    ADMIN_PANEL_SCHEDULE_MSG_PICK_DAY_AND_FROM_FIRST:
+      'Спочатку оберіть день і задайте час початку.',
+    ADMIN_PANEL_SCHEDULE_MSG_TO_AFTER_FROM:
+      'Час завершення має бути пізніше часу початку.',
+    ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_TO_TIME_FAILED:
+      'Виникла помилка при перевірці часу завершення.',
+    ADMIN_PANEL_SCHEDULE_MSG_FINISH_USE_INLINE_BUTTONS:
+      '⚠️ Для завершення дії використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_SCHEDULE_MSG_DAY_OFF_ADDED: 'Вихідний день на {date} успішно додано.',
+    ADMIN_PANEL_SCHEDULE_MSG_DAY_OFF_DELETED: 'Вихідний день успішно видалено.',
+    ADMIN_PANEL_SCHEDULE_MSG_TRY_AGAIN: 'Спробуйте ще раз.',
+    ADMIN_PANEL_SCHEDULE_MSG_HOLIDAY_ADDED: 'Свято "{name}" на {date} успішно додано.',
+    ADMIN_PANEL_SCHEDULE_MSG_HOLIDAY_DELETED: 'Святковий день успішно видалено.',
+    ADMIN_PANEL_SCHEDULE_MSG_TEMPORARY_NEED_ALL_DAYS:
+      '⚠️ Потрібно налаштувати всі 7 днів тижня. Зараз налаштовано: {configured}/7.',
+    ADMIN_PANEL_SCHEDULE_MSG_TEMPORARY_CREATED:
+      '✅ Тимчасовий графік студії успішно встановлено на період {from} - {to}.',
+    ADMIN_PANEL_SCHEDULE_MSG_TEMPORARY_DELETED:
+      'Тимчасовий графік за обраний період успішно видалено.',
+
+    ADMIN_PANEL_SETTINGS_MENU_TITLE: '⚙️ Налаштування',
+    ADMIN_PANEL_SETTINGS_MENU_SUBTITLE: 'Оберіть розділ, який потрібно відкрити:',
+    ADMIN_PANEL_SETTINGS_BTN_LANGUAGE: '🌐 Мова адмін-панелі',
+    ADMIN_PANEL_SETTINGS_BTN_ADMINS: '👑 Адміністратори',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO: '🏢 Профіль салону',
+    ADMIN_PANEL_SETTINGS_BTN_NOTIFICATIONS: '🔔 Системні сповіщення',
+    ADMIN_PANEL_SETTINGS_BTN_BACK: '⬅️ До адмін-панелі',
+    ADMIN_PANEL_SETTINGS_BTN_BACK_TO_MENU: '⬅️ До меню налаштувань',
+    ADMIN_PANEL_SETTINGS_BTN_LANGUAGE_CONFIRM: '✅ Підтвердити зміну',
+    ADMIN_PANEL_SETTINGS_BTN_LANGUAGE_CANCEL: '❌ Скасувати',
+    ADMIN_PANEL_SETTINGS_BTN_ADMINS_GRANT: '➕ Надати роль адміністратора',
+    ADMIN_PANEL_SETTINGS_BTN_ADMINS_REVOKE: '➖ Видалити роль адміністратора',
+    ADMIN_PANEL_SETTINGS_BTN_ADMINS_CONFIRM_GRANT: '✅ Підтвердити надання',
+    ADMIN_PANEL_SETTINGS_BTN_ADMINS_CONFIRM_REVOKE: '✅ Підтвердити видалення',
+    ADMIN_PANEL_SETTINGS_BTN_ADMINS_CANCEL: '❌ Скасувати дію',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_ABOUT: '📝 Редагувати: Інформація',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_CONTACTS: '📞 Редагувати: Контакти',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_BOOKING_RULES: '📋 Редагувати: Правила запису',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_CANCELLATION: '🚫 Редагувати: Скасування',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_PREPARATION: '🧴 Редагувати: Підготовка',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_COMFORT: '🛋 Редагувати: Комфорт',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_GUARANTEE: '🛡 Редагувати: Гарантія',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_CONFIRM: '✅ Зберегти текст',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_CANCEL: '❌ Скасувати',
+    ADMIN_PANEL_SETTINGS_BTN_NOTIFICATIONS_ALL_ON: '🔔 Увімкнути всі',
+    ADMIN_PANEL_SETTINGS_BTN_NOTIFICATIONS_ALL_OFF: '🔕 Вимкнути всі',
+
+    ADMIN_PANEL_SETTINGS_ADMINS_TITLE: '👑 Адміністратори',
+    ADMIN_PANEL_SETTINGS_ADMINS_EMPTY: 'У цьому салоні ще немає активних адміністраторів.',
+    ADMIN_PANEL_SETTINGS_ADMINS_EMPTY_HINT:
+      'Щоб почати, додайте адміністратора через Telegram ID.',
+    ADMIN_PANEL_SETTINGS_ADMINS_LIST_TITLE: 'Список адміністраторів салону:',
+    ADMIN_PANEL_SETTINGS_ADMINS_LABEL_TELEGRAM_ID: '🆔 Telegram ID: {id}',
+    ADMIN_PANEL_SETTINGS_ADMINS_LABEL_USERNAME: '🔹 Username: {username}',
+    ADMIN_PANEL_SETTINGS_ADMINS_LABEL_USER: '👤 Користувач: {user}',
+    ADMIN_PANEL_SETTINGS_ADMINS_GRANT_INPUT_TITLE: '👑 Надання ролі адміністратора',
+    ADMIN_PANEL_SETTINGS_ADMINS_REVOKE_INPUT_TITLE: '🚫 Видалення ролі адміністратора',
+    ADMIN_PANEL_SETTINGS_ADMINS_INPUT_BODY:
+      'Надішліть Telegram ID користувача одним повідомленням.',
+    ADMIN_PANEL_SETTINGS_ADMINS_REVOKE_INPUT_BODY:
+      'Надішліть Telegram ID адміністратора, у якого потрібно забрати роль.',
+    ADMIN_PANEL_SETTINGS_ADMINS_INPUT_FORMAT: 'Формат: лише цифри',
+    ADMIN_PANEL_SETTINGS_ADMINS_INPUT_EXAMPLE: 'Приклад: 6712153038',
+    ADMIN_PANEL_SETTINGS_ADMINS_GRANT_CONFIRM_TITLE: '⚠️ Підтвердження надання ролі',
+    ADMIN_PANEL_SETTINGS_ADMINS_REVOKE_CONFIRM_TITLE: '⚠️ Підтвердження видалення ролі',
+    ADMIN_PANEL_SETTINGS_ADMINS_GRANT_CONFIRM_HINT:
+      'Після підтвердження користувач отримає повний доступ до адмін-панелі.',
+    ADMIN_PANEL_SETTINGS_ADMINS_REVOKE_CONFIRM_HINT:
+      'Після підтвердження користувач втратить доступ до адмін-панелі.',
+
+    ADMIN_PANEL_SETTINGS_LANGUAGE_TITLE: '🌐 Мова адмін-панелі',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_DESCRIPTION:
+      'У цьому розділі можна змінити мову інтерфейсу адмін-панелі.',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_NOTE:
+      'Ця зміна не впливає на клієнтів або майстрів.',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_CURRENT: '📋 Поточна мова: {language}',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_PICK: 'Оберіть нову мову нижче:',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_CONFIRM_TITLE: '⚠️ Підтвердження зміни мови',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_CONFIRM_FROM: '🌐 Було: {language}',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_CONFIRM_TO: '🌐 Стане: {language}',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_CONFIRM_HINT:
+      'Підтвердьте, якщо хочете зберегти цю зміну.',
+
+    ADMIN_PANEL_SETTINGS_NOT_SET: 'Не вказано',
+    ADMIN_PANEL_SETTINGS_WEEKDAY_FALLBACK: 'День {day}',
+    ADMIN_PANEL_SETTINGS_WEEKLY_OFF: '{weekday} — вихідний',
+    ADMIN_PANEL_SETTINGS_WEEKLY_OPEN: '{weekday} — {from}–{to}',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_ABOUT: 'Інформація про студію',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_CONTACTS: 'Контакти',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_BOOKING_RULES: 'Правила запису',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_CANCELLATION: 'Скасування та перенесення',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_PREPARATION: 'Підготовка до процедури',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_COMFORT: 'Комфорт під час візиту',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_GUARANTEE: 'Гарантія та сервіс',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_FALLBACK: 'Контент-блок',
+    ADMIN_PANEL_SETTINGS_STUDIO_TITLE: '🏢 Профіль салону',
+    ADMIN_PANEL_SETTINGS_STUDIO_LABEL_NAME: '🏷 Назва: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_LABEL_CITY: '📍 Місто: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_LABEL_ADDRESS: '📌 Адреса: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_LABEL_PHONE: '📞 Телефон: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_LABEL_EMAIL: '✉️ Email: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_LABEL_TIMEZONE: '🕒 Таймзона: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_SCHEDULE_TITLE: '🗓 Графік роботи',
+    ADMIN_PANEL_SETTINGS_STUDIO_SCHEDULE_EMPTY: 'Графік ще не налаштований',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_TITLE: 'ℹ️ Контент для клієнтів',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_ABOUT: '• Інформація: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_CONTACTS: '• Контакти: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_BOOKING_RULES: '• Правила запису: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_CANCELLATION: '• Скасування: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_PREPARATION: '• Підготовка: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_COMFORT: '• Комфорт: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_GUARANTEE: '• Гарантія: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_EDIT_PROMPT_TITLE: '✏️ Редагування: {block}',
+    ADMIN_PANEL_SETTINGS_STUDIO_EDIT_PROMPT_CURRENT: 'Поточний текст:',
+    ADMIN_PANEL_SETTINGS_STUDIO_EDIT_PROMPT_SEND:
+      'Надішліть новий текст одним повідомленням.',
+    ADMIN_PANEL_SETTINGS_STUDIO_EDIT_CONFIRM_TITLE: '⚠️ Підтвердження змін: {block}',
+    ADMIN_PANEL_SETTINGS_STUDIO_EDIT_CONFIRM_NEW: 'Новий текст:',
+    ADMIN_PANEL_SETTINGS_STUDIO_EDIT_CONFIRM_HINT:
+      'Підтвердьте, щоб зберегти зміни в профілі салону.',
+
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_TITLE: '🔔 Системні сповіщення',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_DESCRIPTION:
+      'Керуйте службовими сповіщеннями для вашого адмін-профілю.',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_BOOKING_CONFIRMATION: 'Підтвердження запису',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_STATUS_CHANGE: 'Зміни статусу запису',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_STATUS_CHANGE_SHORT: 'Зміни статусу',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_VISIT_REMINDER: 'Нагадування',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_PROMO_NEWS: 'Акції та новини',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_CHANNELS_TITLE: '📡 Канали доставки',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_CHANNEL_TELEGRAM: '• Telegram: активний завжди',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_CHANNEL_PHONE:
+      '• Телефон: {phone} ({status})',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_CHANNEL_EMAIL:
+      '• Email: {email} ({status})',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_DELIVERY_VERIFIED: 'підтверджено ✅',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_DELIVERY_UNVERIFIED: 'не підтверджено ⚪',
+    ADMIN_PANEL_SETTINGS_MSG_LANGUAGE_UPDATED: 'Мову адмін-панелі успішно оновлено.',
+    ADMIN_PANEL_SETTINGS_MSG_STUDIO_BLOCK_UPDATED: 'Блок "{block}" успішно оновлено.',
+    ADMIN_PANEL_SETTINGS_MSG_ADMIN_GRANTED:
+      '✅ Роль адміністратора успішно надано.\n\n👤 {user}\n🆔 {telegramId}',
+    ADMIN_PANEL_SETTINGS_MSG_ADMIN_REVOKED:
+      '✅ Роль адміністратора успішно видалено.\n\n👤 {user}\n🆔 {telegramId}',
+    ADMIN_PANEL_SETTINGS_MSG_USE_LANGUAGE_CONFIRM_BUTTONS:
+      'Для зміни мови використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_LANGUAGE_PICK_BUTTONS:
+      'Для вибору мови використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_SETTINGS_MSG_TELEGRAM_ID_DIGITS_ONLY:
+      'Telegram ID має містити тільки цифри.',
+    ADMIN_PANEL_SETTINGS_MSG_USER_NOT_FOUND_IN_STUDIO:
+      'Користувача з таким Telegram ID не знайдено в цьому салоні.',
+    ADMIN_PANEL_SETTINGS_MSG_USER_ALREADY_ADMIN:
+      'Цей користувач уже має роль адміністратора.',
+    ADMIN_PANEL_SETTINGS_MSG_USER_NOT_ADMIN:
+      'У цього користувача немає ролі адміністратора.',
+    ADMIN_PANEL_SETTINGS_MSG_CANNOT_REVOKE_SELF:
+      'Не можна забрати роль адміністратора у власного профілю.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_ACTION_CONFIRM_BUTTONS:
+      'Для завершення дії використовуйте кнопки підтвердження під повідомленням.',
+    ADMIN_PANEL_SETTINGS_MSG_STUDIO_TEXT_VALIDATE_FAILED:
+      'Помилка перевірки тексту для оновлення.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_STUDIO_CONFIRM_BUTTONS:
+      'Для завершення змін використовуйте кнопки підтвердження під повідомленням.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_NOTIFICATIONS_BUTTONS:
+      'Для керування сповіщеннями використовуйте кнопки під повідомленням.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_SECTION_BUTTONS:
+      'Для керування розділом налаштувань використовуйте кнопки під повідомленням.',
+
+    ADMIN_PANEL_RECORDS_MENU_TITLE: '📅 Записи',
+    ADMIN_PANEL_RECORDS_MENU_SUBTITLE: 'Оберіть категорію для перегляду записів:',
+    ADMIN_PANEL_RECORDS_CATEGORY_PENDING: '🆕 Нові записи (очікують підтвердження)',
+    ADMIN_PANEL_RECORDS_CATEGORY_TODAY: '📍 Сьогодні',
+    ADMIN_PANEL_RECORDS_CATEGORY_TOMORROW: '📆 Завтра',
+    ADMIN_PANEL_RECORDS_CATEGORY_ALL: '🗂 Усі записи',
+    ADMIN_PANEL_RECORDS_CATEGORY_CANCELED: '❌ Скасовані',
+    ADMIN_PANEL_RECORDS_FEED_TITLE_TODAY: '📍 Записи на сьогодні',
+    ADMIN_PANEL_RECORDS_FEED_TITLE_TOMORROW: '📆 Записи на завтра',
+    ADMIN_PANEL_RECORDS_FEED_TITLE_ALL: '🗂 Усі записи',
+    ADMIN_PANEL_RECORDS_FEED_TITLE_CANCELED: '❌ Скасовані записи',
+    ADMIN_PANEL_RECORDS_EMPTY_PENDING:
+      '📭 Непідтверджених записів немає.\n\nУсі нові заявки вже опрацьовані.',
+    ADMIN_PANEL_RECORDS_EMPTY_TODAY: '📭 На сьогодні записів немає.',
+    ADMIN_PANEL_RECORDS_EMPTY_TOMORROW: '📭 На завтра записів немає.',
+    ADMIN_PANEL_RECORDS_EMPTY_ALL: '📭 Записів не знайдено.',
+    ADMIN_PANEL_RECORDS_EMPTY_CANCELED: '📭 Скасованих записів не знайдено.',
+    ADMIN_PANEL_RECORDS_EMPTY_VALUE: '—',
+    ADMIN_PANEL_RECORDS_INVALID_DATETIME: 'Некоректна дата/час',
+    ADMIN_PANEL_RECORDS_NOT_SET: 'Не вказано',
+    ADMIN_PANEL_RECORDS_CLIENT_FALLBACK: 'Клієнт',
+    ADMIN_PANEL_RECORDS_STATUS_PENDING: '🟡 Очікує підтвердження',
+    ADMIN_PANEL_RECORDS_STATUS_CONFIRMED: '🟢 Підтверджено',
+    ADMIN_PANEL_RECORDS_STATUS_COMPLETED: '✅ Завершено',
+    ADMIN_PANEL_RECORDS_STATUS_CANCELED: '🔴 Скасовано',
+    ADMIN_PANEL_RECORDS_STATUS_TRANSFERRED: '🟣 Перенесено',
+    ADMIN_PANEL_RECORDS_LABEL_CLIENT: '👤 Клієнт: {client}',
+    ADMIN_PANEL_RECORDS_LABEL_PHONE: '📱 Телефон: {phone}',
+    ADMIN_PANEL_RECORDS_LABEL_EMAIL: '✉️ Email: {email}',
+    ADMIN_PANEL_RECORDS_LABEL_SERVICE: '💼 Послуга: {service}',
+    ADMIN_PANEL_RECORDS_LABEL_MASTER: '👩‍🎨 Майстер: {master}',
+    ADMIN_PANEL_RECORDS_LABEL_TIME: '🕒 Час: {time}',
+    ADMIN_PANEL_RECORDS_LABEL_PRICE: '💰 Вартість: {price}',
+    ADMIN_PANEL_RECORDS_LABEL_STATUS: '📌 Статус: {status}',
+    ADMIN_PANEL_RECORDS_LABEL_PAGE: 'Сторінка {page}/{total}',
+    ADMIN_PANEL_RECORDS_LABEL_COMMENT: '📝 Коментар клієнта:',
+    ADMIN_PANEL_RECORDS_HINT_PENDING: 'ℹ️ Для цього запису доступні: підтвердження, скасування, перенесення, зміна майстра.',
+    ADMIN_PANEL_RECORDS_HINT_CONFIRMED: 'ℹ️ Запис підтверджений. Доступні дії: скасувати, перенести, змінити майстра.',
+    ADMIN_PANEL_RECORDS_HINT_COMPLETED: 'ℹ️ Запис завершено. Доступне лише видалення назавжди.',
+    ADMIN_PANEL_RECORDS_HINT_CANCELED: 'ℹ️ Запис скасовано. Доступне лише видалення назавжди.',
+    ADMIN_PANEL_RECORDS_HINT_TRANSFERRED: 'ℹ️ Запис перенесено. Доступне лише видалення назавжди.',
+
+    ADMIN_PANEL_RECORDS_BTN_BACK: '⬅️ До адмін-панелі',
+    ADMIN_PANEL_RECORDS_BTN_HOME: '🏠 Головне меню',
+    ADMIN_PANEL_RECORDS_BTN_BACK_TO_MENU: '⬅️ До меню записів',
+    ADMIN_PANEL_RECORDS_BTN_BACK_TO_LIST: '⬅️ До списку записів',
+    ADMIN_PANEL_RECORDS_BTN_CLEAR_CANCELED: '🧹 Очистити скасовані',
+    ADMIN_PANEL_RECORDS_BTN_CLEAR_CANCELED_CONFIRM: '✅ Так, очистити',
+    ADMIN_PANEL_RECORDS_BTN_CONTACT_CLIENT: '📞 Контакт клієнта',
+    ADMIN_PANEL_RECORDS_BTN_VIEW_CLIENT_PROFILE: '👤 Профіль клієнта',
+    ADMIN_PANEL_RECORDS_BTN_VIEW_MASTER_PROFILE: '👩‍🎨 Профіль майстра',
+    ADMIN_PANEL_RECORDS_BTN_NEXT_PENDING: '⏭ Наступний pending',
+    ADMIN_PANEL_RECORDS_BTN_CONFIRM: '✅ Підтвердити',
+    ADMIN_PANEL_RECORDS_BTN_CANCEL: '❌ Скасувати запис',
+    ADMIN_PANEL_RECORDS_BTN_RESCHEDULE: '🔄 Перенести',
+    ADMIN_PANEL_RECORDS_BTN_CHANGE_MASTER: '👩‍🎨 Змінити майстра',
+    ADMIN_PANEL_RECORDS_BTN_HARD_DELETE: '🗑 Видалити назавжди',
+    ADMIN_PANEL_RECORDS_BTN_HARD_DELETE_CONFIRM: '🗑 Так, видалити назавжди',
+    ADMIN_PANEL_RECORDS_BTN_CANCEL_ACTION: '❌ Скасувати дію',
+    ADMIN_PANEL_RECORDS_BTN_CONFIRM_CANCEL: '✅ Так, скасувати запис',
+    ADMIN_PANEL_RECORDS_BTN_BACK_TO_DATE: '⬅️ До вибору дати',
+    ADMIN_PANEL_RECORDS_BTN_BACK_TO_TIME: '⬅️ До вибору часу',
+    ADMIN_PANEL_RECORDS_BTN_CONFIRM_RESCHEDULE: '✅ Підтвердити перенесення',
+    ADMIN_PANEL_RECORDS_BTN_CONFIRM_CHANGE_MASTER: '✅ Підтвердити зміну майстра',
+
+    ADMIN_PANEL_RECORDS_HARD_DELETE_CONFIRM_TITLE: '⚠️ Підтвердження видалення',
+    ADMIN_PANEL_RECORDS_HARD_DELETE_CONFIRM_BODY: 'Ви дійсно хочете видалити запис назавжди?',
+    ADMIN_PANEL_RECORDS_HARD_DELETE_CONFIRM_HINT:
+      'Після підтвердження запис буде видалено без можливості відновлення.',
+    ADMIN_PANEL_RECORDS_CLEAR_CANCELED_CONFIRM_TITLE: '⚠️ Очищення скасованих записів',
+    ADMIN_PANEL_RECORDS_CLEAR_CANCELED_CONFIRM_BODY:
+      'Підтвердьте очищення скасованих записів.\nБуде видалено: {total}.',
+    ADMIN_PANEL_RECORDS_CONTACT_TITLE: '📞 Контакт клієнта',
+    ADMIN_PANEL_RECORDS_CONTACT_HINT: 'Оберіть канал звʼязку нижче.',
+    ADMIN_PANEL_RECORDS_CONTACT_PHONE_LINE: '• 📱 Телефон: {phone}',
+    ADMIN_PANEL_RECORDS_CONTACT_EMAIL_LINE: '• ✉️ Email: {email}',
+    ADMIN_PANEL_RECORDS_CONTACT_EMPTY: '⚠️ Контактні дані недоступні.',
+    ADMIN_PANEL_RECORDS_CLIENT_PROFILE_TITLE: '👤 Профіль клієнта',
+    ADMIN_PANEL_RECORDS_CLIENT_PROFILE_ID: '🪪 ID: {id}',
+    ADMIN_PANEL_RECORDS_CLIENT_PROFILE_NAME: '👤 Імʼя: {name}',
+    ADMIN_PANEL_RECORDS_CLIENT_PROFILE_TELEGRAM: '💬 Telegram: {telegram}',
+    ADMIN_PANEL_RECORDS_CLIENT_PROFILE_NEAREST: '📆 Найближчий запис: {time}',
+    ADMIN_PANEL_RECORDS_CLIENT_PROFILE_STATUS: '📌 Статус: {status}',
+    ADMIN_PANEL_RECORDS_CARD_TITLE: '📄 Картка запису',
+
+    ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_TITLE: '⚠️ Підтвердження скасування',
+    ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_ASK: 'Ви дійсно хочете скасувати цей запис?',
+    ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_WARNING_CONFIRMED:
+      '⚠️ Ви скасовуєте вже підтверджений запис.\nПереконайтесь, що все узгоджено з клієнтом.',
+
+    ADMIN_PANEL_RECORDS_RESCHEDULE_STEP_DATE_TITLE: '🔄 Перенесення запису — крок 1/3',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_STEP_TIME_TITLE: '🔄 Перенесення запису — крок 2/3',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_STEP_CONFIRM_TITLE: '🔄 Перенесення запису — крок 3/3',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_SELECT_DATE: 'Оберіть нову дату для перенесення.',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_SELECT_TIME: 'Оберіть новий час.',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_NO_TIMES:
+      '⚠️ На цю дату вже немає доступного часу. Оберіть іншу дату.',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_PREVIOUS_TIME: '🕒 Було: {time}',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_NEW_TIME: '🕒 Стане: {time}',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_CONFIRM_ASK: 'Підтвердіть перенесення запису.',
+
+    ADMIN_PANEL_RECORDS_CHANGE_MASTER_TITLE: '👩‍🎨 Зміна майстра',
+    ADMIN_PANEL_RECORDS_CHANGE_MASTER_NO_CANDIDATES:
+      '⚠️ Немає доступних майстрів для цієї послуги.',
+    ADMIN_PANEL_RECORDS_CHANGE_MASTER_PICK: 'Оберіть нового майстра:',
+    ADMIN_PANEL_RECORDS_CHANGE_MASTER_CONFIRM_TITLE: '👩‍🎨 Підтвердження зміни майстра',
+    ADMIN_PANEL_RECORDS_CHANGE_MASTER_PREVIOUS: '👩‍🎨 Було: {master}',
+    ADMIN_PANEL_RECORDS_CHANGE_MASTER_NEW: '👩‍🎨 Стане: {master}',
+    ADMIN_PANEL_RECORDS_CHANGE_MASTER_CONFIRM_ASK: 'Підтвердіть зміну майстра.',
+
+    ADMIN_PANEL_RECORDS_MSG_OPEN_CARD_FAILED_RETRY:
+      'Не вдалося відкрити картку запису. Спробуйте ще раз або поверніться до списку.',
+    ADMIN_PANEL_RECORDS_MSG_OPEN_CARD_FAILED_REFRESH:
+      'Не вдалося відкрити картку запису. Спробуйте оновити список.',
+    ADMIN_PANEL_RECORDS_MSG_OPEN_CARD_FAILED_BACK_TO_LIST:
+      'Не вдалося відкрити картку запису. Повертаю до списку.',
+    ADMIN_PANEL_RECORDS_MSG_MASTER_PROFILE_UNAVAILABLE:
+      'Профіль майстра недоступний або вже неактивний.',
+    ADMIN_PANEL_RECORDS_MSG_CURRENT_TIME_UNAVAILABLE:
+      'Не вдалося визначити поточний час запису. Спробуйте відкрити картку запису ще раз.',
+    ADMIN_PANEL_RECORDS_MSG_NO_MORE_PENDING: 'Більше непідтверджених записів зараз немає.',
+    ADMIN_PANEL_RECORDS_MSG_CONFIRMED_AND_NOTIFIED:
+      'Запис підтверджено. Клієнту надіслано сповіщення.',
+    ADMIN_PANEL_RECORDS_MSG_HARD_DELETE_ONLY_INACTIVE:
+      'Цей запис ще активний. Видалення назавжди доступне лише для неактивних записів.',
+    ADMIN_PANEL_RECORDS_MSG_ALREADY_ABSENT: 'Запис уже відсутній у системі.',
+    ADMIN_PANEL_RECORDS_MSG_HARD_DELETE_ABORT_ACTIVE:
+      'Цей запис ще активний. Видалення назавжди скасовано.',
+    ADMIN_PANEL_RECORDS_MSG_NOT_DELETED_ALREADY_CHANGED:
+      'Запис не видалено. Можливо, його вже було видалено або змінено.',
+    ADMIN_PANEL_RECORDS_MSG_HARD_DELETED: 'Запис видалено назавжди.',
+    ADMIN_PANEL_RECORDS_MSG_ACTION_CANCELLED: 'Дію скасовано.\n\nЖодних змін не внесено.',
+    ADMIN_PANEL_RECORDS_MSG_CANCELED_ALREADY_EMPTY: 'Список скасованих записів уже порожній.',
+    ADMIN_PANEL_RECORDS_MSG_CANCELED_CLEARED: 'Скасовані записи очищено. Видалено: {count}.',
+    ADMIN_PANEL_RECORDS_MSG_CANCELED_AND_NOTIFIED:
+      'Запис скасовано. Клієнту надіслано сповіщення.',
+    ADMIN_PANEL_RECORDS_MSG_CANNOT_RESCHEDULE: 'Цей запис уже не можна перенести.',
+    ADMIN_PANEL_RECORDS_MSG_RESCHEDULED_AND_NOTIFIED:
+      'Запис успішно перенесено. Клієнту надіслано сповіщення.',
+    ADMIN_PANEL_RECORDS_MSG_CANNOT_CHANGE_MASTER:
+      'Для цього запису змінити майстра вже не можна.',
+    ADMIN_PANEL_RECORDS_MSG_MASTER_CHANGED_AND_NOTIFIED:
+      'Майстра успішно змінено. Клієнту надіслано сповіщення.',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CONFIRMED: 'Підтверджено',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CANCELED: 'Скасовано',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_RESCHEDULED: 'Перенесено',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_MASTER_CHANGED: 'Змінено майстра',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CONFIRMED: 'Ваш запис підтверджено адміністратором.',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CANCELED: 'Ваш запис було скасовано адміністратором.',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_RESCHEDULED:
+      'Ваш запис перенесено адміністратором. Перевірте нову дату та час.',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_MASTER_CHANGED:
+      'Адміністратор призначив нового майстра для вашого запису.',
+    ADMIN_PANEL_RECORDS_REASON_CANCELED_BY_ADMIN:
+      'Скасовано адміністратором через Telegram-бота',
+    ADMIN_PANEL_RECORDS_REASON_RESCHEDULED_BY_ADMIN:
+      'Перенесено адміністратором через Telegram-бота',
+  },
+  en: {
+    ...ADMIN_PANEL_STATS_DICTIONARY.en,
+    MENU_ADMIN_PANEL: '🛡 Admin Panel',
+    ADMIN_PANEL_TITLE: '🛡 Admin Panel',
+    ADMIN_PANEL_GREETING: 'Welcome, {name}.',
+    ADMIN_PANEL_ROOT_DESCRIPTION:
+      'Manage bookings, schedule, masters, and salon settings in one place.',
+    ADMIN_PANEL_ROOT_PICK_SECTION: 'Choose a section below.',
+    ADMIN_PANEL_ACCESS_DENIED:
+      '🔒 Admin panel is unavailable for this profile.\n\n' +
+      'If access should be granted, contact the system owner.',
+
+    ADMIN_PANEL_BTN_RECORDS: '📅 Bookings',
+    ADMIN_PANEL_BTN_SCHEDULE: '🕒 Schedule',
+    ADMIN_PANEL_BTN_MASTERS: '👩‍🎨 Masters',
+    ADMIN_PANEL_BTN_SERVICES: '💼 Services',
+    ADMIN_PANEL_BTN_STATS: '📊 Stats',
+    ADMIN_PANEL_BTN_SETTINGS: '⚙️ Settings',
+    ADMIN_PANEL_BTN_EXIT: '🚪 Exit',
+    ADMIN_PANEL_BTN_CONFIRM: '✅ Confirm',
+    ADMIN_PANEL_BTN_CANCEL_ACTION: '❌ Cancel action',
+    ADMIN_PANEL_BTN_REFRESH: '🔄 Refresh',
+    ADMIN_PANEL_BTN_PREV: '⬅️ Previous',
+    ADMIN_PANEL_BTN_NEXT: '➡️ Next',
+    ADMIN_PANEL_BTN_BACK_TO_PANEL: '⬅️ Back to admin panel',
+    ADMIN_PANEL_BTN_BACK_TO_MENU: '⬅️ Back to menu',
+    ADMIN_PANEL_BTN_BACK_TO_LIST: '⬅️ Back to list',
+
+    ADMIN_PANEL_COMMON_MSG_ADMIN_USER_UNRESOLVED:
+      'Failed to resolve admin user.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_CALLBACK_LANGUAGE_SELECT:
+      'Invalid callback action for language selection.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_CALLBACK_NOTIFICATION_TOGGLE:
+      'Invalid callback action for notification type change.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_CALLBACK_STUDIO_BLOCK_EDIT:
+      'Invalid callback action for studio block editing.',
+    ADMIN_PANEL_COMMON_MSG_STUDIO_TEXT_TOO_SHORT:
+      'Text is too short (minimum 10 characters).',
+    ADMIN_PANEL_COMMON_MSG_STUDIO_TEXT_TOO_LONG:
+      'Text is too long (maximum 4000 characters).',
+    ADMIN_PANEL_COMMON_MSG_INVALID_BOOKING_CALLBACK:
+      'Invalid callback action for booking.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_NUMERIC_FIELD: 'Invalid {field}.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_WEEKDAY: 'Invalid weekday.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_MONTH_CODE: 'Invalid monthly report code.',
+    ADMIN_PANEL_COMMON_MSG_DATE_FORMAT_DDMMYYYY: 'Date must be in DD.MM.YYYY format.',
+    ADMIN_PANEL_COMMON_MSG_DATE_INVALID: 'Invalid date entered.',
+    ADMIN_PANEL_COMMON_MSG_DATE_IN_PAST: 'Past dates are not allowed.',
+    ADMIN_PANEL_COMMON_MSG_HOLIDAY_NAME_TOO_SHORT:
+      'Holiday name must contain at least 2 characters.',
+    ADMIN_PANEL_COMMON_MSG_HOLIDAY_NAME_TOO_LONG:
+      'Holiday name is too long (maximum 120 characters).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_NAME_TOO_SHORT:
+      'Service name must contain at least 2 characters.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_NAME_TOO_LONG:
+      'Service name is too long (maximum 120 characters).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_GUARANTEE_TOO_SHORT:
+      'Guarantee text must contain at least 3 characters.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_GUARANTEE_TOO_LONG:
+      'Guarantee text is too long (maximum 500 characters).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_TITLE_TOO_SHORT:
+      'Step title must contain at least 2 characters.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_TITLE_TOO_LONG:
+      'Step title is too long (maximum 120 characters).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_DESCRIPTION_TOO_SHORT:
+      'Step description must contain at least 10 characters.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_DESCRIPTION_TOO_LONG:
+      'Step description is too long (maximum 500 characters).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_RESULT_TOO_SHORT:
+      'Service result must contain at least 10 characters.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_RESULT_TOO_LONG:
+      'Service result is too long (maximum 1200 characters).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DESCRIPTION_TOO_SHORT:
+      'Service description must contain at least 10 characters.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DESCRIPTION_TOO_LONG:
+      'Service description is too long (maximum 1600 characters).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_PRICE_FORMAT:
+      'Price must be a number in format 750 or 750.50.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_PRICE_NEGATIVE: 'Price cannot be negative.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_PRICE_TOO_HIGH: 'Price is too high.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DURATION_INTEGER:
+      'Duration must be an integer number of minutes.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DURATION_NUMBER: 'Duration must be a number.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DURATION_RANGE:
+      'Service duration must be in range 5..720 minutes.',
+    ADMIN_PANEL_COMMON_MSG_STEP_DURATION_INTEGER:
+      'Step duration must be an integer number of minutes.',
+    ADMIN_PANEL_COMMON_MSG_STEP_DURATION_NUMBER: 'Step duration must be a number.',
+    ADMIN_PANEL_COMMON_MSG_STEP_DURATION_RANGE:
+      'Step duration must be in range 1..720 minutes.',
+    ADMIN_PANEL_COMMON_MSG_DATE_RANGE_FORMAT:
+      'Period must be in format DD.MM.YYYY - DD.MM.YYYY.',
+    ADMIN_PANEL_COMMON_MSG_DATE_RANGE_INVALID:
+      'End date cannot be earlier than start date.',
+    ADMIN_PANEL_COMMON_MSG_TIME_FORMAT:
+      'Time must be in HH:MM format (example: 10:00).',
+    ADMIN_PANEL_COMMON_MSG_TIME_HOUR_RANGE: 'Hour must be in range from 0 to 23.',
+    ADMIN_PANEL_COMMON_MSG_DATE_CODE_INVALID: 'Invalid date code.',
+    ADMIN_PANEL_COMMON_MSG_DATE_VALUE_INVALID: 'Invalid date.',
+    ADMIN_PANEL_COMMON_LABEL_DAY_OFF_ID: 'day-off id',
+    ADMIN_PANEL_COMMON_LABEL_HOLIDAY_ID: 'holiday id',
+    ADMIN_PANEL_COMMON_LABEL_CLIENT_ID: 'client id',
+    ADMIN_PANEL_SCHEDULE_MSG_USE_SECTION_BUTTONS:
+      'To manage this section, use buttons under the message.',
+
+    ADMIN_PANEL_SERVICES_BTN_CREATE: '➕ Create new service',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_ADD_ANOTHER: '➕ Add one more',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_CONTINUE: '➡️ Continue',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_CANCEL: '❌ Cancel creation',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_CONFIRM: '✅ Confirm creation',
+    ADMIN_PANEL_SERVICES_BTN_OPEN_STATS: '📊 Service stats',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_OPEN: '✏️ Edit service',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_NAME: '🪪 Edit name',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_PRICE: '💰 Edit price',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_DURATION: '⏱ Edit duration',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_DESCRIPTION: '📝 Edit description',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_RESULT: '🎯 Edit result',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_STEP: '🧩 Edit step name',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_STEP_DESCRIPTION: '📝 Edit step description',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_STEP_DURATION: '⏱ Edit step time',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_GUARANTEE: '🛡 Edit guarantee',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_DELETE: '🗑 Delete service',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_CONFIRM_DELETE: '🗑 Yes, delete',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_CONFIRM: '✅ Save',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_CANCEL: '❌ Cancel',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_BACK: '⬅️ Back to service card',
+    ADMIN_PANEL_SERVICES_BTN_BACK_TO_LIST: '⬅️ Back to services list',
+    ADMIN_PANEL_SERVICES_BTN_BACK: '⬅️ Back to admin panel',
+    ADMIN_PANEL_SERVICES_LABEL_NOT_SPECIFIED: 'Not specified',
+    ADMIN_PANEL_SERVICES_LABEL_ACTIVE: 'Active',
+    ADMIN_PANEL_SERVICES_LABEL_INACTIVE: 'Inactive',
+    ADMIN_PANEL_SERVICES_LABEL_MINUTES_SHORT: 'min',
+    ADMIN_PANEL_SERVICES_LABEL_DAYS_SHORT: 'days',
+    ADMIN_PANEL_SERVICES_LABEL_STEP_EMPTY: '🔹 Steps are not specified',
+    ADMIN_PANEL_SERVICES_LABEL_GUARANTEE_EMPTY: '🔹 Guarantees are not specified',
+    ADMIN_PANEL_SERVICES_CATALOG_TITLE: '💼 Salon services',
+    ADMIN_PANEL_SERVICES_CATALOG_EMPTY: 'There are no active services yet.',
+    ADMIN_PANEL_SERVICES_CATALOG_EMPTY_HINT:
+      'Add services in the studio so they appear in this section.',
+    ADMIN_PANEL_SERVICES_CATALOG_PICK: 'Choose a service to open the card:',
+    ADMIN_PANEL_SERVICES_CREATE_START_TEXT:
+      '➕ Create new service\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Now we will fill the service card step by step:\n' +
+      '1) Name\n' +
+      '2) Duration\n' +
+      '3) Price\n' +
+      '4) Description\n' +
+      '5) Steps\n' +
+      '6) Guarantees\n' +
+      '7) Result\n\n' +
+      'Starting with the name.',
+    ADMIN_PANEL_SERVICES_CREATE_NAME_INPUT_TEXT:
+      '💼 New service name\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Send the service name in one message.\n' +
+      'Minimum 2 characters, maximum 120 characters.',
+    ADMIN_PANEL_SERVICES_CREATE_DURATION_INPUT_TEXT:
+      '⏱ New service duration\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      'Enter duration in minutes.\n' +
+      'Range: 5..720.',
+    ADMIN_PANEL_SERVICES_CREATE_PRICE_INPUT_TEXT:
+      '💰 New service price\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      'Send price in format 750 or 750.50.',
+    ADMIN_PANEL_SERVICES_CREATE_DESCRIPTION_INPUT_TEXT:
+      '📝 New service description\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      'Send service description in one message.\n' +
+      'Minimum 10 characters, maximum 1600 characters.',
+    ADMIN_PANEL_SERVICES_CREATE_PREVIEW_TITLE: '📋 Preview of new service',
+    ADMIN_PANEL_SERVICES_CREATE_PREVIEW_CONFIRM: 'Confirm service creation.',
+    ADMIN_PANEL_SERVICES_CREATE_SUCCESS_TITLE: '✅ New service has been created',
+    ADMIN_PANEL_SERVICES_DETAILS_TITLE: '📄 Service card',
+    ADMIN_PANEL_SERVICES_EDIT_MENU_TITLE: '✏️ Service editing',
+    ADMIN_PANEL_SERVICES_EDIT_MENU_PICK: 'Choose what you want to change:',
+    ADMIN_PANEL_SERVICES_EDIT_CONFIRM_TITLE: '✅ Update confirmation',
+    ADMIN_PANEL_SERVICES_EDIT_CONFIRM_SAVE: 'Confirm saving changes.',
+    ADMIN_PANEL_SERVICES_DELETE_CONFIRM_TITLE: '⚠️ Service delete confirmation',
+    ADMIN_PANEL_SERVICES_DELETE_CONFIRM_BODY:
+      'After confirmation, the service will be hidden for clients and masters.\n' +
+      'Historical bookings will remain, but new bookings for this service will become unavailable.\n\n' +
+      'Confirm action.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_TITLE_INPUT_TEXT:
+      '🧩 Step #{stepNo}: title\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Send step title in one message.\n' +
+      'Minimum 2 characters, maximum 120 characters.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_DURATION_INPUT_TEXT:
+      '🧩 Step #{stepNo}: duration\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Step title: {stepTitle}\n\n' +
+      'Enter step duration in minutes.\n' +
+      'Range: 1..720.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_DESCRIPTION_INPUT_TEXT:
+      '🧩 Step #{stepNo}: description\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Step title: {stepTitle}\n' +
+      'Duration: {durationMinutes} {minutesLabel}\n\n' +
+      'Send step description in one message.\n' +
+      'Minimum 10 characters, maximum 500 characters.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_ADDED_TEXT:
+      '✅ Step added\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Added step #{stepNo}: {stepTitle} ({durationMinutes} {minutesLabel})\n' +
+      'Total steps: {totalSteps}\n\n' +
+      'Choose next action.',
+    ADMIN_PANEL_SERVICES_CREATE_GUARANTEE_INPUT_TEXT:
+      '🛡 Guarantee #{guaranteeNo}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Send guarantee text in one message.\n' +
+      'Minimum 3 characters, maximum 500 characters.',
+    ADMIN_PANEL_SERVICES_CREATE_GUARANTEE_ADDED_TEXT:
+      '✅ Guarantee added\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Added guarantee #{guaranteeNo}:\n{guaranteeText}\n\n' +
+      'Total guarantees: {totalGuarantees}\n\n' +
+      'Choose next action.',
+    ADMIN_PANEL_SERVICES_CREATE_RESULT_INPUT_TEXT:
+      '🎯 Service result\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      'Send result description for the client.\n' +
+      'Minimum 10 characters, maximum 1200 characters.',
+    ADMIN_PANEL_SERVICES_CREATE_PREVIEW_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Name: {name}\n' +
+      '⏱ Duration: {durationMinutes} {minutesLabel}\n' +
+      '💰 Price: {price}\n\n' +
+      '📝 Description\n{description}\n\n' +
+      '✨ Steps\n{stepsText}\n\n' +
+      '🛡 Guarantees\n{guaranteesText}\n\n' +
+      '🎯 Result\n{resultDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_CREATE_SUCCESS_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 {name}\n' +
+      '🪪 ID: {serviceId}\n' +
+      '⏱ Duration: {durationMinutes} {minutesLabel}\n' +
+      '💰 Price: {price}\n' +
+      '🧩 Steps: {stepsCount}\n' +
+      '🛡 Guarantees: {guaranteesCount}',
+    ADMIN_PANEL_SERVICES_DETAILS_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Name: {name}\n' +
+      '🪪 ID: {serviceId}\n' +
+      '⏱ Duration: {durationMinutes} {minutesLabel}\n' +
+      '💰 Price: {price}\n' +
+      '📌 Status: {status}\n\n' +
+      '📝 Description\n{description}\n\n' +
+      '🎯 Result\n{result}\n\n' +
+      '✨ Procedure steps\n{stepsText}\n\n' +
+      '🛡 Guarantees\n{guaranteesText}',
+    ADMIN_PANEL_SERVICES_EDIT_MENU_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '⏱ Current duration: {durationMinutes} {minutesLabel}\n\n' +
+      '💰 Current price: {price}\n\n' +
+      '📝 Current description:\n{description}\n\n' +
+      '🎯 Current result:\n{resultDescription}\n\n' +
+      '{pickText}',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_SELECT_TEXT:
+      '🛡 Service guarantee editing\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      'Choose guarantee to update:\n\n' +
+      '{list}',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_BUTTON_LABEL: '{badge} Guarantee #{guaranteeNo}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_PICK_TITLE:
+      'Choose step name to update:',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_PICK_DESCRIPTION:
+      'Choose step description to update:',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_PICK_DURATION:
+      'Choose step time to update:',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_TEXT:
+      '🧩 Service step editing\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '{modeText}\n\n' +
+      '{list}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_ROW_TEXT:
+      '{badge} Step #{stepNo} ({durationMinutes} {minutesLabel}) — {title}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_BUTTON_LABEL: '{badge} Step #{stepNo}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_INPUT_TEXT:
+      '✏️ Update step name\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n' +
+      '🧩 Step #{stepNo}\n\n' +
+      'Current title:\n{currentStepTitle}\n\n' +
+      'Send new step title in one message.\n' +
+      'Minimum 2 characters, maximum 120 characters.',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n' +
+      '🧩 Step #{stepNo}\n\n' +
+      'New title:\n{nextStepTitle}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DESCRIPTION_INPUT_TEXT:
+      '✏️ Update step description\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n' +
+      '🧩 Step #{stepNo}\n\n' +
+      'Current description:\n{currentStepDescription}\n\n' +
+      'Send new step description in one message.\n' +
+      'Minimum 10 characters, maximum 500 characters.',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DESCRIPTION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n' +
+      '🧩 Step #{stepNo}\n\n' +
+      'New description:\n{nextStepDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DURATION_INPUT_TEXT:
+      '✏️ Update step time\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n' +
+      '🧩 Step #{stepNo}\n\n' +
+      'Current step time: {currentStepDurationMinutes} {minutesLabel}\n\n' +
+      'Send new step duration in minutes.\n' +
+      'Range: 1..720.',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DURATION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n' +
+      '🧩 Step #{stepNo}\n\n' +
+      'New step time: {nextStepDurationMinutes} {minutesLabel}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_INPUT_TEXT:
+      '✏️ Update guarantee\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n' +
+      '🛡 Guarantee #{guaranteeNo}\n\n' +
+      'Current text:\n{currentGuaranteeText}\n\n' +
+      'Send new guarantee text in one message.\n' +
+      'Minimum 3 characters, maximum 500 characters.',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n' +
+      '🛡 Guarantee #{guaranteeNo}\n\n' +
+      'New text:\n{nextGuaranteeText}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_NAME_INPUT_TEXT:
+      '✏️ Update service name\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Current name: {serviceName}\n\n' +
+      'Send new name in one message.\n' +
+      'Minimum 2 characters, maximum 120 characters.',
+    ADMIN_PANEL_SERVICES_EDIT_DURATION_INPUT_TEXT:
+      '✏️ Update service duration\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '⏱ Current duration: {currentDurationMinutes} {minutesLabel}\n\n' +
+      'Send new duration in minutes.\n' +
+      'Range: 5..720',
+    ADMIN_PANEL_SERVICES_EDIT_PRICE_INPUT_TEXT:
+      '✏️ Update service price\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '💰 Current price: {currentPrice}\n\n' +
+      'Send new price in one message.\n' +
+      'Format: 750 or 750.50',
+    ADMIN_PANEL_SERVICES_EDIT_DESCRIPTION_INPUT_TEXT:
+      '✏️ Update service description\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '📝 Current description:\n{currentDescription}\n\n' +
+      'Send new description in one message.\n' +
+      'Minimum 10 characters, maximum 1600 characters.',
+    ADMIN_PANEL_SERVICES_EDIT_RESULT_INPUT_TEXT:
+      '✏️ Update service result\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '🎯 Current result:\n{currentResultDescription}\n\n' +
+      'Send new result text in one message.\n' +
+      'Minimum 10 characters, maximum 1200 characters.',
+    ADMIN_PANEL_SERVICES_EDIT_RESULT_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '🎯 New result:\n{nextResultDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_DESCRIPTION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '📝 New description:\n{nextDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_DURATION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '⏱ New duration: {nextDurationMinutes} {minutesLabel}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_PRICE_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '💰 New price: {nextPrice}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_NAME_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '🪪 New name: {nextServiceName}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_DELETE_CONFIRM_TEXT:
+      '{deleteTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '{deleteBody}',
+    ADMIN_PANEL_SERVICES_STATS_STUB_TEXT:
+      '📊 Service stats\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Service: {serviceName}\n\n' +
+      '⚠️ Section is temporarily unavailable.\n' +
+      'After integration, financial and operational metrics will appear here.',
+    ADMIN_PANEL_SERVICES_DEFAULT_NAME: 'New service',
+    ADMIN_PANEL_SERVICES_MSG_NOT_FOUND_OR_INACTIVE:
+      'Service was not found or is inactive.',
+    ADMIN_PANEL_SERVICES_MSG_NOT_FOUND_FOR_EDIT:
+      'Service for editing was not found.',
+    ADMIN_PANEL_SERVICES_MSG_SET_STEP_TITLE_FIRST:
+      'Set the step title first.',
+    ADMIN_PANEL_SERVICES_MSG_SET_STEP_TITLE_AND_DURATION_FIRST:
+      'Fill step title and duration first.',
+    ADMIN_PANEL_SERVICES_MSG_PREVIEW_BUILD_FAILED:
+      'Failed to build service preview data.',
+    ADMIN_PANEL_SERVICES_MSG_INPUT_VALIDATION_FAILED:
+      'Input validation failed.',
+    ADMIN_PANEL_SERVICES_MSG_USE_STEP_ACTIONS_BUTTONS:
+      'Use buttons below the message to continue creating steps.',
+    ADMIN_PANEL_SERVICES_MSG_USE_GUARANTEE_ACTIONS_BUTTONS:
+      'Use buttons below the message to continue creating guarantees.',
+    ADMIN_PANEL_SERVICES_MSG_USE_CREATE_CONFIRM_BUTTONS:
+      'Use confirmation buttons below the message to finish service creation.',
+    ADMIN_PANEL_SERVICES_MSG_SELECT_STEP_FIRST:
+      'Select a step from the list first.',
+    ADMIN_PANEL_SERVICES_MSG_SELECT_GUARANTEE_FIRST:
+      'Select a guarantee from the list first.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_NAME_FAILED:
+      'Service name validation failed.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_DURATION_FAILED:
+      'Service duration validation failed.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_PRICE_FAILED:
+      'Service price validation failed.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_DESCRIPTION_FAILED:
+      'Service description validation failed.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_STEP_TITLE_FAILED:
+      'Step title validation failed.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_STEP_DESCRIPTION_FAILED:
+      'Step description validation failed.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_STEP_DURATION_FAILED:
+      'Step duration validation failed.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_GUARANTEE_FAILED:
+      'Guarantee text validation failed.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_RESULT_FAILED:
+      'Result text validation failed.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_STEP_BUTTONS:
+      'Use buttons below the message to select a step.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_GUARANTEE_BUTTONS:
+      'Use buttons below the message to select a guarantee.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_CONFIRM_BUTTONS:
+      'Use confirmation buttons below the message to finish changes.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_MENU_BUTTONS:
+      'Use buttons below the message to edit service.',
+    ADMIN_PANEL_SERVICES_MSG_USE_CREATE_INPUT_OR_BUTTONS:
+      'Use the current input step or buttons below the message to create service.',
+    ADMIN_PANEL_SERVICES_MSG_COMPLETE_CURRENT_STEP_FIRST:
+      'Complete the current creation step first.',
+    ADMIN_PANEL_SERVICES_MSG_MAX_STEPS_REACHED:
+      'Maximum number of steps reached (20). Continue to next stage.',
+    ADMIN_PANEL_SERVICES_MSG_ADD_MIN_ONE_STEP:
+      'Add at least one step before moving to guarantees.',
+    ADMIN_PANEL_SERVICES_MSG_MAX_GUARANTEES_REACHED:
+      'Maximum number of guarantees reached (10). Continue to next stage.',
+    ADMIN_PANEL_SERVICES_MSG_ADD_MIN_ONE_GUARANTEE:
+      'Add at least one guarantee before moving to result.',
+    ADMIN_PANEL_SERVICES_MSG_INSUFFICIENT_CREATE_DATA:
+      'Insufficient data to create service. Check previous steps.',
+    ADMIN_PANEL_SERVICES_MSG_STEPS_NOT_FOUND:
+      'No steps found for this service. Add steps in DB first.',
+    ADMIN_PANEL_SERVICES_MSG_GUARANTEES_NOT_FOUND:
+      'No guarantees found for this service. Add guarantees in DB first.',
+    ADMIN_PANEL_SERVICES_LABEL_STEP_NUMBER: 'step number',
+    ADMIN_PANEL_SERVICES_LABEL_GUARANTEE_NUMBER: 'guarantee number',
+    ADMIN_PANEL_SERVICES_MSG_STEP_NOT_FOUND:
+      'Selected step was not found. Try again.',
+    ADMIN_PANEL_SERVICES_MSG_GUARANTEE_NOT_FOUND:
+      'Selected guarantee was not found. Try again.',
+    ADMIN_PANEL_SERVICES_MSG_DEACTIVATED_SUCCESS:
+      'Service "{serviceName}" was removed from active list.',
+    ADMIN_PANEL_SERVICES_MSG_GUARANTEE_UPDATED_SUCCESS:
+      'Guarantee #{guaranteeNo} for service "{serviceName}" was updated.',
+    ADMIN_PANEL_SERVICES_MSG_STEP_TITLE_UPDATED_SUCCESS:
+      'Step title #{stepNo} for service "{serviceName}" was updated.',
+    ADMIN_PANEL_SERVICES_MSG_STEP_DESCRIPTION_UPDATED_SUCCESS:
+      'Step description #{stepNo} for service "{serviceName}" was updated.',
+    ADMIN_PANEL_SERVICES_MSG_STEP_DURATION_UPDATED_SUCCESS:
+      'Step duration #{stepNo} for service "{serviceName}" was updated.',
+    ADMIN_PANEL_SERVICES_MSG_NAME_UPDATED_SUCCESS:
+      'Service name "{serviceName}" was updated.',
+    ADMIN_PANEL_SERVICES_MSG_DURATION_UPDATED_SUCCESS:
+      'Service duration "{serviceName}" was updated.',
+    ADMIN_PANEL_SERVICES_MSG_PRICE_UPDATED_SUCCESS:
+      'Service price "{serviceName}" was updated.',
+    ADMIN_PANEL_SERVICES_MSG_DESCRIPTION_UPDATED_SUCCESS:
+      'Service description "{serviceName}" was updated.',
+    ADMIN_PANEL_SERVICES_MSG_RESULT_UPDATED_SUCCESS:
+      'Service result "{serviceName}" was updated.',
+    ADMIN_PANEL_MASTERS_BTN_CREATE_OPEN: '➕ Add master',
+    ADMIN_PANEL_MASTERS_BTN_CREATE_START: '✅ Start creating master',
+    ADMIN_PANEL_MASTERS_BTN_CREATE_CANCEL: '❌ Cancel creation',
+    ADMIN_PANEL_MASTERS_BTN_CREATE_SERVICES_DONE: '✅ Finish selection',
+    ADMIN_PANEL_MASTERS_BTN_CREATE_CONFIRM: '✅ Confirm creation',
+    ADMIN_PANEL_MASTERS_BTN_CREATE_MARK_DAY_OFF: '🚫 Mark as day off',
+    ADMIN_PANEL_MASTERS_BTN_CREATE_BACK_TO_SCHEDULE: '⬅️ Back to schedule',
+    ADMIN_PANEL_MASTERS_BTN_OPEN_BOOKINGS: '📅 Master bookings',
+    ADMIN_PANEL_MASTERS_BTN_OPEN_STATS: '📊 Master stats',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_OPEN: '✏️ Edit master',
+    ADMIN_PANEL_MASTERS_BTN_DELETE_OPEN: '❌ Delete master',
+    ADMIN_PANEL_MASTERS_BTN_DELETE_CONFIRM: '🗑 Yes, delete master',
+    ADMIN_PANEL_MASTERS_BTN_DELETE_CANCEL: '❌ Cancel deletion',
+    ADMIN_PANEL_MASTERS_BTN_BOOKINGS_BACK_TO_MASTER: '⬅️ Back to master profile',
+    ADMIN_PANEL_MASTERS_BTN_BACK_TO_LIST: '⬅️ Back to masters list',
+    ADMIN_PANEL_MASTERS_BTN_BACK: '⬅️ Back to admin panel',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_DISPLAY_NAME: '✏️ Master name',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_BIO: '📝 Master bio',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_MATERIALS: '🧴 Additional info',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_SERVICES: '💼 Manage services',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_PHONE: '📞 Master phone',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_EMAIL: '✉️ Master email',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_STARTED_ON: '📅 Start date',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_PROCEDURES: '📊 Procedures count',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_BACK: '⬅️ Back to master profile',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_SERVICES_ADD: '➕ Add service',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_SERVICES_REMOVE: '➖ Remove service',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_SERVICES_BACK: '⬅️ Back to master edit',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_CANCEL: '❌ Cancel editing',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_CONFIRM: '✅ Save changes',
+    ADMIN_PANEL_MASTERS_MSG_PICK_WEEKDAY_FIRST: 'Select weekday first.',
+    ADMIN_PANEL_MASTERS_MSG_PICK_DAY_AND_FROM_FIRST: 'Select day and start time first.',
+    ADMIN_PANEL_MASTERS_MSG_TO_AFTER_FROM: 'End time must be later than start time.',
+    ADMIN_PANEL_MASTERS_MSG_WORK_TIME_SAVED: 'Working hours for the day saved successfully.',
+    ADMIN_PANEL_MASTERS_MSG_USE_SERVICES_BUTTONS:
+      'ℹ️ Use buttons below the message to choose services.',
+    ADMIN_PANEL_MASTERS_MSG_USE_SCHEDULE_BUTTONS:
+      'ℹ️ Use buttons below the message to configure schedule.',
+    ADMIN_PANEL_MASTERS_MSG_USE_CONFIRM_BUTTONS:
+      'ℹ️ Use confirmation buttons below the message to finish creation.',
+    ADMIN_PANEL_MASTERS_MSG_USE_CREATE_BUTTONS:
+      'ℹ️ Use buttons below the message to create master profile.',
+    ADMIN_PANEL_MASTERS_MSG_CREATE_VALIDATION_FAILED:
+      'Validation failed while creating master profile.',
+    ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED:
+      'Failed to resolve admin studio.',
+    ADMIN_PANEL_MASTERS_MSG_USER_NOT_FOUND_IN_STUDIO:
+      'User with this Telegram ID was not found in this studio.',
+    ADMIN_PANEL_MASTERS_MSG_USER_NOT_MASTER:
+      'User with this Telegram ID does not have master role.',
+    ADMIN_PANEL_MASTERS_MSG_MASTER_NOT_FOUND_OR_INACTIVE:
+      'Master was not found among active profiles or is already inactive.',
+    ADMIN_PANEL_MASTERS_MSG_USE_DELETE_CONFIRM_BUTTONS:
+      'ℹ️ Use buttons below the message to confirm or cancel deletion.',
+    ADMIN_PANEL_MASTERS_MSG_DELETE_VALIDATION_FAILED:
+      'Validation failed while deleting master.',
+    ADMIN_PANEL_MASTERS_MSG_SERVICE_NOT_FOUND_IN_LIST:
+      'Service was not found in the current list.',
+    ADMIN_PANEL_MASTERS_MSG_SELECT_AT_LEAST_ONE_SERVICE:
+      'Select at least one service for the master.',
+    ADMIN_PANEL_MASTERS_MSG_DAY_MARKED_OFF: 'Day has been marked as day off.',
+    ADMIN_PANEL_MASTERS_MSG_CREATION_CANCELLED: 'Master creation canceled.',
+    ADMIN_PANEL_MASTERS_MSG_PROFILE_INCOMPLETE:
+      'Master profile is not fully completed.',
+    ADMIN_PANEL_MASTERS_MSG_SCHEDULE_REQUIRED:
+      'Master schedule must include at least one working day.',
+    ADMIN_PANEL_MASTERS_MSG_TARGET_USER_NOT_SET:
+      'Target user for master creation is not set.',
+    ADMIN_PANEL_MASTERS_MSG_CREATED_SUCCESS:
+      '✅ Master "{name}" was created successfully.\n🆔 Telegram ID: {telegramId}\n💼 Assigned services: {servicesCount}',
+    ADMIN_PANEL_MASTERS_MSG_SERVICE_ADDED:
+      'Service "{serviceName}" was added to master.',
+    ADMIN_PANEL_MASTERS_MSG_SERVICE_REMOVED:
+      'Service "{serviceName}" was disabled for master.',
+    ADMIN_PANEL_MASTERS_MSG_DELETED_SUCCESS:
+      'Master "{name}" was removed from active list successfully.',
+    ADMIN_PANEL_MASTERS_MSG_EDIT_VALUE_VALIDATION_FAILED:
+      'Validation failed for entered value.',
+    ADMIN_PANEL_MASTERS_MSG_USE_EDIT_CONFIRM_BUTTONS:
+      'ℹ️ Use confirmation buttons below the message to finish editing.',
+    ADMIN_PANEL_MASTERS_MSG_USE_EDIT_MENU_BUTTONS:
+      'ℹ️ Use buttons below the message to edit master profile.',
+    ADMIN_PANEL_MASTERS_MSG_USE_SERVICES_MANAGE_BUTTONS:
+      'ℹ️ Use buttons below the message to manage master services.',
+    ADMIN_PANEL_MASTERS_MSG_USE_DELETE_BUTTONS:
+      'ℹ️ Use buttons below the message to delete master.',
+    ADMIN_PANEL_MASTERS_MSG_DETAILS_NOT_FOUND:
+      'Master not found or profile is already inactive.',
+    ADMIN_PANEL_MASTERS_MSG_BOOKING_NOT_FOUND_IN_MASTER_CONTEXT:
+      'Booking not found in this master context.',
+    ADMIN_PANEL_MASTERS_MSG_INVALID_EDIT_FIELD:
+      'Invalid master profile field.',
+    ADMIN_PANEL_MASTERS_MSG_INVALID_EDIT_CALLBACK:
+      'Invalid master edit callback action.',
+    ADMIN_PANEL_MASTERS_MSG_EXPERIENCE_INTEGER:
+      'Work experience must be an integer.',
+    ADMIN_PANEL_MASTERS_MSG_EXPERIENCE_RANGE:
+      'Work experience must be in range 0..50 years.',
+    ADMIN_PANEL_MASTERS_MSG_TELEGRAM_ID_FORMAT:
+      'Telegram ID must contain digits only (5..15 symbols).',
+    ADMIN_PANEL_MASTERS_MSG_INVALID_CREATE_STEP:
+      'Invalid master creation step.',
+    ADMIN_PANEL_MASTERS_MSG_USER_ALREADY_MASTER:
+      'This user already has a master profile.',
+    ADMIN_PANEL_MASTERS_LABEL_PLACEHOLDER_DASH: '—',
+    ADMIN_PANEL_MASTERS_LABEL_SERVICE_ID: 'service id',
+    ADMIN_PANEL_MASTERS_LABEL_WEEKDAY: 'weekday',
+    ADMIN_PANEL_MASTERS_LABEL_MASTER_ID: 'master id',
+    ADMIN_PANEL_MASTERS_LABEL_BOOKING_ID: 'booking id',
+    ADMIN_PANEL_MASTERS_LABEL_MASTER: '👩‍🎨 Master: {value}',
+    ADMIN_PANEL_MASTERS_LABEL_MINUTES_SHORT: 'min',
+    ADMIN_PANEL_MASTERS_LABEL_SERVICE_META: '⏱ {duration} {minutes} • 💰 {price}',
+    ADMIN_PANEL_MASTERS_CREATE_START_TEXT:
+      '➕ Create new master\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'You are starting the flow to create a new master profile.\n\n' +
+      'You need to fill in:\n' +
+      '• master name\n' +
+      '• user Telegram ID\n' +
+      '• master services\n' +
+      '• professional and contact data\n' +
+      '• weekly schedule',
+    ADMIN_PANEL_MASTERS_CREATE_DISPLAY_NAME_INPUT_TEXT:
+      '👩‍🎨 Master name\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Enter master name for customer profile display.\n\n' +
+      'Format: 2..30 characters, letters only.',
+    ADMIN_PANEL_MASTERS_CREATE_TELEGRAM_INPUT_TEXT:
+      '🆔 Master Telegram ID\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Master: {displayName}\n\n' +
+      'Enter user Telegram ID (digits only).',
+    ADMIN_PANEL_MASTERS_CREATE_SERVICES_EMPTY:
+      '• The studio has no active services to assign.',
+    ADMIN_PANEL_MASTERS_CREATE_SERVICES_TITLE: '💼 Master services',
+    ADMIN_PANEL_MASTERS_CREATE_SERVICES_SELECTED:
+      'Selected services: {count}',
+    ADMIN_PANEL_MASTERS_CREATE_EXPERIENCE_INPUT_TEXT:
+      '🎓 Work experience\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Enter master work experience in years.\n\n' +
+      'Format: integer from 0 to 50.',
+    ADMIN_PANEL_MASTERS_CREATE_PROCEDURES_INPUT_TEXT:
+      '📊 Completed procedures\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Enter total completed procedures.\n\n' +
+      'Format: integer from 0 to 100000.',
+    ADMIN_PANEL_MASTERS_CREATE_BIO_INPUT_TEXT:
+      '📝 Master description\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Enter a short professional description for customers.\n\n' +
+      'Recommendation: 10..1000 characters.',
+    ADMIN_PANEL_MASTERS_CREATE_MATERIALS_INPUT_TEXT:
+      '🧴 Additional info\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Enter materials/work specifics info.\n\n' +
+      'Recommendation: 2..500 characters.',
+    ADMIN_PANEL_MASTERS_CREATE_PHONE_INPUT_TEXT:
+      '📞 Master phone\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Enter phone in format +420123456789.',
+    ADMIN_PANEL_MASTERS_CREATE_EMAIL_INPUT_TEXT:
+      '✉️ Master email\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Enter email in format name@example.com.',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_NO_DATA:
+      '• Schedule is not configured yet.',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_TITLE: '🕒 Schedule setup',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_PICK_HINT:
+      'Select weekday to edit. After all days are filled, confirm creation.',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_FROM_INPUT_TEXT:
+      '🕒 {weekday} • Start time\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Enter start time in HH:MM format.\n' +
+      'Example: 9:00 or 09:00',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_TO_INPUT_TEXT:
+      '🕒 {weekday} • End time\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Start: {fromTime}\n\n' +
+      'Enter end time in HH:MM format.',
+    ADMIN_PANEL_MASTERS_CREATE_CONFIRM_NO_SERVICES:
+      '• No services selected',
+    ADMIN_PANEL_MASTERS_CREATE_CONFIRM_TEXT:
+      '⚠️ Confirm master creation\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Name: {displayName}\n' +
+      '🆔 Telegram ID: {telegramUserId}\n' +
+      '🎓 Experience: {experienceYears} years\n' +
+      '📊 Procedures: {proceduresDoneTotal}\n' +
+      '📞 Phone: {contactPhoneE164}\n' +
+      '✉️ Email: {contactEmail}\n\n' +
+      '📝 Description:\n{bio}\n\n' +
+      '🧴 Additional info:\n{materialsInfo}\n\n' +
+      '💼 Services:\n{servicesList}\n\n' +
+      '🕒 Schedule:\n{scheduleList}',
+    ADMIN_PANEL_MASTERS_EDIT_MENU_TEXT:
+      '✏️ Edit master profile\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Master: {masterName}\n\n' +
+      'Select field to update:',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_PHONE: '\n\nFormat: +420123456789',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_EMAIL: '\n\nFormat: name@example.com',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_STARTED_ON: '\n\nFormat: DD.MM.YYYY',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_PROCEDURES:
+      '\n\nEnter integer from 0 to 100000',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_TEXT:
+      '✏️ Edit field\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Field: {label}\n\n' +
+      'Current value:\n{currentValue}\n\n' +
+      'Send new value as a message.{hint}',
+    ADMIN_PANEL_MASTERS_EDIT_CONFIRM_TEXT:
+      '⚠️ Confirm changes\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Field: {label}\n\n' +
+      'Before:\n{previousValue}\n\n' +
+      'After:\n{nextValue}\n\n' +
+      'Confirm save.',
+    ADMIN_PANEL_MASTERS_EDIT_SUCCESS_TEXT:
+      '✅ Master profile updated\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '{label}:\n{value}',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_DISPLAY_NAME: 'Master name',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_BIO: 'Master description',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_MATERIALS: 'Additional info',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_PHONE: 'Master phone',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_EMAIL: 'Master email',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_STARTED_ON: 'Start date',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_PROCEDURES_DONE_TOTAL: 'Procedures count',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_PROFILE: 'Profile field',
+    ADMIN_PANEL_MASTERS_CATALOG_EMPTY: 'There are no active masters yet.',
+    ADMIN_PANEL_MASTERS_CATALOG_EMPTY_HINT:
+      'Add a master or activate an existing profile.',
+    ADMIN_PANEL_MASTERS_CATALOG_PICK:
+      'Select a master from the list to open details:',
+    ADMIN_PANEL_MASTERS_CATALOG_EXPERIENCE_NOT_SET: 'Experience not specified',
+    ADMIN_PANEL_MASTERS_CATALOG_EXPERIENCE_YEARS: '{years} years of experience',
+    ADMIN_PANEL_MASTERS_CATALOG_BOOKABLE_YES: '🟢 Available',
+    ADMIN_PANEL_MASTERS_CATALOG_BOOKABLE_NO: '⚪ Not accepting bookings',
+    ADMIN_PANEL_MASTERS_DETAILS_TITLE: '👩‍🎨 Master profile',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_NAME: '👤 Name: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_ID: '🪪 Master ID: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_PROFESSIONAL:
+      '📊 Professional information',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_RATING: '⭐ Rating: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_EXPERIENCE: '🗓 Experience: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_PROCEDURES:
+      '📈 Completed procedures: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_SPECIALIZATION: '💼 Specialization',
+    ADMIN_PANEL_MASTERS_DETAILS_SPECIALIZATION_EMPTY:
+      '• Services are not assigned yet',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_SCHEDULE: '🕒 Working schedule',
+    ADMIN_PANEL_MASTERS_DETAILS_SCHEDULE_EMPTY: '• Schedule is not filled yet',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_ADDITIONAL: '📍 Additional information',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_BIO: '📝 Bio: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_MATERIALS: '🧴 Materials: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_PHONE: '📱 Phone: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_EMAIL: '✉️ Email: {value}',
+    ADMIN_PANEL_MASTERS_DELETE_INPUT_TEXT:
+      '❌ Delete master\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'To delete a master from the system, send their Telegram ID.\n\n' +
+      '📌 Format: digits only (5..15 symbols)\n' +
+      'Example: 548732119',
+    ADMIN_PANEL_MASTERS_DELETE_CONFIRM_TEXT:
+      '⚠️ Confirm master deletion\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Master: {masterName}\n' +
+      '🆔 Telegram ID: {telegramUserId}\n\n' +
+      'After deletion:\n' +
+      '• master will lose access to master panel\n' +
+      '• clients will not be able to create new bookings for this master\n' +
+      '• active master services will be disabled',
+    ADMIN_PANEL_MASTERS_STATS_STUB_TEXT:
+      '⚠️ Section is temporarily unavailable.\n' +
+      'On the next step this block will show productivity, workload and finance metrics.',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_TITLE: '💼 Manage master services',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_ACTIVE_TITLE: '📋 Active services:',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_EMPTY:
+      '• This master has no active services yet.',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_ACTION_HINT: 'Choose action below.',
+    ADMIN_PANEL_MASTERS_SERVICES_ADD_TITLE: '➕ Add service to master',
+    ADMIN_PANEL_MASTERS_SERVICES_ADD_EMPTY:
+      '✅ All available services are already assigned.',
+    ADMIN_PANEL_MASTERS_SERVICES_ADD_PICK: 'Select service to add:',
+    ADMIN_PANEL_MASTERS_SERVICES_REMOVE_TITLE: '➖ Remove master service',
+    ADMIN_PANEL_MASTERS_SERVICES_REMOVE_EMPTY:
+      '📭 No active services to disable.',
+    ADMIN_PANEL_MASTERS_SERVICES_REMOVE_PICK:
+      'Select service to disable:',
+    ADMIN_PANEL_MASTERS_WEEKDAY_1: 'Mon',
+    ADMIN_PANEL_MASTERS_WEEKDAY_2: 'Tue',
+    ADMIN_PANEL_MASTERS_WEEKDAY_3: 'Wed',
+    ADMIN_PANEL_MASTERS_WEEKDAY_4: 'Thu',
+    ADMIN_PANEL_MASTERS_WEEKDAY_5: 'Fri',
+    ADMIN_PANEL_MASTERS_WEEKDAY_6: 'Sat',
+    ADMIN_PANEL_MASTERS_WEEKDAY_7: 'Sun',
+    ADMIN_PANEL_MASTERS_LABEL_DAY_OFF: 'day off',
+    ADMIN_PANEL_MASTERS_LABEL_UNKNOWN_DATE: 'unknown date',
+    ADMIN_PANEL_MASTERS_LABEL_UNKNOWN_CLIENT: 'Client',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_PENDING: '🟡 Awaiting confirmation',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_CONFIRMED: '🟢 Confirmed',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_COMPLETED: '⚪ Completed',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_CANCELED: '🔴 Canceled',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_TRANSFERRED: '🟣 Transferred',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_TITLE: '📅 Master bookings',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_EMPTY: '📭 This master has no bookings yet.',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_PICK: 'Select a booking from the list:',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_PAGE: '📄 Page {current} of {total}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_TITLE: '📄 Booking card',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_CLIENT: '👤 Client: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_PHONE: '📱 Phone: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_EMAIL: '✉️ Email: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_SERVICE: '💼 Service: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_MASTER: '👩‍🎨 Master: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_TIME: '🕒 Time: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_PRICE: '💰 Price: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_STATUS: '📌 Status: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_COMMENT_TITLE: '📝 Client comment:',
+    ADMIN_PANEL_MASTERS_LABEL_NOT_SPECIFIED: 'Not specified',
+
+    ADMIN_PANEL_SCHEDULE_MENU_TITLE: '🕒 Studio schedule',
+    ADMIN_PANEL_SCHEDULE_MENU_DESCRIPTION:
+      'Manage weekly hours, days off, holidays, and temporary schedule changes.',
+    ADMIN_PANEL_SCHEDULE_MENU_PICK_SECTION: 'Choose a schedule section below.',
+    ADMIN_PANEL_SCHEDULE_BTN_OVERVIEW: '📋 Overview',
+    ADMIN_PANEL_SCHEDULE_BTN_CONFIGURE_DAY: '🗓 Configure weekly hours',
+    ADMIN_PANEL_SCHEDULE_BTN_DAYS_OFF: '🌴 Days off',
+    ADMIN_PANEL_SCHEDULE_BTN_HOLIDAYS: '🎉 Holidays',
+    ADMIN_PANEL_SCHEDULE_BTN_TEMPORARY: '🕒 Temporary schedule',
+    ADMIN_PANEL_SCHEDULE_BTN_ADD_DAY_OFF: '➕ Add day off',
+    ADMIN_PANEL_SCHEDULE_BTN_ADD_HOLIDAY: '➕ Add holiday',
+    ADMIN_PANEL_SCHEDULE_BTN_ADD_TEMPORARY: '➕ Add period',
+    ADMIN_PANEL_SCHEDULE_BTN_MARK_DAY_OFF: '🌴 Mark as day off',
+    ADMIN_PANEL_SCHEDULE_BTN_DELETE_INDEXED: '🗑 Delete #{index}',
+    ADMIN_PANEL_SCHEDULE_BTN_DELETE_PERIOD_INDEXED: '🗑 Delete period #{index}',
+    ADMIN_PANEL_SCHEDULE_BTN_DELETE_CANCEL: '❌ Cancel delete',
+    ADMIN_PANEL_SCHEDULE_BTN_BACK: '⬅️ Back to admin panel',
+    ADMIN_PANEL_SCHEDULE_BTN_HOME: '🏠 Home menu',
+    ADMIN_PANEL_SCHEDULE_BTN_BACK_TO_MENU: '⬅️ Back to schedule menu',
+    ADMIN_PANEL_SCHEDULE_BTN_BACK_TO_SECTION: '⬅️ Back to section',
+    ADMIN_PANEL_SCHEDULE_BTN_CANCEL_ACTION: '❌ Cancel action',
+    ADMIN_PANEL_SCHEDULE_BTN_CONFIRM: '✅ Confirm',
+    ADMIN_PANEL_SCHEDULE_BTN_REFRESH: '🔄 Refresh',
+    ADMIN_PANEL_SCHEDULE_OVERVIEW_TITLE: '📋 Schedule overview',
+    ADMIN_PANEL_SCHEDULE_OVERVIEW_WEEKLY_TITLE: '🗓 Base weekly schedule',
+    ADMIN_PANEL_SCHEDULE_OVERVIEW_WEEKLY_EMPTY: '⚠️ Base weekly schedule is not configured yet.',
+    ADMIN_PANEL_SCHEDULE_OVERVIEW_DAYS_OFF_COUNT: '🌴 Upcoming days off: {count}',
+    ADMIN_PANEL_SCHEDULE_OVERVIEW_HOLIDAYS_COUNT: '🎉 Upcoming holidays: {count}',
+    ADMIN_PANEL_SCHEDULE_OVERVIEW_TEMPORARY_COUNT: '🕒 Temporary periods: {count}',
+    ADMIN_PANEL_SCHEDULE_CONFIGURE_TITLE: '🗓 Weekly schedule configuration',
+    ADMIN_PANEL_SCHEDULE_CONFIGURE_PICK_WEEKDAY: 'Choose a weekday to edit.',
+    ADMIN_PANEL_SCHEDULE_CONFIGURE_SUCCESS_TITLE: '✅ Day schedule updated',
+    ADMIN_PANEL_SCHEDULE_CONFIGURE_SUCCESS_BODY: '{day}: {range}',
+    ADMIN_PANEL_SCHEDULE_DAYS_OFF_TITLE: '🌴 Studio days off',
+    ADMIN_PANEL_SCHEDULE_DAYS_OFF_EMPTY: '📭 No days off found.',
+    ADMIN_PANEL_SCHEDULE_DAY_OFF_ADD_TITLE: '🌴 Add day off',
+    ADMIN_PANEL_SCHEDULE_DAY_OFF_ADD_INPUT: 'Enter day-off date in DD.MM.YYYY format.',
+    ADMIN_PANEL_SCHEDULE_DAY_OFF_ADD_EXAMPLE: 'Example: 25.12.2026',
+    ADMIN_PANEL_SCHEDULE_DAY_OFF_CONFIRM_TITLE: '⚠️ Confirm day off',
+    ADMIN_PANEL_SCHEDULE_DAY_OFF_CONFIRM_ASK: 'Set a day off on: {date}?',
+    ADMIN_PANEL_SCHEDULE_DAY_OFF_CONFIRM_HINT:
+      'New client bookings will be unavailable on this day.',
+    ADMIN_PANEL_SCHEDULE_HOLIDAYS_TITLE: '🎉 Studio holidays',
+    ADMIN_PANEL_SCHEDULE_HOLIDAYS_EMPTY: '📭 No holidays found.',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_ADD_STEP1_TITLE: '🎉 Add holiday — step 1/2',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_ADD_STEP1_INPUT: 'Enter holiday date in DD.MM.YYYY format.',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_ADD_STEP1_EXAMPLE: 'Example: 01.01.2027',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_ADD_STEP2_TITLE: '🎉 Add holiday — step 2/2',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_ADD_STEP2_INPUT: 'Enter holiday name.',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_CONFIRM_TITLE: '⚠️ Confirm holiday',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_LABEL_DATE: '📆 Date: {date}',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_LABEL_NAME: '🏷 Name: {name}',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_CONFIRM_HINT: 'Confirm holiday creation.',
+    ADMIN_PANEL_SCHEDULE_DELETE_DAY_OFF_TITLE: '🗑 Delete day off',
+    ADMIN_PANEL_SCHEDULE_DELETE_DAY_OFF_ASK: 'Delete day off on {date}?',
+    ADMIN_PANEL_SCHEDULE_DELETE_HOLIDAY_TITLE: '🗑 Delete holiday',
+    ADMIN_PANEL_SCHEDULE_DELETE_HOLIDAY_ASK: 'Delete holiday "{name}" on {date}?',
+    ADMIN_PANEL_SCHEDULE_DELETE_TEMPORARY_TITLE: '🗑 Delete temporary schedule',
+    ADMIN_PANEL_SCHEDULE_DELETE_TEMPORARY_ASK: 'Delete temporary period from {from} to {to}?',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_TITLE: '🕒 Temporary schedule changes',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_EMPTY: '📭 No temporary changes found.',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_SET_PERIOD_TITLE: '🕒 New temporary period',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_SET_PERIOD_INPUT_FORMAT:
+      'Enter period in format: DD.MM.YYYY - DD.MM.YYYY',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_SET_PERIOD_EXAMPLE:
+      'Example: 10.06.2026 - 20.06.2026',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_SET_PERIOD_MIN_DAYS:
+      'Minimum temporary schedule duration: 7 days.',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_CONFIG_TITLE: '🕒 Temporary schedule setup',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_PERIOD_LABEL: '📆 Period: {from} - {to}',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_CONFIGURED_DAYS: 'Configured days: {count}/7',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_PICK_DAY: 'Choose a weekday to configure.',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_DAY_TITLE: '🕒 Day configuration',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_DAY_NOT_CONFIGURED: 'not configured',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_PREVIEW_OFF: '{day}: day off',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_PREVIEW_OPEN: '{day}: {from}–{to}',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_CONFIRM_TITLE: '⚠️ Confirm temporary schedule',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_CONFIRM_NEW_SCHEDULE: 'New period schedule:',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_CONFIRM_HINT:
+      'After confirmation, changes will apply only for the selected period.',
+    ADMIN_PANEL_SCHEDULE_UNKNOWN_DATE: 'unknown date',
+    ADMIN_PANEL_SCHEDULE_WEEKDAY_FALLBACK: 'Day {day}',
+    ADMIN_PANEL_SCHEDULE_WEEKLY_LINE_OFF: '{day}: day off',
+    ADMIN_PANEL_SCHEDULE_WEEKLY_LINE_EMPTY: '{day}: not configured',
+    ADMIN_PANEL_SCHEDULE_WEEKLY_LINE_OPEN: '{day}: {from}–{to}',
+    ADMIN_PANEL_SCHEDULE_INPUT_FROM: 'Enter start time (HH:MM).',
+    ADMIN_PANEL_SCHEDULE_INPUT_TO: 'Enter end time (HH:MM).',
+    ADMIN_PANEL_SCHEDULE_INPUT_EXAMPLE_FROM: 'Example: 08:00 or 8:00',
+    ADMIN_PANEL_SCHEDULE_INPUT_EXAMPLE_TO: 'Example: 18:30',
+    ADMIN_PANEL_SCHEDULE_INPUT_EXAMPLE_TEMPORARY: 'Example: 9:00 or 09:00',
+    ADMIN_PANEL_SCHEDULE_LABEL_WEEKDAY: '🗓 Day: {day}',
+    ADMIN_PANEL_SCHEDULE_LABEL_FROM: '🕒 From: {from}',
+    ADMIN_PANEL_SCHEDULE_RANGE_DAY_OFF: 'day off',
+    ADMIN_PANEL_SCHEDULE_RANGE_OPEN: '{from}–{to}',
+    ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_DATE_FAILED: 'Failed to validate date.',
+    ADMIN_PANEL_SCHEDULE_MSG_RETRY_DATE_FORMAT:
+      'Try again using DD.MM.YYYY format.',
+    ADMIN_PANEL_SCHEDULE_MSG_FINISH_USE_CONFIRM_BUTTONS:
+      '⚠️ To complete this action, press "✅ Confirm" or "❌ Cancel action".',
+    ADMIN_PANEL_SCHEDULE_MSG_PICK_HOLIDAY_DATE_FIRST: 'Select holiday date first.',
+    ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_HOLIDAY_NAME_FAILED:
+      'Failed to validate holiday name.',
+    ADMIN_PANEL_SCHEDULE_MSG_TEMPORARY_MIN_DAYS:
+      'Temporary schedule can be set only for periods of at least {minDays} days.',
+    ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_PERIOD_FAILED:
+      'Failed to validate period.',
+    ADMIN_PANEL_SCHEDULE_MSG_RETRY_RANGE_FORMAT:
+      'Try again using DD.MM.YYYY - DD.MM.YYYY format.',
+    ADMIN_PANEL_SCHEDULE_MSG_PICK_WEEKDAY_FIRST: 'Select weekday first using buttons.',
+    ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_FROM_TIME_FAILED:
+      'Failed to validate start time.',
+    ADMIN_PANEL_SCHEDULE_MSG_RETRY_TIME_FORMAT:
+      'Enter valid time in HH:MM format.',
+    ADMIN_PANEL_SCHEDULE_MSG_PICK_DAY_AND_FROM_FIRST:
+      'Select day and start time first.',
+    ADMIN_PANEL_SCHEDULE_MSG_TO_AFTER_FROM:
+      'End time must be later than start time.',
+    ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_TO_TIME_FAILED:
+      'Failed to validate end time.',
+    ADMIN_PANEL_SCHEDULE_MSG_FINISH_USE_INLINE_BUTTONS:
+      '⚠️ Use the buttons under the message to complete this action.',
+    ADMIN_PANEL_SCHEDULE_MSG_DAY_OFF_ADDED: 'Day off on {date} has been added.',
+    ADMIN_PANEL_SCHEDULE_MSG_DAY_OFF_DELETED: 'Day off has been deleted.',
+    ADMIN_PANEL_SCHEDULE_MSG_TRY_AGAIN: 'Please try again.',
+    ADMIN_PANEL_SCHEDULE_MSG_HOLIDAY_ADDED:
+      'Holiday "{name}" on {date} has been added.',
+    ADMIN_PANEL_SCHEDULE_MSG_HOLIDAY_DELETED: 'Holiday has been deleted.',
+    ADMIN_PANEL_SCHEDULE_MSG_TEMPORARY_NEED_ALL_DAYS:
+      '⚠️ You need to configure all 7 weekdays. Currently configured: {configured}/7.',
+    ADMIN_PANEL_SCHEDULE_MSG_TEMPORARY_CREATED:
+      '✅ Temporary studio schedule has been set for {from} - {to}.',
+    ADMIN_PANEL_SCHEDULE_MSG_TEMPORARY_DELETED:
+      'Temporary schedule for selected period has been deleted.',
+
+    ADMIN_PANEL_SETTINGS_MENU_TITLE: '⚙️ Settings',
+    ADMIN_PANEL_SETTINGS_MENU_SUBTITLE: 'Choose a section to open:',
+    ADMIN_PANEL_SETTINGS_BTN_LANGUAGE: '🌐 Admin panel language',
+    ADMIN_PANEL_SETTINGS_BTN_ADMINS: '👑 Administrators',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO: '🏢 Studio profile',
+    ADMIN_PANEL_SETTINGS_BTN_NOTIFICATIONS: '🔔 System notifications',
+    ADMIN_PANEL_SETTINGS_BTN_BACK: '⬅️ Back to admin panel',
+    ADMIN_PANEL_SETTINGS_BTN_BACK_TO_MENU: '⬅️ Back to settings menu',
+    ADMIN_PANEL_SETTINGS_BTN_LANGUAGE_CONFIRM: '✅ Confirm change',
+    ADMIN_PANEL_SETTINGS_BTN_LANGUAGE_CANCEL: '❌ Cancel',
+    ADMIN_PANEL_SETTINGS_BTN_ADMINS_GRANT: '➕ Grant admin role',
+    ADMIN_PANEL_SETTINGS_BTN_ADMINS_REVOKE: '➖ Revoke admin role',
+    ADMIN_PANEL_SETTINGS_BTN_ADMINS_CONFIRM_GRANT: '✅ Confirm grant',
+    ADMIN_PANEL_SETTINGS_BTN_ADMINS_CONFIRM_REVOKE: '✅ Confirm revoke',
+    ADMIN_PANEL_SETTINGS_BTN_ADMINS_CANCEL: '❌ Cancel action',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_ABOUT: '📝 Edit: About studio',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_CONTACTS: '📞 Edit: Contacts',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_BOOKING_RULES: '📋 Edit: Booking rules',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_CANCELLATION: '🚫 Edit: Cancellation',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_PREPARATION: '🧴 Edit: Preparation',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_COMFORT: '🛋 Edit: Comfort',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_GUARANTEE: '🛡 Edit: Guarantee',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_CONFIRM: '✅ Save text',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_CANCEL: '❌ Cancel',
+    ADMIN_PANEL_SETTINGS_BTN_NOTIFICATIONS_ALL_ON: '🔔 Enable all',
+    ADMIN_PANEL_SETTINGS_BTN_NOTIFICATIONS_ALL_OFF: '🔕 Disable all',
+
+    ADMIN_PANEL_SETTINGS_ADMINS_TITLE: '👑 Administrators',
+    ADMIN_PANEL_SETTINGS_ADMINS_EMPTY: 'There are no active administrators in this studio yet.',
+    ADMIN_PANEL_SETTINGS_ADMINS_EMPTY_HINT:
+      'To start, add an administrator by Telegram ID.',
+    ADMIN_PANEL_SETTINGS_ADMINS_LIST_TITLE: 'Studio administrators list:',
+    ADMIN_PANEL_SETTINGS_ADMINS_LABEL_TELEGRAM_ID: '🆔 Telegram ID: {id}',
+    ADMIN_PANEL_SETTINGS_ADMINS_LABEL_USERNAME: '🔹 Username: {username}',
+    ADMIN_PANEL_SETTINGS_ADMINS_LABEL_USER: '👤 User: {user}',
+    ADMIN_PANEL_SETTINGS_ADMINS_GRANT_INPUT_TITLE: '👑 Grant administrator role',
+    ADMIN_PANEL_SETTINGS_ADMINS_REVOKE_INPUT_TITLE: '🚫 Revoke administrator role',
+    ADMIN_PANEL_SETTINGS_ADMINS_INPUT_BODY:
+      'Send Telegram ID of the user in a single message.',
+    ADMIN_PANEL_SETTINGS_ADMINS_REVOKE_INPUT_BODY:
+      'Send Telegram ID of the administrator whose role should be revoked.',
+    ADMIN_PANEL_SETTINGS_ADMINS_INPUT_FORMAT: 'Format: digits only',
+    ADMIN_PANEL_SETTINGS_ADMINS_INPUT_EXAMPLE: 'Example: 6712153038',
+    ADMIN_PANEL_SETTINGS_ADMINS_GRANT_CONFIRM_TITLE: '⚠️ Confirm role grant',
+    ADMIN_PANEL_SETTINGS_ADMINS_REVOKE_CONFIRM_TITLE: '⚠️ Confirm role revoke',
+    ADMIN_PANEL_SETTINGS_ADMINS_GRANT_CONFIRM_HINT:
+      'After confirmation, the user will get full access to the admin panel.',
+    ADMIN_PANEL_SETTINGS_ADMINS_REVOKE_CONFIRM_HINT:
+      'After confirmation, the user will lose access to the admin panel.',
+
+    ADMIN_PANEL_SETTINGS_LANGUAGE_TITLE: '🌐 Admin panel language',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_DESCRIPTION:
+      'In this section you can change admin panel interface language.',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_NOTE:
+      'This change does not affect clients or masters.',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_CURRENT: '📋 Current language: {language}',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_PICK: 'Choose a new language below:',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_CONFIRM_TITLE: '⚠️ Confirm language change',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_CONFIRM_FROM: '🌐 Was: {language}',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_CONFIRM_TO: '🌐 Will be: {language}',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_CONFIRM_HINT:
+      'Confirm if you want to save this change.',
+
+    ADMIN_PANEL_SETTINGS_NOT_SET: 'Not set',
+    ADMIN_PANEL_SETTINGS_WEEKDAY_FALLBACK: 'Day {day}',
+    ADMIN_PANEL_SETTINGS_WEEKLY_OFF: '{weekday} — day off',
+    ADMIN_PANEL_SETTINGS_WEEKLY_OPEN: '{weekday} — {from}–{to}',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_ABOUT: 'About studio',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_CONTACTS: 'Contacts',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_BOOKING_RULES: 'Booking rules',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_CANCELLATION: 'Cancellation and reschedule',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_PREPARATION: 'Procedure preparation',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_COMFORT: 'Visit comfort',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_GUARANTEE: 'Guarantee and service',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_FALLBACK: 'Content block',
+    ADMIN_PANEL_SETTINGS_STUDIO_TITLE: '🏢 Studio profile',
+    ADMIN_PANEL_SETTINGS_STUDIO_LABEL_NAME: '🏷 Name: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_LABEL_CITY: '📍 City: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_LABEL_ADDRESS: '📌 Address: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_LABEL_PHONE: '📞 Phone: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_LABEL_EMAIL: '✉️ Email: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_LABEL_TIMEZONE: '🕒 Timezone: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_SCHEDULE_TITLE: '🗓 Working hours',
+    ADMIN_PANEL_SETTINGS_STUDIO_SCHEDULE_EMPTY: 'Schedule is not configured yet',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_TITLE: 'ℹ️ Client content',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_ABOUT: '• About: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_CONTACTS: '• Contacts: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_BOOKING_RULES: '• Booking rules: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_CANCELLATION: '• Cancellation: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_PREPARATION: '• Preparation: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_COMFORT: '• Comfort: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_GUARANTEE: '• Guarantee: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_EDIT_PROMPT_TITLE: '✏️ Editing: {block}',
+    ADMIN_PANEL_SETTINGS_STUDIO_EDIT_PROMPT_CURRENT: 'Current text:',
+    ADMIN_PANEL_SETTINGS_STUDIO_EDIT_PROMPT_SEND:
+      'Send new text in a single message.',
+    ADMIN_PANEL_SETTINGS_STUDIO_EDIT_CONFIRM_TITLE: '⚠️ Confirm changes: {block}',
+    ADMIN_PANEL_SETTINGS_STUDIO_EDIT_CONFIRM_NEW: 'New text:',
+    ADMIN_PANEL_SETTINGS_STUDIO_EDIT_CONFIRM_HINT:
+      'Confirm to save changes in studio profile.',
+
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_TITLE: '🔔 System notifications',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_DESCRIPTION:
+      'Manage service notifications for your admin profile.',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_BOOKING_CONFIRMATION: 'Booking confirmation',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_STATUS_CHANGE: 'Booking status changes',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_STATUS_CHANGE_SHORT: 'Status changes',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_VISIT_REMINDER: 'Visit reminders',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_PROMO_NEWS: 'Promotions and news',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_CHANNELS_TITLE: '📡 Delivery channels',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_CHANNEL_TELEGRAM: '• Telegram: always active',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_CHANNEL_PHONE:
+      '• Phone: {phone} ({status})',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_CHANNEL_EMAIL:
+      '• Email: {email} ({status})',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_DELIVERY_VERIFIED: 'verified ✅',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_DELIVERY_UNVERIFIED: 'not verified ⚪',
+    ADMIN_PANEL_SETTINGS_MSG_LANGUAGE_UPDATED: 'Admin panel language updated successfully.',
+    ADMIN_PANEL_SETTINGS_MSG_STUDIO_BLOCK_UPDATED: 'Block "{block}" updated successfully.',
+    ADMIN_PANEL_SETTINGS_MSG_ADMIN_GRANTED:
+      '✅ Administrator role granted successfully.\n\n👤 {user}\n🆔 {telegramId}',
+    ADMIN_PANEL_SETTINGS_MSG_ADMIN_REVOKED:
+      '✅ Administrator role revoked successfully.\n\n👤 {user}\n🆔 {telegramId}',
+    ADMIN_PANEL_SETTINGS_MSG_USE_LANGUAGE_CONFIRM_BUTTONS:
+      'Use buttons below the message to confirm language change.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_LANGUAGE_PICK_BUTTONS:
+      'Use buttons below the message to choose language.',
+    ADMIN_PANEL_SETTINGS_MSG_TELEGRAM_ID_DIGITS_ONLY:
+      'Telegram ID must contain digits only.',
+    ADMIN_PANEL_SETTINGS_MSG_USER_NOT_FOUND_IN_STUDIO:
+      'User with this Telegram ID was not found in this studio.',
+    ADMIN_PANEL_SETTINGS_MSG_USER_ALREADY_ADMIN:
+      'This user already has admin role.',
+    ADMIN_PANEL_SETTINGS_MSG_USER_NOT_ADMIN:
+      'This user does not have admin role.',
+    ADMIN_PANEL_SETTINGS_MSG_CANNOT_REVOKE_SELF:
+      'You cannot revoke admin role from your own profile.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_ACTION_CONFIRM_BUTTONS:
+      'Use confirmation buttons below the message to finish this action.',
+    ADMIN_PANEL_SETTINGS_MSG_STUDIO_TEXT_VALIDATE_FAILED:
+      'Text validation failed for update.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_STUDIO_CONFIRM_BUTTONS:
+      'Use confirmation buttons below the message to finish changes.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_NOTIFICATIONS_BUTTONS:
+      'Use buttons below the message to manage notifications.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_SECTION_BUTTONS:
+      'Use buttons below the message to manage settings section.',
+
+    ADMIN_PANEL_RECORDS_MENU_TITLE: '📅 Bookings',
+    ADMIN_PANEL_RECORDS_MENU_SUBTITLE: 'Choose a category to view bookings:',
+    ADMIN_PANEL_RECORDS_CATEGORY_PENDING: '🆕 New bookings (awaiting confirmation)',
+    ADMIN_PANEL_RECORDS_CATEGORY_TODAY: '📍 Today',
+    ADMIN_PANEL_RECORDS_CATEGORY_TOMORROW: '📆 Tomorrow',
+    ADMIN_PANEL_RECORDS_CATEGORY_ALL: '🗂 All bookings',
+    ADMIN_PANEL_RECORDS_CATEGORY_CANCELED: '❌ Canceled',
+    ADMIN_PANEL_RECORDS_FEED_TITLE_TODAY: '📍 Bookings for today',
+    ADMIN_PANEL_RECORDS_FEED_TITLE_TOMORROW: '📆 Bookings for tomorrow',
+    ADMIN_PANEL_RECORDS_FEED_TITLE_ALL: '🗂 All bookings',
+    ADMIN_PANEL_RECORDS_FEED_TITLE_CANCELED: '❌ Canceled bookings',
+    ADMIN_PANEL_RECORDS_EMPTY_PENDING:
+      '📭 No pending bookings.\n\nAll new requests are already processed.',
+    ADMIN_PANEL_RECORDS_EMPTY_TODAY: '📭 No bookings for today.',
+    ADMIN_PANEL_RECORDS_EMPTY_TOMORROW: '📭 No bookings for tomorrow.',
+    ADMIN_PANEL_RECORDS_EMPTY_ALL: '📭 No bookings found.',
+    ADMIN_PANEL_RECORDS_EMPTY_CANCELED: '📭 No canceled bookings found.',
+    ADMIN_PANEL_RECORDS_EMPTY_VALUE: '—',
+    ADMIN_PANEL_RECORDS_INVALID_DATETIME: 'Invalid date/time',
+    ADMIN_PANEL_RECORDS_NOT_SET: 'Not set',
+    ADMIN_PANEL_RECORDS_CLIENT_FALLBACK: 'Client',
+    ADMIN_PANEL_RECORDS_STATUS_PENDING: '🟡 Awaiting confirmation',
+    ADMIN_PANEL_RECORDS_STATUS_CONFIRMED: '🟢 Confirmed',
+    ADMIN_PANEL_RECORDS_STATUS_COMPLETED: '✅ Completed',
+    ADMIN_PANEL_RECORDS_STATUS_CANCELED: '🔴 Canceled',
+    ADMIN_PANEL_RECORDS_STATUS_TRANSFERRED: '🟣 Transferred',
+    ADMIN_PANEL_RECORDS_LABEL_CLIENT: '👤 Client: {client}',
+    ADMIN_PANEL_RECORDS_LABEL_PHONE: '📱 Phone: {phone}',
+    ADMIN_PANEL_RECORDS_LABEL_EMAIL: '✉️ Email: {email}',
+    ADMIN_PANEL_RECORDS_LABEL_SERVICE: '💼 Service: {service}',
+    ADMIN_PANEL_RECORDS_LABEL_MASTER: '👩‍🎨 Master: {master}',
+    ADMIN_PANEL_RECORDS_LABEL_TIME: '🕒 Time: {time}',
+    ADMIN_PANEL_RECORDS_LABEL_PRICE: '💰 Price: {price}',
+    ADMIN_PANEL_RECORDS_LABEL_STATUS: '📌 Status: {status}',
+    ADMIN_PANEL_RECORDS_LABEL_PAGE: 'Page {page}/{total}',
+    ADMIN_PANEL_RECORDS_LABEL_COMMENT: '📝 Client comment:',
+    ADMIN_PANEL_RECORDS_HINT_PENDING:
+      'ℹ️ Available actions: confirm, cancel, reschedule, change master.',
+    ADMIN_PANEL_RECORDS_HINT_CONFIRMED:
+      'ℹ️ Booking is confirmed. Available actions: cancel, reschedule, change master.',
+    ADMIN_PANEL_RECORDS_HINT_COMPLETED: 'ℹ️ Booking is completed. Only hard delete is available.',
+    ADMIN_PANEL_RECORDS_HINT_CANCELED: 'ℹ️ Booking is canceled. Only hard delete is available.',
+    ADMIN_PANEL_RECORDS_HINT_TRANSFERRED: 'ℹ️ Booking is transferred. Only hard delete is available.',
+
+    ADMIN_PANEL_RECORDS_BTN_BACK: '⬅️ Back to admin panel',
+    ADMIN_PANEL_RECORDS_BTN_HOME: '🏠 Home menu',
+    ADMIN_PANEL_RECORDS_BTN_BACK_TO_MENU: '⬅️ Back to bookings menu',
+    ADMIN_PANEL_RECORDS_BTN_BACK_TO_LIST: '⬅️ Back to bookings list',
+    ADMIN_PANEL_RECORDS_BTN_CLEAR_CANCELED: '🧹 Clear canceled',
+    ADMIN_PANEL_RECORDS_BTN_CLEAR_CANCELED_CONFIRM: '✅ Yes, clear',
+    ADMIN_PANEL_RECORDS_BTN_CONTACT_CLIENT: '📞 Contact client',
+    ADMIN_PANEL_RECORDS_BTN_VIEW_CLIENT_PROFILE: '👤 Client profile',
+    ADMIN_PANEL_RECORDS_BTN_VIEW_MASTER_PROFILE: '👩‍🎨 Master profile',
+    ADMIN_PANEL_RECORDS_BTN_NEXT_PENDING: '⏭ Next pending',
+    ADMIN_PANEL_RECORDS_BTN_CONFIRM: '✅ Confirm',
+    ADMIN_PANEL_RECORDS_BTN_CANCEL: '❌ Cancel booking',
+    ADMIN_PANEL_RECORDS_BTN_RESCHEDULE: '🔄 Reschedule',
+    ADMIN_PANEL_RECORDS_BTN_CHANGE_MASTER: '👩‍🎨 Change master',
+    ADMIN_PANEL_RECORDS_BTN_HARD_DELETE: '🗑 Hard delete',
+    ADMIN_PANEL_RECORDS_BTN_HARD_DELETE_CONFIRM: '🗑 Yes, delete permanently',
+    ADMIN_PANEL_RECORDS_BTN_CANCEL_ACTION: '❌ Cancel action',
+    ADMIN_PANEL_RECORDS_BTN_CONFIRM_CANCEL: '✅ Yes, cancel booking',
+    ADMIN_PANEL_RECORDS_BTN_BACK_TO_DATE: '⬅️ Back to date',
+    ADMIN_PANEL_RECORDS_BTN_BACK_TO_TIME: '⬅️ Back to time',
+    ADMIN_PANEL_RECORDS_BTN_CONFIRM_RESCHEDULE: '✅ Confirm reschedule',
+    ADMIN_PANEL_RECORDS_BTN_CONFIRM_CHANGE_MASTER: '✅ Confirm master change',
+
+    ADMIN_PANEL_RECORDS_HARD_DELETE_CONFIRM_TITLE: '⚠️ Delete confirmation',
+    ADMIN_PANEL_RECORDS_HARD_DELETE_CONFIRM_BODY: 'Are you sure you want to delete this booking permanently?',
+    ADMIN_PANEL_RECORDS_HARD_DELETE_CONFIRM_HINT:
+      'After confirmation the booking will be removed with no restore option.',
+    ADMIN_PANEL_RECORDS_CLEAR_CANCELED_CONFIRM_TITLE: '⚠️ Clear canceled bookings',
+    ADMIN_PANEL_RECORDS_CLEAR_CANCELED_CONFIRM_BODY:
+      'Confirm clearing canceled bookings.\nWill be deleted: {total}.',
+    ADMIN_PANEL_RECORDS_CONTACT_TITLE: '📞 Client contact',
+    ADMIN_PANEL_RECORDS_CONTACT_HINT: 'Choose a contact channel below.',
+    ADMIN_PANEL_RECORDS_CONTACT_PHONE_LINE: '• 📱 Phone: {phone}',
+    ADMIN_PANEL_RECORDS_CONTACT_EMAIL_LINE: '• ✉️ Email: {email}',
+    ADMIN_PANEL_RECORDS_CONTACT_EMPTY: '⚠️ Contact data is unavailable.',
+    ADMIN_PANEL_RECORDS_CLIENT_PROFILE_TITLE: '👤 Client profile',
+    ADMIN_PANEL_RECORDS_CLIENT_PROFILE_ID: '🪪 ID: {id}',
+    ADMIN_PANEL_RECORDS_CLIENT_PROFILE_NAME: '👤 Name: {name}',
+    ADMIN_PANEL_RECORDS_CLIENT_PROFILE_TELEGRAM: '💬 Telegram: {telegram}',
+    ADMIN_PANEL_RECORDS_CLIENT_PROFILE_NEAREST: '📆 Nearest booking: {time}',
+    ADMIN_PANEL_RECORDS_CLIENT_PROFILE_STATUS: '📌 Status: {status}',
+    ADMIN_PANEL_RECORDS_CARD_TITLE: '📄 Booking card',
+
+    ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_TITLE: '⚠️ Cancel confirmation',
+    ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_ASK: 'Do you really want to cancel this booking?',
+    ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_WARNING_CONFIRMED:
+      '⚠️ You are canceling an already confirmed booking.\nPlease ensure it is coordinated with the client.',
+
+    ADMIN_PANEL_RECORDS_RESCHEDULE_STEP_DATE_TITLE: '🔄 Reschedule booking — step 1/3',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_STEP_TIME_TITLE: '🔄 Reschedule booking — step 2/3',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_STEP_CONFIRM_TITLE: '🔄 Reschedule booking — step 3/3',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_SELECT_DATE: 'Choose a new date.',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_SELECT_TIME: 'Choose a new time.',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_NO_TIMES:
+      '⚠️ No available time slots for this date. Please choose another date.',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_PREVIOUS_TIME: '🕒 Was: {time}',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_NEW_TIME: '🕒 Will be: {time}',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_CONFIRM_ASK: 'Confirm booking reschedule.',
+
+    ADMIN_PANEL_RECORDS_CHANGE_MASTER_TITLE: '👩‍🎨 Change master',
+    ADMIN_PANEL_RECORDS_CHANGE_MASTER_NO_CANDIDATES:
+      '⚠️ No available masters for this service.',
+    ADMIN_PANEL_RECORDS_CHANGE_MASTER_PICK: 'Choose a new master:',
+    ADMIN_PANEL_RECORDS_CHANGE_MASTER_CONFIRM_TITLE: '👩‍🎨 Confirm master change',
+    ADMIN_PANEL_RECORDS_CHANGE_MASTER_PREVIOUS: '👩‍🎨 Was: {master}',
+    ADMIN_PANEL_RECORDS_CHANGE_MASTER_NEW: '👩‍🎨 Will be: {master}',
+    ADMIN_PANEL_RECORDS_CHANGE_MASTER_CONFIRM_ASK: 'Confirm master change.',
+
+    ADMIN_PANEL_RECORDS_MSG_OPEN_CARD_FAILED_RETRY:
+      'Failed to open booking card. Please try again or return to the list.',
+    ADMIN_PANEL_RECORDS_MSG_OPEN_CARD_FAILED_REFRESH:
+      'Failed to open booking card. Try refreshing the list.',
+    ADMIN_PANEL_RECORDS_MSG_OPEN_CARD_FAILED_BACK_TO_LIST:
+      'Failed to open booking card. Returning to list.',
+    ADMIN_PANEL_RECORDS_MSG_MASTER_PROFILE_UNAVAILABLE:
+      'Master profile is unavailable or already inactive.',
+    ADMIN_PANEL_RECORDS_MSG_CURRENT_TIME_UNAVAILABLE:
+      'Failed to resolve current booking time. Please open the booking card again.',
+    ADMIN_PANEL_RECORDS_MSG_NO_MORE_PENDING: 'There are no more pending bookings right now.',
+    ADMIN_PANEL_RECORDS_MSG_CONFIRMED_AND_NOTIFIED:
+      'Booking confirmed. Client has been notified.',
+    ADMIN_PANEL_RECORDS_MSG_HARD_DELETE_ONLY_INACTIVE:
+      'This booking is still active. Hard delete is only available for inactive bookings.',
+    ADMIN_PANEL_RECORDS_MSG_ALREADY_ABSENT: 'Booking is already missing in the system.',
+    ADMIN_PANEL_RECORDS_MSG_HARD_DELETE_ABORT_ACTIVE:
+      'This booking is still active. Hard delete has been canceled.',
+    ADMIN_PANEL_RECORDS_MSG_NOT_DELETED_ALREADY_CHANGED:
+      'Booking was not deleted. It may have already been deleted or changed.',
+    ADMIN_PANEL_RECORDS_MSG_HARD_DELETED: 'Booking has been deleted permanently.',
+    ADMIN_PANEL_RECORDS_MSG_ACTION_CANCELLED: 'Action canceled.\n\nNo changes were made.',
+    ADMIN_PANEL_RECORDS_MSG_CANCELED_ALREADY_EMPTY:
+      'Canceled bookings list is already empty.',
+    ADMIN_PANEL_RECORDS_MSG_CANCELED_CLEARED:
+      'Canceled bookings cleared. Deleted: {count}.',
+    ADMIN_PANEL_RECORDS_MSG_CANCELED_AND_NOTIFIED:
+      'Booking canceled. Client has been notified.',
+    ADMIN_PANEL_RECORDS_MSG_CANNOT_RESCHEDULE:
+      'This booking can no longer be rescheduled.',
+    ADMIN_PANEL_RECORDS_MSG_RESCHEDULED_AND_NOTIFIED:
+      'Booking successfully rescheduled. Client has been notified.',
+    ADMIN_PANEL_RECORDS_MSG_CANNOT_CHANGE_MASTER:
+      'Master can no longer be changed for this booking.',
+    ADMIN_PANEL_RECORDS_MSG_MASTER_CHANGED_AND_NOTIFIED:
+      'Master changed successfully. Client has been notified.',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CONFIRMED: 'Confirmed',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CANCELED: 'Canceled',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_RESCHEDULED: 'Rescheduled',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_MASTER_CHANGED: 'Master changed',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CONFIRMED:
+      'Your booking has been confirmed by the administrator.',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CANCELED:
+      'Your booking has been canceled by the administrator.',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_RESCHEDULED:
+      'Your booking has been rescheduled by the administrator. Please check the new date and time.',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_MASTER_CHANGED:
+      'Administrator assigned a new master for your booking.',
+    ADMIN_PANEL_RECORDS_REASON_CANCELED_BY_ADMIN:
+      'Canceled by administrator via Telegram bot',
+    ADMIN_PANEL_RECORDS_REASON_RESCHEDULED_BY_ADMIN:
+      'Rescheduled by administrator via Telegram bot',
+  },
+  cs: {
+    ...ADMIN_PANEL_STATS_DICTIONARY.cs,
+    MENU_ADMIN_PANEL: '🛡 Admin panel',
+    ADMIN_PANEL_TITLE: '🛡 Admin panel',
+    ADMIN_PANEL_GREETING: 'Vítejte, {name}.',
+    ADMIN_PANEL_ROOT_DESCRIPTION:
+      'Spravujte rezervace, rozvrh, mistry a nastavení salonu na jednom místě.',
+    ADMIN_PANEL_ROOT_PICK_SECTION: 'Vyberte sekci níže.',
+    ADMIN_PANEL_ACCESS_DENIED:
+      '🔒 Admin panel není pro tento profil dostupný.\n\n' +
+      'Pokud má být přístup otevřen, kontaktujte vlastníka systému.',
+
+    ADMIN_PANEL_BTN_RECORDS: '📅 Rezervace',
+    ADMIN_PANEL_BTN_SCHEDULE: '🕒 Rozvrh',
+    ADMIN_PANEL_BTN_MASTERS: '👩‍🎨 Mistři',
+    ADMIN_PANEL_BTN_SERVICES: '💼 Služby',
+    ADMIN_PANEL_BTN_STATS: '📊 Statistiky',
+    ADMIN_PANEL_BTN_SETTINGS: '⚙️ Nastavení',
+    ADMIN_PANEL_BTN_EXIT: '🚪 Zavřít',
+    ADMIN_PANEL_BTN_CONFIRM: '✅ Potvrdit',
+    ADMIN_PANEL_BTN_CANCEL_ACTION: '❌ Zrušit akci',
+    ADMIN_PANEL_BTN_REFRESH: '🔄 Obnovit',
+    ADMIN_PANEL_BTN_PREV: '⬅️ Předchozí',
+    ADMIN_PANEL_BTN_NEXT: '➡️ Další',
+    ADMIN_PANEL_BTN_BACK_TO_PANEL: '⬅️ Zpět na admin panel',
+    ADMIN_PANEL_BTN_BACK_TO_MENU: '⬅️ Zpět do menu',
+    ADMIN_PANEL_BTN_BACK_TO_LIST: '⬅️ Zpět na seznam',
+
+    ADMIN_PANEL_COMMON_MSG_ADMIN_USER_UNRESOLVED:
+      'Nepodařilo se určit uživatele administrátora.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_CALLBACK_LANGUAGE_SELECT:
+      'Neplatná callback akce pro výběr jazyka.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_CALLBACK_NOTIFICATION_TOGGLE:
+      'Neplatná callback akce pro změnu typu oznámení.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_CALLBACK_STUDIO_BLOCK_EDIT:
+      'Neplatná callback akce pro úpravu bloku studia.',
+    ADMIN_PANEL_COMMON_MSG_STUDIO_TEXT_TOO_SHORT:
+      'Text je příliš krátký (minimum 10 znaků).',
+    ADMIN_PANEL_COMMON_MSG_STUDIO_TEXT_TOO_LONG:
+      'Text je příliš dlouhý (maximum 4000 znaků).',
+    ADMIN_PANEL_COMMON_MSG_INVALID_BOOKING_CALLBACK:
+      'Neplatná callback akce pro rezervaci.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_NUMERIC_FIELD: 'Neplatné {field}.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_WEEKDAY: 'Neplatný den v týdnu.',
+    ADMIN_PANEL_COMMON_MSG_INVALID_MONTH_CODE: 'Neplatný kód měsíčního reportu.',
+    ADMIN_PANEL_COMMON_MSG_DATE_FORMAT_DDMMYYYY: 'Datum musí být ve formátu DD.MM.RRRR.',
+    ADMIN_PANEL_COMMON_MSG_DATE_INVALID: 'Bylo zadáno neplatné datum.',
+    ADMIN_PANEL_COMMON_MSG_DATE_IN_PAST: 'Nelze zadat datum v minulosti.',
+    ADMIN_PANEL_COMMON_MSG_HOLIDAY_NAME_TOO_SHORT:
+      'Název svátku musí mít alespoň 2 znaky.',
+    ADMIN_PANEL_COMMON_MSG_HOLIDAY_NAME_TOO_LONG:
+      'Název svátku je příliš dlouhý (maximum 120 znaků).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_NAME_TOO_SHORT:
+      'Název služby musí mít alespoň 2 znaky.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_NAME_TOO_LONG:
+      'Název služby je příliš dlouhý (maximum 120 znaků).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_GUARANTEE_TOO_SHORT:
+      'Text garance musí mít alespoň 3 znaky.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_GUARANTEE_TOO_LONG:
+      'Text garance je příliš dlouhý (maximum 500 znaků).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_TITLE_TOO_SHORT:
+      'Název kroku musí mít alespoň 2 znaky.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_TITLE_TOO_LONG:
+      'Název kroku je příliš dlouhý (maximum 120 znaků).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_DESCRIPTION_TOO_SHORT:
+      'Popis kroku musí mít alespoň 10 znaků.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_STEP_DESCRIPTION_TOO_LONG:
+      'Popis kroku je příliš dlouhý (maximum 500 znaků).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_RESULT_TOO_SHORT:
+      'Výsledek služby musí mít alespoň 10 znaků.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_RESULT_TOO_LONG:
+      'Výsledek služby je příliš dlouhý (maximum 1200 znaků).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DESCRIPTION_TOO_SHORT:
+      'Popis služby musí mít alespoň 10 znaků.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DESCRIPTION_TOO_LONG:
+      'Popis služby je příliš dlouhý (maximum 1600 znaků).',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_PRICE_FORMAT:
+      'Cena musí být číslo ve formátu 750 nebo 750.50.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_PRICE_NEGATIVE: 'Cena nemůže být záporná.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_PRICE_TOO_HIGH: 'Cena je příliš vysoká.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DURATION_INTEGER:
+      'Délka musí být celé číslo v minutách.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DURATION_NUMBER: 'Délka musí být číslo.',
+    ADMIN_PANEL_COMMON_MSG_SERVICE_DURATION_RANGE:
+      'Délka služby musí být v rozsahu 5..720 minut.',
+    ADMIN_PANEL_COMMON_MSG_STEP_DURATION_INTEGER:
+      'Délka kroku musí být celé číslo v minutách.',
+    ADMIN_PANEL_COMMON_MSG_STEP_DURATION_NUMBER: 'Délka kroku musí být číslo.',
+    ADMIN_PANEL_COMMON_MSG_STEP_DURATION_RANGE:
+      'Délka kroku musí být v rozsahu 1..720 minut.',
+    ADMIN_PANEL_COMMON_MSG_DATE_RANGE_FORMAT:
+      'Období musí být ve formátu DD.MM.RRRR - DD.MM.RRRR.',
+    ADMIN_PANEL_COMMON_MSG_DATE_RANGE_INVALID:
+      'Datum konce nemůže být dříve než datum začátku.',
+    ADMIN_PANEL_COMMON_MSG_TIME_FORMAT:
+      'Čas musí být ve formátu HH:MM (např. 10:00).',
+    ADMIN_PANEL_COMMON_MSG_TIME_HOUR_RANGE: 'Hodina musí být v rozsahu 0 až 23.',
+    ADMIN_PANEL_COMMON_MSG_DATE_CODE_INVALID: 'Neplatný kód data.',
+    ADMIN_PANEL_COMMON_MSG_DATE_VALUE_INVALID: 'Neplatné datum.',
+    ADMIN_PANEL_COMMON_LABEL_DAY_OFF_ID: 'id dne volna',
+    ADMIN_PANEL_COMMON_LABEL_HOLIDAY_ID: 'id svátečního dne',
+    ADMIN_PANEL_COMMON_LABEL_CLIENT_ID: 'id klienta',
+    ADMIN_PANEL_SCHEDULE_MSG_USE_SECTION_BUTTONS:
+      'Pro správu této sekce použijte tlačítka pod zprávou.',
+
+    ADMIN_PANEL_SERVICES_BTN_CREATE: '➕ Vytvořit novou službu',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_ADD_ANOTHER: '➕ Přidat další',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_CONTINUE: '➡️ Pokračovat',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_CANCEL: '❌ Zrušit vytváření',
+    ADMIN_PANEL_SERVICES_BTN_CREATE_CONFIRM: '✅ Potvrdit vytvoření',
+    ADMIN_PANEL_SERVICES_BTN_OPEN_STATS: '📊 Statistiky služby',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_OPEN: '✏️ Upravit službu',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_NAME: '🪪 Změnit název',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_PRICE: '💰 Změnit cenu',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_DURATION: '⏱ Změnit trvání',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_DESCRIPTION: '📝 Změnit popis',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_RESULT: '🎯 Změnit výsledek',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_STEP: '🧩 Změnit název kroku',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_STEP_DESCRIPTION: '📝 Změnit popis kroku',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_STEP_DURATION: '⏱ Změnit čas kroku',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_GUARANTEE: '🛡 Změnit garanci',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_DELETE: '🗑 Smazat službu',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_CONFIRM_DELETE: '🗑 Ano, smazat',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_CONFIRM: '✅ Uložit',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_CANCEL: '❌ Zrušit',
+    ADMIN_PANEL_SERVICES_BTN_EDIT_BACK: '⬅️ Zpět na kartu služby',
+    ADMIN_PANEL_SERVICES_BTN_BACK_TO_LIST: '⬅️ Zpět na seznam služeb',
+    ADMIN_PANEL_SERVICES_BTN_BACK: '⬅️ Zpět na admin panel',
+    ADMIN_PANEL_SERVICES_LABEL_NOT_SPECIFIED: 'Neuvedeno',
+    ADMIN_PANEL_SERVICES_LABEL_ACTIVE: 'Aktivní',
+    ADMIN_PANEL_SERVICES_LABEL_INACTIVE: 'Neaktivní',
+    ADMIN_PANEL_SERVICES_LABEL_MINUTES_SHORT: 'min',
+    ADMIN_PANEL_SERVICES_LABEL_DAYS_SHORT: 'dnů',
+    ADMIN_PANEL_SERVICES_LABEL_STEP_EMPTY: '🔹 Kroky nejsou uvedeny',
+    ADMIN_PANEL_SERVICES_LABEL_GUARANTEE_EMPTY: '🔹 Garance nejsou uvedeny',
+    ADMIN_PANEL_SERVICES_CATALOG_TITLE: '💼 Služby salonu',
+    ADMIN_PANEL_SERVICES_CATALOG_EMPTY: 'Zatím nejsou žádné aktivní služby.',
+    ADMIN_PANEL_SERVICES_CATALOG_EMPTY_HINT:
+      'Přidejte služby ve studiu, aby se zobrazily v této sekci.',
+    ADMIN_PANEL_SERVICES_CATALOG_PICK: 'Vyberte službu pro zobrazení karty:',
+    ADMIN_PANEL_SERVICES_CREATE_START_TEXT:
+      '➕ Vytvoření nové služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Nyní postupně vyplníme kartu služby:\n' +
+      '1) Název\n' +
+      '2) Trvání\n' +
+      '3) Cena\n' +
+      '4) Popis\n' +
+      '5) Kroky\n' +
+      '6) Garance\n' +
+      '7) Výsledek\n\n' +
+      'Začínáme názvem.',
+    ADMIN_PANEL_SERVICES_CREATE_NAME_INPUT_TEXT:
+      '💼 Název nové služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Pošlete název služby jednou zprávou.\n' +
+      'Minimum 2 znaky, maximum 120 znaků.',
+    ADMIN_PANEL_SERVICES_CREATE_DURATION_INPUT_TEXT:
+      '⏱ Trvání nové služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      'Zadejte trvání v minutách.\n' +
+      'Rozsah: 5..720.',
+    ADMIN_PANEL_SERVICES_CREATE_PRICE_INPUT_TEXT:
+      '💰 Cena nové služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      'Pošlete cenu ve formátu 750 nebo 750.50.',
+    ADMIN_PANEL_SERVICES_CREATE_DESCRIPTION_INPUT_TEXT:
+      '📝 Popis nové služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      'Pošlete popis služby jednou zprávou.\n' +
+      'Minimum 10 znaků, maximum 1600 znaků.',
+    ADMIN_PANEL_SERVICES_CREATE_PREVIEW_TITLE: '📋 Náhled nové služby',
+    ADMIN_PANEL_SERVICES_CREATE_PREVIEW_CONFIRM: 'Potvrďte vytvoření služby.',
+    ADMIN_PANEL_SERVICES_CREATE_SUCCESS_TITLE: '✅ Nová služba byla vytvořena',
+    ADMIN_PANEL_SERVICES_DETAILS_TITLE: '📄 Karta služby',
+    ADMIN_PANEL_SERVICES_EDIT_MENU_TITLE: '✏️ Úprava služby',
+    ADMIN_PANEL_SERVICES_EDIT_MENU_PICK: 'Vyberte, co chcete změnit:',
+    ADMIN_PANEL_SERVICES_EDIT_CONFIRM_TITLE: '✅ Potvrzení změny',
+    ADMIN_PANEL_SERVICES_EDIT_CONFIRM_SAVE: 'Potvrďte uložení změn.',
+    ADMIN_PANEL_SERVICES_DELETE_CONFIRM_TITLE: '⚠️ Potvrzení smazání služby',
+    ADMIN_PANEL_SERVICES_DELETE_CONFIRM_BODY:
+      'Po potvrzení bude služba skryta pro klienty i mistry.\n' +
+      'Historické rezervace zůstanou, ale nové rezervace této služby budou nedostupné.\n\n' +
+      'Potvrďte akci.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_TITLE_INPUT_TEXT:
+      '🧩 Krok č.{stepNo}: název\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Pošlete název kroku jednou zprávou.\n' +
+      'Minimum 2 znaky, maximum 120 znaků.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_DURATION_INPUT_TEXT:
+      '🧩 Krok č.{stepNo}: trvání\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Název kroku: {stepTitle}\n\n' +
+      'Zadejte trvání kroku v minutách.\n' +
+      'Rozsah: 1..720.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_DESCRIPTION_INPUT_TEXT:
+      '🧩 Krok č.{stepNo}: popis\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Název kroku: {stepTitle}\n' +
+      'Trvání: {durationMinutes} {minutesLabel}\n\n' +
+      'Pošlete popis kroku jednou zprávou.\n' +
+      'Minimum 10 znaků, maximum 500 znaků.',
+    ADMIN_PANEL_SERVICES_CREATE_STEP_ADDED_TEXT:
+      '✅ Krok přidán\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Přidán krok č.{stepNo}: {stepTitle} ({durationMinutes} {minutesLabel})\n' +
+      'Celkem kroků: {totalSteps}\n\n' +
+      'Vyberte další akci.',
+    ADMIN_PANEL_SERVICES_CREATE_GUARANTEE_INPUT_TEXT:
+      '🛡 Garance č.{guaranteeNo}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Pošlete text garance jednou zprávou.\n' +
+      'Minimum 3 znaky, maximum 500 znaků.',
+    ADMIN_PANEL_SERVICES_CREATE_GUARANTEE_ADDED_TEXT:
+      '✅ Garance přidána\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Přidána garance č.{guaranteeNo}:\n{guaranteeText}\n\n' +
+      'Celkem garancí: {totalGuarantees}\n\n' +
+      'Vyberte další akci.',
+    ADMIN_PANEL_SERVICES_CREATE_RESULT_INPUT_TEXT:
+      '🎯 Výsledek služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      'Pošlete popis výsledku pro klienta.\n' +
+      'Minimum 10 znaků, maximum 1200 znaků.',
+    ADMIN_PANEL_SERVICES_CREATE_PREVIEW_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Název: {name}\n' +
+      '⏱ Trvání: {durationMinutes} {minutesLabel}\n' +
+      '💰 Cena: {price}\n\n' +
+      '📝 Popis\n{description}\n\n' +
+      '✨ Kroky\n{stepsText}\n\n' +
+      '🛡 Garance\n{guaranteesText}\n\n' +
+      '🎯 Výsledek\n{resultDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_CREATE_SUCCESS_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 {name}\n' +
+      '🪪 ID: {serviceId}\n' +
+      '⏱ Trvání: {durationMinutes} {minutesLabel}\n' +
+      '💰 Cena: {price}\n' +
+      '🧩 Kroků: {stepsCount}\n' +
+      '🛡 Garancí: {guaranteesCount}',
+    ADMIN_PANEL_SERVICES_DETAILS_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Název: {name}\n' +
+      '🪪 ID: {serviceId}\n' +
+      '⏱ Trvání: {durationMinutes} {minutesLabel}\n' +
+      '💰 Cena: {price}\n' +
+      '📌 Stav: {status}\n\n' +
+      '📝 Popis\n{description}\n\n' +
+      '🎯 Výsledek\n{result}\n\n' +
+      '✨ Kroky procedury\n{stepsText}\n\n' +
+      '🛡 Garance\n{guaranteesText}',
+    ADMIN_PANEL_SERVICES_EDIT_MENU_BODY_TEXT:
+      '{title}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '⏱ Aktuální trvání: {durationMinutes} {minutesLabel}\n\n' +
+      '💰 Aktuální cena: {price}\n\n' +
+      '📝 Aktuální popis:\n{description}\n\n' +
+      '🎯 Aktuální výsledek:\n{resultDescription}\n\n' +
+      '{pickText}',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_SELECT_TEXT:
+      '🛡 Úprava garance služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      'Vyberte garanci pro změnu:\n\n' +
+      '{list}',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_BUTTON_LABEL: '{badge} Garance č.{guaranteeNo}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_PICK_TITLE:
+      'Vyberte krok, jehož název chcete změnit:',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_PICK_DESCRIPTION:
+      'Vyberte krok, jehož popis chcete změnit:',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_PICK_DURATION:
+      'Vyberte krok, jehož čas chcete změnit:',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_TEXT:
+      '🧩 Úprava kroku služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '{modeText}\n\n' +
+      '{list}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_SELECT_ROW_TEXT:
+      '{badge} Krok č.{stepNo} ({durationMinutes} {minutesLabel}) — {title}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_BUTTON_LABEL: '{badge} Krok č.{stepNo}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_INPUT_TEXT:
+      '✏️ Změna názvu kroku\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n' +
+      '🧩 Krok č.{stepNo}\n\n' +
+      'Aktuální název:\n{currentStepTitle}\n\n' +
+      'Pošlete nový název kroku jednou zprávou.\n' +
+      'Minimum 2 znaky, maximum 120 znaků.',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n' +
+      '🧩 Krok č.{stepNo}\n\n' +
+      'Nový název:\n{nextStepTitle}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DESCRIPTION_INPUT_TEXT:
+      '✏️ Změna popisu kroku\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n' +
+      '🧩 Krok č.{stepNo}\n\n' +
+      'Aktuální popis:\n{currentStepDescription}\n\n' +
+      'Pošlete nový popis kroku jednou zprávou.\n' +
+      'Minimum 10 znaků, maximum 500 znaků.',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DESCRIPTION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n' +
+      '🧩 Krok č.{stepNo}\n\n' +
+      'Nový popis:\n{nextStepDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DURATION_INPUT_TEXT:
+      '✏️ Změna času kroku\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n' +
+      '🧩 Krok č.{stepNo}\n\n' +
+      'Aktuální čas kroku: {currentStepDurationMinutes} {minutesLabel}\n\n' +
+      'Pošlete nové trvání kroku v minutách.\n' +
+      'Rozsah: 1..720.',
+    ADMIN_PANEL_SERVICES_EDIT_STEP_DURATION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n' +
+      '🧩 Krok č.{stepNo}\n\n' +
+      'Nový čas kroku: {nextStepDurationMinutes} {minutesLabel}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_INPUT_TEXT:
+      '✏️ Změna garance\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n' +
+      '🛡 Garance č.{guaranteeNo}\n\n' +
+      'Aktuální text:\n{currentGuaranteeText}\n\n' +
+      'Pošlete nový text garance jednou zprávou.\n' +
+      'Minimum 3 znaky, maximum 500 znaků.',
+    ADMIN_PANEL_SERVICES_EDIT_GUARANTEE_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n' +
+      '🛡 Garance č.{guaranteeNo}\n\n' +
+      'Nový text:\n{nextGuaranteeText}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_NAME_INPUT_TEXT:
+      '✏️ Změna názvu služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Aktuální název: {serviceName}\n\n' +
+      'Pošlete nový název jednou zprávou.\n' +
+      'Minimum 2 znaky, maximum 120 znaků.',
+    ADMIN_PANEL_SERVICES_EDIT_DURATION_INPUT_TEXT:
+      '✏️ Změna trvání služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '⏱ Aktuální trvání: {currentDurationMinutes} {minutesLabel}\n\n' +
+      'Pošlete nové trvání v minutách.\n' +
+      'Rozsah: 5..720',
+    ADMIN_PANEL_SERVICES_EDIT_PRICE_INPUT_TEXT:
+      '✏️ Změna ceny služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '💰 Aktuální cena: {currentPrice}\n\n' +
+      'Pošlete novou cenu jednou zprávou.\n' +
+      'Formát: 750 nebo 750.50',
+    ADMIN_PANEL_SERVICES_EDIT_DESCRIPTION_INPUT_TEXT:
+      '✏️ Změna popisu služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '📝 Aktuální popis:\n{currentDescription}\n\n' +
+      'Pošlete nový popis jednou zprávou.\n' +
+      'Minimum 10 znaků, maximum 1600 znaků.',
+    ADMIN_PANEL_SERVICES_EDIT_RESULT_INPUT_TEXT:
+      '✏️ Změna výsledku služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '🎯 Aktuální výsledek:\n{currentResultDescription}\n\n' +
+      'Pošlete nový text výsledku jednou zprávou.\n' +
+      'Minimum 10 znaků, maximum 1200 znaků.',
+    ADMIN_PANEL_SERVICES_EDIT_RESULT_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '🎯 Nový výsledek:\n{nextResultDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_DESCRIPTION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '📝 Nový popis:\n{nextDescription}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_DURATION_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '⏱ Nové trvání: {nextDurationMinutes} {minutesLabel}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_PRICE_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '💰 Nová cena: {nextPrice}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_EDIT_NAME_CONFIRM_TEXT:
+      '{confirmTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '🪪 Nový název: {nextServiceName}\n\n' +
+      '{confirmText}',
+    ADMIN_PANEL_SERVICES_DELETE_CONFIRM_TEXT:
+      '{deleteTitle}\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '{deleteBody}',
+    ADMIN_PANEL_SERVICES_STATS_STUB_TEXT:
+      '📊 Statistiky služby\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '💼 Služba: {serviceName}\n\n' +
+      '⚠️ Sekce je dočasně nedostupná.\n' +
+      'Po napojení zde budou finanční a provozní ukazatele služby.',
+    ADMIN_PANEL_SERVICES_DEFAULT_NAME: 'Nová služba',
+    ADMIN_PANEL_SERVICES_MSG_NOT_FOUND_OR_INACTIVE:
+      'Služba nebyla nalezena nebo je neaktivní.',
+    ADMIN_PANEL_SERVICES_MSG_NOT_FOUND_FOR_EDIT:
+      'Služba pro úpravu nebyla nalezena.',
+    ADMIN_PANEL_SERVICES_MSG_SET_STEP_TITLE_FIRST:
+      'Nejprve zadejte název kroku.',
+    ADMIN_PANEL_SERVICES_MSG_SET_STEP_TITLE_AND_DURATION_FIRST:
+      'Nejprve vyplňte název a trvání kroku.',
+    ADMIN_PANEL_SERVICES_MSG_PREVIEW_BUILD_FAILED:
+      'Nepodařilo se sestavit data služby pro náhled.',
+    ADMIN_PANEL_SERVICES_MSG_INPUT_VALIDATION_FAILED:
+      'Při kontrole zadaných dat došlo k chybě.',
+    ADMIN_PANEL_SERVICES_MSG_USE_STEP_ACTIONS_BUTTONS:
+      'Pro pokračování ve vytváření kroků použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_SERVICES_MSG_USE_GUARANTEE_ACTIONS_BUTTONS:
+      'Pro pokračování ve vytváření garancí použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_SERVICES_MSG_USE_CREATE_CONFIRM_BUTTONS:
+      'Pro dokončení vytvoření služby použijte potvrzovací tlačítka pod zprávou.',
+    ADMIN_PANEL_SERVICES_MSG_SELECT_STEP_FIRST:
+      'Nejprve vyberte krok ze seznamu.',
+    ADMIN_PANEL_SERVICES_MSG_SELECT_GUARANTEE_FIRST:
+      'Nejprve vyberte garanci ze seznamu.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_NAME_FAILED:
+      'Při ověření názvu služby došlo k chybě.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_DURATION_FAILED:
+      'Při ověření trvání služby došlo k chybě.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_PRICE_FAILED:
+      'Při ověření ceny služby došlo k chybě.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_DESCRIPTION_FAILED:
+      'Při ověření popisu služby došlo k chybě.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_STEP_TITLE_FAILED:
+      'Při ověření názvu kroku došlo k chybě.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_STEP_DESCRIPTION_FAILED:
+      'Při ověření popisu kroku došlo k chybě.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_STEP_DURATION_FAILED:
+      'Při ověření času kroku došlo k chybě.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_GUARANTEE_FAILED:
+      'Při ověření textu garance došlo k chybě.',
+    ADMIN_PANEL_SERVICES_MSG_VALIDATE_RESULT_FAILED:
+      'Při ověření textu výsledku došlo k chybě.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_STEP_BUTTONS:
+      'Pro výběr kroku použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_GUARANTEE_BUTTONS:
+      'Pro výběr garance použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_CONFIRM_BUTTONS:
+      'Pro dokončení změn použijte potvrzovací tlačítka pod zprávou.',
+    ADMIN_PANEL_SERVICES_MSG_USE_EDIT_MENU_BUTTONS:
+      'Pro úpravu služby použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_SERVICES_MSG_USE_CREATE_INPUT_OR_BUTTONS:
+      'Pro vytvoření služby použijte aktuální krok nebo tlačítka pod zprávou.',
+    ADMIN_PANEL_SERVICES_MSG_COMPLETE_CURRENT_STEP_FIRST:
+      'Nejprve dokončete aktuální krok vytváření.',
+    ADMIN_PANEL_SERVICES_MSG_MAX_STEPS_REACHED:
+      'Byl dosažen maximální počet kroků (20). Pokračujte dál.',
+    ADMIN_PANEL_SERVICES_MSG_ADD_MIN_ONE_STEP:
+      'Před přechodem na garance přidejte alespoň 1 krok.',
+    ADMIN_PANEL_SERVICES_MSG_MAX_GUARANTEES_REACHED:
+      'Byl dosažen maximální počet garancí (10). Pokračujte dál.',
+    ADMIN_PANEL_SERVICES_MSG_ADD_MIN_ONE_GUARANTEE:
+      'Před přechodem na výsledek přidejte alespoň 1 garanci.',
+    ADMIN_PANEL_SERVICES_MSG_INSUFFICIENT_CREATE_DATA:
+      'Nedostatek dat pro vytvoření služby. Zkontrolujte předchozí kroky.',
+    ADMIN_PANEL_SERVICES_MSG_STEPS_NOT_FOUND:
+      'Pro tuto službu nebyly nalezeny kroky. Nejprve je přidejte v DB.',
+    ADMIN_PANEL_SERVICES_MSG_GUARANTEES_NOT_FOUND:
+      'Pro tuto službu nebyly nalezeny garance. Nejprve je přidejte v DB.',
+    ADMIN_PANEL_SERVICES_LABEL_STEP_NUMBER: 'číslo kroku',
+    ADMIN_PANEL_SERVICES_LABEL_GUARANTEE_NUMBER: 'číslo garance',
+    ADMIN_PANEL_SERVICES_MSG_STEP_NOT_FOUND:
+      'Vybraný krok nebyl nalezen. Zkuste to znovu.',
+    ADMIN_PANEL_SERVICES_MSG_GUARANTEE_NOT_FOUND:
+      'Vybraná garance nebyla nalezena. Zkuste to znovu.',
+    ADMIN_PANEL_SERVICES_MSG_DEACTIVATED_SUCCESS:
+      'Služba "{serviceName}" byla úspěšně odstraněna ze seznamu aktivních.',
+    ADMIN_PANEL_SERVICES_MSG_GUARANTEE_UPDATED_SUCCESS:
+      'Garance č.{guaranteeNo} pro službu "{serviceName}" byla úspěšně upravena.',
+    ADMIN_PANEL_SERVICES_MSG_STEP_TITLE_UPDATED_SUCCESS:
+      'Název kroku č.{stepNo} pro službu "{serviceName}" byl úspěšně upraven.',
+    ADMIN_PANEL_SERVICES_MSG_STEP_DESCRIPTION_UPDATED_SUCCESS:
+      'Popis kroku č.{stepNo} pro službu "{serviceName}" byl úspěšně upraven.',
+    ADMIN_PANEL_SERVICES_MSG_STEP_DURATION_UPDATED_SUCCESS:
+      'Čas kroku č.{stepNo} pro službu "{serviceName}" byl úspěšně upraven.',
+    ADMIN_PANEL_SERVICES_MSG_NAME_UPDATED_SUCCESS:
+      'Název služby "{serviceName}" byl úspěšně upraven.',
+    ADMIN_PANEL_SERVICES_MSG_DURATION_UPDATED_SUCCESS:
+      'Trvání služby "{serviceName}" bylo úspěšně upraveno.',
+    ADMIN_PANEL_SERVICES_MSG_PRICE_UPDATED_SUCCESS:
+      'Cena služby "{serviceName}" byla úspěšně upravena.',
+    ADMIN_PANEL_SERVICES_MSG_DESCRIPTION_UPDATED_SUCCESS:
+      'Popis služby "{serviceName}" byl úspěšně upraven.',
+    ADMIN_PANEL_SERVICES_MSG_RESULT_UPDATED_SUCCESS:
+      'Výsledek služby "{serviceName}" byl úspěšně upraven.',
+    ADMIN_PANEL_MASTERS_BTN_CREATE_OPEN: '➕ Přidat mistra',
+    ADMIN_PANEL_MASTERS_BTN_CREATE_START: '✅ Spustit vytvoření mistra',
+    ADMIN_PANEL_MASTERS_BTN_CREATE_CANCEL: '❌ Zrušit vytvoření',
+    ADMIN_PANEL_MASTERS_BTN_CREATE_SERVICES_DONE: '✅ Dokončit výběr',
+    ADMIN_PANEL_MASTERS_BTN_CREATE_CONFIRM: '✅ Potvrdit vytvoření',
+    ADMIN_PANEL_MASTERS_BTN_CREATE_MARK_DAY_OFF: '🚫 Označit jako volno',
+    ADMIN_PANEL_MASTERS_BTN_CREATE_BACK_TO_SCHEDULE: '⬅️ Zpět na rozvrh',
+    ADMIN_PANEL_MASTERS_BTN_OPEN_BOOKINGS: '📅 Rezervace mistra',
+    ADMIN_PANEL_MASTERS_BTN_OPEN_STATS: '📊 Statistiky mistra',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_OPEN: '✏️ Upravit mistra',
+    ADMIN_PANEL_MASTERS_BTN_DELETE_OPEN: '❌ Smazat mistra',
+    ADMIN_PANEL_MASTERS_BTN_DELETE_CONFIRM: '🗑 Ano, smazat mistra',
+    ADMIN_PANEL_MASTERS_BTN_DELETE_CANCEL: '❌ Zrušit smazání',
+    ADMIN_PANEL_MASTERS_BTN_BOOKINGS_BACK_TO_MASTER: '⬅️ Zpět na profil mistra',
+    ADMIN_PANEL_MASTERS_BTN_BACK_TO_LIST: '⬅️ Zpět na seznam mistrů',
+    ADMIN_PANEL_MASTERS_BTN_BACK: '⬅️ Zpět na admin panel',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_DISPLAY_NAME: '✏️ Jméno mistra',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_BIO: '📝 Popis mistra',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_MATERIALS: '🧴 Doplňující informace',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_SERVICES: '💼 Spravovat služby',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_PHONE: '📞 Telefon mistra',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_EMAIL: '✉️ Email mistra',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_STARTED_ON: '📅 Datum začátku',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_PROCEDURES: '📊 Počet procedur',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_BACK: '⬅️ Zpět na profil mistra',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_SERVICES_ADD: '➕ Přidat službu',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_SERVICES_REMOVE: '➖ Odebrat službu',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_SERVICES_BACK: '⬅️ Zpět na úpravu mistra',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_CANCEL: '❌ Zrušit úpravy',
+    ADMIN_PANEL_MASTERS_BTN_EDIT_CONFIRM: '✅ Uložit změny',
+    ADMIN_PANEL_MASTERS_MSG_PICK_WEEKDAY_FIRST: 'Nejprve vyberte den týdne.',
+    ADMIN_PANEL_MASTERS_MSG_PICK_DAY_AND_FROM_FIRST:
+      'Nejprve vyberte den a zadejte čas začátku.',
+    ADMIN_PANEL_MASTERS_MSG_TO_AFTER_FROM:
+      'Čas konce musí být později než čas začátku.',
+    ADMIN_PANEL_MASTERS_MSG_WORK_TIME_SAVED:
+      'Pracovní čas pro den byl úspěšně uložen.',
+    ADMIN_PANEL_MASTERS_MSG_USE_SERVICES_BUTTONS:
+      'ℹ️ Pro výběr služeb použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_MASTERS_MSG_USE_SCHEDULE_BUTTONS:
+      'ℹ️ Pro nastavení rozvrhu použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_MASTERS_MSG_USE_CONFIRM_BUTTONS:
+      'ℹ️ Pro dokončení vytvoření použijte potvrzovací tlačítka pod zprávou.',
+    ADMIN_PANEL_MASTERS_MSG_USE_CREATE_BUTTONS:
+      'ℹ️ Pro vytvoření mistra použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_MASTERS_MSG_CREATE_VALIDATION_FAILED:
+      'Při ověření dat pro vytvoření mistra došlo k chybě.',
+    ADMIN_PANEL_MASTERS_MSG_STUDIO_NOT_RESOLVED:
+      'Nepodařilo se určit studio administrátora.',
+    ADMIN_PANEL_MASTERS_MSG_USER_NOT_FOUND_IN_STUDIO:
+      'Uživatel s tímto Telegram ID nebyl v tomto studiu nalezen.',
+    ADMIN_PANEL_MASTERS_MSG_USER_NOT_MASTER:
+      'Uživatel s tímto Telegram ID nemá roli mistra.',
+    ADMIN_PANEL_MASTERS_MSG_MASTER_NOT_FOUND_OR_INACTIVE:
+      'Mistr nebyl nalezen mezi aktivními profily nebo je již neaktivní.',
+    ADMIN_PANEL_MASTERS_MSG_USE_DELETE_CONFIRM_BUTTONS:
+      'ℹ️ Pro potvrzení nebo zrušení smazání použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_MASTERS_MSG_DELETE_VALIDATION_FAILED:
+      'Při ověření dat pro smazání mistra došlo k chybě.',
+    ADMIN_PANEL_MASTERS_MSG_SERVICE_NOT_FOUND_IN_LIST:
+      'Služba nebyla nalezena v aktuálním seznamu.',
+    ADMIN_PANEL_MASTERS_MSG_SELECT_AT_LEAST_ONE_SERVICE:
+      'Vyberte pro mistra alespoň jednu službu.',
+    ADMIN_PANEL_MASTERS_MSG_DAY_MARKED_OFF:
+      'Den byl označen jako volno.',
+    ADMIN_PANEL_MASTERS_MSG_CREATION_CANCELLED:
+      'Vytváření mistra bylo zrušeno.',
+    ADMIN_PANEL_MASTERS_MSG_PROFILE_INCOMPLETE:
+      'Profil mistra není vyplněn kompletně.',
+    ADMIN_PANEL_MASTERS_MSG_SCHEDULE_REQUIRED:
+      'Rozvrh mistra musí obsahovat alespoň jeden pracovní den.',
+    ADMIN_PANEL_MASTERS_MSG_TARGET_USER_NOT_SET:
+      'Není nastaven uživatel pro vytvoření mistra.',
+    ADMIN_PANEL_MASTERS_MSG_CREATED_SUCCESS:
+      '✅ Mistr "{name}" byl úspěšně vytvořen.\n🆔 Telegram ID: {telegramId}\n💼 Přiřazené služby: {servicesCount}',
+    ADMIN_PANEL_MASTERS_MSG_SERVICE_ADDED:
+      'Služba "{serviceName}" byla přidána mistrovi.',
+    ADMIN_PANEL_MASTERS_MSG_SERVICE_REMOVED:
+      'Služba "{serviceName}" byla u mistra vypnuta.',
+    ADMIN_PANEL_MASTERS_MSG_DELETED_SUCCESS:
+      'Mistr "{name}" byl úspěšně odstraněn z aktivního seznamu.',
+    ADMIN_PANEL_MASTERS_MSG_EDIT_VALUE_VALIDATION_FAILED:
+      'Při ověření hodnoty došlo k chybě.',
+    ADMIN_PANEL_MASTERS_MSG_USE_EDIT_CONFIRM_BUTTONS:
+      'ℹ️ Pro dokončení úprav použijte potvrzovací tlačítka pod zprávou.',
+    ADMIN_PANEL_MASTERS_MSG_USE_EDIT_MENU_BUTTONS:
+      'ℹ️ Pro úpravu profilu mistra použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_MASTERS_MSG_USE_SERVICES_MANAGE_BUTTONS:
+      'ℹ️ Pro správu služeb mistra použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_MASTERS_MSG_USE_DELETE_BUTTONS:
+      'ℹ️ Pro smazání mistra použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_MASTERS_MSG_DETAILS_NOT_FOUND:
+      'Mistr nebyl nalezen nebo je profil již neaktivní.',
+    ADMIN_PANEL_MASTERS_MSG_BOOKING_NOT_FOUND_IN_MASTER_CONTEXT:
+      'Rezervace nebyla nalezena v kontextu tohoto mistra.',
+    ADMIN_PANEL_MASTERS_MSG_INVALID_EDIT_FIELD:
+      'Neplatné pole profilu mistra.',
+    ADMIN_PANEL_MASTERS_MSG_INVALID_EDIT_CALLBACK:
+      'Neplatná callback akce úpravy mistra.',
+    ADMIN_PANEL_MASTERS_MSG_EXPERIENCE_INTEGER:
+      'Praxe musí být celé číslo.',
+    ADMIN_PANEL_MASTERS_MSG_EXPERIENCE_RANGE:
+      'Praxe musí být v rozsahu 0..50 let.',
+    ADMIN_PANEL_MASTERS_MSG_TELEGRAM_ID_FORMAT:
+      'Telegram ID musí obsahovat pouze číslice (5..15 znaků).',
+    ADMIN_PANEL_MASTERS_MSG_INVALID_CREATE_STEP:
+      'Neplatný krok vytváření mistra.',
+    ADMIN_PANEL_MASTERS_MSG_USER_ALREADY_MASTER:
+      'Tento uživatel už má profil mistra.',
+    ADMIN_PANEL_MASTERS_LABEL_PLACEHOLDER_DASH: '—',
+    ADMIN_PANEL_MASTERS_LABEL_SERVICE_ID: 'id služby',
+    ADMIN_PANEL_MASTERS_LABEL_WEEKDAY: 'den týdne',
+    ADMIN_PANEL_MASTERS_LABEL_MASTER_ID: 'id mistra',
+    ADMIN_PANEL_MASTERS_LABEL_BOOKING_ID: 'id rezervace',
+    ADMIN_PANEL_MASTERS_LABEL_MASTER: '👩‍🎨 Mistr: {value}',
+    ADMIN_PANEL_MASTERS_LABEL_MINUTES_SHORT: 'min',
+    ADMIN_PANEL_MASTERS_LABEL_SERVICE_META: '⏱ {duration} {minutes} • 💰 {price}',
+    ADMIN_PANEL_MASTERS_CREATE_START_TEXT:
+      '➕ Vytvoření nového mistra\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Spouštíte průvodce vytvořením nového profilu mistra.\n\n' +
+      'Je potřeba vyplnit:\n' +
+      '• jméno mistra\n' +
+      '• Telegram ID uživatele\n' +
+      '• služby mistra\n' +
+      '• profesní a kontaktní údaje\n' +
+      '• týdenní rozvrh',
+    ADMIN_PANEL_MASTERS_CREATE_DISPLAY_NAME_INPUT_TEXT:
+      '👩‍🎨 Jméno mistra\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Zadejte jméno mistra pro zobrazení klientům.\n\n' +
+      'Formát: 2..30 znaků, pouze písmena.',
+    ADMIN_PANEL_MASTERS_CREATE_TELEGRAM_INPUT_TEXT:
+      '🆔 Telegram ID mistra\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Mistr: {displayName}\n\n' +
+      'Zadejte Telegram ID uživatele (pouze číslice).',
+    ADMIN_PANEL_MASTERS_CREATE_SERVICES_EMPTY:
+      '• Ve studiu nejsou aktivní služby k přiřazení.',
+    ADMIN_PANEL_MASTERS_CREATE_SERVICES_TITLE: '💼 Služby mistra',
+    ADMIN_PANEL_MASTERS_CREATE_SERVICES_SELECTED:
+      'Vybrané služby: {count}',
+    ADMIN_PANEL_MASTERS_CREATE_EXPERIENCE_INPUT_TEXT:
+      '🎓 Praxe\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Zadejte délku praxe v letech.\n\n' +
+      'Formát: celé číslo 0 až 50.',
+    ADMIN_PANEL_MASTERS_CREATE_PROCEDURES_INPUT_TEXT:
+      '📊 Provedené procedury\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Zadejte celkový počet provedených procedur.\n\n' +
+      'Formát: celé číslo 0 až 100000.',
+    ADMIN_PANEL_MASTERS_CREATE_BIO_INPUT_TEXT:
+      '📝 Popis mistra\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Zadejte krátký profesionální popis pro klienty.\n\n' +
+      'Doporučení: 10..1000 znaků.',
+    ADMIN_PANEL_MASTERS_CREATE_MATERIALS_INPUT_TEXT:
+      '🧴 Doplňující informace\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Zadejte informace o materiálech/specifikách práce.\n\n' +
+      'Doporučení: 2..500 znaků.',
+    ADMIN_PANEL_MASTERS_CREATE_PHONE_INPUT_TEXT:
+      '📞 Telefon mistra\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Zadejte telefon ve formátu +420123456789.',
+    ADMIN_PANEL_MASTERS_CREATE_EMAIL_INPUT_TEXT:
+      '✉️ Email mistra\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Zadejte email ve formátu name@example.com.',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_NO_DATA:
+      '• Rozvrh ještě není nastaven.',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_TITLE: '🕒 Nastavení rozvrhu',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_PICK_HINT:
+      'Vyberte den týdne pro úpravu. Po vyplnění všech dnů potvrďte vytvoření.',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_FROM_INPUT_TEXT:
+      '🕒 {weekday} • Začátek\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Zadejte čas začátku ve formátu HH:MM.\n' +
+      'Příklad: 9:00 nebo 09:00',
+    ADMIN_PANEL_MASTERS_CREATE_SCHEDULE_TO_INPUT_TEXT:
+      '🕒 {weekday} • Konec\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Začátek: {fromTime}\n\n' +
+      'Zadejte čas konce ve formátu HH:MM.',
+    ADMIN_PANEL_MASTERS_CREATE_CONFIRM_NO_SERVICES:
+      '• Nejsou vybrány služby',
+    ADMIN_PANEL_MASTERS_CREATE_CONFIRM_TEXT:
+      '⚠️ Potvrzení vytvoření mistra\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Jméno: {displayName}\n' +
+      '🆔 Telegram ID: {telegramUserId}\n' +
+      '🎓 Praxe: {experienceYears} let\n' +
+      '📊 Procedury: {proceduresDoneTotal}\n' +
+      '📞 Telefon: {contactPhoneE164}\n' +
+      '✉️ Email: {contactEmail}\n\n' +
+      '📝 Popis:\n{bio}\n\n' +
+      '🧴 Doplňující informace:\n{materialsInfo}\n\n' +
+      '💼 Služby:\n{servicesList}\n\n' +
+      '🕒 Rozvrh:\n{scheduleList}',
+    ADMIN_PANEL_MASTERS_EDIT_MENU_TEXT:
+      '✏️ Úprava profilu mistra\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Mistr: {masterName}\n\n' +
+      'Vyberte pole k úpravě:',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_PHONE: '\n\nFormát: +420123456789',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_EMAIL: '\n\nFormát: name@example.com',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_STARTED_ON: '\n\nFormát: DD.MM.RRRR',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_HINT_PROCEDURES:
+      '\n\nZadejte celé číslo od 0 do 100000',
+    ADMIN_PANEL_MASTERS_EDIT_INPUT_TEXT:
+      '✏️ Úprava pole\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Pole: {label}\n\n' +
+      'Aktuální hodnota:\n{currentValue}\n\n' +
+      'Pošlete novou hodnotu zprávou.{hint}',
+    ADMIN_PANEL_MASTERS_EDIT_CONFIRM_TEXT:
+      '⚠️ Potvrzení změn\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Pole: {label}\n\n' +
+      'Původně:\n{previousValue}\n\n' +
+      'Nově:\n{nextValue}\n\n' +
+      'Potvrďte uložení.',
+    ADMIN_PANEL_MASTERS_EDIT_SUCCESS_TEXT:
+      '✅ Profil mistra byl aktualizován\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '{label}:\n{value}',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_DISPLAY_NAME: 'Jméno mistra',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_BIO: 'Popis mistra',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_MATERIALS: 'Doplňující informace',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_PHONE: 'Telefon mistra',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_EMAIL: 'Email mistra',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_STARTED_ON: 'Datum začátku',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_PROCEDURES_DONE_TOTAL: 'Počet procedur',
+    ADMIN_PANEL_MASTERS_EDIT_FIELD_PROFILE: 'Pole profilu',
+    ADMIN_PANEL_MASTERS_CATALOG_EMPTY: 'Zatím nejsou žádní aktivní mistři.',
+    ADMIN_PANEL_MASTERS_CATALOG_EMPTY_HINT:
+      'Přidejte mistra nebo aktivujte existující profil.',
+    ADMIN_PANEL_MASTERS_CATALOG_PICK:
+      'Vyberte mistra ze seznamu pro otevření detailu:',
+    ADMIN_PANEL_MASTERS_CATALOG_EXPERIENCE_NOT_SET: 'Praxe neuvedena',
+    ADMIN_PANEL_MASTERS_CATALOG_EXPERIENCE_YEARS: '{years} let praxe',
+    ADMIN_PANEL_MASTERS_CATALOG_BOOKABLE_YES: '🟢 Dostupný',
+    ADMIN_PANEL_MASTERS_CATALOG_BOOKABLE_NO: '⚪ Nepřijímá rezervace',
+    ADMIN_PANEL_MASTERS_DETAILS_TITLE: '👩‍🎨 Profil mistra',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_NAME: '👤 Jméno: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_ID: '🪪 ID mistra: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_PROFESSIONAL:
+      '📊 Profesní informace',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_RATING: '⭐ Hodnocení: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_EXPERIENCE: '🗓 Praxe: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_PROCEDURES:
+      '📈 Provedené procedury: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_SPECIALIZATION: '💼 Specializace',
+    ADMIN_PANEL_MASTERS_DETAILS_SPECIALIZATION_EMPTY:
+      '• Služby ještě nejsou přiřazeny',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_SCHEDULE: '🕒 Pracovní rozvrh',
+    ADMIN_PANEL_MASTERS_DETAILS_SCHEDULE_EMPTY: '• Rozvrh ještě není vyplněn',
+    ADMIN_PANEL_MASTERS_DETAILS_SECTION_ADDITIONAL: '📍 Doplňující informace',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_BIO: '📝 Bio: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_MATERIALS: '🧴 Materiály: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_PHONE: '📱 Telefon: {value}',
+    ADMIN_PANEL_MASTERS_DETAILS_LABEL_EMAIL: '✉️ Email: {value}',
+    ADMIN_PANEL_MASTERS_DELETE_INPUT_TEXT:
+      '❌ Smazat mistra\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      'Pro smazání mistra ze systému pošlete jeho Telegram ID.\n\n' +
+      '📌 Formát: pouze číslice (5..15 znaků)\n' +
+      'Příklad: 548732119',
+    ADMIN_PANEL_MASTERS_DELETE_CONFIRM_TEXT:
+      '⚠️ Potvrzení smazání mistra\n' +
+      '━━━━━━━━━━━━━━\n\n' +
+      '👩‍🎨 Mistr: {masterName}\n' +
+      '🆔 Telegram ID: {telegramUserId}\n\n' +
+      'Po smazání:\n' +
+      '• mistr ztratí přístup do panelu mistra\n' +
+      '• klienti nebudou moci vytvářet nové rezervace k tomuto mistrovi\n' +
+      '• aktivní služby mistra budou vypnuty',
+    ADMIN_PANEL_MASTERS_STATS_STUB_TEXT:
+      '⚠️ Sekce je dočasně nedostupná.\n' +
+      'V dalším kroku zde budou metriky produktivity, vytíženosti a financí.',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_TITLE: '💼 Správa služeb mistra',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_ACTIVE_TITLE: '📋 Aktivní služby:',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_EMPTY:
+      '• Tento mistr zatím nemá aktivní služby.',
+    ADMIN_PANEL_MASTERS_SERVICES_MENU_ACTION_HINT: 'Vyberte akci níže.',
+    ADMIN_PANEL_MASTERS_SERVICES_ADD_TITLE: '➕ Přidat službu mistrovi',
+    ADMIN_PANEL_MASTERS_SERVICES_ADD_EMPTY:
+      '✅ Všechny dostupné služby jsou již přiřazeny.',
+    ADMIN_PANEL_MASTERS_SERVICES_ADD_PICK: 'Vyberte službu k přidání:',
+    ADMIN_PANEL_MASTERS_SERVICES_REMOVE_TITLE: '➖ Odebrat službu mistra',
+    ADMIN_PANEL_MASTERS_SERVICES_REMOVE_EMPTY:
+      '📭 Žádné aktivní služby k vypnutí.',
+    ADMIN_PANEL_MASTERS_SERVICES_REMOVE_PICK:
+      'Vyberte službu k vypnutí:',
+    ADMIN_PANEL_MASTERS_WEEKDAY_1: 'Po',
+    ADMIN_PANEL_MASTERS_WEEKDAY_2: 'Út',
+    ADMIN_PANEL_MASTERS_WEEKDAY_3: 'St',
+    ADMIN_PANEL_MASTERS_WEEKDAY_4: 'Čt',
+    ADMIN_PANEL_MASTERS_WEEKDAY_5: 'Pá',
+    ADMIN_PANEL_MASTERS_WEEKDAY_6: 'So',
+    ADMIN_PANEL_MASTERS_WEEKDAY_7: 'Ne',
+    ADMIN_PANEL_MASTERS_LABEL_DAY_OFF: 'volno',
+    ADMIN_PANEL_MASTERS_LABEL_UNKNOWN_DATE: 'neznámé datum',
+    ADMIN_PANEL_MASTERS_LABEL_UNKNOWN_CLIENT: 'Klient',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_PENDING: '🟡 Čeká na potvrzení',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_CONFIRMED: '🟢 Potvrzeno',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_COMPLETED: '⚪ Dokončeno',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_CANCELED: '🔴 Zrušeno',
+    ADMIN_PANEL_MASTERS_BOOKING_STATUS_TRANSFERRED: '🟣 Přesunuto',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_TITLE: '📅 Rezervace mistra',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_EMPTY: '📭 Tento mistr zatím nemá žádné rezervace.',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_PICK: 'Vyberte rezervaci ze seznamu:',
+    ADMIN_PANEL_MASTERS_BOOKINGS_FEED_PAGE: '📄 Strana {current} z {total}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_TITLE: '📄 Karta rezervace',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_CLIENT: '👤 Klient: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_PHONE: '📱 Telefon: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_EMAIL: '✉️ Email: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_SERVICE: '💼 Služba: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_MASTER: '👩‍🎨 Mistr: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_TIME: '🕒 Čas: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_PRICE: '💰 Cena: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_STATUS: '📌 Stav: {value}',
+    ADMIN_PANEL_MASTERS_BOOKING_CARD_COMMENT_TITLE: '📝 Komentář klienta:',
+    ADMIN_PANEL_MASTERS_LABEL_NOT_SPECIFIED: 'Neuvedeno',
+
+    ADMIN_PANEL_SCHEDULE_MENU_TITLE: '🕒 Rozvrh salonu',
+    ADMIN_PANEL_SCHEDULE_MENU_DESCRIPTION:
+      'Spravujte týdenní otevírací dobu, dny volna, svátky a dočasné změny rozvrhu.',
+    ADMIN_PANEL_SCHEDULE_MENU_PICK_SECTION: 'Vyberte sekci rozvrhu níže.',
+    ADMIN_PANEL_SCHEDULE_BTN_OVERVIEW: '📋 Přehled',
+    ADMIN_PANEL_SCHEDULE_BTN_CONFIGURE_DAY: '🗓 Nastavit týdenní rozvrh',
+    ADMIN_PANEL_SCHEDULE_BTN_DAYS_OFF: '🌴 Dny volna',
+    ADMIN_PANEL_SCHEDULE_BTN_HOLIDAYS: '🎉 Svátky',
+    ADMIN_PANEL_SCHEDULE_BTN_TEMPORARY: '🕒 Dočasný rozvrh',
+    ADMIN_PANEL_SCHEDULE_BTN_ADD_DAY_OFF: '➕ Přidat den volna',
+    ADMIN_PANEL_SCHEDULE_BTN_ADD_HOLIDAY: '➕ Přidat svátek',
+    ADMIN_PANEL_SCHEDULE_BTN_ADD_TEMPORARY: '➕ Přidat období',
+    ADMIN_PANEL_SCHEDULE_BTN_MARK_DAY_OFF: '🌴 Označit jako volno',
+    ADMIN_PANEL_SCHEDULE_BTN_DELETE_INDEXED: '🗑 Smazat #{index}',
+    ADMIN_PANEL_SCHEDULE_BTN_DELETE_PERIOD_INDEXED: '🗑 Smazat období #{index}',
+    ADMIN_PANEL_SCHEDULE_BTN_DELETE_CANCEL: '❌ Zrušit smazání',
+    ADMIN_PANEL_SCHEDULE_BTN_BACK: '⬅️ Zpět na admin panel',
+    ADMIN_PANEL_SCHEDULE_BTN_HOME: '🏠 Hlavní menu',
+    ADMIN_PANEL_SCHEDULE_BTN_BACK_TO_MENU: '⬅️ Zpět do menu rozvrhu',
+    ADMIN_PANEL_SCHEDULE_BTN_BACK_TO_SECTION: '⬅️ Zpět do sekce',
+    ADMIN_PANEL_SCHEDULE_BTN_CANCEL_ACTION: '❌ Zrušit akci',
+    ADMIN_PANEL_SCHEDULE_BTN_CONFIRM: '✅ Potvrdit',
+    ADMIN_PANEL_SCHEDULE_BTN_REFRESH: '🔄 Obnovit',
+    ADMIN_PANEL_SCHEDULE_OVERVIEW_TITLE: '📋 Přehled rozvrhu',
+    ADMIN_PANEL_SCHEDULE_OVERVIEW_WEEKLY_TITLE: '🗓 Základní týdenní rozvrh',
+    ADMIN_PANEL_SCHEDULE_OVERVIEW_WEEKLY_EMPTY: '⚠️ Základní týdenní rozvrh ještě není nastaven.',
+    ADMIN_PANEL_SCHEDULE_OVERVIEW_DAYS_OFF_COUNT: '🌴 Budoucí dny volna: {count}',
+    ADMIN_PANEL_SCHEDULE_OVERVIEW_HOLIDAYS_COUNT: '🎉 Budoucí svátky: {count}',
+    ADMIN_PANEL_SCHEDULE_OVERVIEW_TEMPORARY_COUNT: '🕒 Dočasná období: {count}',
+    ADMIN_PANEL_SCHEDULE_CONFIGURE_TITLE: '🗓 Nastavení týdenního rozvrhu',
+    ADMIN_PANEL_SCHEDULE_CONFIGURE_PICK_WEEKDAY: 'Vyberte den týdne pro úpravu.',
+    ADMIN_PANEL_SCHEDULE_CONFIGURE_SUCCESS_TITLE: '✅ Rozvrh dne byl aktualizován',
+    ADMIN_PANEL_SCHEDULE_CONFIGURE_SUCCESS_BODY: '{day}: {range}',
+    ADMIN_PANEL_SCHEDULE_DAYS_OFF_TITLE: '🌴 Dny volna salonu',
+    ADMIN_PANEL_SCHEDULE_DAYS_OFF_EMPTY: '📭 Nebyly nalezeny žádné dny volna.',
+    ADMIN_PANEL_SCHEDULE_DAY_OFF_ADD_TITLE: '🌴 Přidat den volna',
+    ADMIN_PANEL_SCHEDULE_DAY_OFF_ADD_INPUT: 'Zadejte datum dne volna ve formátu DD.MM.RRRR.',
+    ADMIN_PANEL_SCHEDULE_DAY_OFF_ADD_EXAMPLE: 'Příklad: 25.12.2026',
+    ADMIN_PANEL_SCHEDULE_DAY_OFF_CONFIRM_TITLE: '⚠️ Potvrzení dne volna',
+    ADMIN_PANEL_SCHEDULE_DAY_OFF_CONFIRM_ASK: 'Nastavit den volna na datum: {date}?',
+    ADMIN_PANEL_SCHEDULE_DAY_OFF_CONFIRM_HINT:
+      'V tento den nebudou dostupné nové rezervace klientů.',
+    ADMIN_PANEL_SCHEDULE_HOLIDAYS_TITLE: '🎉 Svátky salonu',
+    ADMIN_PANEL_SCHEDULE_HOLIDAYS_EMPTY: '📭 Nebyly nalezeny žádné svátky.',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_ADD_STEP1_TITLE: '🎉 Přidat svátek — krok 1/2',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_ADD_STEP1_INPUT: 'Zadejte datum svátku ve formátu DD.MM.RRRR.',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_ADD_STEP1_EXAMPLE: 'Příklad: 01.01.2027',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_ADD_STEP2_TITLE: '🎉 Přidat svátek — krok 2/2',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_ADD_STEP2_INPUT: 'Zadejte název svátku.',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_CONFIRM_TITLE: '⚠️ Potvrzení svátku',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_LABEL_DATE: '📆 Datum: {date}',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_LABEL_NAME: '🏷 Název: {name}',
+    ADMIN_PANEL_SCHEDULE_HOLIDAY_CONFIRM_HINT: 'Potvrďte vytvoření svátku.',
+    ADMIN_PANEL_SCHEDULE_DELETE_DAY_OFF_TITLE: '🗑 Smazání dne volna',
+    ADMIN_PANEL_SCHEDULE_DELETE_DAY_OFF_ASK: 'Smazat den volna k datu {date}?',
+    ADMIN_PANEL_SCHEDULE_DELETE_HOLIDAY_TITLE: '🗑 Smazání svátku',
+    ADMIN_PANEL_SCHEDULE_DELETE_HOLIDAY_ASK: 'Smazat svátek "{name}" k datu {date}?',
+    ADMIN_PANEL_SCHEDULE_DELETE_TEMPORARY_TITLE: '🗑 Smazání dočasného rozvrhu',
+    ADMIN_PANEL_SCHEDULE_DELETE_TEMPORARY_ASK: 'Smazat dočasné období od {from} do {to}?',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_TITLE: '🕒 Dočasné změny rozvrhu',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_EMPTY: '📭 Nebyly nalezeny žádné dočasné změny.',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_SET_PERIOD_TITLE: '🕒 Nové dočasné období',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_SET_PERIOD_INPUT_FORMAT:
+      'Zadejte období ve formátu: DD.MM.RRRR - DD.MM.RRRR',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_SET_PERIOD_EXAMPLE:
+      'Příklad: 10.06.2026 - 20.06.2026',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_SET_PERIOD_MIN_DAYS:
+      'Minimální délka dočasného rozvrhu: 7 dní.',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_CONFIG_TITLE: '🕒 Nastavení dočasného rozvrhu',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_PERIOD_LABEL: '📆 Období: {from} - {to}',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_CONFIGURED_DAYS: 'Nastavené dny: {count}/7',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_PICK_DAY: 'Vyberte den týdne pro nastavení.',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_DAY_TITLE: '🕒 Nastavení dne',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_DAY_NOT_CONFIGURED: 'nenastaveno',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_PREVIEW_OFF: '{day}: volno',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_PREVIEW_OPEN: '{day}: {from}–{to}',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_CONFIRM_TITLE: '⚠️ Potvrzení dočasného rozvrhu',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_CONFIRM_NEW_SCHEDULE: 'Nový rozvrh období:',
+    ADMIN_PANEL_SCHEDULE_TEMPORARY_CONFIRM_HINT:
+      'Po potvrzení se změny použijí jen pro vybrané období.',
+    ADMIN_PANEL_SCHEDULE_UNKNOWN_DATE: 'neznámé datum',
+    ADMIN_PANEL_SCHEDULE_WEEKDAY_FALLBACK: 'Den {day}',
+    ADMIN_PANEL_SCHEDULE_WEEKLY_LINE_OFF: '{day}: volno',
+    ADMIN_PANEL_SCHEDULE_WEEKLY_LINE_EMPTY: '{day}: nenastaveno',
+    ADMIN_PANEL_SCHEDULE_WEEKLY_LINE_OPEN: '{day}: {from}–{to}',
+    ADMIN_PANEL_SCHEDULE_INPUT_FROM: 'Zadejte čas začátku (HH:MM).',
+    ADMIN_PANEL_SCHEDULE_INPUT_TO: 'Zadejte čas konce (HH:MM).',
+    ADMIN_PANEL_SCHEDULE_INPUT_EXAMPLE_FROM: 'Příklad: 08:00 nebo 8:00',
+    ADMIN_PANEL_SCHEDULE_INPUT_EXAMPLE_TO: 'Příklad: 18:30',
+    ADMIN_PANEL_SCHEDULE_INPUT_EXAMPLE_TEMPORARY: 'Příklad: 9:00 nebo 09:00',
+    ADMIN_PANEL_SCHEDULE_LABEL_WEEKDAY: '🗓 Den: {day}',
+    ADMIN_PANEL_SCHEDULE_LABEL_FROM: '🕒 Od: {from}',
+    ADMIN_PANEL_SCHEDULE_RANGE_DAY_OFF: 'volno',
+    ADMIN_PANEL_SCHEDULE_RANGE_OPEN: '{from}–{to}',
+    ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_DATE_FAILED:
+      'Při kontrole data došlo k chybě.',
+    ADMIN_PANEL_SCHEDULE_MSG_RETRY_DATE_FORMAT:
+      'Zkuste to znovu ve formátu DD.MM.RRRR.',
+    ADMIN_PANEL_SCHEDULE_MSG_FINISH_USE_CONFIRM_BUTTONS:
+      '⚠️ Pro dokončení akce stiskněte "✅ Potvrdit" nebo "❌ Zrušit akci".',
+    ADMIN_PANEL_SCHEDULE_MSG_PICK_HOLIDAY_DATE_FIRST:
+      'Nejprve zadejte datum svátku.',
+    ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_HOLIDAY_NAME_FAILED:
+      'Při kontrole názvu svátku došlo k chybě.',
+    ADMIN_PANEL_SCHEDULE_MSG_TEMPORARY_MIN_DAYS:
+      'Dočasný rozvrh lze nastavit pouze na období alespoň {minDays} dní.',
+    ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_PERIOD_FAILED:
+      'Při kontrole období došlo k chybě.',
+    ADMIN_PANEL_SCHEDULE_MSG_RETRY_RANGE_FORMAT:
+      'Zkuste to znovu ve formátu DD.MM.RRRR - DD.MM.RRRR.',
+    ADMIN_PANEL_SCHEDULE_MSG_PICK_WEEKDAY_FIRST:
+      'Nejprve vyberte den týdne pomocí tlačítek.',
+    ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_FROM_TIME_FAILED:
+      'Při kontrole času začátku došlo k chybě.',
+    ADMIN_PANEL_SCHEDULE_MSG_RETRY_TIME_FORMAT:
+      'Zadejte platný čas ve formátu HH:MM.',
+    ADMIN_PANEL_SCHEDULE_MSG_PICK_DAY_AND_FROM_FIRST:
+      'Nejprve vyberte den a zadejte čas začátku.',
+    ADMIN_PANEL_SCHEDULE_MSG_TO_AFTER_FROM:
+      'Čas konce musí být pozdější než čas začátku.',
+    ADMIN_PANEL_SCHEDULE_MSG_VALIDATE_TO_TIME_FAILED:
+      'Při kontrole času konce došlo k chybě.',
+    ADMIN_PANEL_SCHEDULE_MSG_FINISH_USE_INLINE_BUTTONS:
+      '⚠️ Pro dokončení akce použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_SCHEDULE_MSG_DAY_OFF_ADDED:
+      'Den volna na {date} byl úspěšně přidán.',
+    ADMIN_PANEL_SCHEDULE_MSG_DAY_OFF_DELETED: 'Den volna byl úspěšně smazán.',
+    ADMIN_PANEL_SCHEDULE_MSG_TRY_AGAIN: 'Zkuste to znovu.',
+    ADMIN_PANEL_SCHEDULE_MSG_HOLIDAY_ADDED:
+      'Svátek "{name}" na {date} byl úspěšně přidán.',
+    ADMIN_PANEL_SCHEDULE_MSG_HOLIDAY_DELETED: 'Svátek byl úspěšně smazán.',
+    ADMIN_PANEL_SCHEDULE_MSG_TEMPORARY_NEED_ALL_DAYS:
+      '⚠️ Je nutné nastavit všech 7 dní týdne. Aktuálně nastaveno: {configured}/7.',
+    ADMIN_PANEL_SCHEDULE_MSG_TEMPORARY_CREATED:
+      '✅ Dočasný rozvrh salonu byl nastaven na období {from} - {to}.',
+    ADMIN_PANEL_SCHEDULE_MSG_TEMPORARY_DELETED:
+      'Dočasný rozvrh pro vybrané období byl úspěšně smazán.',
+
+    ADMIN_PANEL_SETTINGS_MENU_TITLE: '⚙️ Nastavení',
+    ADMIN_PANEL_SETTINGS_MENU_SUBTITLE: 'Vyberte sekci, kterou chcete otevřít:',
+    ADMIN_PANEL_SETTINGS_BTN_LANGUAGE: '🌐 Jazyk admin panelu',
+    ADMIN_PANEL_SETTINGS_BTN_ADMINS: '👑 Administrátoři',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO: '🏢 Profil salonu',
+    ADMIN_PANEL_SETTINGS_BTN_NOTIFICATIONS: '🔔 Systémová oznámení',
+    ADMIN_PANEL_SETTINGS_BTN_BACK: '⬅️ Zpět na admin panel',
+    ADMIN_PANEL_SETTINGS_BTN_BACK_TO_MENU: '⬅️ Zpět do menu nastavení',
+    ADMIN_PANEL_SETTINGS_BTN_LANGUAGE_CONFIRM: '✅ Potvrdit změnu',
+    ADMIN_PANEL_SETTINGS_BTN_LANGUAGE_CANCEL: '❌ Zrušit',
+    ADMIN_PANEL_SETTINGS_BTN_ADMINS_GRANT: '➕ Přidat roli administrátora',
+    ADMIN_PANEL_SETTINGS_BTN_ADMINS_REVOKE: '➖ Odebrat roli administrátora',
+    ADMIN_PANEL_SETTINGS_BTN_ADMINS_CONFIRM_GRANT: '✅ Potvrdit přidání',
+    ADMIN_PANEL_SETTINGS_BTN_ADMINS_CONFIRM_REVOKE: '✅ Potvrdit odebrání',
+    ADMIN_PANEL_SETTINGS_BTN_ADMINS_CANCEL: '❌ Zrušit akci',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_ABOUT: '📝 Upravit: O salonu',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_CONTACTS: '📞 Upravit: Kontakty',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_BOOKING_RULES: '📋 Upravit: Pravidla rezervace',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_CANCELLATION: '🚫 Upravit: Zrušení',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_PREPARATION: '🧴 Upravit: Příprava',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_COMFORT: '🛋 Upravit: Komfort',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_EDIT_GUARANTEE: '🛡 Upravit: Záruka',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_CONFIRM: '✅ Uložit text',
+    ADMIN_PANEL_SETTINGS_BTN_STUDIO_CANCEL: '❌ Zrušit',
+    ADMIN_PANEL_SETTINGS_BTN_NOTIFICATIONS_ALL_ON: '🔔 Zapnout vše',
+    ADMIN_PANEL_SETTINGS_BTN_NOTIFICATIONS_ALL_OFF: '🔕 Vypnout vše',
+
+    ADMIN_PANEL_SETTINGS_ADMINS_TITLE: '👑 Administrátoři',
+    ADMIN_PANEL_SETTINGS_ADMINS_EMPTY: 'V tomto salonu zatím nejsou aktivní administrátoři.',
+    ADMIN_PANEL_SETTINGS_ADMINS_EMPTY_HINT:
+      'Pro začátek přidejte administrátora přes Telegram ID.',
+    ADMIN_PANEL_SETTINGS_ADMINS_LIST_TITLE: 'Seznam administrátorů salonu:',
+    ADMIN_PANEL_SETTINGS_ADMINS_LABEL_TELEGRAM_ID: '🆔 Telegram ID: {id}',
+    ADMIN_PANEL_SETTINGS_ADMINS_LABEL_USERNAME: '🔹 Username: {username}',
+    ADMIN_PANEL_SETTINGS_ADMINS_LABEL_USER: '👤 Uživatel: {user}',
+    ADMIN_PANEL_SETTINGS_ADMINS_GRANT_INPUT_TITLE: '👑 Přidání role administrátora',
+    ADMIN_PANEL_SETTINGS_ADMINS_REVOKE_INPUT_TITLE: '🚫 Odebrání role administrátora',
+    ADMIN_PANEL_SETTINGS_ADMINS_INPUT_BODY:
+      'Pošlete Telegram ID uživatele jednou zprávou.',
+    ADMIN_PANEL_SETTINGS_ADMINS_REVOKE_INPUT_BODY:
+      'Pošlete Telegram ID administrátora, kterému chcete odebrat roli.',
+    ADMIN_PANEL_SETTINGS_ADMINS_INPUT_FORMAT: 'Formát: pouze čísla',
+    ADMIN_PANEL_SETTINGS_ADMINS_INPUT_EXAMPLE: 'Příklad: 6712153038',
+    ADMIN_PANEL_SETTINGS_ADMINS_GRANT_CONFIRM_TITLE: '⚠️ Potvrzení přidání role',
+    ADMIN_PANEL_SETTINGS_ADMINS_REVOKE_CONFIRM_TITLE: '⚠️ Potvrzení odebrání role',
+    ADMIN_PANEL_SETTINGS_ADMINS_GRANT_CONFIRM_HINT:
+      'Po potvrzení uživatel získá plný přístup do admin panelu.',
+    ADMIN_PANEL_SETTINGS_ADMINS_REVOKE_CONFIRM_HINT:
+      'Po potvrzení uživatel ztratí přístup do admin panelu.',
+
+    ADMIN_PANEL_SETTINGS_LANGUAGE_TITLE: '🌐 Jazyk admin panelu',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_DESCRIPTION:
+      'V této sekci můžete změnit jazyk rozhraní admin panelu.',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_NOTE:
+      'Tato změna neovlivní klienty ani mistry.',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_CURRENT: '📋 Aktuální jazyk: {language}',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_PICK: 'Vyberte nový jazyk níže:',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_CONFIRM_TITLE: '⚠️ Potvrzení změny jazyka',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_CONFIRM_FROM: '🌐 Bylo: {language}',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_CONFIRM_TO: '🌐 Bude: {language}',
+    ADMIN_PANEL_SETTINGS_LANGUAGE_CONFIRM_HINT:
+      'Potvrďte, pokud chcete tuto změnu uložit.',
+
+    ADMIN_PANEL_SETTINGS_NOT_SET: 'Neuvedeno',
+    ADMIN_PANEL_SETTINGS_WEEKDAY_FALLBACK: 'Den {day}',
+    ADMIN_PANEL_SETTINGS_WEEKLY_OFF: '{weekday} — volno',
+    ADMIN_PANEL_SETTINGS_WEEKLY_OPEN: '{weekday} — {from}–{to}',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_ABOUT: 'O salonu',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_CONTACTS: 'Kontakty',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_BOOKING_RULES: 'Pravidla rezervace',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_CANCELLATION: 'Zrušení a přesun',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_PREPARATION: 'Příprava na proceduru',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_COMFORT: 'Komfort během návštěvy',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_GUARANTEE: 'Záruka a servis',
+    ADMIN_PANEL_SETTINGS_STUDIO_BLOCK_FALLBACK: 'Obsahový blok',
+    ADMIN_PANEL_SETTINGS_STUDIO_TITLE: '🏢 Profil salonu',
+    ADMIN_PANEL_SETTINGS_STUDIO_LABEL_NAME: '🏷 Název: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_LABEL_CITY: '📍 Město: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_LABEL_ADDRESS: '📌 Adresa: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_LABEL_PHONE: '📞 Telefon: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_LABEL_EMAIL: '✉️ Email: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_LABEL_TIMEZONE: '🕒 Časové pásmo: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_SCHEDULE_TITLE: '🗓 Pracovní doba',
+    ADMIN_PANEL_SETTINGS_STUDIO_SCHEDULE_EMPTY: 'Rozvrh ještě není nastaven',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_TITLE: 'ℹ️ Obsah pro klienty',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_ABOUT: '• O salonu: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_CONTACTS: '• Kontakty: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_BOOKING_RULES: '• Pravidla rezervace: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_CANCELLATION: '• Zrušení: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_PREPARATION: '• Příprava: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_COMFORT: '• Komfort: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_CONTENT_GUARANTEE: '• Záruka: {value}',
+    ADMIN_PANEL_SETTINGS_STUDIO_EDIT_PROMPT_TITLE: '✏️ Úprava: {block}',
+    ADMIN_PANEL_SETTINGS_STUDIO_EDIT_PROMPT_CURRENT: 'Aktuální text:',
+    ADMIN_PANEL_SETTINGS_STUDIO_EDIT_PROMPT_SEND:
+      'Pošlete nový text jednou zprávou.',
+    ADMIN_PANEL_SETTINGS_STUDIO_EDIT_CONFIRM_TITLE: '⚠️ Potvrzení změn: {block}',
+    ADMIN_PANEL_SETTINGS_STUDIO_EDIT_CONFIRM_NEW: 'Nový text:',
+    ADMIN_PANEL_SETTINGS_STUDIO_EDIT_CONFIRM_HINT:
+      'Potvrďte pro uložení změn v profilu salonu.',
+
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_TITLE: '🔔 Systémová oznámení',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_DESCRIPTION:
+      'Spravujte služební oznámení pro váš admin profil.',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_BOOKING_CONFIRMATION: 'Potvrzení rezervace',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_STATUS_CHANGE: 'Změny stavu rezervace',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_STATUS_CHANGE_SHORT: 'Změny stavu',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_VISIT_REMINDER: 'Připomenutí návštěvy',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_PROMO_NEWS: 'Akce a novinky',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_CHANNELS_TITLE: '📡 Kanály doručení',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_CHANNEL_TELEGRAM: '• Telegram: vždy aktivní',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_CHANNEL_PHONE:
+      '• Telefon: {phone} ({status})',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_CHANNEL_EMAIL:
+      '• Email: {email} ({status})',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_DELIVERY_VERIFIED: 'ověřeno ✅',
+    ADMIN_PANEL_SETTINGS_NOTIFICATIONS_DELIVERY_UNVERIFIED: 'neověřeno ⚪',
+    ADMIN_PANEL_SETTINGS_MSG_LANGUAGE_UPDATED: 'Jazyk admin panelu byl úspěšně aktualizován.',
+    ADMIN_PANEL_SETTINGS_MSG_STUDIO_BLOCK_UPDATED: 'Blok "{block}" byl úspěšně aktualizován.',
+    ADMIN_PANEL_SETTINGS_MSG_ADMIN_GRANTED:
+      '✅ Role administrátora byla úspěšně přidělena.\n\n👤 {user}\n🆔 {telegramId}',
+    ADMIN_PANEL_SETTINGS_MSG_ADMIN_REVOKED:
+      '✅ Role administrátora byla úspěšně odebrána.\n\n👤 {user}\n🆔 {telegramId}',
+    ADMIN_PANEL_SETTINGS_MSG_USE_LANGUAGE_CONFIRM_BUTTONS:
+      'Pro změnu jazyka použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_LANGUAGE_PICK_BUTTONS:
+      'Pro výběr jazyka použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_SETTINGS_MSG_TELEGRAM_ID_DIGITS_ONLY:
+      'Telegram ID musí obsahovat pouze číslice.',
+    ADMIN_PANEL_SETTINGS_MSG_USER_NOT_FOUND_IN_STUDIO:
+      'Uživatel s tímto Telegram ID nebyl v tomto studiu nalezen.',
+    ADMIN_PANEL_SETTINGS_MSG_USER_ALREADY_ADMIN:
+      'Tento uživatel už má roli administrátora.',
+    ADMIN_PANEL_SETTINGS_MSG_USER_NOT_ADMIN:
+      'Tento uživatel nemá roli administrátora.',
+    ADMIN_PANEL_SETTINGS_MSG_CANNOT_REVOKE_SELF:
+      'Nemůžete odebrat roli administrátora svému vlastnímu profilu.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_ACTION_CONFIRM_BUTTONS:
+      'Pro dokončení akce použijte potvrzovací tlačítka pod zprávou.',
+    ADMIN_PANEL_SETTINGS_MSG_STUDIO_TEXT_VALIDATE_FAILED:
+      'Při ověření textu pro aktualizaci došlo k chybě.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_STUDIO_CONFIRM_BUTTONS:
+      'Pro dokončení změn použijte potvrzovací tlačítka pod zprávou.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_NOTIFICATIONS_BUTTONS:
+      'Pro správu oznámení použijte tlačítka pod zprávou.',
+    ADMIN_PANEL_SETTINGS_MSG_USE_SECTION_BUTTONS:
+      'Pro správu sekce nastavení použijte tlačítka pod zprávou.',
+
+    ADMIN_PANEL_RECORDS_MENU_TITLE: '📅 Rezervace',
+    ADMIN_PANEL_RECORDS_MENU_SUBTITLE: 'Vyberte kategorii pro zobrazení rezervací:',
+    ADMIN_PANEL_RECORDS_CATEGORY_PENDING: '🆕 Nové rezervace (čekají na potvrzení)',
+    ADMIN_PANEL_RECORDS_CATEGORY_TODAY: '📍 Dnes',
+    ADMIN_PANEL_RECORDS_CATEGORY_TOMORROW: '📆 Zítra',
+    ADMIN_PANEL_RECORDS_CATEGORY_ALL: '🗂 Všechny rezervace',
+    ADMIN_PANEL_RECORDS_CATEGORY_CANCELED: '❌ Zrušené',
+    ADMIN_PANEL_RECORDS_FEED_TITLE_TODAY: '📍 Rezervace na dnes',
+    ADMIN_PANEL_RECORDS_FEED_TITLE_TOMORROW: '📆 Rezervace na zítra',
+    ADMIN_PANEL_RECORDS_FEED_TITLE_ALL: '🗂 Všechny rezervace',
+    ADMIN_PANEL_RECORDS_FEED_TITLE_CANCELED: '❌ Zrušené rezervace',
+    ADMIN_PANEL_RECORDS_EMPTY_PENDING:
+      '📭 Žádné čekající rezervace.\n\nVšechny nové požadavky jsou zpracovány.',
+    ADMIN_PANEL_RECORDS_EMPTY_TODAY: '📭 Na dnešek nejsou žádné rezervace.',
+    ADMIN_PANEL_RECORDS_EMPTY_TOMORROW: '📭 Na zítřek nejsou žádné rezervace.',
+    ADMIN_PANEL_RECORDS_EMPTY_ALL: '📭 Rezervace nebyly nalezeny.',
+    ADMIN_PANEL_RECORDS_EMPTY_CANCELED: '📭 Zrušené rezervace nebyly nalezeny.',
+    ADMIN_PANEL_RECORDS_EMPTY_VALUE: '—',
+    ADMIN_PANEL_RECORDS_INVALID_DATETIME: 'Neplatné datum/čas',
+    ADMIN_PANEL_RECORDS_NOT_SET: 'Neuvedeno',
+    ADMIN_PANEL_RECORDS_CLIENT_FALLBACK: 'Klient',
+    ADMIN_PANEL_RECORDS_STATUS_PENDING: '🟡 Čeká na potvrzení',
+    ADMIN_PANEL_RECORDS_STATUS_CONFIRMED: '🟢 Potvrzeno',
+    ADMIN_PANEL_RECORDS_STATUS_COMPLETED: '✅ Dokončeno',
+    ADMIN_PANEL_RECORDS_STATUS_CANCELED: '🔴 Zrušeno',
+    ADMIN_PANEL_RECORDS_STATUS_TRANSFERRED: '🟣 Přesunuto',
+    ADMIN_PANEL_RECORDS_LABEL_CLIENT: '👤 Klient: {client}',
+    ADMIN_PANEL_RECORDS_LABEL_PHONE: '📱 Telefon: {phone}',
+    ADMIN_PANEL_RECORDS_LABEL_EMAIL: '✉️ Email: {email}',
+    ADMIN_PANEL_RECORDS_LABEL_SERVICE: '💼 Služba: {service}',
+    ADMIN_PANEL_RECORDS_LABEL_MASTER: '👩‍🎨 Mistr: {master}',
+    ADMIN_PANEL_RECORDS_LABEL_TIME: '🕒 Čas: {time}',
+    ADMIN_PANEL_RECORDS_LABEL_PRICE: '💰 Cena: {price}',
+    ADMIN_PANEL_RECORDS_LABEL_STATUS: '📌 Stav: {status}',
+    ADMIN_PANEL_RECORDS_LABEL_PAGE: 'Strana {page}/{total}',
+    ADMIN_PANEL_RECORDS_LABEL_COMMENT: '📝 Komentář klienta:',
+    ADMIN_PANEL_RECORDS_HINT_PENDING:
+      'ℹ️ Dostupné akce: potvrdit, zrušit, přesunout, změnit mistra.',
+    ADMIN_PANEL_RECORDS_HINT_CONFIRMED:
+      'ℹ️ Rezervace je potvrzena. Dostupné akce: zrušit, přesunout, změnit mistra.',
+    ADMIN_PANEL_RECORDS_HINT_COMPLETED: 'ℹ️ Rezervace je dokončena. Dostupné je jen trvalé smazání.',
+    ADMIN_PANEL_RECORDS_HINT_CANCELED: 'ℹ️ Rezervace je zrušena. Dostupné je jen trvalé smazání.',
+    ADMIN_PANEL_RECORDS_HINT_TRANSFERRED: 'ℹ️ Rezervace je přesunuta. Dostupné je jen trvalé smazání.',
+
+    ADMIN_PANEL_RECORDS_BTN_BACK: '⬅️ Zpět na admin panel',
+    ADMIN_PANEL_RECORDS_BTN_HOME: '🏠 Hlavní menu',
+    ADMIN_PANEL_RECORDS_BTN_BACK_TO_MENU: '⬅️ Zpět do menu rezervací',
+    ADMIN_PANEL_RECORDS_BTN_BACK_TO_LIST: '⬅️ Zpět na seznam rezervací',
+    ADMIN_PANEL_RECORDS_BTN_CLEAR_CANCELED: '🧹 Vyčistit zrušené',
+    ADMIN_PANEL_RECORDS_BTN_CLEAR_CANCELED_CONFIRM: '✅ Ano, vyčistit',
+    ADMIN_PANEL_RECORDS_BTN_CONTACT_CLIENT: '📞 Kontakt klienta',
+    ADMIN_PANEL_RECORDS_BTN_VIEW_CLIENT_PROFILE: '👤 Profil klienta',
+    ADMIN_PANEL_RECORDS_BTN_VIEW_MASTER_PROFILE: '👩‍🎨 Profil mistra',
+    ADMIN_PANEL_RECORDS_BTN_NEXT_PENDING: '⏭ Další pending',
+    ADMIN_PANEL_RECORDS_BTN_CONFIRM: '✅ Potvrdit',
+    ADMIN_PANEL_RECORDS_BTN_CANCEL: '❌ Zrušit rezervaci',
+    ADMIN_PANEL_RECORDS_BTN_RESCHEDULE: '🔄 Přesunout',
+    ADMIN_PANEL_RECORDS_BTN_CHANGE_MASTER: '👩‍🎨 Změnit mistra',
+    ADMIN_PANEL_RECORDS_BTN_HARD_DELETE: '🗑 Smazat trvale',
+    ADMIN_PANEL_RECORDS_BTN_HARD_DELETE_CONFIRM: '🗑 Ano, smazat trvale',
+    ADMIN_PANEL_RECORDS_BTN_CANCEL_ACTION: '❌ Zrušit akci',
+    ADMIN_PANEL_RECORDS_BTN_CONFIRM_CANCEL: '✅ Ano, zrušit rezervaci',
+    ADMIN_PANEL_RECORDS_BTN_BACK_TO_DATE: '⬅️ Zpět na datum',
+    ADMIN_PANEL_RECORDS_BTN_BACK_TO_TIME: '⬅️ Zpět na čas',
+    ADMIN_PANEL_RECORDS_BTN_CONFIRM_RESCHEDULE: '✅ Potvrdit přesun',
+    ADMIN_PANEL_RECORDS_BTN_CONFIRM_CHANGE_MASTER: '✅ Potvrdit změnu mistra',
+
+    ADMIN_PANEL_RECORDS_HARD_DELETE_CONFIRM_TITLE: '⚠️ Potvrzení smazání',
+    ADMIN_PANEL_RECORDS_HARD_DELETE_CONFIRM_BODY: 'Opravdu chcete tuto rezervaci trvale smazat?',
+    ADMIN_PANEL_RECORDS_HARD_DELETE_CONFIRM_HINT:
+      'Po potvrzení bude rezervace odstraněna bez možnosti obnovení.',
+    ADMIN_PANEL_RECORDS_CLEAR_CANCELED_CONFIRM_TITLE: '⚠️ Vyčištění zrušených rezervací',
+    ADMIN_PANEL_RECORDS_CLEAR_CANCELED_CONFIRM_BODY:
+      'Potvrďte vyčištění zrušených rezervací.\nBude smazáno: {total}.',
+    ADMIN_PANEL_RECORDS_CONTACT_TITLE: '📞 Kontakt klienta',
+    ADMIN_PANEL_RECORDS_CONTACT_HINT: 'Vyberte kanál kontaktu níže.',
+    ADMIN_PANEL_RECORDS_CONTACT_PHONE_LINE: '• 📱 Telefon: {phone}',
+    ADMIN_PANEL_RECORDS_CONTACT_EMAIL_LINE: '• ✉️ Email: {email}',
+    ADMIN_PANEL_RECORDS_CONTACT_EMPTY: '⚠️ Kontaktní údaje nejsou dostupné.',
+    ADMIN_PANEL_RECORDS_CLIENT_PROFILE_TITLE: '👤 Profil klienta',
+    ADMIN_PANEL_RECORDS_CLIENT_PROFILE_ID: '🪪 ID: {id}',
+    ADMIN_PANEL_RECORDS_CLIENT_PROFILE_NAME: '👤 Jméno: {name}',
+    ADMIN_PANEL_RECORDS_CLIENT_PROFILE_TELEGRAM: '💬 Telegram: {telegram}',
+    ADMIN_PANEL_RECORDS_CLIENT_PROFILE_NEAREST: '📆 Nejbližší rezervace: {time}',
+    ADMIN_PANEL_RECORDS_CLIENT_PROFILE_STATUS: '📌 Stav: {status}',
+    ADMIN_PANEL_RECORDS_CARD_TITLE: '📄 Karta rezervace',
+
+    ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_TITLE: '⚠️ Potvrzení zrušení',
+    ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_ASK: 'Opravdu chcete tuto rezervaci zrušit?',
+    ADMIN_PANEL_RECORDS_CANCEL_CONFIRM_WARNING_CONFIRMED:
+      '⚠️ Rušíte již potvrzenou rezervaci.\nUjistěte se, že je to domluveno s klientem.',
+
+    ADMIN_PANEL_RECORDS_RESCHEDULE_STEP_DATE_TITLE: '🔄 Přesun rezervace — krok 1/3',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_STEP_TIME_TITLE: '🔄 Přesun rezervace — krok 2/3',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_STEP_CONFIRM_TITLE: '🔄 Přesun rezervace — krok 3/3',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_SELECT_DATE: 'Vyberte nové datum.',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_SELECT_TIME: 'Vyberte nový čas.',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_NO_TIMES:
+      '⚠️ Pro tento den už nejsou dostupné volné časy. Vyberte jiné datum.',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_PREVIOUS_TIME: '🕒 Bylo: {time}',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_NEW_TIME: '🕒 Bude: {time}',
+    ADMIN_PANEL_RECORDS_RESCHEDULE_CONFIRM_ASK: 'Potvrďte přesun rezervace.',
+
+    ADMIN_PANEL_RECORDS_CHANGE_MASTER_TITLE: '👩‍🎨 Změna mistra',
+    ADMIN_PANEL_RECORDS_CHANGE_MASTER_NO_CANDIDATES:
+      '⚠️ Pro tuto službu nejsou dostupní žádní mistři.',
+    ADMIN_PANEL_RECORDS_CHANGE_MASTER_PICK: 'Vyberte nového mistra:',
+    ADMIN_PANEL_RECORDS_CHANGE_MASTER_CONFIRM_TITLE: '👩‍🎨 Potvrzení změny mistra',
+    ADMIN_PANEL_RECORDS_CHANGE_MASTER_PREVIOUS: '👩‍🎨 Bylo: {master}',
+    ADMIN_PANEL_RECORDS_CHANGE_MASTER_NEW: '👩‍🎨 Bude: {master}',
+    ADMIN_PANEL_RECORDS_CHANGE_MASTER_CONFIRM_ASK: 'Potvrďte změnu mistra.',
+
+    ADMIN_PANEL_RECORDS_MSG_OPEN_CARD_FAILED_RETRY:
+      'Nepodařilo se otevřít kartu rezervace. Zkuste to znovu nebo se vraťte na seznam.',
+    ADMIN_PANEL_RECORDS_MSG_OPEN_CARD_FAILED_REFRESH:
+      'Nepodařilo se otevřít kartu rezervace. Zkuste obnovit seznam.',
+    ADMIN_PANEL_RECORDS_MSG_OPEN_CARD_FAILED_BACK_TO_LIST:
+      'Nepodařilo se otevřít kartu rezervace. Vracím na seznam.',
+    ADMIN_PANEL_RECORDS_MSG_MASTER_PROFILE_UNAVAILABLE:
+      'Profil mistra není dostupný nebo je již neaktivní.',
+    ADMIN_PANEL_RECORDS_MSG_CURRENT_TIME_UNAVAILABLE:
+      'Nepodařilo se určit aktuální čas rezervace. Otevřete kartu rezervace znovu.',
+    ADMIN_PANEL_RECORDS_MSG_NO_MORE_PENDING:
+      'Momentálně už nejsou žádné další pending rezervace.',
+    ADMIN_PANEL_RECORDS_MSG_CONFIRMED_AND_NOTIFIED:
+      'Rezervace potvrzena. Klient byl informován.',
+    ADMIN_PANEL_RECORDS_MSG_HARD_DELETE_ONLY_INACTIVE:
+      'Tato rezervace je stále aktivní. Trvalé smazání je dostupné jen pro neaktivní rezervace.',
+    ADMIN_PANEL_RECORDS_MSG_ALREADY_ABSENT:
+      'Rezervace už v systému neexistuje.',
+    ADMIN_PANEL_RECORDS_MSG_HARD_DELETE_ABORT_ACTIVE:
+      'Tato rezervace je stále aktivní. Trvalé smazání bylo zrušeno.',
+    ADMIN_PANEL_RECORDS_MSG_NOT_DELETED_ALREADY_CHANGED:
+      'Rezervace nebyla smazána. Možná už byla smazána nebo změněna.',
+    ADMIN_PANEL_RECORDS_MSG_HARD_DELETED:
+      'Rezervace byla trvale smazána.',
+    ADMIN_PANEL_RECORDS_MSG_ACTION_CANCELLED:
+      'Akce zrušena.\n\nNebyly provedeny žádné změny.',
+    ADMIN_PANEL_RECORDS_MSG_CANCELED_ALREADY_EMPTY:
+      'Seznam zrušených rezervací je už prázdný.',
+    ADMIN_PANEL_RECORDS_MSG_CANCELED_CLEARED:
+      'Zrušené rezervace vyčištěny. Smazáno: {count}.',
+    ADMIN_PANEL_RECORDS_MSG_CANCELED_AND_NOTIFIED:
+      'Rezervace zrušena. Klient byl informován.',
+    ADMIN_PANEL_RECORDS_MSG_CANNOT_RESCHEDULE:
+      'Tuto rezervaci už nelze přesunout.',
+    ADMIN_PANEL_RECORDS_MSG_RESCHEDULED_AND_NOTIFIED:
+      'Rezervace byla úspěšně přesunuta. Klient byl informován.',
+    ADMIN_PANEL_RECORDS_MSG_CANNOT_CHANGE_MASTER:
+      'U této rezervace už nelze změnit mistra.',
+    ADMIN_PANEL_RECORDS_MSG_MASTER_CHANGED_AND_NOTIFIED:
+      'Mistr byl úspěšně změněn. Klient byl informován.',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CONFIRMED: 'Potvrzeno',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_CANCELED: 'Zrušeno',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_RESCHEDULED: 'Přesunuto',
+    ADMIN_PANEL_RECORDS_NOTIFY_STATUS_MASTER_CHANGED: 'Mistr změněn',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CONFIRMED:
+      'Vaše rezervace byla potvrzena administrátorem.',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_CANCELED:
+      'Vaše rezervace byla zrušena administrátorem.',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_RESCHEDULED:
+      'Vaše rezervace byla administrátorem přesunuta. Zkontrolujte nové datum a čas.',
+    ADMIN_PANEL_RECORDS_NOTIFY_MESSAGE_MASTER_CHANGED:
+      'Administrátor přiřadil k vaší rezervaci nového mistra.',
+    ADMIN_PANEL_RECORDS_REASON_CANCELED_BY_ADMIN:
+      'Zrušeno administrátorem přes Telegram bota',
+    ADMIN_PANEL_RECORDS_REASON_RESCHEDULED_BY_ADMIN:
+      'Přesunuto administrátorem přes Telegram bota',
+  },
+} as const;

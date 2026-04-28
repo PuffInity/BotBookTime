@@ -1,3 +1,7 @@
+/**
+ * @file studioWeeklyHours.type.ts
+ * @summary Database table type definitions.
+ */
 export type StudioWeeklyHoursRow = {
     studio_id: string,
     weekday: number,

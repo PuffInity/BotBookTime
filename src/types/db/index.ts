@@ -1,3 +1,7 @@
+/**
+ * @file index.ts
+ * @summary DB type exports.
+ */
 export * from './appUsers.type.js';
 export * from './appointmentFinancials.type.js';
 export * from './appointmentReviews.type.js';

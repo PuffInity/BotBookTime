@@ -1,3 +1,7 @@
+/**
+ * @file verificationCodes.type.ts
+ * @summary Database table type definitions.
+ */
 import type { VerificationChannel, VerificationPurpose } from './dbEnums.type.js';
 
 export type VerificationCodesRow = {

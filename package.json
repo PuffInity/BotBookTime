@@ -1,9 +1,25 @@
 {
   "name": "telegram-bot",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "tsx src/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "ops": "tsx src/scripts/index.script.ts",
+    "help-ua": "tsx src/scripts/index.script.ts help-ua",
+    "help-eng": "tsx src/scripts/index.script.ts help-eng",
+    "help-cz": "tsx src/scripts/index.script.ts help-cz",
+    "migrate": "tsx src/migration/index.migration.ts migrate",
+    "rollback": "tsx src/migration/index.migration.ts rollback",
+    "migration:status": "tsx src/migration/index.migration.ts status",
+    "script:grant-admin": "tsx src/scripts/grant-admin-by-telegram-id.script.ts",
+    "script:revoke-admin": "tsx src/scripts/revoke-admin-by-telegram-id.script.ts",
+    "script:grant-master": "tsx src/scripts/grant-master-by-telegram-id.script.ts",
+    "script:repair-bookings": "tsx src/scripts/repair-booking-statuses.script.ts",
+    "script:notification-dry-run": "tsx src/scripts/dry-run-notification-dispatch.script.ts",
+    "script:seed-custom-data": "tsx src/scripts/seed-custom-data.script.ts",
+    "script:health-check": "tsx src/scripts/health-check.script.ts"
   },
   "dependencies": {
     "@types/nodemailer": "^7.0.11",
@@ -15,6 +31,7 @@
     "postgres": "^3.4.8",
     "redis": "^4.7.1",
     "telegraf": "^4.16.0",
+    "twilio": "^5.13.1",
     "winston": "^3.19.0",
     "winston-daily-rotate-file": "^5.0.0",
     "zod": "^4.3.6"

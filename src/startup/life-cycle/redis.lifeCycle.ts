@@ -9,21 +9,23 @@ import {handleError} from "../../utils/error.utils.js";
  * @summary Життєвий цикл Redis-клієнта (init/shutdown) для застосунку.
  */
 
-/** Індикатор стану Redis-інстанса, щоб не робити повторний init. */
+// uk: Стан Redis / en: Redis state / cz: Stav Redis
 let redisStarted = false;
-/** Глобальне посилання на Redis client після успішної ініціалізації. */
+// uk: Глобальний client / en: Global client / cz: Globální klient
 export let redis: RedisClient | null = null;
 
 /**
- * Підписує Redis client на базові події та пише їх у лог.
- * @param {RedisClient} client - Уже створений Redis client.
+ * uk: Підписує Redis на події.
+ * en: Attaches Redis event listeners.
+ * cz: Připojí Redis event listenery.
+ * @param client uk/en/cz: Redis client.
  */
 function attachLogs(client: RedisClient) {
-    /** Якщо Redis підключений */
+    // uk: ready / en: ready / cz: ready
     client.on('ready', () => {
         loggerR.info('[redis] Клієнт готовий')
     });
-    /** Якщо виникла помилка в Redis */
+    // uk: error / en: error / cz: error
     client.on('error', (error: unknown) => {
         handleError({
             logger: loggerR,
@@ -32,29 +34,27 @@ function attachLogs(client: RedisClient) {
             error,
         })
     });
-    /** Якщо Redis переподключається */
+    // uk: reconnecting / en: reconnecting / cz: reconnecting
     client.on('reconnecting', () => {
         loggerR.warn(`[redis] Перепідключення...`)
     })
-    /** Якщо Redis відключився */
+    // uk: end / en: end / cz: end
     client.on('end', () => {
         loggerR.warn('[redis] Підключення завершено')
     })
 }
 
 /**
- * Коректно завершує Redis-клієнт з таймаутом, щоб shutdown не "завис".
- * @param {RedisClient} client - Активний Redis client.
- * @param {number} [ms=5000] - Максимальний час очікування quit() у мілісекундах.
- * @returns {Promise<void>}
+ * uk: Завершує Redis з timeout guard.
+ * en: Closes Redis with timeout guard.
+ * cz: Ukončí Redis s timeout guard.
+ * @param client uk/en/cz: Redis client.
+ * @param ms uk/en/cz: Timeout ms.
  */
 async function quitWithTimeout(client: RedisClient, ms = 5000): Promise<void> {
     let timer: NodeJS.Timeout | null = null
     try {
-        /**
-         * Створюємо гонку між client.quit() та Таймаутом який викликає помилку через 5 секунд
-         * робимо для того щоб метод вимкнення Інстанса не завис
-         */
+        // uk: Race quit/timeout / en: Race quit/timeout / cz: Race quit/timeout
         await Promise.race([
             client.quit(),
             new Promise<void>((_, reject) => {
@@ -62,23 +62,15 @@ async function quitWithTimeout(client: RedisClient, ms = 5000): Promise<void> {
             })
         ])
     } finally {
-        /** Очищаємо Таймаут в любому випадку якщо він існує */
+        // uk: Clear timeout / en: Clear timeout / cz: Clear timeout
         if (timer) clearTimeout(timer)
     }
 }
 
 /**
- * Ініціалізує Redis-клієнт:
- * 1) створює client з конфігу
- * 2) реєструє логи подій
- * 3) підключається та перевіряє зв'язок через PING
- * 4) зберігає інстанс у глобальну змінну `redis`
- *
- * Викликається один раз на старті застосунку.
- * Повторний виклик буде проігнорований через `redisStarted`.
- *
- * @returns {Promise<void>}
- * @throws {unknown} Якщо підключення або PING Redis завершиться помилкою.
+ * uk: Ініціалізує Redis client.
+ * en: Initializes Redis client.
+ * cz: Inicializuje Redis klienta.
  */
 export async function initRedis() {
     if (redisStarted) {
@@ -109,27 +101,26 @@ export async function initRedis() {
 }
 
 /**
- * Завершує роботу Redis-клієнта застосунку.
- * Спочатку пробує `quit()`, а при помилці робить fallback на `disconnect()`.
- *
- * Після завершення очищає глобальні змінні стану (`redis`, `redisStarted`).
- *
- * @returns {Promise<void>}
+ * uk: Коректно вимикає Redis client.
+ * en: Gracefully shuts down Redis client.
+ * cz: Korektně vypne Redis klienta.
  */
 export async function redisShutdown(): Promise<void> {
     /**
-     * Допоміжне закриття одного Redis client з логуванням.
-     * @param {RedisClient | null} cl - Redis client або null, якщо не ініціалізований.
-     * @param {string} label - Назва інстанса для логів.
+     * uk: Закриває один Redis інстанс.
+     * en: Closes single Redis instance.
+     * cz: Zavře jeden Redis instanci.
+     * @param cl uk/en/cz: Redis client.
+     * @param label uk/en/cz: Label.
      */
     const close = async (cl: RedisClient | null, label: string) => {
-        /** Провірка чи Інсанс запущений */
+        // uk: Is running / en: Is running / cz: Is running
         if (!cl) {
             loggerR.warn(`[${label}] Клієнт не запущений, крок закриття пропущено`)
             return;
         }
         try {
-            /** Викликаємо функцію яка вимикає Інстанс */
+            // uk: Try quit / en: Try quit / cz: Try quit
             await quitWithTimeout(cl, 5000)
             loggerR.info(`[${label}] quit() успішно`);
 
@@ -142,7 +133,7 @@ export async function redisShutdown(): Promise<void> {
                 meta: { label },
             })
             try {
-                /** Викликаємо метод disconnect() */
+                // uk: Fallback disconnect / en: Fallback disconnect / cz: Fallback disconnect
                 await cl.disconnect();
                 loggerR.warn(`[${label}] disconnect() успішно`);
             } catch (err: unknown) {
@@ -156,16 +147,16 @@ export async function redisShutdown(): Promise<void> {
             }
         }
     };
-    /** Створюємо масив обʼєктів в яких зберігяються всі результати промісів */
+    // uk: Wait all closes / en: Wait all closes / cz: Wait all closes
     const results = await Promise.allSettled([
         close(redis, 'redis'),
     ])
-    /** фільтруємо всі reject щоб бачити скільки сталось відмов  */
+    // uk: Count failures / en: Count failures / cz: Count failures
     const rejected = results.filter((r) => r.status === 'rejected');
     if (rejected.length > 0) {
         loggerR.error(`[redis] Завершення роботи зіткнулося з ${rejected.length} відмовами`)
     }
-    /** Очищає всі змінні з інстансами та змінну з запущеною програмою чим позначаємо що вона вимкнута */
+    // uk: Reset state / en: Reset state / cz: Reset state
     redis = null;
     redisStarted = false;
 
