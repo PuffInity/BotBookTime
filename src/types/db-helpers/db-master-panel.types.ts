@@ -1,0 +1,34 @@
+/**
+ * @file db-master-panel.types.ts
+ * @summary uk: Типи для DB helper модуля доступу до панелі майстра.
+ * en: DB helper type definitions.
+ * cz: DB helper type definitions.
+ */
+
+/**
+ * Сирий рядок з SQL запиту доступу до панелі майстра.
+ */
+export type MasterPanelAccessRow = {
+  user_id: string;
+  telegram_user_id: string;
+  studio_id: string;
+  master_id: string;
+  display_name: string;
+  is_bookable: boolean;
+  first_name: string;
+  last_name: string | null;
+};
+
+/**
+ * Нормалізована бізнес-модель доступу майстра.
+ */
+export type MasterPanelAccess = {
+  userId: string;
+  telegramUserId: string;
+  studioId: string;
+  masterId: string;
+  displayName: string;
+  isBookable: boolean;
+  firstName: string;
+  lastName: string | null;
+};

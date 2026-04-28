@@ -1,0 +1,79 @@
+/**
+ * @file db-profile.types.ts
+ * @summary uk: Типи профілю користувача.
+ * en: User profile helper types.
+ * cz: Typy helperu profilu uživatele.
+ */
+
+export type CreateUserInput = {
+  telegramId: number | string;
+  username?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+};
+
+export type NormalizedTelegramProfile = {
+  telegramUserId: string;
+  telegramUsername: string | null;
+  firstName: string;
+  lastName: string | null;
+};
+
+export type UpdateUserNameInput = {
+  telegramId: number | string;
+  firstName: string;
+};
+
+export type UpdateUserEmailInput = {
+  telegramId: number | string;
+  email: string;
+};
+
+export type UpdateUserPhoneInput = {
+  telegramId: number | string;
+  phone: string;
+};
+
+export type UpdateUserLanguageInput = {
+  telegramId: number | string;
+  language: 'uk' | 'en' | 'cs';
+};
+
+export type SaveEmailOtpInput = {
+  userId: string;
+  destination: string;
+  codeHash: string;
+  expiresAt: Date;
+  maxAttempts?: number;
+};
+
+export type VerifyEmailOtpInput = {
+  telegramId: number | string;
+  code: string;
+};
+
+export type VerifyPhoneOtpInput = {
+  telegramId: number | string;
+  code: string;
+};
+
+export type VerifyEmailOtpStatus =
+  | 'VERIFIED'
+  | 'INVALID'
+  | 'EXPIRED'
+  | 'BLOCKED'
+  | 'NO_ACTIVE_OTP'
+  | 'ALREADY_VERIFIED'
+  | 'EMAIL_MISSING';
+
+export type VerifyPhoneOtpStatus =
+  | 'VERIFIED'
+  | 'INVALID'
+  | 'EXPIRED'
+  | 'BLOCKED'
+  | 'NO_ACTIVE_OTP'
+  | 'ALREADY_VERIFIED'
+  | 'PHONE_MISSING'
+  | 'SMS_NOT_CONFIGURED'
+  | 'SEND_FAILED'
+  | 'RESEND_LIMIT';

@@ -1,0 +1,129 @@
+/**
+ * @file db-admin-services.types.ts
+ * @summary uk: Типи для DB helper модуля "Послуги" в адмін-панелі.
+ * en: DB helper type definitions.
+ * cz: DB helper type definitions.
+ */
+
+export type AdminEditableServiceRow = {
+  id: string;
+  studio_id: string;
+  name: string;
+  duration_minutes: number;
+  base_price: string;
+  currency_code: string;
+  description: string | null;
+  result_description: string | null;
+};
+
+export type AdminEditableService = {
+  id: string;
+  studioId: string;
+  name: string;
+  durationMinutes: number;
+  basePrice: string;
+  currencyCode: string;
+  description: string | null;
+  resultDescription: string | null;
+};
+
+export type GetAdminEditableServiceInput = {
+  studioId: string | number;
+  serviceId: string | number;
+};
+
+export type UpdateAdminServiceResultDescriptionInput = {
+  studioId: string | number;
+  serviceId: string | number;
+  resultDescription: string | null;
+};
+
+export type UpdateAdminServiceNameInput = {
+  studioId: string | number;
+  serviceId: string | number;
+  name: string;
+};
+
+export type DeactivateAdminServiceInput = {
+  studioId: string | number;
+  serviceId: string | number;
+};
+
+export type UpdateAdminServiceGuaranteeTextInput = {
+  studioId: string | number;
+  serviceId: string | number;
+  guaranteeNo: number;
+  guaranteeText: string;
+};
+
+export type UpdateAdminServiceStepTitleInput = {
+  studioId: string | number;
+  serviceId: string | number;
+  stepNo: number;
+  title: string;
+};
+
+export type UpdateAdminServiceStepDescriptionInput = {
+  studioId: string | number;
+  serviceId: string | number;
+  stepNo: number;
+  description: string;
+};
+
+export type UpdateAdminServiceStepDurationInput = {
+  studioId: string | number;
+  serviceId: string | number;
+  stepNo: number;
+  durationMinutes: number;
+};
+
+export type UpdateAdminServiceDescriptionInput = {
+  studioId: string | number;
+  serviceId: string | number;
+  description: string | null;
+};
+
+export type UpdateAdminServiceBasePriceInput = {
+  studioId: string | number;
+  serviceId: string | number;
+  basePrice: string;
+};
+
+export type UpdateAdminServiceDurationInput = {
+  studioId: string | number;
+  serviceId: string | number;
+  durationMinutes: number;
+};
+
+export type CreateAdminServiceStepInput = {
+  title: string;
+  description: string;
+  durationMinutes: number;
+};
+
+export type CreateAdminServiceGuaranteeInput = {
+  guaranteeText: string;
+  validDays?: number | null;
+};
+
+export type CreateAdminServiceInput = {
+  studioId: string | number;
+  name: string;
+  durationMinutes: number;
+  basePrice: string;
+  currencyCode?: string;
+  description: string;
+  resultDescription: string;
+  steps: CreateAdminServiceStepInput[];
+  guarantees: CreateAdminServiceGuaranteeInput[];
+};
+
+export type CreateAdminServiceResult = {
+  serviceId: string;
+  name: string;
+  durationMinutes: number;
+  basePrice: string;
+  currencyCode: string;
+  stepsCount: number;
+  guaranteesCount: number;
+};

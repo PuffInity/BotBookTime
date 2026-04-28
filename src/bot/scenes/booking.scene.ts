@@ -1,0 +1,893 @@
+import { Markup, Scenes } from 'telegraf';
+import type { MyContext } from '../../types/bot.types.js';
+import { sendClientMainMenu } from '../../helpers/bot/main-menu.bot.js';
+import {
+  bookingClientPhoneSchema,
+  bookingDateCodeSchema,
+  bookingTimeCodeSchema,
+} from '../../validator/booking-input.schema.js';
+import { getOrCreateUser } from '../../helpers/db/db-profile.helper.js';
+import {
+  createPendingBooking,
+  listAvailableMastersForBookingSlot,
+  listAvailableTimeCodesForBookingDate,
+  listBookableServicesForBooking,
+} from '../../helpers/db/db-booking.helper.js';
+import { sendProfileCard } from '../../helpers/bot/profile-view.bot.js';
+import { sendClientBookingCreatedEmail } from '../../helpers/email/booking-email.helper.js';
+import {
+  BOOKING_ACTION,
+  BOOKING_DATE_ACTION_REGEX,
+  BOOKING_MASTER_ACTION_REGEX,
+  BOOKING_SERVICE_ACTION_REGEX,
+  BOOKING_TIME_ACTION_REGEX,
+  BOOKING_ERROR_CODE,
+} from '../../types/bot-booking.types.js';
+import type { ServicesCatalogItem } from '../../types/db-helpers/db-services.types.js';
+import type { MasterBookingOption } from '../../types/db-helpers/db-masters.types.js';
+import { ValidationError } from '../../utils/error.utils.js';
+import { resolveBotUiLanguage, tBot } from '../../helpers/bot/i18n.bot.js';
+import type { BotUiLanguage } from '../../helpers/bot/i18n.bot.js';
+import {
+  translateBookingMetaForUser,
+  translateServicesCatalogItems,
+} from '../../helpers/translate/translate-db-content.helper.js';
+import {
+  buildBookingDateOptions,
+  buildBookingTimeOptions,
+  createBookingConfirmKeyboard,
+  createBookingDateKeyboard,
+  createBookingMasterKeyboard,
+  createBookingPhoneUnverifiedKeyboard,
+  createBookingServiceKeyboard,
+  createBookingTimeKeyboard,
+  formatBookingConfirmStepText,
+  formatBookingDateStepText,
+  formatBookingMasterStepText,
+  formatBookingPhoneStepText,
+  formatBookingPhoneUnverifiedStepText,
+  formatBookingServiceStepText,
+  formatBookingSuccessText,
+  formatBookingTimeStepText,
+} from '../../helpers/bot/booking-view.bot.js';
+
+/**
+ * @file booking.scene.ts
+ * @summary Покроковий сценарій бронювання клієнта (service → date → time → master → phone → confirm).
+ */
+
+// uk: Flow/UI константа BOOKING_SCENE_ID / en: Flow/UI constant BOOKING_SCENE_ID / cz: Flow/UI konstanta BOOKING_SCENE_ID
+export const BOOKING_SCENE_ID = 'booking-scene';
+
+type BookingSceneState = {
+  language: BotUiLanguage;
+  clientId: string | null;
+  studioId: string | null;
+  profileName: string;
+  profileEmail: string | null;
+  profilePhone: string | null;
+  isProfilePhoneVerified: boolean;
+  services: ServicesCatalogItem[];
+  masters: MasterBookingOption[];
+  availableDateCodes: string[];
+  availableTimeCodes: string[];
+  serviceId: string | null;
+  serviceName: string | null;
+  dateCode: string | null;
+  timeCode: string | null;
+  masterId: string | null;
+  masterName: string | null;
+  attendeeName: string | null;
+  attendeePhone: string | null;
+};
+
+// uk: Flow/UI константа BOOKING_TIME_OPTIONS / en: Flow/UI constant BOOKING_TIME_OPTIONS / cz: Flow/UI konstanta BOOKING_TIME_OPTIONS
+const BOOKING_TIME_OPTIONS = buildBookingTimeOptions();
+// uk: Flow/UI константа BOOKING_TIME_CODES / en: Flow/UI constant BOOKING_TIME_CODES / cz: Flow/UI konstanta BOOKING_TIME_CODES
+const BOOKING_TIME_CODES = BOOKING_TIME_OPTIONS.map((item) => item.replace(':', ''));
+
+/**
+ * uk: Внутрішня flow-функція getSceneState.
+ * en: Internal flow function getSceneState.
+ * cz: Interní flow funkce getSceneState.
+ */
+function getSceneState(ctx: MyContext): BookingSceneState {
+  return ctx.wizard.state as BookingSceneState;
+}
+
+/**
+ * uk: Внутрішня flow-функція getMessageText.
+ * en: Internal flow function getMessageText.
+ * cz: Interní flow funkce getMessageText.
+ */
+function getMessageText(ctx: MyContext): string | null {
+  if (!ctx.message) return null;
+  if (!('text' in ctx.message)) return null;
+  return ctx.message.text.trim();
+}
+
+/**
+ * uk: Внутрішня flow-функція formatProfileName.
+ * en: Internal flow function formatProfileName.
+ * cz: Interní flow funkce formatProfileName.
+ */
+function formatProfileName(firstName: string, language: BotUiLanguage, lastName?: string | null): string {
+  const fullName = `${firstName}${lastName ? ` ${lastName}` : ''}`.trim();
+  return fullName.length > 0 ? fullName : tBot(language, 'BOOKING_CLIENT_FALLBACK');
+}
+
+/**
+ * uk: Внутрішня flow-функція formatDateCodeLabel.
+ * en: Internal flow function formatDateCodeLabel.
+ * cz: Interní flow funkce formatDateCodeLabel.
+ */
+function formatDateCodeLabel(dateCode: string): string {
+  const year = Number(dateCode.slice(0, 4));
+  const month = Number(dateCode.slice(4, 6));
+  const day = Number(dateCode.slice(6, 8));
+  return `${String(day).padStart(2, '0')}.${String(month).padStart(2, '0')}.${year}`;
+}
+
+/**
+ * uk: Внутрішня flow-функція formatTimeCodeLabel.
+ * en: Internal flow function formatTimeCodeLabel.
+ * cz: Interní flow funkce formatTimeCodeLabel.
+ */
+function formatTimeCodeLabel(timeCode: string): string {
+  return `${timeCode.slice(0, 2)}:${timeCode.slice(2, 4)}`;
+}
+
+/**
+ * uk: Внутрішня flow-функція getTodayDateCode.
+ * en: Internal flow function getTodayDateCode.
+ * cz: Interní flow funkce getTodayDateCode.
+ */
+function getTodayDateCode(): string {
+  const now = new Date();
+  const year = String(now.getFullYear());
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+}
+
+/**
+ * uk: Внутрішня flow-функція getCandidateTimeCodesForDate.
+ * en: Internal flow function getCandidateTimeCodesForDate.
+ * cz: Interní flow funkce getCandidateTimeCodesForDate.
+ */
+function getCandidateTimeCodesForDate(dateCode: string): string[] {
+  if (dateCode !== getTodayDateCode()) {
+    return BOOKING_TIME_CODES;
+  }
+
+  const now = Date.now();
+  return BOOKING_TIME_CODES.filter((timeCode) => toStartAt(dateCode, timeCode).getTime() > now);
+}
+
+/**
+ * uk: Внутрішня flow-функція toStartAt.
+ * en: Internal flow function toStartAt.
+ * cz: Interní flow funkce toStartAt.
+ */
+function toStartAt(dateCode: string, timeCode: string): Date {
+  const year = Number(dateCode.slice(0, 4));
+  const month = Number(dateCode.slice(4, 6));
+  const day = Number(dateCode.slice(6, 8));
+  const hour = Number(timeCode.slice(0, 2));
+  const minute = Number(timeCode.slice(2, 4));
+  return new Date(year, month - 1, day, hour, minute, 0, 0);
+}
+
+/**
+ * uk: Внутрішня flow-функція createTextStepNavKeyboard.
+ * en: Internal flow function createTextStepNavKeyboard.
+ * cz: Interní flow funkce createTextStepNavKeyboard.
+ */
+function createTextStepNavKeyboard(language: BotUiLanguage): ReturnType<typeof Markup.inlineKeyboard> {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback(tBot(language, 'COMMON_BACK'), BOOKING_ACTION.BACK),
+      Markup.button.callback(tBot(language, 'BOOKING_BTN_CANCEL'), BOOKING_ACTION.CANCEL),
+    ],
+  ]);
+}
+
+/**
+ * uk: Внутрішня flow-функція resetBookingDraft.
+ * en: Internal flow function resetBookingDraft.
+ * cz: Interní flow funkce resetBookingDraft.
+ */
+function resetBookingDraft(state: BookingSceneState): void {
+  state.masters = [];
+  state.availableDateCodes = [];
+  state.availableTimeCodes = [];
+  state.serviceId = null;
+  state.serviceName = null;
+  state.dateCode = null;
+  state.timeCode = null;
+  state.masterId = null;
+  state.masterName = null;
+  state.attendeeName = state.profileName;
+  state.attendeePhone = null;
+}
+
+/**
+ * uk: Внутрішня flow-функція resetAfterService.
+ * en: Internal flow function resetAfterService.
+ * cz: Interní flow funkce resetAfterService.
+ */
+function resetAfterService(state: BookingSceneState): void {
+  state.masters = [];
+  state.availableDateCodes = [];
+  state.availableTimeCodes = [];
+  state.dateCode = null;
+  state.timeCode = null;
+  state.masterId = null;
+  state.masterName = null;
+  state.attendeeName = state.profileName;
+  state.attendeePhone = null;
+}
+
+/**
+ * uk: Внутрішня flow-функція resetAfterDate.
+ * en: Internal flow function resetAfterDate.
+ * cz: Interní flow funkce resetAfterDate.
+ */
+function resetAfterDate(state: BookingSceneState): void {
+  state.availableTimeCodes = [];
+  state.timeCode = null;
+  state.masterId = null;
+  state.masterName = null;
+  state.attendeeName = state.profileName;
+  state.attendeePhone = null;
+}
+
+/**
+ * uk: Внутрішня flow-функція resetAfterTime.
+ * en: Internal flow function resetAfterTime.
+ * cz: Interní flow funkce resetAfterTime.
+ */
+function resetAfterTime(state: BookingSceneState): void {
+  state.masterId = null;
+  state.masterName = null;
+  state.attendeeName = state.profileName;
+  state.attendeePhone = null;
+}
+
+/**
+ * uk: Внутрішня flow-функція isPhoneStepRequired.
+ * en: Internal flow function isPhoneStepRequired.
+ * cz: Interní flow funkce isPhoneStepRequired.
+ */
+function isPhoneStepRequired(state: BookingSceneState): boolean {
+  return !state.profilePhone || !state.isProfilePhoneVerified;
+}
+
+/**
+ * uk: Внутрішня flow-функція renderView.
+ * en: Internal flow function renderView.
+ * cz: Interní flow funkce renderView.
+ */
+async function renderView(
+  ctx: MyContext,
+  text: string,
+  keyboard: ReturnType<typeof createBookingConfirmKeyboard>,
+  preferEdit: boolean,
+): Promise<void> {
+  if (preferEdit && ctx.updateType === 'callback_query') {
+    try {
+      await ctx.editMessageText(text, keyboard);
+      return;
+    } catch {
+      // Якщо старе повідомлення не можна відредагувати — відправляємо нове.
+    }
+  }
+
+  await ctx.reply(text, keyboard);
+}
+
+/**
+ * uk: Внутрішня flow-функція renderServiceStep.
+ * en: Internal flow function renderServiceStep.
+ * cz: Interní flow funkce renderServiceStep.
+ */
+async function renderServiceStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
+  const state = getSceneState(ctx);
+  const rawServices = await listBookableServicesForBooking({ studioId: state.studioId });
+  state.services = await translateServicesCatalogItems(rawServices, state.language);
+
+  await renderView(
+    ctx,
+    formatBookingServiceStepText(state.services, state.language),
+    createBookingServiceKeyboard(state.services, state.language),
+    preferEdit,
+  );
+}
+
+/**
+ * uk: Внутрішня flow-функція renderDateStep.
+ * en: Internal flow function renderDateStep.
+ * cz: Interní flow funkce renderDateStep.
+ */
+async function renderDateStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
+  const state = getSceneState(ctx);
+  if (!state.serviceName) {
+    await renderServiceStep(ctx, preferEdit);
+    return;
+  }
+
+  if (!state.studioId || !state.serviceId) {
+    await renderServiceStep(ctx, preferEdit);
+    return;
+  }
+
+  const dateOptions = buildBookingDateOptions(7);
+  const dateCodes = dateOptions.map((date) => {
+    const year = String(date.getFullYear());
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}${month}${day}`;
+  });
+
+  const timeCandidatesByDate = await Promise.all(
+    dateCodes.map((dateCode) =>
+      listAvailableTimeCodesForBookingDate({
+        studioId: state.studioId!,
+        serviceId: state.serviceId!,
+        dateCode,
+        timeCodes: getCandidateTimeCodesForDate(dateCode),
+      }),
+    ),
+  );
+
+  const availableDates = dateOptions.filter((_, index) => timeCandidatesByDate[index].length > 0);
+  state.availableDateCodes = dateCodes.filter((_, index) => timeCandidatesByDate[index].length > 0);
+
+  const text =
+    availableDates.length > 0
+      ? formatBookingDateStepText(state.serviceName, state.language)
+      : `${formatBookingDateStepText(state.serviceName, state.language)}\n\n${tBot(state.language, 'BOOKING_NO_SLOTS')}`;
+
+  await renderView(
+    ctx,
+    text,
+    createBookingDateKeyboard(availableDates, state.language),
+    preferEdit,
+  );
+}
+
+/**
+ * uk: Внутрішня flow-функція renderTimeStep.
+ * en: Internal flow function renderTimeStep.
+ * cz: Interní flow funkce renderTimeStep.
+ */
+async function renderTimeStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
+  const state = getSceneState(ctx);
+  if (!state.serviceName || !state.dateCode) {
+    await renderDateStep(ctx, preferEdit);
+    return;
+  }
+
+  if (!state.studioId || !state.serviceId) {
+    await renderServiceStep(ctx, preferEdit);
+    return;
+  }
+
+  const availableTimeCodes = await listAvailableTimeCodesForBookingDate({
+    studioId: state.studioId,
+    serviceId: state.serviceId,
+    dateCode: state.dateCode,
+    timeCodes: getCandidateTimeCodesForDate(state.dateCode),
+  });
+  state.availableTimeCodes = availableTimeCodes;
+  const availableTimeOptions = availableTimeCodes.map(formatTimeCodeLabel);
+  const text =
+    availableTimeOptions.length > 0
+      ? formatBookingTimeStepText(
+          state.serviceName,
+          formatDateCodeLabel(state.dateCode),
+          state.language,
+        )
+      : formatBookingTimeStepText(
+          state.serviceName,
+          formatDateCodeLabel(state.dateCode),
+          state.language,
+        ) + `\n\n${tBot(state.language, 'BOOKING_NO_SLOTS')}`;
+
+  await renderView(ctx, text, createBookingTimeKeyboard(availableTimeOptions, state.language), preferEdit);
+}
+
+/**
+ * uk: Внутрішня flow-функція renderMasterStep.
+ * en: Internal flow function renderMasterStep.
+ * cz: Interní flow funkce renderMasterStep.
+ */
+async function renderMasterStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
+  const state = getSceneState(ctx);
+  if (!state.serviceId || !state.serviceName || !state.timeCode || !state.dateCode || !state.studioId) {
+    await renderTimeStep(ctx, preferEdit);
+    return;
+  }
+
+  state.masters = await listAvailableMastersForBookingSlot({
+    studioId: state.studioId,
+    serviceId: state.serviceId,
+    dateCode: state.dateCode,
+    timeCode: state.timeCode,
+  });
+
+  await renderView(
+    ctx,
+    formatBookingMasterStepText(
+      state.serviceName,
+      formatDateCodeLabel(state.dateCode),
+      formatTimeCodeLabel(state.timeCode),
+      state.masters,
+      state.language,
+    ),
+    createBookingMasterKeyboard(state.masters, state.language),
+    preferEdit,
+  );
+}
+
+/**
+ * uk: Внутрішня flow-функція renderPhoneStep.
+ * en: Internal flow function renderPhoneStep.
+ * cz: Interní flow funkce renderPhoneStep.
+ */
+async function renderPhoneStep(ctx: MyContext, intro?: string): Promise<void> {
+  const state = getSceneState(ctx);
+
+  if (!state.attendeeName) {
+    state.attendeeName = state.profileName;
+  }
+
+  if (!state.profilePhone) {
+    await ctx.reply(
+      `${intro ? `${intro}\n\n` : ''}${formatBookingPhoneStepText(state.attendeeName, state.language)}`,
+      createTextStepNavKeyboard(state.language),
+    );
+    return;
+  }
+
+  if (!state.isProfilePhoneVerified) {
+    await renderView(
+      ctx,
+      `${intro ? `${intro}\n\n` : ''}` +
+        formatBookingPhoneUnverifiedStepText({
+          name: state.attendeeName,
+          phone: state.profilePhone,
+        }, state.language),
+      createBookingPhoneUnverifiedKeyboard(state.language),
+      ctx.updateType === 'callback_query',
+    );
+    return;
+  }
+
+  state.attendeePhone = state.profilePhone;
+  await renderConfirmStep(ctx, false);
+}
+
+/**
+ * uk: Внутрішня flow-функція renderConfirmStep.
+ * en: Internal flow function renderConfirmStep.
+ * cz: Interní flow funkce renderConfirmStep.
+ */
+async function renderConfirmStep(ctx: MyContext, preferEdit: boolean): Promise<void> {
+  const state = getSceneState(ctx);
+  if (
+    !state.serviceName ||
+    !state.masterName ||
+    !state.dateCode ||
+    !state.timeCode ||
+    !state.attendeeName ||
+    !state.attendeePhone
+  ) {
+    await renderPhoneStep(ctx);
+    return;
+  }
+
+  await renderView(
+    ctx,
+    formatBookingConfirmStepText({
+      serviceName: state.serviceName,
+      masterName: state.masterName,
+      startAt: toStartAt(state.dateCode, state.timeCode),
+      attendeeName: state.attendeeName,
+      attendeePhone: state.attendeePhone,
+    }, state.language),
+    createBookingConfirmKeyboard(state.language),
+    preferEdit,
+  );
+}
+
+/**
+ * uk: Внутрішня flow-функція handleCancel.
+ * en: Internal flow function handleCancel.
+ * cz: Interní flow funkce handleCancel.
+ */
+async function handleCancel(ctx: MyContext): Promise<void> {
+  const state = getSceneState(ctx);
+  await ctx.scene.leave();
+  await ctx.reply(tBot(state.language ?? 'uk', 'BOOKING_CANCELLED'));
+  await sendClientMainMenu(ctx);
+}
+
+/**
+ * uk: Публічна flow-функція createBookingScene.
+ * en: Public flow function createBookingScene.
+ * cz: Veřejná flow funkce createBookingScene.
+ */
+export function createBookingScene(): Scenes.WizardScene<MyContext> {
+  const scene = new Scenes.WizardScene<MyContext>(
+    BOOKING_SCENE_ID,
+    async (ctx) => {
+      const state = getSceneState(ctx);
+      const user = await getOrCreateUser(ctx);
+
+      state.language = resolveBotUiLanguage(user.preferredLanguage);
+      state.clientId = user.id;
+      state.studioId = user.studioId;
+      state.profileName = formatProfileName(user.firstName, state.language, user.lastName);
+      state.profileEmail = user.email;
+      state.profilePhone = user.phoneE164;
+      state.isProfilePhoneVerified = Boolean(user.phoneE164 && user.phoneVerifiedAt);
+      state.services = [];
+      state.availableDateCodes = [];
+      state.availableTimeCodes = [];
+      resetBookingDraft(state);
+
+      await renderServiceStep(ctx, false);
+      return ctx.wizard.next();
+    },
+    async (ctx) => {
+      const text = getMessageText(ctx);
+      if (!text) return;
+      await renderServiceStep(ctx, false);
+    },
+    async (ctx) => {
+      const text = getMessageText(ctx);
+      if (!text) return;
+      await renderDateStep(ctx, false);
+    },
+    async (ctx) => {
+      const text = getMessageText(ctx);
+      if (!text) return;
+      await renderTimeStep(ctx, false);
+    },
+    async (ctx) => {
+      const text = getMessageText(ctx);
+      if (!text) return;
+      await renderMasterStep(ctx, false);
+    },
+    async (ctx) => {
+      const state = getSceneState(ctx);
+      const text = getMessageText(ctx);
+
+      if (state.profilePhone && !state.isProfilePhoneVerified) {
+        await renderPhoneStep(
+          ctx,
+          text ? tBot(state.language, 'BOOKING_TEXT_USE_BUTTONS') : undefined,
+        );
+        return;
+      }
+
+      if (!text) {
+        await renderPhoneStep(ctx, tBot(state.language, 'BOOKING_TEXT_EXPECT_PHONE'));
+        return;
+      }
+
+      const parsedPhone = bookingClientPhoneSchema.safeParse(text);
+      if (!parsedPhone.success) {
+        await renderPhoneStep(ctx, tBot(state.language, 'BOOKING_TEXT_INVALID_PHONE'));
+        return;
+      }
+
+      state.attendeePhone = parsedPhone.data;
+      await renderConfirmStep(ctx, false);
+      return ctx.wizard.next();
+    },
+    async (ctx) => {
+      const text = getMessageText(ctx);
+      if (!text) return;
+      await renderConfirmStep(ctx, false);
+    },
+  );
+
+  scene.action(BOOKING_SERVICE_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+
+    const state = getSceneState(ctx);
+    const matches = ctx.match as RegExpExecArray | string[];
+    const serviceId = String(matches[1]);
+    const service = state.services.find((item) => item.id === serviceId);
+    if (!service) {
+      await renderServiceStep(ctx, true);
+      return;
+    }
+
+    state.studioId = service.studioId;
+    state.serviceId = service.id;
+    state.serviceName = service.name;
+    resetAfterService(state);
+
+    ctx.wizard.selectStep(2);
+    await renderDateStep(ctx, true);
+  });
+
+  scene.action(BOOKING_DATE_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+
+    const state = getSceneState(ctx);
+    const matches = ctx.match as RegExpExecArray | string[];
+    const dateCode = String(matches[1]);
+    const parsed = bookingDateCodeSchema.safeParse(dateCode);
+    if (!parsed.success) {
+      await renderDateStep(ctx, true);
+      return;
+    }
+
+    state.dateCode = parsed.data;
+    resetAfterDate(state);
+
+    if (!state.studioId || !state.serviceId) {
+      await renderServiceStep(ctx, true);
+      ctx.wizard.selectStep(1);
+      return;
+    }
+
+    const availableTimeCodes = await listAvailableTimeCodesForBookingDate({
+      studioId: state.studioId,
+      serviceId: state.serviceId,
+      dateCode: state.dateCode,
+      timeCodes: getCandidateTimeCodesForDate(state.dateCode),
+    });
+
+    if (availableTimeCodes.length === 0) {
+      await ctx.reply(tBot(state.language, 'BOOKING_NO_SLOTS'));
+      ctx.wizard.selectStep(2);
+      await renderDateStep(ctx, true);
+      return;
+    }
+
+    state.availableTimeCodes = availableTimeCodes;
+
+    ctx.wizard.selectStep(3);
+    await renderTimeStep(ctx, true);
+  });
+
+  scene.action(BOOKING_TIME_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+
+    const state = getSceneState(ctx);
+    const matches = ctx.match as RegExpExecArray | string[];
+    const timeCode = String(matches[1]);
+    const parsed = bookingTimeCodeSchema.safeParse(timeCode);
+    if (!parsed.success) {
+      await renderTimeStep(ctx, true);
+      return;
+    }
+
+    if (!state.dateCode) {
+      await renderDateStep(ctx, true);
+      return;
+    }
+
+    if (state.availableTimeCodes.length === 0) {
+      await renderTimeStep(ctx, true);
+      return;
+    }
+
+    const allowedTimeCodes = new Set(state.availableTimeCodes);
+    if (!allowedTimeCodes.has(parsed.data)) {
+      await renderTimeStep(ctx, true);
+      return;
+    }
+
+    state.timeCode = parsed.data;
+    resetAfterTime(state);
+
+    ctx.wizard.selectStep(4);
+    await renderMasterStep(ctx, true);
+  });
+
+  scene.action(BOOKING_MASTER_ACTION_REGEX, async (ctx) => {
+    await ctx.answerCbQuery();
+
+    const state = getSceneState(ctx);
+    const matches = ctx.match as RegExpExecArray | string[];
+    const masterId = String(matches[1]);
+
+    const selectedMaster = state.masters.find((master) => master.masterId === masterId) ?? null;
+    if (!selectedMaster) {
+      await renderMasterStep(ctx, true);
+      return;
+    }
+
+    state.masterId = selectedMaster.masterId;
+    state.masterName = selectedMaster.displayName;
+    state.attendeeName = state.profileName;
+    state.attendeePhone = null;
+
+    if (state.profilePhone && state.isProfilePhoneVerified) {
+      state.attendeePhone = state.profilePhone;
+      ctx.wizard.selectStep(6);
+      await renderConfirmStep(ctx, true);
+      return;
+    }
+
+    ctx.wizard.selectStep(5);
+    await renderPhoneStep(ctx);
+  });
+
+  scene.action(BOOKING_ACTION.PHONE_USE_UNVERIFIED, async (ctx) => {
+    await ctx.answerCbQuery();
+
+    const state = getSceneState(ctx);
+    if (!state.profilePhone) {
+      await renderPhoneStep(ctx, tBot(state.language, 'BOOKING_TEXT_PHONE_NOT_IN_PROFILE'));
+      return;
+    }
+
+    state.attendeePhone = state.profilePhone;
+    ctx.wizard.selectStep(6);
+    await renderConfirmStep(ctx, true);
+  });
+
+  scene.action(BOOKING_ACTION.PHONE_GO_PROFILE, async (ctx) => {
+    await ctx.answerCbQuery();
+    await ctx.scene.leave();
+    const user = await getOrCreateUser(ctx);
+    await sendProfileCard(ctx, user);
+  });
+
+  scene.action(BOOKING_ACTION.CONFIRM, async (ctx) => {
+    await ctx.answerCbQuery();
+
+    const state = getSceneState(ctx);
+    if (
+      !state.clientId ||
+      !state.studioId ||
+      !state.serviceId ||
+      !state.masterId ||
+      !state.dateCode ||
+      !state.timeCode ||
+      !state.attendeeName ||
+      !state.attendeePhone
+    ) {
+      await renderServiceStep(ctx, true);
+      ctx.wizard.selectStep(1);
+      return;
+    }
+
+    try {
+      const result = await createPendingBooking({
+        clientId: state.clientId,
+        studioId: state.studioId,
+        serviceId: state.serviceId,
+        masterId: state.masterId,
+        attendeeName: state.attendeeName,
+        attendeePhoneE164: state.attendeePhone,
+        startAt: toStartAt(state.dateCode, state.timeCode),
+      });
+
+      const translatedMeta = await translateBookingMetaForUser(result.meta, state.language);
+      await ctx.scene.leave();
+      await ctx.reply(
+        formatBookingSuccessText(
+          {
+            ...result,
+            meta: translatedMeta,
+          },
+          state.language,
+        ),
+      );
+
+      if (state.profileEmail) {
+        const emailSent = await sendClientBookingCreatedEmail({
+          to: state.profileEmail,
+          language: state.language,
+          recipientName: state.profileName,
+          bookingId: result.appointment.id,
+          studioName: result.meta.studioName,
+          serviceName: result.meta.serviceName,
+          masterName: result.meta.masterDisplayName,
+          startAt: result.appointment.startAt,
+        });
+
+        if (emailSent) {
+          await ctx.reply(tBot(state.language, 'BOOKING_EMAIL_SENT'));
+        }
+      }
+
+      await sendClientMainMenu(ctx);
+    } catch (error) {
+      if (!(error instanceof ValidationError)) {
+        throw error;
+      }
+
+      const code = error.metadata?.code;
+      if (code === BOOKING_ERROR_CODE.SERVICE_UNAVAILABLE || code === BOOKING_ERROR_CODE.MASTER_UNAVAILABLE) {
+        ctx.wizard.selectStep(4);
+        await ctx.reply(tBot(state.language, 'BOOKING_NO_MASTERS'));
+        await renderMasterStep(ctx, false);
+        return;
+      }
+
+      if (code === BOOKING_ERROR_CODE.SLOT_CONFLICT) {
+        ctx.wizard.selectStep(3);
+        await ctx.reply(tBot(state.language, 'BOOKING_NO_SLOTS'));
+        await renderTimeStep(ctx, false);
+        return;
+      }
+
+      await ctx.reply(tBot(state.language, 'BOOKING_ERROR_FALLBACK'));
+      await renderConfirmStep(ctx, true);
+    }
+  });
+
+  scene.action(BOOKING_ACTION.CHANGE, async (ctx) => {
+    await ctx.answerCbQuery();
+
+    const state = getSceneState(ctx);
+    resetBookingDraft(state);
+
+    ctx.wizard.selectStep(1);
+    await renderServiceStep(ctx, true);
+  });
+
+  scene.action(BOOKING_ACTION.CANCEL, async (ctx) => {
+    await ctx.answerCbQuery();
+    await handleCancel(ctx);
+  });
+
+  scene.action(BOOKING_ACTION.HOME, async (ctx) => {
+    await ctx.answerCbQuery();
+    await handleCancel(ctx);
+  });
+
+  scene.action(BOOKING_ACTION.BACK, async (ctx) => {
+    await ctx.answerCbQuery();
+
+    const cursor = ctx.wizard.cursor;
+    if (cursor <= 1) {
+      await renderServiceStep(ctx, true);
+      return;
+    }
+
+    if (cursor === 2) {
+      ctx.wizard.selectStep(1);
+      await renderServiceStep(ctx, true);
+      return;
+    }
+
+    if (cursor === 3) {
+      ctx.wizard.selectStep(2);
+      await renderDateStep(ctx, true);
+      return;
+    }
+
+    if (cursor === 4) {
+      ctx.wizard.selectStep(3);
+      await renderTimeStep(ctx, true);
+      return;
+    }
+
+    if (cursor === 5) {
+      ctx.wizard.selectStep(4);
+      await renderMasterStep(ctx, true);
+      return;
+    }
+
+    if (isPhoneStepRequired(getSceneState(ctx))) {
+      ctx.wizard.selectStep(5);
+      await renderPhoneStep(ctx, tBot(getSceneState(ctx).language, 'BOOKING_TEXT_BACK_STEP'));
+      return;
+    }
+
+    ctx.wizard.selectStep(4);
+    await renderMasterStep(ctx, true);
+  });
+
+  return scene;
+}
